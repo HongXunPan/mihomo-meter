@@ -1,0 +1,42 @@
+name: 持续集成
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: 构建与测试
+    runs-on: macos-26
+    timeout-minutes: 15
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 输出工具链版本
+        run: |
+          xcodebuild -version
+          xcrun swift --version
+
+      - name: 检查 Swift 格式
+        run: xcrun swift format lint --recursive --strict Sources Tests
+
+      - name: 构建并运行测试
+        run: |
+          xcodebuild \
+            -project MihomoMeter.xcodeproj \
+            -scheme MihomoMeter \
+            -destination 'platform=macOS' \
+            -derivedDataPath "$RUNNER_TEMP/MihomoMeterDerivedData" \
+            CODE_SIGNING_ALLOWED=NO \
+            build test

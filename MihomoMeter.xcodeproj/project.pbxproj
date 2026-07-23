@@ -1,0 +1,497 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A10000000000000000000201 /* MihomoMeterApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000101 /* MihomoMeterApp.swift */; };
+		A10000000000000000000202 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000102 /* AppDelegate.swift */; };
+		A10000000000000000000203 /* TrafficRate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000103 /* TrafficRate.swift */; };
+		A10000000000000000000204 /* TrafficRateFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000104 /* TrafficRateFormatter.swift */; };
+		A10000000000000000000205 /* MenuBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000105 /* MenuBarController.swift */; };
+		A10000000000000000000206 /* TrafficPopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000106 /* TrafficPopoverView.swift */; };
+		A10000000000000000000207 /* TrafficRateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000107 /* TrafficRateTests.swift */; };
+		A10000000000000000000208 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A10000000000000000000111 /* XCTest.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		A10000000000000000000701 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A10000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A10000000000000000000401;
+			remoteInfo = MihomoMeter;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		A10000000000000000000101 /* MihomoMeterApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MihomoMeterApp.swift; sourceTree = "<group>"; };
+		A10000000000000000000102 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		A10000000000000000000103 /* TrafficRate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficRate.swift; sourceTree = "<group>"; };
+		A10000000000000000000104 /* TrafficRateFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficRateFormatter.swift; sourceTree = "<group>"; };
+		A10000000000000000000105 /* MenuBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarController.swift; sourceTree = "<group>"; };
+		A10000000000000000000106 /* TrafficPopoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficPopoverView.swift; sourceTree = "<group>"; };
+		A10000000000000000000107 /* TrafficRateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficRateTests.swift; sourceTree = "<group>"; };
+		A10000000000000000000108 /* MihomoMeter.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MihomoMeter.entitlements; sourceTree = "<group>"; };
+		A10000000000000000000109 /* MihomoMeter.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MihomoMeter.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A10000000000000000000110 /* MihomoMeterTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MihomoMeterTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		A10000000000000000000111 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = System/Library/Frameworks/XCTest.framework; sourceTree = SDKROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A10000000000000000000303 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A10000000000000000000304 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000000000000000000208 /* XCTest.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		A10000000000000000000002 = {
+			isa = PBXGroup;
+			children = (
+				A10000000000000000000004 /* Sources */,
+				A10000000000000000000008 /* Tests */,
+				A10000000000000000000108 /* MihomoMeter.entitlements */,
+				A10000000000000000000009 /* Frameworks */,
+				A10000000000000000000003 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A10000000000000000000003 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A10000000000000000000109 /* MihomoMeter.app */,
+				A10000000000000000000110 /* MihomoMeterTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		A10000000000000000000004 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				A10000000000000000000005 /* Application */,
+				A10000000000000000000006 /* Domain */,
+				A10000000000000000000007 /* Presentation */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		A10000000000000000000005 /* Application */ = {
+			isa = PBXGroup;
+			children = (
+				A10000000000000000000102 /* AppDelegate.swift */,
+				A10000000000000000000101 /* MihomoMeterApp.swift */,
+			);
+			path = Application;
+			sourceTree = "<group>";
+		};
+		A10000000000000000000006 /* Domain */ = {
+			isa = PBXGroup;
+			children = (
+				A10000000000000000000103 /* TrafficRate.swift */,
+			);
+			path = Domain;
+			sourceTree = "<group>";
+		};
+		A10000000000000000000007 /* Presentation */ = {
+			isa = PBXGroup;
+			children = (
+				A10000000000000000000105 /* MenuBarController.swift */,
+				A10000000000000000000104 /* TrafficRateFormatter.swift */,
+				A10000000000000000000106 /* TrafficPopoverView.swift */,
+			);
+			path = Presentation;
+			sourceTree = "<group>";
+		};
+		A10000000000000000000008 /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				A10000000000000000000107 /* TrafficRateTests.swift */,
+			);
+			path = Tests;
+			sourceTree = "<group>";
+		};
+		A10000000000000000000009 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				A10000000000000000000111 /* XCTest.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A10000000000000000000401 /* MihomoMeter */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A10000000000000000000602 /* Build configuration list for PBXNativeTarget "MihomoMeter" */;
+			buildPhases = (
+				A10000000000000000000301 /* Sources */,
+				A10000000000000000000303 /* Frameworks */,
+				A10000000000000000000305 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = MihomoMeter;
+			productName = MihomoMeter;
+			productReference = A10000000000000000000109 /* MihomoMeter.app */;
+			productType = "com.apple.product-type.application";
+		};
+		A10000000000000000000402 /* MihomoMeterTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A10000000000000000000603 /* Build configuration list for PBXNativeTarget "MihomoMeterTests" */;
+			buildPhases = (
+				A10000000000000000000302 /* Sources */,
+				A10000000000000000000304 /* Frameworks */,
+				A10000000000000000000306 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A10000000000000000000702 /* PBXTargetDependency */,
+			);
+			name = MihomoMeterTests;
+			productName = MihomoMeterTests;
+			productReference = A10000000000000000000110 /* MihomoMeterTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A10000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2650;
+				LastUpgradeCheck = 2650;
+				TargetAttributes = {
+					A10000000000000000000401 = {
+						CreatedOnToolsVersion = 26.5;
+					};
+					A10000000000000000000402 = {
+						CreatedOnToolsVersion = 26.5;
+						TestTargetID = A10000000000000000000401;
+					};
+				};
+			};
+			buildConfigurationList = A10000000000000000000601 /* Build configuration list for PBXProject "MihomoMeter" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+				"zh-Hans",
+			);
+			mainGroup = A10000000000000000000002;
+			productRefGroup = A10000000000000000000003 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A10000000000000000000401 /* MihomoMeter */,
+				A10000000000000000000402 /* MihomoMeterTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A10000000000000000000305 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A10000000000000000000306 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A10000000000000000000301 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000000000000000000202 /* AppDelegate.swift in Sources */,
+				A10000000000000000000205 /* MenuBarController.swift in Sources */,
+				A10000000000000000000201 /* MihomoMeterApp.swift in Sources */,
+				A10000000000000000000203 /* TrafficRate.swift in Sources */,
+				A10000000000000000000204 /* TrafficRateFormatter.swift in Sources */,
+				A10000000000000000000206 /* TrafficPopoverView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A10000000000000000000302 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000000000000000000207 /* TrafficRateTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		A10000000000000000000702 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A10000000000000000000401 /* MihomoMeter */;
+			targetProxy = A10000000000000000000701 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		A10000000000000000000501 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		A10000000000000000000502 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		A10000000000000000000503 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = MihomoMeter.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Mihomo Meter";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_LSUIElement = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.hongxunpan.MihomoMeter;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		A10000000000000000000504 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = MihomoMeter.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Mihomo Meter";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_LSUIElement = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.hongxunpan.MihomoMeter;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		A10000000000000000000505 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.hongxunpan.MihomoMeterTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MihomoMeter.app/Contents/MacOS/MihomoMeter";
+			};
+			name = Debug;
+		};
+		A10000000000000000000506 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.hongxunpan.MihomoMeterTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MihomoMeter.app/Contents/MacOS/MihomoMeter";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A10000000000000000000601 /* Build configuration list for PBXProject "MihomoMeter" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A10000000000000000000501 /* Debug */,
+				A10000000000000000000502 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A10000000000000000000602 /* Build configuration list for PBXNativeTarget "MihomoMeter" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A10000000000000000000503 /* Debug */,
+				A10000000000000000000504 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A10000000000000000000603 /* Build configuration list for PBXNativeTarget "MihomoMeterTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A10000000000000000000505 /* Debug */,
+				A10000000000000000000506 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = A10000000000000000000001 /* Project object */;
+}
