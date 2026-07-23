@@ -3,9 +3,9 @@
 [![持续集成](https://github.com/HongXunPan/mihomo-meter/actions/workflows/ci.yml/badge.svg)](https://github.com/HongXunPan/mihomo-meter/actions/workflows/ci.yml)
 [![许可证](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-Mihomo Meter 是一款原生 macOS 状态栏应用，计划通过 Mihomo Controller API 统计真实经过代理出口的实时网速与累计流量。
+Mihomo Meter 是一款原生 macOS 状态栏应用，通过 Mihomo Controller API 统计真实经过代理出口的实时网速。
 
-> 当前处于早期开发阶段。仓库已提供可运行的状态栏应用骨架，尚未实现 Mihomo Controller 接入和正式流量统计。
+> 当前已完成 MVP-1 实时纵切；今日、总累计、统计记录点和订阅余额走势尚未实现。
 
 ## 为什么开发
 
@@ -30,7 +30,22 @@ Mihomo Meter 是只读监控工具：
 - 不抓包，不解密网络内容
 - 不把本机统计宣称为机场计费结果
 
-## 当前骨架
+## MVP-1 已实现
+
+- 用户手动填写本机 Controller 地址和 Secret
+- 仅允许 `127.0.0.1` 或 `::1`
+- 使用 `/version` 验证连接和鉴权
+- 使用 `/proxies` 建立出口类型目录
+- 使用 `/connections?interval=500` WebSocket 采集连接快照
+- 独立展示 Proxy、DIRECT、REJECT 和未知实时速度
+- 计算分类覆盖率
+- 最近两个完整一秒窗口平滑
+- 数据超过 2 秒未更新时归零并指数退避重连
+- Controller 地址保存到应用设置，Secret 仅保存到 macOS Keychain
+
+应用不会读取 Clash Verge 配置文件或私有 IPC，也不会自动获取 Secret。
+
+## 项目结构
 
 ```text
 .
@@ -39,6 +54,7 @@ Mihomo Meter 是只读监控工具：
 ├── Sources/
 │   ├── Application/         # 应用入口与生命周期
 │   ├── Domain/              # 与界面无关的领域模型
+│   ├── Infrastructure/      # Controller、WebSocket 与 Keychain
 │   └── Presentation/        # 状态栏和弹层界面
 ├── Tests/                   # 单元测试
 └── docs/                    # 公开架构、隐私和路线图
@@ -66,6 +82,16 @@ open MihomoMeter.xcodeproj
 
 在 Xcode 中选择 `MihomoMeter` Scheme 后运行。
 
+首次运行：
+
+1. 确认 Mihomo 已启用本机 External Controller。
+2. 点击状态栏中的 Mihomo Meter。
+3. 手动填写回环 Controller 地址，例如 `127.0.0.1:9090`。
+4. 手动填写 Secret；Controller 未配置鉴权时可以留空。
+5. 点击“连接”。
+
+详细口径与异常状态见 [MVP-1 使用与统计口径](docs/MVP-1使用与统计口径.md)。
+
 命令行验证：
 
 ```bash
@@ -82,6 +108,7 @@ xcodebuild \
 
 - [架构概览](docs/架构概览.md)
 - [数据与隐私](docs/数据与隐私.md)
+- [MVP-1 使用与统计口径](docs/MVP-1使用与统计口径.md)
 - [开发路线图](docs/路线图.md)
 - [贡献指南](CONTRIBUTING.md)
 - [安全策略](SECURITY.md)

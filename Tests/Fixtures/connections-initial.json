@@ -1,0 +1,30 @@
+{
+  "downloadTotal": 2000,
+  "uploadTotal": 1000,
+  "memory": 4096,
+  "connections": [
+    {
+      "id": "synthetic-direct",
+      "upload": 100,
+      "download": 300,
+      "chains": [
+        "DIRECT"
+      ],
+      "providerChains": [],
+      "rule": "MATCH"
+    },
+    {
+      "id": "synthetic-proxy",
+      "upload": 200,
+      "download": 500,
+      "chains": [
+        "Synthetic Proxy",
+        "Synthetic Group"
+      ],
+      "providerChains": [
+        "Synthetic Provider"
+      ],
+      "rule": "DOMAIN"
+    }
+  ]
+}

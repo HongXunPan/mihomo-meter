@@ -1,18 +1,23 @@
 import AppKit
+import Combine
 import SwiftUI
 
 @MainActor
 final class MenuBarController: NSObject {
   private let statusItem: NSStatusItem
   private let popover: NSPopover
+  private let monitor: TrafficMonitor
+  private var cancellables: Set<AnyCancellable> = []
 
-  override init() {
+  init(monitor: TrafficMonitor) {
     statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     popover = NSPopover()
+    self.monitor = monitor
     super.init()
 
     configureStatusItem()
     configurePopover()
+    observeMonitor()
   }
 
   private func configureStatusItem() {
@@ -29,10 +34,24 @@ final class MenuBarController: NSObject {
 
   private func configurePopover() {
     popover.behavior = .transient
-    popover.contentSize = NSSize(width: 320, height: 210)
+    popover.contentSize = NSSize(width: 380, height: 560)
     popover.contentViewController = NSHostingController(
-      rootView: TrafficPopoverView(rate: .zero)
+      rootView: TrafficPopoverView(monitor: monitor)
     )
+  }
+
+  private func observeMonitor() {
+    monitor.$rates
+      .combineLatest(monitor.$connectionState)
+      .sink { [weak self] rate, state in
+        guard let button = self?.statusItem.button else {
+          return
+        }
+
+        button.title = TrafficRateFormatter.statusTitle(for: rate.proxy)
+        button.toolTip = "Mihomo Meter · \(state.title)"
+      }
+      .store(in: &cancellables)
   }
 
   @objc

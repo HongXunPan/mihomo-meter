@@ -1,0 +1,25 @@
+{
+  "proxies": {
+    "DIRECT": {
+      "name": "DIRECT",
+      "type": "Direct"
+    },
+    "REJECT": {
+      "name": "REJECT",
+      "type": "Reject"
+    },
+    "Synthetic Group": {
+      "name": "Synthetic Group",
+      "type": "Selector",
+      "now": "Synthetic Proxy",
+      "all": [
+        "Synthetic Proxy",
+        "DIRECT"
+      ]
+    },
+    "Synthetic Proxy": {
+      "name": "Synthetic Proxy",
+      "type": "Vmess"
+    }
+  }
+}

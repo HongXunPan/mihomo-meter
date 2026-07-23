@@ -3,6 +3,8 @@
 /DerivedData/
 /build/
 *.log
+*.profraw
+*.profdata
 *.xcuserstate
 **/xcuserdata/
 *.xccheckout

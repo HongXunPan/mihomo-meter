@@ -25,4 +25,16 @@ final class TrafficRateTests: XCTestCase {
       "P ↓ 2.00 KB/s  ↑ 1.00 KB/s"
     )
   }
+
+  func testCoveragePercentageClampsInvalidRange() {
+    XCTAssertEqual(TrafficRateFormatter.percentage(from: nil), "—")
+    XCTAssertEqual(TrafficRateFormatter.percentage(from: 0.9998), "99.98%")
+    XCTAssertEqual(TrafficRateFormatter.percentage(from: 2), "100.00%")
+  }
+
+  func testCoveragePolicyMarksValuesBelowNinetyFivePercentAsLow() {
+    XCTAssertEqual(TrafficCoveragePolicy.quality(for: nil), .unavailable)
+    XCTAssertEqual(TrafficCoveragePolicy.quality(for: 0.9499), .low)
+    XCTAssertEqual(TrafficCoveragePolicy.quality(for: 0.95), .reliable)
+  }
 }

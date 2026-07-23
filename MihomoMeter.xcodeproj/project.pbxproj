@@ -15,6 +15,32 @@
 		A10000000000000000000206 /* TrafficPopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000106 /* TrafficPopoverView.swift */; };
 		A10000000000000000000207 /* TrafficRateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000107 /* TrafficRateTests.swift */; };
 		A10000000000000000000208 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A10000000000000000000111 /* XCTest.framework */; };
+		A20000000000000000000201 /* ControllerEndpoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000101 /* ControllerEndpoint.swift */; };
+		A20000000000000000000202 /* MihomoControllerModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000102 /* MihomoControllerModels.swift */; };
+		A20000000000000000000203 /* MihomoControllerClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000103 /* MihomoControllerClient.swift */; };
+		A20000000000000000000204 /* KeychainSecretStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000104 /* KeychainSecretStore.swift */; };
+		A20000000000000000000205 /* FixtureLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000105 /* FixtureLoader.swift */; };
+		A20000000000000000000206 /* ControllerEndpointTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000106 /* ControllerEndpointTests.swift */; };
+		A20000000000000000000207 /* MihomoControllerModelsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000107 /* MihomoControllerModelsTests.swift */; };
+		A20000000000000000000208 /* version.json in Resources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000108 /* version.json */; };
+		A20000000000000000000209 /* proxies.json in Resources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000109 /* proxies.json */; };
+		A2000000000000000000020A /* connections-initial.json in Resources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000010A /* connections-initial.json */; };
+		A2000000000000000000020B /* connections-next.json in Resources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000010B /* connections-next.json */; };
+		A30000000000000000000201 /* TrafficMeasurement.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000101 /* TrafficMeasurement.swift */; };
+		A30000000000000000000202 /* ProxyClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000102 /* ProxyClassifier.swift */; };
+		A30000000000000000000203 /* ConnectionDeltaTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000103 /* ConnectionDeltaTracker.swift */; };
+		A30000000000000000000204 /* TrafficRateAggregator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000104 /* TrafficRateAggregator.swift */; };
+		A30000000000000000000205 /* ProxyClassifierTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000105 /* ProxyClassifierTests.swift */; };
+		A30000000000000000000206 /* ConnectionDeltaTrackerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000106 /* ConnectionDeltaTrackerTests.swift */; };
+		A30000000000000000000207 /* TrafficRateAggregatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000107 /* TrafficRateAggregatorTests.swift */; };
+		A40000000000000000000201 /* ReconnectBackoff.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000101 /* ReconnectBackoff.swift */; };
+		A40000000000000000000202 /* MonitorConnectionState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000102 /* MonitorConnectionState.swift */; };
+		A40000000000000000000203 /* TrafficMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000103 /* TrafficMonitor.swift */; };
+		A40000000000000000000204 /* ConnectionSnapshotDecoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000104 /* ConnectionSnapshotDecoder.swift */; };
+		A40000000000000000000205 /* ConnectionStreamCollector.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000105 /* ConnectionStreamCollector.swift */; };
+		A40000000000000000000206 /* ConnectionSnapshotDecoderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000106 /* ConnectionSnapshotDecoderTests.swift */; };
+		A40000000000000000000207 /* ReconnectBackoffTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000107 /* ReconnectBackoffTests.swift */; };
+		A50000000000000000000201 /* TrafficMonitorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A50000000000000000000101 /* TrafficMonitorTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -39,6 +65,32 @@
 		A10000000000000000000109 /* MihomoMeter.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MihomoMeter.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A10000000000000000000110 /* MihomoMeterTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MihomoMeterTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A10000000000000000000111 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = System/Library/Frameworks/XCTest.framework; sourceTree = SDKROOT; };
+		A20000000000000000000101 /* ControllerEndpoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControllerEndpoint.swift; sourceTree = "<group>"; };
+		A20000000000000000000102 /* MihomoControllerModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MihomoControllerModels.swift; sourceTree = "<group>"; };
+		A20000000000000000000103 /* MihomoControllerClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MihomoControllerClient.swift; sourceTree = "<group>"; };
+		A20000000000000000000104 /* KeychainSecretStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainSecretStore.swift; sourceTree = "<group>"; };
+		A20000000000000000000105 /* FixtureLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FixtureLoader.swift; sourceTree = "<group>"; };
+		A20000000000000000000106 /* ControllerEndpointTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControllerEndpointTests.swift; sourceTree = "<group>"; };
+		A20000000000000000000107 /* MihomoControllerModelsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MihomoControllerModelsTests.swift; sourceTree = "<group>"; };
+		A20000000000000000000108 /* version.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = version.json; sourceTree = "<group>"; };
+		A20000000000000000000109 /* proxies.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = proxies.json; sourceTree = "<group>"; };
+		A2000000000000000000010A /* connections-initial.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "connections-initial.json"; sourceTree = "<group>"; };
+		A2000000000000000000010B /* connections-next.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "connections-next.json"; sourceTree = "<group>"; };
+		A30000000000000000000101 /* TrafficMeasurement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficMeasurement.swift; sourceTree = "<group>"; };
+		A30000000000000000000102 /* ProxyClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProxyClassifier.swift; sourceTree = "<group>"; };
+		A30000000000000000000103 /* ConnectionDeltaTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionDeltaTracker.swift; sourceTree = "<group>"; };
+		A30000000000000000000104 /* TrafficRateAggregator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficRateAggregator.swift; sourceTree = "<group>"; };
+		A30000000000000000000105 /* ProxyClassifierTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProxyClassifierTests.swift; sourceTree = "<group>"; };
+		A30000000000000000000106 /* ConnectionDeltaTrackerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionDeltaTrackerTests.swift; sourceTree = "<group>"; };
+		A30000000000000000000107 /* TrafficRateAggregatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficRateAggregatorTests.swift; sourceTree = "<group>"; };
+		A40000000000000000000101 /* ReconnectBackoff.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReconnectBackoff.swift; sourceTree = "<group>"; };
+		A40000000000000000000102 /* MonitorConnectionState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonitorConnectionState.swift; sourceTree = "<group>"; };
+		A40000000000000000000103 /* TrafficMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficMonitor.swift; sourceTree = "<group>"; };
+		A40000000000000000000104 /* ConnectionSnapshotDecoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionSnapshotDecoder.swift; sourceTree = "<group>"; };
+		A40000000000000000000105 /* ConnectionStreamCollector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionStreamCollector.swift; sourceTree = "<group>"; };
+		A40000000000000000000106 /* ConnectionSnapshotDecoderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionSnapshotDecoderTests.swift; sourceTree = "<group>"; };
+		A40000000000000000000107 /* ReconnectBackoffTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReconnectBackoffTests.swift; sourceTree = "<group>"; };
+		A50000000000000000000101 /* TrafficMonitorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficMonitorTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -85,6 +137,7 @@
 			children = (
 				A10000000000000000000005 /* Application */,
 				A10000000000000000000006 /* Domain */,
+				A20000000000000000000001 /* Infrastructure */,
 				A10000000000000000000007 /* Presentation */,
 			);
 			path = Sources;
@@ -95,6 +148,9 @@
 			children = (
 				A10000000000000000000102 /* AppDelegate.swift */,
 				A10000000000000000000101 /* MihomoMeterApp.swift */,
+				A40000000000000000000102 /* MonitorConnectionState.swift */,
+				A40000000000000000000101 /* ReconnectBackoff.swift */,
+				A40000000000000000000103 /* TrafficMonitor.swift */,
 			);
 			path = Application;
 			sourceTree = "<group>";
@@ -102,7 +158,12 @@
 		A10000000000000000000006 /* Domain */ = {
 			isa = PBXGroup;
 			children = (
+				A30000000000000000000103 /* ConnectionDeltaTracker.swift */,
 				A10000000000000000000103 /* TrafficRate.swift */,
+				A20000000000000000000101 /* ControllerEndpoint.swift */,
+				A30000000000000000000102 /* ProxyClassifier.swift */,
+				A30000000000000000000101 /* TrafficMeasurement.swift */,
+				A30000000000000000000104 /* TrafficRateAggregator.swift */,
 			);
 			path = Domain;
 			sourceTree = "<group>";
@@ -120,7 +181,17 @@
 		A10000000000000000000008 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
+				A30000000000000000000106 /* ConnectionDeltaTrackerTests.swift */,
+				A40000000000000000000106 /* ConnectionSnapshotDecoderTests.swift */,
+				A20000000000000000000106 /* ControllerEndpointTests.swift */,
+				A20000000000000000000105 /* FixtureLoader.swift */,
+				A20000000000000000000107 /* MihomoControllerModelsTests.swift */,
+				A30000000000000000000105 /* ProxyClassifierTests.swift */,
+				A40000000000000000000107 /* ReconnectBackoffTests.swift */,
+				A30000000000000000000107 /* TrafficRateAggregatorTests.swift */,
 				A10000000000000000000107 /* TrafficRateTests.swift */,
+				A50000000000000000000101 /* TrafficMonitorTests.swift */,
+				A20000000000000000000004 /* Fixtures */,
 			);
 			path = Tests;
 			sourceTree = "<group>";
@@ -131,6 +202,45 @@
 				A10000000000000000000111 /* XCTest.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		A20000000000000000000001 /* Infrastructure */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000002 /* Mihomo */,
+				A20000000000000000000003 /* Security */,
+			);
+			path = Infrastructure;
+			sourceTree = "<group>";
+		};
+		A20000000000000000000002 /* Mihomo */ = {
+			isa = PBXGroup;
+			children = (
+				A40000000000000000000104 /* ConnectionSnapshotDecoder.swift */,
+				A40000000000000000000105 /* ConnectionStreamCollector.swift */,
+				A20000000000000000000103 /* MihomoControllerClient.swift */,
+				A20000000000000000000102 /* MihomoControllerModels.swift */,
+			);
+			path = Mihomo;
+			sourceTree = "<group>";
+		};
+		A20000000000000000000003 /* Security */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000104 /* KeychainSecretStore.swift */,
+			);
+			path = Security;
+			sourceTree = "<group>";
+		};
+		A20000000000000000000004 /* Fixtures */ = {
+			isa = PBXGroup;
+			children = (
+				A2000000000000000000010A /* connections-initial.json */,
+				A2000000000000000000010B /* connections-next.json */,
+				A20000000000000000000109 /* proxies.json */,
+				A20000000000000000000108 /* version.json */,
+			);
+			path = Fixtures;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -222,6 +332,10 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A2000000000000000000020A /* connections-initial.json in Resources */,
+				A2000000000000000000020B /* connections-next.json in Resources */,
+				A20000000000000000000209 /* proxies.json in Resources */,
+				A20000000000000000000208 /* version.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -233,9 +347,22 @@
 			buildActionMask = 2147483647;
 			files = (
 				A10000000000000000000202 /* AppDelegate.swift in Sources */,
+				A30000000000000000000203 /* ConnectionDeltaTracker.swift in Sources */,
+				A40000000000000000000204 /* ConnectionSnapshotDecoder.swift in Sources */,
+				A40000000000000000000205 /* ConnectionStreamCollector.swift in Sources */,
+				A20000000000000000000201 /* ControllerEndpoint.swift in Sources */,
+				A20000000000000000000204 /* KeychainSecretStore.swift in Sources */,
 				A10000000000000000000205 /* MenuBarController.swift in Sources */,
+				A20000000000000000000203 /* MihomoControllerClient.swift in Sources */,
+				A20000000000000000000202 /* MihomoControllerModels.swift in Sources */,
 				A10000000000000000000201 /* MihomoMeterApp.swift in Sources */,
+				A40000000000000000000202 /* MonitorConnectionState.swift in Sources */,
+				A30000000000000000000202 /* ProxyClassifier.swift in Sources */,
+				A40000000000000000000201 /* ReconnectBackoff.swift in Sources */,
+				A30000000000000000000201 /* TrafficMeasurement.swift in Sources */,
+				A40000000000000000000203 /* TrafficMonitor.swift in Sources */,
 				A10000000000000000000203 /* TrafficRate.swift in Sources */,
+				A30000000000000000000204 /* TrafficRateAggregator.swift in Sources */,
 				A10000000000000000000204 /* TrafficRateFormatter.swift in Sources */,
 				A10000000000000000000206 /* TrafficPopoverView.swift in Sources */,
 			);
@@ -245,7 +372,16 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A30000000000000000000206 /* ConnectionDeltaTrackerTests.swift in Sources */,
+				A40000000000000000000206 /* ConnectionSnapshotDecoderTests.swift in Sources */,
+				A20000000000000000000206 /* ControllerEndpointTests.swift in Sources */,
+				A20000000000000000000205 /* FixtureLoader.swift in Sources */,
+				A20000000000000000000207 /* MihomoControllerModelsTests.swift in Sources */,
+				A30000000000000000000205 /* ProxyClassifierTests.swift in Sources */,
+				A40000000000000000000207 /* ReconnectBackoffTests.swift in Sources */,
+				A30000000000000000000207 /* TrafficRateAggregatorTests.swift in Sources */,
 				A10000000000000000000207 /* TrafficRateTests.swift in Sources */,
+				A50000000000000000000201 /* TrafficMonitorTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -387,7 +523,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 0.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.hongxunpan.MihomoMeter;
+				PRODUCT_BUNDLE_IDENTIFIER = com.HongXunPan.MihomoMeter;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_STRICT_CONCURRENCY = complete;
@@ -413,7 +549,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 0.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.hongxunpan.MihomoMeter;
+				PRODUCT_BUNDLE_IDENTIFIER = com.HongXunPan.MihomoMeter;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_STRICT_CONCURRENCY = complete;
@@ -433,7 +569,7 @@
 					"@loader_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.hongxunpan.MihomoMeterTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.HongXunPan.MihomoMeterTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 6.0;
@@ -453,7 +589,7 @@
 					"@loader_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.hongxunpan.MihomoMeterTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.HongXunPan.MihomoMeterTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 6.0;

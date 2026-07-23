@@ -31,4 +31,17 @@ enum TrafficRateFormatter {
 
     return "\(number) \(units[unitIndex])"
   }
+
+  static func percentage(from coverage: Double?) -> String {
+    guard let coverage, coverage.isFinite else {
+      return "—"
+    }
+
+    let normalized = min(max(coverage, 0), 1)
+    return String(
+      format: "%.2f%%",
+      locale: Locale(identifier: "en_US_POSIX"),
+      normalized * 100
+    )
+  }
 }
