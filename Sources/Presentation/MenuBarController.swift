@@ -4,13 +4,20 @@ import SwiftUI
 
 @MainActor
 final class MenuBarController: NSObject {
+  private static let statusItemLength: CGFloat = 58
+  private static let statusContentHeight: CGFloat = 20
+
   private let statusItem: NSStatusItem
+  private let statusContentView: ProxyStatusItemView
   private let popover: NSPopover
   private let monitor: TrafficMonitor
   private var cancellables: Set<AnyCancellable> = []
 
   init(monitor: TrafficMonitor) {
-    statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+    statusItem = NSStatusBar.system.statusItem(
+      withLength: MenuBarController.statusItemLength
+    )
+    statusContentView = ProxyStatusItemView()
     popover = NSPopover()
     self.monitor = monitor
     super.init()
@@ -25,33 +32,61 @@ final class MenuBarController: NSObject {
       return
     }
 
-    button.title = TrafficRateFormatter.statusTitle(for: .zero)
-    button.toolTip = "Mihomo Meter"
+    button.title = ""
+    button.setAccessibilityLabel("Mihomo Meter")
     button.target = self
     button.action = #selector(togglePopover)
     button.sendAction(on: [.leftMouseUp])
+
+    statusContentView.translatesAutoresizingMaskIntoConstraints = false
+    button.addSubview(statusContentView)
+    NSLayoutConstraint.activate([
+      statusContentView.leadingAnchor.constraint(equalTo: button.leadingAnchor, constant: 4),
+      statusContentView.trailingAnchor.constraint(equalTo: button.trailingAnchor, constant: -4),
+      statusContentView.centerYAnchor.constraint(equalTo: button.centerYAnchor),
+      statusContentView.heightAnchor.constraint(equalToConstant: Self.statusContentHeight),
+    ])
+
+    updateStatusItemButton(button, rate: .zero, state: monitor.connectionState)
   }
 
   private func configurePopover() {
     popover.behavior = .transient
-    popover.contentSize = NSSize(width: 380, height: 560)
-    popover.contentViewController = NSHostingController(
+    let hostingController = NSHostingController(
       rootView: TrafficPopoverView(monitor: monitor)
     )
+    hostingController.sizingOptions = []
+    hostingController.preferredContentSize = TrafficPopoverLayout.contentSize
+
+    popover.contentViewController = hostingController
+    popover.contentSize = TrafficPopoverLayout.contentSize
   }
 
   private func observeMonitor() {
     monitor.$rates
       .combineLatest(monitor.$connectionState)
       .sink { [weak self] rate, state in
-        guard let button = self?.statusItem.button else {
+        guard let self, let button = self.statusItem.button else {
           return
         }
 
-        button.title = TrafficRateFormatter.statusTitle(for: rate.proxy)
-        button.toolTip = "Mihomo Meter · \(state.title)"
+        self.updateStatusItemButton(button, rate: rate.proxy, state: state)
       }
       .store(in: &cancellables)
+  }
+
+  private func updateStatusItemButton(
+    _ button: NSStatusBarButton,
+    rate: TrafficRate,
+    state: MonitorConnectionState
+  ) {
+    let summary =
+      "Proxy 下载 \(TrafficRateFormatter.string(from: rate.downloadBytesPerSecond))，"
+      + "上传 \(TrafficRateFormatter.string(from: rate.uploadBytesPerSecond))"
+
+    statusContentView.update(rate: rate)
+    button.toolTip = "Mihomo Meter · \(state.title)\n\(summary)"
+    button.setAccessibilityValue("\(state.title)，\(summary)")
   }
 
   @objc

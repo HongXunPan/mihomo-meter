@@ -14,16 +14,22 @@ final class TrafficRateTests: XCTestCase {
     XCTAssertEqual(TrafficRateFormatter.string(from: 10_000), "10.0 KB/s")
   }
 
-  func testStatusTitleKeepsDownloadBeforeUpload() {
+  func testCompactFormatterRemovesSpacesAndShortensUnits() {
+    XCTAssertEqual(TrafficRateFormatter.compactString(from: 0), "0B/s")
+    XCTAssertEqual(TrafficRateFormatter.compactString(from: 1_500), "1.50K/s")
+    XCTAssertEqual(TrafficRateFormatter.compactString(from: 10_000), "10.0K/s")
+  }
+
+  func testStatusTextKeepsDownloadBeforeUpload() {
     let rate = TrafficRate(
       uploadBytesPerSecond: 1_000,
       downloadBytesPerSecond: 2_000
     )
 
-    XCTAssertEqual(
-      TrafficRateFormatter.statusTitle(for: rate),
-      "P ↓ 2.00 KB/s  ↑ 1.00 KB/s"
-    )
+    let statusText = TrafficRateFormatter.statusText(for: rate)
+
+    XCTAssertEqual(statusText.download, "↓2.00K/s")
+    XCTAssertEqual(statusText.upload, "↑1.00K/s")
   }
 
   func testCoveragePercentageClampsInvalidRange() {

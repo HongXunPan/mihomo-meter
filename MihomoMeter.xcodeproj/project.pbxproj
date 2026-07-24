@@ -41,6 +41,7 @@
 		A40000000000000000000206 /* ConnectionSnapshotDecoderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000106 /* ConnectionSnapshotDecoderTests.swift */; };
 		A40000000000000000000207 /* ReconnectBackoffTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000107 /* ReconnectBackoffTests.swift */; };
 		A50000000000000000000201 /* TrafficMonitorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A50000000000000000000101 /* TrafficMonitorTests.swift */; };
+		A70000000000000000000201 /* ProxyStatusItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A70000000000000000000101 /* ProxyStatusItemView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -91,6 +92,7 @@
 		A40000000000000000000106 /* ConnectionSnapshotDecoderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionSnapshotDecoderTests.swift; sourceTree = "<group>"; };
 		A40000000000000000000107 /* ReconnectBackoffTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReconnectBackoffTests.swift; sourceTree = "<group>"; };
 		A50000000000000000000101 /* TrafficMonitorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficMonitorTests.swift; sourceTree = "<group>"; };
+		A70000000000000000000101 /* ProxyStatusItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProxyStatusItemView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -172,6 +174,7 @@
 			isa = PBXGroup;
 			children = (
 				A10000000000000000000105 /* MenuBarController.swift */,
+				A70000000000000000000101 /* ProxyStatusItemView.swift */,
 				A10000000000000000000104 /* TrafficRateFormatter.swift */,
 				A10000000000000000000106 /* TrafficPopoverView.swift */,
 			);
@@ -356,6 +359,7 @@
 				A20000000000000000000203 /* MihomoControllerClient.swift in Sources */,
 				A20000000000000000000202 /* MihomoControllerModels.swift in Sources */,
 				A10000000000000000000201 /* MihomoMeterApp.swift in Sources */,
+				A70000000000000000000201 /* ProxyStatusItemView.swift in Sources */,
 				A40000000000000000000202 /* MonitorConnectionState.swift in Sources */,
 				A30000000000000000000202 /* ProxyClassifier.swift in Sources */,
 				A40000000000000000000201 /* ReconnectBackoff.swift in Sources */,

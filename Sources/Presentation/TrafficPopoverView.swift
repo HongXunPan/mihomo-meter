@@ -1,6 +1,10 @@
 import AppKit
 import SwiftUI
 
+enum TrafficPopoverLayout {
+  static let contentSize = NSSize(width: 380, height: 560)
+}
+
 struct TrafficPopoverView: View {
   @ObservedObject var monitor: TrafficMonitor
   @State private var showsDiagnostics = false
@@ -17,7 +21,10 @@ struct TrafficPopoverView: View {
       }
       .padding(16)
     }
-    .frame(width: 380, height: 560)
+    .frame(
+      width: TrafficPopoverLayout.contentSize.width,
+      height: TrafficPopoverLayout.contentSize.height
+    )
   }
 
   private var header: some View {
