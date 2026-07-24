@@ -142,4 +142,25 @@ final class KeychainSecretStoreTests: XCTestCase {
     XCTAssertNil(query[kSecAttrSynchronizable as String])
     XCTAssertNil(query[kSecAttrAccessGroup as String])
   }
+
+  func testAppEntitlementsDeclarePrivateDefaultAccessGroup() throws {
+    let repositoryRoot = URL(fileURLWithPath: #filePath)
+      .deletingLastPathComponent()
+      .deletingLastPathComponent()
+    let entitlementsURL =
+      repositoryRoot
+      .appendingPathComponent("MihomoMeter.entitlements")
+    let data = try Data(contentsOf: entitlementsURL)
+    let propertyList = try XCTUnwrap(
+      PropertyListSerialization.propertyList(
+        from: data,
+        format: nil
+      ) as? [String: Any]
+    )
+
+    XCTAssertEqual(
+      propertyList["keychain-access-groups"] as? [String],
+      ["$(AppIdentifierPrefix)$(PRODUCT_BUNDLE_IDENTIFIER)"]
+    )
+  }
 }

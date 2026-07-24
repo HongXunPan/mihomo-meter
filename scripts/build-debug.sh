@@ -14,6 +14,30 @@ usage() {
 EOF
 }
 
+verify_keychain_entitlements() {
+  local target_app_path="$1"
+  local entitlements_output
+
+  if ! entitlements_output="$(
+    codesign -d --entitlements - "${target_app_path}" 2>&1
+  )"; then
+    echo "无法读取构建产物的签名权限，请确认应用已完成有效签名。" >&2
+    return 1
+  fi
+
+  if ! grep -Fq "keychain-access-groups" <<<"${entitlements_output}" ||
+    ! grep -Fq "com.apple.application-identifier" <<<"${entitlements_output}"; then
+    cat >&2 <<'EOF'
+构建产物缺少 Data Protection Keychain 所需的签名权限。
+请确认：
+1. MihomoMeter Target 已启用 Keychain Sharing capability；
+2. Xcode 自动签名已生成或下载包含该权限的 provisioning profile；
+3. 当前 Apple Developer Team 有权签署此 Bundle ID。
+EOF
+    return 1
+  fi
+}
+
 run_after_build=0
 case "${1:-}" in
   "")
@@ -76,6 +100,7 @@ if ! xcodebuild \
   -configuration Debug \
   -destination 'platform=macOS' \
   -derivedDataPath "${derived_data_path}" \
+  -allowProvisioningUpdates \
   build; then
   cat >&2 <<'EOF'
 
@@ -86,6 +111,10 @@ if ! xcodebuild \
 
 请勿把登录钥匙串密码写入脚本。
 EOF
+  exit 1
+fi
+
+if ! verify_keychain_entitlements "${app_path}"; then
   exit 1
 fi
 

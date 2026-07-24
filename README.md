@@ -89,7 +89,7 @@ open MihomoMeter.xcodeproj
 DEVELOPMENT_TEAM = 你的 Apple Developer Team ID
 ```
 
-Xcode 的 Debug 和 Release 配置会通过公共 `Config.xcconfig` 读取本机 Team ID；不要把个人团队写回 `project.pbxproj`。然后在 Xcode 中选择 `MihomoMeter` Scheme 运行。Data Protection Keychain 使用签名 App ID 隔离凭据；切换开发团队或签名身份后，需要为新的应用身份重新填写一次 Secret。
+Xcode 的 Debug 和 Release 配置会通过公共 `Config.xcconfig` 读取本机 Team ID；不要把个人团队写回 `project.pbxproj`。然后在 Xcode 中选择 `MihomoMeter` Scheme 运行。工程启用 Keychain Sharing capability 以声明应用自身的默认 Keychain 访问组，不配置任何跨应用共享组。Data Protection Keychain 使用签名 App ID 隔离凭据；切换开发团队或签名身份后，需要为新的应用身份重新填写一次 Secret。
 
 首次运行：
 
@@ -110,7 +110,7 @@ scripts/build-debug.sh
 scripts/build-debug.sh --run
 ```
 
-脚本从已忽略的 `Config.local.xcconfig` 读取开发团队；首次使用前仍需在本机完成自动签名和开发证书配置。使用 `--run` 前应先退出正在运行的 Mihomo Meter，避免继续使用旧进程。
+脚本从已忽略的 `Config.local.xcconfig` 读取开发团队，并允许 Xcode 自动生成或下载 Data Protection Keychain 所需的 provisioning profile；构建完成后会检查实际签名权限。首次使用前仍需在本机登录 Xcode 并完成自动签名和开发证书配置。使用 `--run` 前应先退出正在运行的 Mihomo Meter，避免继续使用旧进程。
 
 命令行验证：
 

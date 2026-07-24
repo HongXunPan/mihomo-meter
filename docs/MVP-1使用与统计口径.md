@@ -23,9 +23,9 @@ MVP-1 只接受以下回环地址：
 
 ### 凭据存储与开发签名
 
-Data Protection Keychain 使用应用签名中的 App ID 隔离凭据。正式发布版本保持固定 Bundle ID 和开发团队后，正常启动不会要求用户为 Controller Secret 选择“允许”或“始终允许”。
+Data Protection Keychain 使用应用签名中的 App ID 隔离凭据。工程通过 Keychain Sharing capability 声明应用自身的默认访问组，不配置跨应用共享组。正式发布版本保持固定 Bundle ID 和开发团队后，正常启动不会要求用户为 Controller Secret 选择“允许”或“始终允许”。
 
-应用不读取或自动迁移开发阶段遗留的传统文件型 Keychain 条目；切换到 Data Protection Keychain 后需要重新填写一次 Secret。本地开发应通过被 Git 忽略的 `Config.local.xcconfig` 提供自己的 `DEVELOPMENT_TEAM`，不要把个人 Team ID 写入 Xcode 工程文件；切换开发团队或签名身份会进入新的访问组，同样需要重新填写。
+应用不读取或自动迁移开发阶段遗留的传统文件型 Keychain 条目；切换到 Data Protection Keychain 后需要重新填写一次 Secret。本地开发应通过被 Git 忽略的 `Config.local.xcconfig` 提供自己的 `DEVELOPMENT_TEAM`，不要把个人 Team ID 写入 Xcode 工程文件；切换开发团队或签名身份会进入新的访问组，同样需要重新填写。命令行构建允许 Xcode 自动生成或下载所需 provisioning profile，并在完成后校验实际签名权限。
 
 Debug 构建会生成不含 Secret 的本地诊断日志，具体位置、字段和清理方式见[数据与隐私](数据与隐私.md#debug-诊断日志)。
 

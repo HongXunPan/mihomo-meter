@@ -24,6 +24,7 @@
 
 - 在仓库根目录创建被 Git 忽略的 `Config.local.xcconfig`，填写 `DEVELOPMENT_TEAM = 你的 Apple Developer Team ID`；Xcode 通过公共 `Config.xcconfig` 加载本机配置。
 - 不要把个人 Team ID 写入或提交到 `MihomoMeter.xcodeproj/project.pbxproj`，其他用户级 Xcode 配置同样不得提交。
+- `MihomoMeter` Target 的 Keychain Sharing capability 只声明 `$(AppIdentifierPrefix)$(PRODUCT_BUNDLE_IDENTIFIER)` 私有默认访问组，不得添加跨应用共享组。
 - 不要将 macOS 签名身份强制设为 `-`；Data Protection Keychain 使用签名 App ID 隔离访问，切换开发团队或签名身份后需重新填写一次 Secret。
 - XCTest 宿主必须保持 `MIHOMO_METER_TEST_MODE=1`，不得装配生产监控、访问真实 Keychain 或写入应用诊断日志。
 - Debug 诊断日志位于应用沙盒，不得复制到仓库；提交日志用于 Issue 前必须再次确认其中不含本机敏感信息。
