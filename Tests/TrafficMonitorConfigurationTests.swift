@@ -1,4 +1,5 @@
 import Foundation
+import Security
 import XCTest
 
 @testable import MihomoMeter
@@ -94,5 +95,51 @@ final class TrafficMonitorConfigurationTests: TrafficMonitorTestCase {
     let saveCount = await secretStore.saveCount
     XCTAssertEqual(saveCount, 0)
     monitor.disconnect()
+  }
+}
+
+final class ApplicationRuntimeEnvironmentTests: XCTestCase {
+  func testExplicitTestModeDisablesProductionServices() {
+    let environment = ApplicationRuntimeEnvironment(
+      variables: ["MIHOMO_METER_TEST_MODE": "1"]
+    )
+
+    XCTAssertFalse(environment.shouldStartProductionServices)
+  }
+
+  func testXCTestMarkerDisablesProductionServices() {
+    let environment = ApplicationRuntimeEnvironment(
+      variables: ["XCTestConfigurationFilePath": "synthetic-test-configuration"]
+    )
+
+    XCTAssertFalse(environment.shouldStartProductionServices)
+  }
+
+  func testRegularLaunchStartsProductionServices() {
+    let environment = ApplicationRuntimeEnvironment(variables: [:])
+
+    XCTAssertTrue(environment.shouldStartProductionServices)
+  }
+
+  func testCurrentTestHostDoesNotStartProductionServices() {
+    XCTAssertFalse(
+      ApplicationRuntimeEnvironment.current.shouldStartProductionServices
+    )
+  }
+}
+
+final class KeychainSecretStoreTests: XCTestCase {
+  func testBaseQueryTargetsPrivateDataProtectionKeychain() {
+    let query = KeychainSecretStore.makeBaseQuery(
+      service: "com.example.MihomoMeter.controller",
+      account: "synthetic-account"
+    )
+
+    XCTAssertEqual(
+      query[kSecUseDataProtectionKeychain as String] as? Bool,
+      true
+    )
+    XCTAssertNil(query[kSecAttrSynchronizable as String])
+    XCTAssertNil(query[kSecAttrAccessGroup as String])
   }
 }

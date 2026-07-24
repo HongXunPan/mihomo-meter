@@ -1,0 +1,2 @@
+// 公共签名配置只提供本地覆盖入口，不包含个人开发团队。
+#include? "Config.local.xcconfig"

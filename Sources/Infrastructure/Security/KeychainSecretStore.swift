@@ -151,10 +151,18 @@ actor KeychainSecretStore: ControllerSecretStoring {
   }
 
   private func baseQuery() -> [String: Any] {
+    Self.makeBaseQuery(service: service, account: account)
+  }
+
+  static func makeBaseQuery(
+    service: String,
+    account: String
+  ) -> [String: Any] {
     [
       kSecClass as String: kSecClassGenericPassword,
       kSecAttrService as String: service,
       kSecAttrAccount as String: account,
+      kSecUseDataProtectionKeychain as String: true,
     ]
   }
 

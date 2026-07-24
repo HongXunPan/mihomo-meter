@@ -133,6 +133,7 @@
 		AJ0000000000000000000101 /* TrafficMonitorReducerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficMonitorReducerTests.swift; sourceTree = "<group>"; };
 		AK0000000000000000000101 /* TrafficMonitorLifecycleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficMonitorLifecycleTests.swift; sourceTree = "<group>"; };
 		AL0000000000000000000101 /* TrafficMonitorTestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficMonitorTestSupport.swift; sourceTree = "<group>"; };
+		AM0000000000000000000101 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -157,6 +158,7 @@
 		A10000000000000000000002 = {
 			isa = PBXGroup;
 			children = (
+				AM0000000000000000000101 /* Config.xcconfig */,
 				A10000000000000000000004 /* Sources */,
 				A10000000000000000000008 /* Tests */,
 				A10000000000000000000108 /* MihomoMeter.entitlements */,
@@ -599,6 +601,7 @@
 		};
 		A10000000000000000000503 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = AM0000000000000000000101 /* Config.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = MihomoMeter.entitlements;
 				CODE_SIGN_STYLE = Automatic;
@@ -625,6 +628,7 @@
 		};
 		A10000000000000000000504 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = AM0000000000000000000101 /* Config.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = MihomoMeter.entitlements;
 				CODE_SIGN_STYLE = Automatic;

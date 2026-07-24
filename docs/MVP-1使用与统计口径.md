@@ -19,13 +19,13 @@ MVP-1 只接受以下回环地址：
 3. 填写访问密钥；Mihomo 未启用鉴权时可以留空。
 4. 点击“连接”。
 
-应用先调用 `/version` 验证连接和鉴权，再读取 `/proxies`。用户手动提交的配置验证成功后，地址写入应用设置，Secret 写入本应用的 macOS Keychain，随后建立 `/connections?interval=500` WebSocket。应用启动和自动重连会复用已加载的 Secret，不重复写入 Keychain。
+应用先调用 `/version` 验证连接和鉴权，再读取 `/proxies`。用户手动提交的配置验证成功后，地址写入应用设置，Secret 写入本应用的 macOS Data Protection Keychain，随后建立 `/connections?interval=500` WebSocket。应用启动和自动重连会复用已加载的 Secret，不重复写入 Keychain。
 
-### Keychain 重复授权排查
+### 凭据存储与开发签名
 
-Keychain 会根据应用代码签名判断读取者身份。若 Xcode 将应用构建为 ad-hoc 临时签名，每次重新构建都可能产生新的应用身份，从而重复出现“不能验证应用真实性”的授权弹窗。
+Data Protection Keychain 使用应用签名中的 App ID 隔离凭据。正式发布版本保持固定 Bundle ID 和开发团队后，正常启动不会要求用户为 Controller Secret 选择“允许”或“始终允许”。
 
-本地开发应在 `MihomoMeter` Target 的 `Signing & Capabilities` 中选择自己的开发团队，并保持自动签名，不要把 macOS 签名身份强制设为 `-`。从临时签名切换到稳定的 Apple Development 签名后，旧 Keychain 条目可能仍需授权一次；如仍异常，可以在“钥匙串访问”中删除服务名为 `com.HongXunPan.MihomoMeter.controller` 的旧条目，再由应用重新保存。
+应用不读取或自动迁移开发阶段遗留的传统文件型 Keychain 条目；切换到 Data Protection Keychain 后需要重新填写一次 Secret。本地开发应通过被 Git 忽略的 `Config.local.xcconfig` 提供自己的 `DEVELOPMENT_TEAM`，不要把个人 Team ID 写入 Xcode 工程文件；切换开发团队或签名身份会进入新的访问组，同样需要重新填写。
 
 Debug 构建会生成不含 Secret 的本地诊断日志，具体位置、字段和清理方式见[数据与隐私](数据与隐私.md#debug-诊断日志)。
 

@@ -41,9 +41,11 @@ Mihomo Meter 是只读监控工具：
 - 计算分类覆盖率
 - 最近两个完整一秒窗口平滑
 - 数据超过 2 秒未更新时先归零提示，持续 5 秒后才取消旧流并指数退避重连
-- Controller 地址保存到应用设置，Secret 仅保存到 macOS Keychain
+- Controller 地址保存到应用设置，Secret 仅保存到 macOS Data Protection Keychain
 
 应用不会读取 Clash Verge 配置文件或私有 IPC，也不会自动获取 Secret。
+
+正式版本计划仅通过 GitHub Releases 分发经 Developer ID 签名和 Apple 公证的独立安装包，不上架 Mac App Store。
 
 ## 项目结构
 
@@ -81,7 +83,13 @@ cd mihomo-meter
 open MihomoMeter.xcodeproj
 ```
 
-在 Xcode 中选择 `MihomoMeter` Scheme；首次构建前，在 `MihomoMeter` Target 的 `Signing & Capabilities` 中选择自己的开发团队并保持自动签名，然后运行。稳定的 Apple Development 签名可以避免 Debug 应用重新构建后被 Keychain 反复识别为新应用。
+首次构建前，在仓库根目录创建不会提交到 Git 的 `Config.local.xcconfig`：
+
+```xcconfig
+DEVELOPMENT_TEAM = 你的 Apple Developer Team ID
+```
+
+Xcode 的 Debug 和 Release 配置会通过公共 `Config.xcconfig` 读取本机 Team ID；不要把个人团队写回 `project.pbxproj`。然后在 Xcode 中选择 `MihomoMeter` Scheme 运行。Data Protection Keychain 使用签名 App ID 隔离凭据；切换开发团队或签名身份后，需要为新的应用身份重新填写一次 Secret。
 
 首次运行：
 
@@ -102,7 +110,7 @@ scripts/build-debug.sh
 scripts/build-debug.sh --run
 ```
 
-脚本不会硬编码开发团队；首次使用前仍需在本机完成自动签名和开发证书配置。使用 `--run` 前应先退出正在运行的 Mihomo Meter，避免继续使用旧进程。
+脚本从已忽略的 `Config.local.xcconfig` 读取开发团队；首次使用前仍需在本机完成自动签名和开发证书配置。使用 `--run` 前应先退出正在运行的 Mihomo Meter，避免继续使用旧进程。
 
 命令行验证：
 
