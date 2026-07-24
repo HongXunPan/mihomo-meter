@@ -68,6 +68,8 @@
 		AQ0000000000000000000201 /* GitHubReleaseClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AQ0000000000000000000101 /* GitHubReleaseClient.swift */; };
 		AR0000000000000000000201 /* AppUpdateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AR0000000000000000000101 /* AppUpdateView.swift */; };
 		AS0000000000000000000201 /* AppUpdateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AS0000000000000000000101 /* AppUpdateTests.swift */; };
+		AT0000000000000000000201 /* AppHelpLinksMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = AT0000000000000000000101 /* AppHelpLinksMenu.swift */; };
+		AU0000000000000000000201 /* AppHelpLinksTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AU0000000000000000000101 /* AppHelpLinksTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -146,6 +148,8 @@
 		AQ0000000000000000000101 /* GitHubReleaseClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitHubReleaseClient.swift; sourceTree = "<group>"; };
 		AR0000000000000000000101 /* AppUpdateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppUpdateView.swift; sourceTree = "<group>"; };
 		AS0000000000000000000101 /* AppUpdateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppUpdateTests.swift; sourceTree = "<group>"; };
+		AT0000000000000000000101 /* AppHelpLinksMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppHelpLinksMenu.swift; sourceTree = "<group>"; };
+		AU0000000000000000000101 /* AppHelpLinksTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppHelpLinksTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -238,6 +242,7 @@
 		A10000000000000000000007 /* Presentation */ = {
 			isa = PBXGroup;
 			children = (
+				AT0000000000000000000101 /* AppHelpLinksMenu.swift */,
 				AR0000000000000000000101 /* AppUpdateView.swift */,
 				A90000000000000000000101 /* ControllerConfigurationView.swift */,
 				A10000000000000000000105 /* MenuBarController.swift */,
@@ -252,6 +257,7 @@
 		A10000000000000000000008 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
+				AU0000000000000000000101 /* AppHelpLinksTests.swift */,
 				AS0000000000000000000101 /* AppUpdateTests.swift */,
 				A30000000000000000000106 /* ConnectionDeltaTrackerTests.swift */,
 				AB0000000000000000000102 /* ConnectionLivenessWatchdogTests.swift */,
@@ -448,6 +454,7 @@
 				A10000000000000000000202 /* AppDelegate.swift in Sources */,
 				AA00000000000000000000203 /* AppDiagnosticEvent.swift in Sources */,
 				AA00000000000000000000201 /* AppDiagnosticLogger.swift in Sources */,
+				AT0000000000000000000201 /* AppHelpLinksMenu.swift in Sources */,
 				AO0000000000000000000201 /* AppRelease.swift in Sources */,
 				AP0000000000000000000201 /* AppUpdateModel.swift in Sources */,
 				AR0000000000000000000201 /* AppUpdateView.swift in Sources */,
@@ -490,6 +497,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AU0000000000000000000201 /* AppHelpLinksTests.swift in Sources */,
 				AS0000000000000000000201 /* AppUpdateTests.swift in Sources */,
 				A30000000000000000000206 /* ConnectionDeltaTrackerTests.swift in Sources */,
 				AB0000000000000000000202 /* ConnectionLivenessWatchdogTests.swift in Sources */,

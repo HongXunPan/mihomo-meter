@@ -48,6 +48,8 @@ struct ControllerConfigurationView: View {
         }
 
         Spacer()
+
+        AppHelpLinksMenu()
       }
 
       Text("仅连接本机回环地址；验证成功后安全保存至 macOS 钥匙串。")
