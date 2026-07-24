@@ -63,14 +63,17 @@ final class MenuBarController: NSObject {
   }
 
   private func observeMonitor() {
-    monitor.$rates
-      .combineLatest(monitor.$connectionState)
-      .sink { [weak self] rate, state in
+    monitor.statusItemPublisher
+      .sink { [weak self] snapshot in
         guard let self, let button = self.statusItem.button else {
           return
         }
 
-        self.updateStatusItemButton(button, rate: rate.proxy, state: state)
+        self.updateStatusItemButton(
+          button,
+          rate: snapshot.rate,
+          state: snapshot.connectionState
+        )
       }
       .store(in: &cancellables)
   }

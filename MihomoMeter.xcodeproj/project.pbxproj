@@ -40,7 +40,7 @@
 		A40000000000000000000205 /* ConnectionStreamCollector.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000105 /* ConnectionStreamCollector.swift */; };
 		A40000000000000000000206 /* ConnectionSnapshotDecoderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000106 /* ConnectionSnapshotDecoderTests.swift */; };
 		A40000000000000000000207 /* ReconnectBackoffTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000107 /* ReconnectBackoffTests.swift */; };
-		A50000000000000000000201 /* TrafficMonitorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A50000000000000000000101 /* TrafficMonitorTests.swift */; };
+		A50000000000000000000201 /* TrafficMonitorConfigurationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A50000000000000000000101 /* TrafficMonitorConfigurationTests.swift */; };
 		A70000000000000000000201 /* ProxyStatusItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A70000000000000000000101 /* ProxyStatusItemView.swift */; };
 		A80000000000000000000201 /* TrafficOverviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A80000000000000000000101 /* TrafficOverviewView.swift */; };
 		A90000000000000000000201 /* ControllerConfigurationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A90000000000000000000101 /* ControllerConfigurationView.swift */; };
@@ -52,6 +52,16 @@
 		AB0000000000000000000202 /* ConnectionLivenessWatchdogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0000000000000000000102 /* ConnectionLivenessWatchdogTests.swift */; };
 		AC0000000000000000000201 /* TrafficMeasurementSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC0000000000000000000101 /* TrafficMeasurementSession.swift */; };
 		AC0000000000000000000202 /* TrafficMeasurementSessionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC0000000000000000000102 /* TrafficMeasurementSessionTests.swift */; };
+		AD0000000000000000000201 /* MihomoMonitoringSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0000000000000000000101 /* MihomoMonitoringSession.swift */; };
+		AD0000000000000000000202 /* MihomoMonitoringSessionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0000000000000000000102 /* MihomoMonitoringSessionTests.swift */; };
+		AE0000000000000000000201 /* ControllerConfigurationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE0000000000000000000101 /* ControllerConfigurationStore.swift */; };
+		AF0000000000000000000201 /* TrafficMonitoringCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF0000000000000000000101 /* TrafficMonitoringCoordinator.swift */; };
+		AG0000000000000000000201 /* TrafficMonitoringRun.swift in Sources */ = {isa = PBXBuildFile; fileRef = AG0000000000000000000101 /* TrafficMonitoringRun.swift */; };
+		AH0000000000000000000201 /* TrafficMonitorState.swift in Sources */ = {isa = PBXBuildFile; fileRef = AH0000000000000000000101 /* TrafficMonitorState.swift */; };
+		AI0000000000000000000201 /* TrafficMonitorReducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AI0000000000000000000101 /* TrafficMonitorReducer.swift */; };
+		AJ0000000000000000000201 /* TrafficMonitorReducerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AJ0000000000000000000101 /* TrafficMonitorReducerTests.swift */; };
+		AK0000000000000000000201 /* TrafficMonitorLifecycleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AK0000000000000000000101 /* TrafficMonitorLifecycleTests.swift */; };
+		AL0000000000000000000201 /* TrafficMonitorTestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = AL0000000000000000000101 /* TrafficMonitorTestSupport.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -101,7 +111,7 @@
 		A40000000000000000000105 /* ConnectionStreamCollector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionStreamCollector.swift; sourceTree = "<group>"; };
 		A40000000000000000000106 /* ConnectionSnapshotDecoderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionSnapshotDecoderTests.swift; sourceTree = "<group>"; };
 		A40000000000000000000107 /* ReconnectBackoffTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReconnectBackoffTests.swift; sourceTree = "<group>"; };
-		A50000000000000000000101 /* TrafficMonitorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficMonitorTests.swift; sourceTree = "<group>"; };
+		A50000000000000000000101 /* TrafficMonitorConfigurationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficMonitorConfigurationTests.swift; sourceTree = "<group>"; };
 		A70000000000000000000101 /* ProxyStatusItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProxyStatusItemView.swift; sourceTree = "<group>"; };
 		A80000000000000000000101 /* TrafficOverviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficOverviewView.swift; sourceTree = "<group>"; };
 		A90000000000000000000101 /* ControllerConfigurationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControllerConfigurationView.swift; sourceTree = "<group>"; };
@@ -113,6 +123,16 @@
 		AB0000000000000000000102 /* ConnectionLivenessWatchdogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionLivenessWatchdogTests.swift; sourceTree = "<group>"; };
 		AC0000000000000000000101 /* TrafficMeasurementSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficMeasurementSession.swift; sourceTree = "<group>"; };
 		AC0000000000000000000102 /* TrafficMeasurementSessionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficMeasurementSessionTests.swift; sourceTree = "<group>"; };
+		AD0000000000000000000101 /* MihomoMonitoringSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MihomoMonitoringSession.swift; sourceTree = "<group>"; };
+		AD0000000000000000000102 /* MihomoMonitoringSessionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MihomoMonitoringSessionTests.swift; sourceTree = "<group>"; };
+		AE0000000000000000000101 /* ControllerConfigurationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControllerConfigurationStore.swift; sourceTree = "<group>"; };
+		AF0000000000000000000101 /* TrafficMonitoringCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficMonitoringCoordinator.swift; sourceTree = "<group>"; };
+		AG0000000000000000000101 /* TrafficMonitoringRun.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficMonitoringRun.swift; sourceTree = "<group>"; };
+		AH0000000000000000000101 /* TrafficMonitorState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficMonitorState.swift; sourceTree = "<group>"; };
+		AI0000000000000000000101 /* TrafficMonitorReducer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficMonitorReducer.swift; sourceTree = "<group>"; };
+		AJ0000000000000000000101 /* TrafficMonitorReducerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficMonitorReducerTests.swift; sourceTree = "<group>"; };
+		AK0000000000000000000101 /* TrafficMonitorLifecycleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficMonitorLifecycleTests.swift; sourceTree = "<group>"; };
+		AL0000000000000000000101 /* TrafficMonitorTestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficMonitorTestSupport.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -170,10 +190,16 @@
 			children = (
 				A10000000000000000000102 /* AppDelegate.swift */,
 				AB0000000000000000000101 /* ConnectionLivenessWatchdog.swift */,
+				AE0000000000000000000101 /* ControllerConfigurationStore.swift */,
+				AD0000000000000000000101 /* MihomoMonitoringSession.swift */,
 				A10000000000000000000101 /* MihomoMeterApp.swift */,
 				A40000000000000000000102 /* MonitorConnectionState.swift */,
 				A40000000000000000000101 /* ReconnectBackoff.swift */,
 				A40000000000000000000103 /* TrafficMonitor.swift */,
+				AI0000000000000000000101 /* TrafficMonitorReducer.swift */,
+				AH0000000000000000000101 /* TrafficMonitorState.swift */,
+				AF0000000000000000000101 /* TrafficMonitoringCoordinator.swift */,
+				AG0000000000000000000101 /* TrafficMonitoringRun.swift */,
 			);
 			path = Application;
 			sourceTree = "<group>";
@@ -215,12 +241,16 @@
 				AA00000000000000000000102 /* DiagnosticLoggerTests.swift */,
 				A20000000000000000000105 /* FixtureLoader.swift */,
 				A20000000000000000000107 /* MihomoControllerModelsTests.swift */,
+				AD0000000000000000000102 /* MihomoMonitoringSessionTests.swift */,
 				A30000000000000000000105 /* ProxyClassifierTests.swift */,
 				A40000000000000000000107 /* ReconnectBackoffTests.swift */,
 				A30000000000000000000107 /* TrafficRateAggregatorTests.swift */,
 				A10000000000000000000107 /* TrafficRateTests.swift */,
 				AC0000000000000000000102 /* TrafficMeasurementSessionTests.swift */,
-				A50000000000000000000101 /* TrafficMonitorTests.swift */,
+				A50000000000000000000101 /* TrafficMonitorConfigurationTests.swift */,
+				AK0000000000000000000101 /* TrafficMonitorLifecycleTests.swift */,
+				AJ0000000000000000000101 /* TrafficMonitorReducerTests.swift */,
+				AL0000000000000000000101 /* TrafficMonitorTestSupport.swift */,
 				A20000000000000000000004 /* Fixtures */,
 			);
 			path = Tests;
@@ -395,11 +425,13 @@
 				A40000000000000000000204 /* ConnectionSnapshotDecoder.swift in Sources */,
 				A40000000000000000000205 /* ConnectionStreamCollector.swift in Sources */,
 				AA00000000000000000000204 /* ConnectionDiagnosticReason.swift in Sources */,
+				AE0000000000000000000201 /* ControllerConfigurationStore.swift in Sources */,
 				A20000000000000000000201 /* ControllerEndpoint.swift in Sources */,
 				A20000000000000000000204 /* KeychainSecretStore.swift in Sources */,
 				A10000000000000000000205 /* MenuBarController.swift in Sources */,
 				A20000000000000000000203 /* MihomoControllerClient.swift in Sources */,
 				A20000000000000000000202 /* MihomoControllerModels.swift in Sources */,
+				AD0000000000000000000201 /* MihomoMonitoringSession.swift in Sources */,
 				A10000000000000000000201 /* MihomoMeterApp.swift in Sources */,
 				A90000000000000000000201 /* ControllerConfigurationView.swift in Sources */,
 				A70000000000000000000201 /* ProxyStatusItemView.swift in Sources */,
@@ -408,12 +440,16 @@
 				A40000000000000000000201 /* ReconnectBackoff.swift in Sources */,
 				A30000000000000000000201 /* TrafficMeasurement.swift in Sources */,
 				A40000000000000000000203 /* TrafficMonitor.swift in Sources */,
+				AI0000000000000000000201 /* TrafficMonitorReducer.swift in Sources */,
+				AH0000000000000000000201 /* TrafficMonitorState.swift in Sources */,
 				AC0000000000000000000201 /* TrafficMeasurementSession.swift in Sources */,
 				A10000000000000000000203 /* TrafficRate.swift in Sources */,
 				A30000000000000000000204 /* TrafficRateAggregator.swift in Sources */,
 				A10000000000000000000204 /* TrafficRateFormatter.swift in Sources */,
 				A80000000000000000000201 /* TrafficOverviewView.swift in Sources */,
 				A10000000000000000000206 /* TrafficPopoverView.swift in Sources */,
+				AF0000000000000000000201 /* TrafficMonitoringCoordinator.swift in Sources */,
+				AG0000000000000000000201 /* TrafficMonitoringRun.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -428,12 +464,16 @@
 				AA00000000000000000000202 /* DiagnosticLoggerTests.swift in Sources */,
 				A20000000000000000000205 /* FixtureLoader.swift in Sources */,
 				A20000000000000000000207 /* MihomoControllerModelsTests.swift in Sources */,
+				AD0000000000000000000202 /* MihomoMonitoringSessionTests.swift in Sources */,
 				A30000000000000000000205 /* ProxyClassifierTests.swift in Sources */,
 				A40000000000000000000207 /* ReconnectBackoffTests.swift in Sources */,
 				A30000000000000000000207 /* TrafficRateAggregatorTests.swift in Sources */,
 				A10000000000000000000207 /* TrafficRateTests.swift in Sources */,
 				AC0000000000000000000202 /* TrafficMeasurementSessionTests.swift in Sources */,
-				A50000000000000000000201 /* TrafficMonitorTests.swift in Sources */,
+				A50000000000000000000201 /* TrafficMonitorConfigurationTests.swift in Sources */,
+				AK0000000000000000000201 /* TrafficMonitorLifecycleTests.swift in Sources */,
+				AJ0000000000000000000201 /* TrafficMonitorReducerTests.swift in Sources */,
+				AL0000000000000000000201 /* TrafficMonitorTestSupport.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

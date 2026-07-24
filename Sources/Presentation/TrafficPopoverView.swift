@@ -1,4 +1,5 @@
 import AppKit
+import Combine
 import SwiftUI
 
 enum TrafficPopoverLayout {
@@ -38,7 +39,9 @@ struct TrafficPopoverView: View {
       width: TrafficPopoverLayout.contentSize.width,
       height: TrafficPopoverLayout.contentSize.height
     )
-    .onReceive(monitor.$connectionState) { state in
+    .onReceive(
+      monitor.connectionStatePublisher
+    ) { state in
       synchronizeControllerVisibility(for: state)
     }
   }
