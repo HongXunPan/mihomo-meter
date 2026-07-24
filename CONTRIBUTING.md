@@ -25,8 +25,9 @@
 
 - 在仓库根目录创建被 Git 忽略的 `Config.local.xcconfig`，填写 `DEVELOPMENT_TEAM = 你的 Apple Developer Team ID`；Xcode 通过公共 `Config.xcconfig` 加载本机配置。
 - 不要把个人 Team ID 写入或提交到 `MihomoMeter.xcodeproj/project.pbxproj`，其他用户级 Xcode 配置同样不得提交。
-- `MihomoMeter` Target 的 Keychain Sharing capability 只声明 `$(AppIdentifierPrefix)$(PRODUCT_BUNDLE_IDENTIFIER)` 私有默认访问组，不得添加跨应用共享组。
-- 不要将 macOS 签名身份强制设为 `-`；Data Protection Keychain 使用签名 App ID 隔离访问，切换开发团队或签名身份后需重新填写一次 Secret。
+- `MihomoMeter` Target 不启用 Keychain Sharing，也不得添加跨应用共享组；Controller Secret 只保存到当前用户的登录钥匙串。
+- 不要将 macOS 签名身份强制设为 `-`；传统钥匙串根据应用代码签名控制访问，切换开发团队或签名身份后可能需要授权或重新填写一次 Secret。
+- 正式 DMG 固定使用 `com.HongXunPan.MihomoMeter` 与自签名证书 `Mihomo Meter By HongXunPan`。替换该证书会改变指定要求，必须作为凭据迁移破坏性变更处理。
 - XCTest 宿主必须保持 `MIHOMO_METER_TEST_MODE=1`，不得装配生产监控、访问真实 Keychain 或写入应用诊断日志。
 - Debug 诊断日志位于应用沙盒，不得复制到仓库；提交日志用于 Issue 前必须再次确认其中不含本机敏感信息。
 
@@ -59,6 +60,8 @@ xcodebuild \
 - 命令退出码为 `0`
 - 应用 Target 编译通过
 - `MihomoMeterTests` 全部通过
+
+正式版本的证书准备、GitHub Secrets 和工作流说明见[发布与安装](docs/发布与安装.md)。Pull Request 不应执行正式发布工作流。
 
 ## 代码要求
 

@@ -47,6 +47,14 @@ actor KeychainSecretStore: ControllerSecretStoring {
         )
         throw KeychainSecretStoreError.invalidData
       }
+      guard !secret.isEmpty else {
+        await recordCompletion(
+          context: context,
+          outcome: .empty,
+          startedAt: startedAt
+        )
+        return nil
+      }
       await recordCompletion(
         context: context,
         outcome: .loaded,
@@ -140,6 +148,24 @@ actor KeychainSecretStore: ControllerSecretStoring {
         outcome: .alreadyMissing,
         startedAt: startedAt
       )
+    case errSecInvalidOwnerEdit:
+      let clearStatus = SecItemUpdate(
+        baseQuery() as CFDictionary,
+        [kSecValueData as String: Data()] as CFDictionary
+      )
+      guard clearStatus == errSecSuccess else {
+        await recordCompletion(
+          context: context,
+          outcome: .failed(clearStatus),
+          startedAt: startedAt
+        )
+        throw KeychainSecretStoreError.unhandledStatus(clearStatus)
+      }
+      await recordCompletion(
+        context: context,
+        outcome: .cleared,
+        startedAt: startedAt
+      )
     default:
       await recordCompletion(
         context: context,
@@ -162,7 +188,7 @@ actor KeychainSecretStore: ControllerSecretStoring {
       kSecClass as String: kSecClassGenericPassword,
       kSecAttrService as String: service,
       kSecAttrAccount as String: account,
-      kSecUseDataProtectionKeychain as String: true,
+      kSecUseDataProtectionKeychain as String: false,
     ]
   }
 

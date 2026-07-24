@@ -25,6 +25,7 @@ struct ApplicationRuntimeEnvironment: Sendable {
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
   private var trafficMonitor: TrafficMonitor?
+  private var updateModel: AppUpdateModel?
   private var menuBarController: MenuBarController?
 
   func applicationDidFinishLaunching(_ notification: Notification) {
@@ -36,8 +37,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let monitor = TrafficMonitor(
       diagnosticLogger: DebugDiagnosticLogger.shared
     )
+    let updateModel = AppUpdateModel()
     trafficMonitor = monitor
-    menuBarController = MenuBarController(monitor: monitor)
+    self.updateModel = updateModel
+    menuBarController = MenuBarController(
+      monitor: monitor,
+      updateModel: updateModel
+    )
 
     Task {
       #if DEBUG
@@ -46,10 +52,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         )
       #endif
       monitor.start()
+      updateModel.checkForUpdates()
     }
   }
 
   func applicationWillTerminate(_ notification: Notification) {
     trafficMonitor?.stopForApplicationTermination()
+    updateModel?.cancel()
   }
 }

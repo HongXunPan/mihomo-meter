@@ -129,7 +129,7 @@ final class ApplicationRuntimeEnvironmentTests: XCTestCase {
 }
 
 final class KeychainSecretStoreTests: XCTestCase {
-  func testBaseQueryTargetsPrivateDataProtectionKeychain() {
+  func testBaseQueryTargetsFileBasedLoginKeychain() {
     let query = KeychainSecretStore.makeBaseQuery(
       service: "com.example.MihomoMeter.controller",
       account: "synthetic-account"
@@ -137,13 +137,13 @@ final class KeychainSecretStoreTests: XCTestCase {
 
     XCTAssertEqual(
       query[kSecUseDataProtectionKeychain as String] as? Bool,
-      true
+      false
     )
     XCTAssertNil(query[kSecAttrSynchronizable as String])
     XCTAssertNil(query[kSecAttrAccessGroup as String])
   }
 
-  func testAppEntitlementsDeclarePrivateDefaultAccessGroup() throws {
+  func testAppEntitlementsDoNotRequireProvisionedKeychainAccessGroup() throws {
     let repositoryRoot = URL(fileURLWithPath: #filePath)
       .deletingLastPathComponent()
       .deletingLastPathComponent()
@@ -158,9 +158,8 @@ final class KeychainSecretStoreTests: XCTestCase {
       ) as? [String: Any]
     )
 
-    XCTAssertEqual(
-      propertyList["keychain-access-groups"] as? [String],
-      ["$(AppIdentifierPrefix)$(PRODUCT_BUNDLE_IDENTIFIER)"]
-    )
+    XCTAssertNil(propertyList["keychain-access-groups"])
+    XCTAssertEqual(propertyList["com.apple.security.app-sandbox"] as? Bool, true)
+    XCTAssertEqual(propertyList["com.apple.security.network.client"] as? Bool, true)
   }
 }

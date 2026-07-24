@@ -8,6 +8,7 @@ enum TrafficPopoverLayout {
 
 struct TrafficPopoverView: View {
   @ObservedObject var monitor: TrafficMonitor
+  @ObservedObject var updateModel: AppUpdateModel
   @State private var showsDiagnostics = false
   @State private var showsControllerConfiguration = false
   @State private var synchronizedConnectionState: MonitorConnectionState?
@@ -102,10 +103,14 @@ struct TrafficPopoverView: View {
     VStack(spacing: 0) {
       Divider()
 
-      HStack {
-        Text("只读监控，不修改 Mihomo 或系统代理。")
-          .font(.caption2)
-          .foregroundStyle(.secondary)
+      HStack(alignment: .center) {
+        VStack(alignment: .leading, spacing: 3) {
+          Text("只读监控，不修改 Mihomo 或系统代理。")
+            .font(.caption2)
+            .foregroundStyle(.secondary)
+
+          AppUpdateView(model: updateModel)
+        }
 
         Spacer()
 

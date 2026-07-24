@@ -50,10 +50,12 @@ struct KeychainDiagnosticContext: Equatable, Sendable {
 
 enum KeychainDiagnosticOutcome: Equatable, Sendable {
   case loaded
+  case empty
   case notFound
   case updated
   case created
   case deleted
+  case cleared
   case alreadyMissing
   case invalidData
   case failed(OSStatus)
@@ -62,6 +64,8 @@ enum KeychainDiagnosticOutcome: Equatable, Sendable {
     switch self {
     case .loaded:
       "result=loaded status=0"
+    case .empty:
+      "result=empty status=0"
     case .notFound:
       "result=not_found status=\(errSecItemNotFound)"
     case .updated:
@@ -70,6 +74,8 @@ enum KeychainDiagnosticOutcome: Equatable, Sendable {
       "result=created status=0"
     case .deleted:
       "result=deleted status=0"
+    case .cleared:
+      "result=cleared status=0"
     case .alreadyMissing:
       "result=already_missing status=\(errSecItemNotFound)"
     case .invalidData:

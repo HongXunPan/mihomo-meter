@@ -62,6 +62,12 @@
 		AJ0000000000000000000201 /* TrafficMonitorReducerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AJ0000000000000000000101 /* TrafficMonitorReducerTests.swift */; };
 		AK0000000000000000000201 /* TrafficMonitorLifecycleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AK0000000000000000000101 /* TrafficMonitorLifecycleTests.swift */; };
 		AL0000000000000000000201 /* TrafficMonitorTestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = AL0000000000000000000101 /* TrafficMonitorTestSupport.swift */; };
+		AN0000000000000000000201 /* SemanticVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = AN0000000000000000000101 /* SemanticVersion.swift */; };
+		AO0000000000000000000201 /* AppRelease.swift in Sources */ = {isa = PBXBuildFile; fileRef = AO0000000000000000000101 /* AppRelease.swift */; };
+		AP0000000000000000000201 /* AppUpdateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AP0000000000000000000101 /* AppUpdateModel.swift */; };
+		AQ0000000000000000000201 /* GitHubReleaseClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AQ0000000000000000000101 /* GitHubReleaseClient.swift */; };
+		AR0000000000000000000201 /* AppUpdateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AR0000000000000000000101 /* AppUpdateView.swift */; };
+		AS0000000000000000000201 /* AppUpdateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AS0000000000000000000101 /* AppUpdateTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -134,6 +140,12 @@
 		AK0000000000000000000101 /* TrafficMonitorLifecycleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficMonitorLifecycleTests.swift; sourceTree = "<group>"; };
 		AL0000000000000000000101 /* TrafficMonitorTestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficMonitorTestSupport.swift; sourceTree = "<group>"; };
 		AM0000000000000000000101 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
+		AN0000000000000000000101 /* SemanticVersion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SemanticVersion.swift; sourceTree = "<group>"; };
+		AO0000000000000000000101 /* AppRelease.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRelease.swift; sourceTree = "<group>"; };
+		AP0000000000000000000101 /* AppUpdateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppUpdateModel.swift; sourceTree = "<group>"; };
+		AQ0000000000000000000101 /* GitHubReleaseClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitHubReleaseClient.swift; sourceTree = "<group>"; };
+		AR0000000000000000000101 /* AppUpdateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppUpdateView.swift; sourceTree = "<group>"; };
+		AS0000000000000000000101 /* AppUpdateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppUpdateTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -191,6 +203,8 @@
 			isa = PBXGroup;
 			children = (
 				A10000000000000000000102 /* AppDelegate.swift */,
+				AO0000000000000000000101 /* AppRelease.swift */,
+				AP0000000000000000000101 /* AppUpdateModel.swift */,
 				AB0000000000000000000101 /* ConnectionLivenessWatchdog.swift */,
 				AE0000000000000000000101 /* ControllerConfigurationStore.swift */,
 				AD0000000000000000000101 /* MihomoMonitoringSession.swift */,
@@ -210,11 +224,12 @@
 			isa = PBXGroup;
 			children = (
 				A30000000000000000000103 /* ConnectionDeltaTracker.swift */,
-				A10000000000000000000103 /* TrafficRate.swift */,
 				A20000000000000000000101 /* ControllerEndpoint.swift */,
 				A30000000000000000000102 /* ProxyClassifier.swift */,
+				AN0000000000000000000101 /* SemanticVersion.swift */,
 				A30000000000000000000101 /* TrafficMeasurement.swift */,
 				AC0000000000000000000101 /* TrafficMeasurementSession.swift */,
+				A10000000000000000000103 /* TrafficRate.swift */,
 				A30000000000000000000104 /* TrafficRateAggregator.swift */,
 			);
 			path = Domain;
@@ -223,6 +238,7 @@
 		A10000000000000000000007 /* Presentation */ = {
 			isa = PBXGroup;
 			children = (
+				AR0000000000000000000101 /* AppUpdateView.swift */,
 				A90000000000000000000101 /* ControllerConfigurationView.swift */,
 				A10000000000000000000105 /* MenuBarController.swift */,
 				A70000000000000000000101 /* ProxyStatusItemView.swift */,
@@ -236,6 +252,7 @@
 		A10000000000000000000008 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
+				AS0000000000000000000101 /* AppUpdateTests.swift */,
 				A30000000000000000000106 /* ConnectionDeltaTrackerTests.swift */,
 				AB0000000000000000000102 /* ConnectionLivenessWatchdogTests.swift */,
 				A40000000000000000000106 /* ConnectionSnapshotDecoderTests.swift */,
@@ -270,6 +287,7 @@
 			isa = PBXGroup;
 			children = (
 				AA00000000000000000000001 /* Diagnostics */,
+				AQ0000000000000000000001 /* GitHub */,
 				A20000000000000000000002 /* Mihomo */,
 				A20000000000000000000003 /* Security */,
 			);
@@ -285,6 +303,14 @@
 				A20000000000000000000102 /* MihomoControllerModels.swift */,
 			);
 			path = Mihomo;
+			sourceTree = "<group>";
+		};
+		AQ0000000000000000000001 /* GitHub */ = {
+			isa = PBXGroup;
+			children = (
+				AQ0000000000000000000101 /* GitHubReleaseClient.swift */,
+			);
+			path = GitHub;
 			sourceTree = "<group>";
 		};
 		A20000000000000000000003 /* Security */ = {
@@ -366,11 +392,6 @@
 				TargetAttributes = {
 					A10000000000000000000401 = {
 						CreatedOnToolsVersion = 26.5;
-						SystemCapabilities = {
-							com.apple.Keychain = {
-								enabled = 1;
-							};
-						};
 					};
 					A10000000000000000000402 = {
 						CreatedOnToolsVersion = 26.5;
@@ -427,6 +448,9 @@
 				A10000000000000000000202 /* AppDelegate.swift in Sources */,
 				AA00000000000000000000203 /* AppDiagnosticEvent.swift in Sources */,
 				AA00000000000000000000201 /* AppDiagnosticLogger.swift in Sources */,
+				AO0000000000000000000201 /* AppRelease.swift in Sources */,
+				AP0000000000000000000201 /* AppUpdateModel.swift in Sources */,
+				AR0000000000000000000201 /* AppUpdateView.swift in Sources */,
 				A30000000000000000000203 /* ConnectionDeltaTracker.swift in Sources */,
 				AB0000000000000000000201 /* ConnectionLivenessWatchdog.swift in Sources */,
 				A40000000000000000000204 /* ConnectionSnapshotDecoder.swift in Sources */,
@@ -434,6 +458,7 @@
 				AA00000000000000000000204 /* ConnectionDiagnosticReason.swift in Sources */,
 				AE0000000000000000000201 /* ControllerConfigurationStore.swift in Sources */,
 				A20000000000000000000201 /* ControllerEndpoint.swift in Sources */,
+				AQ0000000000000000000201 /* GitHubReleaseClient.swift in Sources */,
 				A20000000000000000000204 /* KeychainSecretStore.swift in Sources */,
 				A10000000000000000000205 /* MenuBarController.swift in Sources */,
 				A20000000000000000000203 /* MihomoControllerClient.swift in Sources */,
@@ -445,6 +470,7 @@
 				A40000000000000000000202 /* MonitorConnectionState.swift in Sources */,
 				A30000000000000000000202 /* ProxyClassifier.swift in Sources */,
 				A40000000000000000000201 /* ReconnectBackoff.swift in Sources */,
+				AN0000000000000000000201 /* SemanticVersion.swift in Sources */,
 				A30000000000000000000201 /* TrafficMeasurement.swift in Sources */,
 				A40000000000000000000203 /* TrafficMonitor.swift in Sources */,
 				AI0000000000000000000201 /* TrafficMonitorReducer.swift in Sources */,
@@ -464,6 +490,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AS0000000000000000000201 /* AppUpdateTests.swift in Sources */,
 				A30000000000000000000206 /* ConnectionDeltaTrackerTests.swift in Sources */,
 				AB0000000000000000000202 /* ConnectionLivenessWatchdogTests.swift in Sources */,
 				A40000000000000000000206 /* ConnectionSnapshotDecoderTests.swift in Sources */,

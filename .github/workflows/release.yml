@@ -1,0 +1,182 @@
+name: 发布自签名 DMG
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 发布版本号，格式为 X.Y.Z
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-mihomo-meter
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: 构建并发布
+    runs-on: macos-26
+    timeout-minutes: 60
+
+    env:
+      SIGNING_IDENTITY: Mihomo Meter By HongXunPan
+
+    steps:
+      - name: 检出完整仓库
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: 校验发布输入
+        env:
+          VERSION: ${{ inputs.version }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [[ "${GITHUB_REF}" != "refs/heads/main" ]]; then
+            echo "只能从 main 分支发布。" >&2
+            exit 1
+          fi
+          if [[ ! "${VERSION}" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+            echo "版本号必须使用无前导零的 X.Y.Z 格式。" >&2
+            exit 1
+          fi
+          if git rev-parse --verify --quiet "refs/tags/v${VERSION}" >/dev/null; then
+            echo "标签 v${VERSION} 已存在。" >&2
+            exit 1
+          fi
+          if gh release view "v${VERSION}" >/dev/null 2>&1; then
+            echo "Release v${VERSION} 已存在。" >&2
+            exit 1
+          fi
+
+      - name: 检查 Swift 格式
+        run: xcrun swift format lint --recursive --strict Sources Tests
+
+      - name: 构建并运行测试
+        run: |
+          xcodebuild \
+            -project MihomoMeter.xcodeproj \
+            -scheme MihomoMeter \
+            -destination 'platform=macOS' \
+            -derivedDataPath "$RUNNER_TEMP/MihomoMeterTestDerivedData" \
+            CODE_SIGNING_ALLOWED=NO \
+            build test
+
+      - name: 导入固定自签名证书
+        env:
+          SIGNING_P12_BASE64: ${{ secrets.MIHOMO_METER_SIGNING_P12_BASE64 }}
+          SIGNING_P12_PASSWORD: ${{ secrets.MIHOMO_METER_SIGNING_P12_PASSWORD }}
+        run: |
+          if [[ -z "${SIGNING_P12_BASE64}" || -z "${SIGNING_P12_PASSWORD}" ]]; then
+            echo "缺少发布签名证书 Secrets。" >&2
+            exit 1
+          fi
+
+          keychain_name="mihomo-meter-release-${GITHUB_RUN_ID}.keychain-db"
+          keychain_path="${HOME}/Library/Keychains/${keychain_name}"
+          keychain_password="$(openssl rand -hex 24)"
+          certificate_path="${RUNNER_TEMP}/mihomo-meter-release.p12"
+          certificate_pem_path="${RUNNER_TEMP}/mihomo-meter-release.pem"
+          original_keychains_path="${RUNNER_TEMP}/mihomo-meter-original-keychains.txt"
+
+          {
+            echo "RELEASE_KEYCHAIN_NAME=${keychain_name}"
+            echo "RELEASE_KEYCHAIN_PATH=${keychain_path}"
+            echo "RELEASE_CERTIFICATE_PEM_PATH=${certificate_pem_path}"
+            echo "ORIGINAL_KEYCHAINS_PATH=${original_keychains_path}"
+          } >>"${GITHUB_ENV}"
+
+          security list-keychains -d user |
+            sed -e 's/^[[:space:]]*"//' -e 's/"$//' >"${original_keychains_path}"
+          printf '%s' "${SIGNING_P12_BASE64}" | /usr/bin/base64 -D >"${certificate_path}"
+
+          security create-keychain -p "${keychain_password}" "${keychain_name}"
+          security set-keychain-settings -lut 21600 "${keychain_name}"
+          security unlock-keychain -p "${keychain_password}" "${keychain_name}"
+
+          original_keychains=()
+          while IFS= read -r original_keychain; do
+            original_keychains+=("${original_keychain}")
+          done <"${original_keychains_path}"
+          security list-keychains -d user -s "${keychain_path}" "${original_keychains[@]}"
+
+          security import "${certificate_path}" \
+            -k "${keychain_name}" \
+            -P "${SIGNING_P12_PASSWORD}" \
+            -T /usr/bin/codesign \
+            -T /usr/bin/security
+          security set-key-partition-list \
+            -S apple-tool:,apple:,codesign: \
+            -s \
+            -k "${keychain_password}" \
+            "${keychain_name}"
+
+          security find-certificate \
+            -c "${SIGNING_IDENTITY}" \
+            -p \
+            "${keychain_name}" >"${certificate_pem_path}"
+          security add-trusted-cert \
+            -r trustRoot \
+            -p codeSign \
+            -k "${keychain_name}" \
+            "${certificate_pem_path}"
+          echo "RELEASE_TRUST_ADDED=1" >>"${GITHUB_ENV}"
+
+      - name: 构建三种架构自签名 DMG
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          rm -rf dist
+          for architecture in arm64 x86_64 universal; do
+            scripts/build-release-dmg.sh \
+              --version "${VERSION}" \
+              --build-number "${GITHUB_RUN_NUMBER}" \
+              --architecture "${architecture}" \
+              --signing-identity "${SIGNING_IDENTITY}" \
+              --output-dir dist
+          done
+          (
+            cd dist
+            shasum -a 256 ./*.dmg >SHA256SUMS
+          )
+
+      - name: 清理临时签名材料
+        if: always()
+        run: |
+          if [[ "${RELEASE_TRUST_ADDED:-0}" == "1" &&
+            -n "${RELEASE_CERTIFICATE_PEM_PATH:-}" &&
+            -f "${RELEASE_CERTIFICATE_PEM_PATH}" ]]; then
+            security remove-trusted-cert "${RELEASE_CERTIFICATE_PEM_PATH}" || true
+          fi
+          if [[ -n "${ORIGINAL_KEYCHAINS_PATH:-}" && -f "${ORIGINAL_KEYCHAINS_PATH}" ]]; then
+            original_keychains=()
+            while IFS= read -r original_keychain; do
+              original_keychains+=("${original_keychain}")
+            done <"${ORIGINAL_KEYCHAINS_PATH}"
+            security list-keychains -d user -s "${original_keychains[@]}"
+          fi
+          if [[ -n "${RELEASE_KEYCHAIN_NAME:-}" ]]; then
+            security delete-keychain "${RELEASE_KEYCHAIN_NAME}" || true
+          fi
+          rm -f \
+            "${RUNNER_TEMP}/mihomo-meter-release.p12" \
+            "${RUNNER_TEMP}/mihomo-meter-release.pem" \
+            "${RUNNER_TEMP}/mihomo-meter-original-keychains.txt"
+
+      - name: 创建标签并发布 GitHub Release
+        env:
+          VERSION: ${{ inputs.version }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "v${VERSION}" \
+            "dist/Mihomo-Meter-${VERSION}-macos-arm64.dmg" \
+            "dist/Mihomo-Meter-${VERSION}-macos-x86_64.dmg" \
+            "dist/Mihomo-Meter-${VERSION}-macos-universal.dmg" \
+            "dist/SHA256SUMS" \
+            --target "${GITHUB_SHA}" \
+            --title "Mihomo Meter ${VERSION}" \
+            --generate-notes \
+            --latest

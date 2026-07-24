@@ -19,15 +19,19 @@ MVP-1 只接受以下回环地址：
 3. 填写访问密钥；Mihomo 未启用鉴权时可以留空。
 4. 点击“连接”。
 
-应用先调用 `/version` 验证连接和鉴权，再读取 `/proxies`。用户手动提交的配置验证成功后，地址写入应用设置，Secret 写入本应用的 macOS Data Protection Keychain，随后建立 `/connections?interval=500` WebSocket。应用启动和自动重连会复用已加载的 Secret，不重复写入 Keychain。
+应用先调用 `/version` 验证连接和鉴权，再读取 `/proxies`。用户手动提交的配置验证成功后，地址写入应用设置，Secret 写入本应用的 macOS 登录钥匙串，随后建立 `/connections?interval=500` WebSocket。应用启动和自动重连会复用已加载的 Secret，不重复写入 Keychain。
 
 ### 凭据存储与开发签名
 
-Data Protection Keychain 使用应用签名中的 App ID 隔离凭据。工程通过 Keychain Sharing capability 声明应用自身的默认访问组，不配置跨应用共享组。正式发布版本保持固定 Bundle ID 和开发团队后，正常启动不会要求用户为 Controller Secret 选择“允许”或“始终允许”。
+登录钥匙串由 macOS 保存访问控制列表。正式版本固定使用 Bundle ID `com.HongXunPan.MihomoMeter` 和自签名证书 `Mihomo Meter By HongXunPan` 组成代码指定要求；同一证书签署的后续版本可以继续读取已有 Secret，正常升级不需要再次授权。
 
-应用不读取或自动迁移开发阶段遗留的传统文件型 Keychain 条目；切换到 Data Protection Keychain 后需要重新填写一次 Secret。本地开发应通过被 Git 忽略的 `Config.local.xcconfig` 提供自己的 `DEVELOPMENT_TEAM`，不要把个人 Team ID 写入 Xcode 工程文件；切换开发团队或签名身份会进入新的访问组，同样需要重新填写。命令行构建允许 Xcode 自动生成或下载所需 provisioning profile，并在完成后校验实际签名权限。
+旧版使用 Data Protection Keychain，正式切换到登录钥匙串后的首个版本无法静默读取旧条目，需要用户重新填写一次 Secret。开发构建应通过被 Git 忽略的 `Config.local.xcconfig` 提供自己的 `DEVELOPMENT_TEAM`，不要把个人 Team ID 写入 Xcode 工程文件；开发签名与正式自签名证书属于不同身份，切换时可能需要钥匙串授权或重新填写。
 
 Debug 构建会生成不含 Secret 的本地诊断日志，具体位置、字段和清理方式见[数据与隐私](数据与隐私.md#debug-诊断日志)。
+
+### 版本与更新
+
+弹层底部展示 `CFBundleShortVersionString`。应用启动后会读取 GitHub 最新公开 Release；仅当严格的 `vX.Y.Z` 标签高于当前版本时显示下载链接。检查失败不会影响 Mihomo 监控，应用也不会静默下载、替换或启动安装包。
 
 ## 实时统计口径
 

@@ -11,15 +11,20 @@ final class MenuBarController: NSObject {
   private let statusContentView: ProxyStatusItemView
   private let popover: NSPopover
   private let monitor: TrafficMonitor
+  private let updateModel: AppUpdateModel
   private var cancellables: Set<AnyCancellable> = []
 
-  init(monitor: TrafficMonitor) {
+  init(
+    monitor: TrafficMonitor,
+    updateModel: AppUpdateModel
+  ) {
     statusItem = NSStatusBar.system.statusItem(
       withLength: MenuBarController.statusItemLength
     )
     statusContentView = ProxyStatusItemView()
     popover = NSPopover()
     self.monitor = monitor
+    self.updateModel = updateModel
     super.init()
 
     configureStatusItem()
@@ -53,7 +58,10 @@ final class MenuBarController: NSObject {
   private func configurePopover() {
     popover.behavior = .transient
     let hostingController = NSHostingController(
-      rootView: TrafficPopoverView(monitor: monitor)
+      rootView: TrafficPopoverView(
+        monitor: monitor,
+        updateModel: updateModel
+      )
     )
     hostingController.sizingOptions = []
     hostingController.preferredContentSize = TrafficPopoverLayout.contentSize

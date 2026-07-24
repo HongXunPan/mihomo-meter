@@ -14,7 +14,7 @@ usage() {
 EOF
 }
 
-verify_keychain_entitlements() {
+verify_app_entitlements() {
   local target_app_path="$1"
   local entitlements_output
 
@@ -25,15 +25,20 @@ verify_keychain_entitlements() {
     return 1
   fi
 
-  if ! grep -Fq "keychain-access-groups" <<<"${entitlements_output}" ||
-    ! grep -Fq "com.apple.application-identifier" <<<"${entitlements_output}"; then
+  if ! grep -Fq "com.apple.security.app-sandbox" <<<"${entitlements_output}" ||
+    ! grep -Fq "com.apple.security.network.client" <<<"${entitlements_output}"; then
     cat >&2 <<'EOF'
-构建产物缺少 Data Protection Keychain 所需的签名权限。
+构建产物缺少应用运行所需的沙盒或网络客户端权限。
 请确认：
-1. MihomoMeter Target 已启用 Keychain Sharing capability；
-2. Xcode 自动签名已生成或下载包含该权限的 provisioning profile；
-3. 当前 Apple Developer Team 有权签署此 Bundle ID。
+1. MihomoMeter Target 已启用 App Sandbox；
+2. 已允许出站网络连接；
+3. 当前签名身份可以签署此 Bundle ID。
 EOF
+    return 1
+  fi
+
+  if grep -Fq "keychain-access-groups" <<<"${entitlements_output}"; then
+    echo "构建产物不应声明需要 provisioning profile 的 Keychain 访问组。" >&2
     return 1
   fi
 }
@@ -114,7 +119,7 @@ EOF
   exit 1
 fi
 
-if ! verify_keychain_entitlements "${app_path}"; then
+if ! verify_app_entitlements "${app_path}"; then
   exit 1
 fi
 
