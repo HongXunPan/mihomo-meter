@@ -46,6 +46,19 @@ final class DiagnosticLoggerTests: XCTestCase {
       )
     )
     await logger.record(
+      .connectionDataStale(
+        timeoutSeconds: 2,
+        reconnectAfterSeconds: 5,
+        lastSnapshotAgeMilliseconds: 2_104
+      )
+    )
+    await logger.record(
+      .connectionCancellationRequested(
+        source: .staleWatchdog,
+        lastSnapshotAgeMilliseconds: 5_087
+      )
+    )
+    await logger.record(
       .connectionReconnectScheduled(
         reason: .streamNetwork(.networkConnectionLost),
         delaySeconds: 4
@@ -65,6 +78,10 @@ final class DiagnosticLoggerTests: XCTestCase {
     XCTAssertTrue(contents.contains("request_id=00000000-0000-0000-0000-000000000001"))
     XCTAssertTrue(contents.contains("status=\(errSecAuthFailed)"))
     XCTAssertTrue(contents.contains("trigger=immediate_retry"))
+    XCTAssertTrue(contents.contains("reconnect_after_seconds=5"))
+    XCTAssertTrue(contents.contains("last_snapshot_age_ms=2104"))
+    XCTAssertTrue(contents.contains("source=stale_watchdog"))
+    XCTAssertTrue(contents.contains("last_snapshot_age_ms=5087"))
     XCTAssertTrue(contents.contains("reason=stream_network"))
     XCTAssertTrue(contents.contains("delay_seconds=4"))
     XCTAssertFalse(contents.contains(NSHomeDirectory()))

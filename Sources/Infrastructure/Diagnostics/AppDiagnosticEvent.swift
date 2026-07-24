@@ -87,6 +87,14 @@ enum ConnectionAttemptTrigger: String, Sendable {
   case automaticRetry = "automatic_retry"
 }
 
+enum ConnectionCancellationSource: String, Sendable {
+  case staleWatchdog = "stale_watchdog"
+  case userDisconnect = "user_disconnect"
+  case applicationTermination = "application_termination"
+  case userConnectionRequest = "user_connection_request"
+  case immediateRetry = "immediate_retry"
+}
+
 struct AppCodeSigningSummary: Equatable, Sendable {
   let identifier: String
   let teamIdentifier: String?
@@ -107,7 +115,15 @@ enum AppDiagnosticEvent: Equatable, Sendable {
     attemptNumber: Int
   )
   case connectionEstablished
-  case connectionDataStale(timeoutSeconds: Int)
+  case connectionDataStale(
+    timeoutSeconds: Int,
+    reconnectAfterSeconds: Int,
+    lastSnapshotAgeMilliseconds: Int
+  )
+  case connectionCancellationRequested(
+    source: ConnectionCancellationSource,
+    lastSnapshotAgeMilliseconds: Int?
+  )
   case connectionReconnectScheduled(
     reason: ConnectionDiagnosticReason,
     delaySeconds: UInt64
@@ -142,11 +158,29 @@ enum AppDiagnosticEvent: Equatable, Sendable {
       ].joined(separator: " ")
     case .connectionEstablished:
       return "event=connection.established"
-    case .connectionDataStale(let timeoutSeconds):
+    case .connectionDataStale(
+      let timeoutSeconds,
+      let reconnectAfterSeconds,
+      let lastSnapshotAgeMilliseconds
+    ):
       return [
         "event=connection.data_stale",
         "timeout_seconds=\(max(timeoutSeconds, 0))",
+        "reconnect_after_seconds=\(max(reconnectAfterSeconds, 0))",
+        "last_snapshot_age_ms=\(max(lastSnapshotAgeMilliseconds, 0))",
       ].joined(separator: " ")
+    case .connectionCancellationRequested(
+      let source,
+      let lastSnapshotAgeMilliseconds
+    ):
+      var fields = [
+        "event=connection.cancellation_requested",
+        "source=\(source.rawValue)",
+      ].joined(separator: " ")
+      if let lastSnapshotAgeMilliseconds {
+        fields += " last_snapshot_age_ms=\(max(lastSnapshotAgeMilliseconds, 0))"
+      }
+      return fields
     case .connectionReconnectScheduled(let reason, let delaySeconds):
       return [
         "event=connection.reconnect_scheduled",

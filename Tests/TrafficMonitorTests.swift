@@ -54,8 +54,10 @@ final class TrafficMonitorTests: XCTestCase {
     try await waitUntil { monitor.connectionState == .connected }
 
     let savedSecret = await secretStore.loadSecret(reason: .applicationStartup)
+    let saveCount = await secretStore.saveCount
     XCTAssertEqual(monitor.mihomoVersion, "v-test")
     XCTAssertEqual(savedSecret, "synthetic-secret")
+    XCTAssertEqual(saveCount, 1)
     XCTAssertEqual(
       userDefaults.string(forKey: "controllerAddress"),
       "http://127.0.0.1:9090"
@@ -64,7 +66,72 @@ final class TrafficMonitorTests: XCTestCase {
     monitor.disconnect()
   }
 
-  func testMarksSnapshotAsStaleAfterTwoSecondsWithoutUpdates() async throws {
+  func testStartupValidationDoesNotRewriteLoadedSecret() async throws {
+    let secretStore = MonitorTestSecretStore(secret: "synthetic-secret")
+    let (userDefaults, suiteName) = makeUserDefaults()
+    defer {
+      userDefaults.removePersistentDomain(forName: suiteName)
+    }
+    userDefaults.set("http://127.0.0.1:9090", forKey: "controllerAddress")
+    let monitor = TrafficMonitor(
+      client: MonitorTestClient(),
+      collector: MonitorTestCollector(
+        snapshot: MihomoConnectionsSnapshot(
+          downloadTotal: 2_000,
+          uploadTotal: 1_000,
+          connections: []
+        )
+      ),
+      secretStore: secretStore,
+      userDefaults: userDefaults
+    )
+
+    monitor.start()
+    try await waitUntil {
+      monitor.connectionState == .connected
+    }
+
+    let saveCount = await secretStore.saveCount
+    XCTAssertEqual(saveCount, 0)
+    monitor.disconnect()
+  }
+
+  func testUserDisconnectWritesTypedCancellationSource() async throws {
+    let diagnosticLogger = MonitorTestDiagnosticLogger()
+    let (userDefaults, suiteName) = makeUserDefaults()
+    defer {
+      userDefaults.removePersistentDomain(forName: suiteName)
+    }
+    let monitor = TrafficMonitor(
+      client: MonitorTestClient(),
+      collector: MonitorTestCollector(
+        snapshot: MihomoConnectionsSnapshot(
+          downloadTotal: 2_000,
+          uploadTotal: 1_000,
+          connections: []
+        )
+      ),
+      secretStore: MonitorTestSecretStore(),
+      diagnosticLogger: diagnosticLogger,
+      userDefaults: userDefaults
+    )
+    monitor.address = "127.0.0.1:9090"
+
+    monitor.connect()
+    try await waitUntil {
+      monitor.connectionState == .connected
+    }
+    monitor.disconnect()
+
+    try await waitUntilAsync {
+      await diagnosticLogger.containsCancellation(source: .userDisconnect)
+    }
+    let snapshotAge = await diagnosticLogger.cancellationAge(source: .userDisconnect)
+    XCTAssertNotNil(snapshotAge)
+  }
+
+  func testMarksSnapshotAsStaleBeforeCancellingStream() async throws {
+    let diagnosticLogger = MonitorTestDiagnosticLogger()
     let collector = MonitorTestCollector(
       snapshot: MihomoConnectionsSnapshot(
         downloadTotal: 2_000,
@@ -80,16 +147,43 @@ final class TrafficMonitorTests: XCTestCase {
       client: MonitorTestClient(),
       collector: collector,
       secretStore: MonitorTestSecretStore(),
+      diagnosticLogger: diagnosticLogger,
+      livenessPolicy: .init(
+        staleAfterNanoseconds: 40_000_000,
+        reconnectAfterNanoseconds: 120_000_000,
+        backoffResetAfterNanoseconds: 1_000_000_000
+      ),
       userDefaults: userDefaults
     )
     monitor.address = "127.0.0.1:9090"
 
     monitor.connect()
-    try await waitUntil(timeoutNanoseconds: 3_000_000_000) {
+    try await waitUntil {
+      monitor.connectionState == .connected
+    }
+    let cancellationCountBeforeStale = await collector.cancellationCount
+
+    try await waitUntil {
       monitor.connectionState == .stale
     }
 
     XCTAssertEqual(monitor.rates, .zero)
+    let cancellationCountAtStale = await collector.cancellationCount
+    XCTAssertEqual(cancellationCountAtStale, cancellationCountBeforeStale)
+
+    try await waitUntilAsync {
+      await diagnosticLogger.containsCancellation(source: .staleWatchdog)
+    }
+    try await waitUntilAsync {
+      await diagnosticLogger.contains(
+        .connectionReconnectScheduled(
+          reason: .dataStale,
+          delaySeconds: 1
+        )
+      )
+    }
+    let cancellationCountAfterReconnect = await collector.cancellationCount
+    XCTAssertGreaterThan(cancellationCountAfterReconnect, cancellationCountAtStale)
     monitor.disconnect()
   }
 
@@ -258,6 +352,8 @@ private actor MonitorTestCollector: ConnectionSnapshotCollecting {
   private let snapshot: MihomoConnectionsSnapshot?
   private let error: ConnectionStreamError?
   private(set) var collectionCount = 0
+  private(set) var cancellationCount = 0
+  private var pendingContinuation: CheckedContinuation<Void, any Error>?
 
   init(
     snapshot: MihomoConnectionsSnapshot? = nil,
@@ -279,10 +375,25 @@ private actor MonitorTestCollector: ConnectionSnapshotCollecting {
     if let error {
       throw error
     }
-    try await Task.sleep(nanoseconds: UInt64.max)
+    try await withTaskCancellationHandler {
+      try await withCheckedThrowingContinuation { continuation in
+        pendingContinuation = continuation
+      }
+    } onCancel: {
+      Task {
+        await self.cancel()
+      }
+    }
   }
 
-  func cancel() {}
+  func cancel() {
+    cancellationCount += 1
+    let continuation = pendingContinuation
+    pendingContinuation = nil
+    continuation?.resume(
+      throwing: ConnectionStreamError.network(.cancelled)
+    )
+  }
 }
 
 private actor MonitorTestDiagnosticLogger: AppDiagnosticLogging {
@@ -295,16 +406,51 @@ private actor MonitorTestDiagnosticLogger: AppDiagnosticLogging {
   func contains(_ event: AppDiagnosticEvent) -> Bool {
     events.contains(event)
   }
+
+  func containsCancellation(
+    source: ConnectionCancellationSource
+  ) -> Bool {
+    events.contains { event in
+      guard case .connectionCancellationRequested(let actualSource, _) = event else {
+        return false
+      }
+      return actualSource == source
+    }
+  }
+
+  func cancellationAge(
+    source: ConnectionCancellationSource
+  ) -> Int? {
+    for event in events {
+      guard
+        case .connectionCancellationRequested(
+          let actualSource,
+          let lastSnapshotAgeMilliseconds
+        ) = event,
+        actualSource == source
+      else {
+        continue
+      }
+      return lastSnapshotAgeMilliseconds
+    }
+    return nil
+  }
 }
 
 private actor MonitorTestSecretStore: ControllerSecretStoring {
   private var secret: String?
+  private(set) var saveCount = 0
+
+  init(secret: String? = nil) {
+    self.secret = secret
+  }
 
   func loadSecret(reason: KeychainAccessReason) -> String? {
     secret
   }
 
   func saveSecret(_ secret: String, reason: KeychainAccessReason) {
+    saveCount += 1
     self.secret = secret
   }
 

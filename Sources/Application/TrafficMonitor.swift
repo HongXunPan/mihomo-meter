@@ -14,35 +14,32 @@ final class TrafficMonitor: ObservableObject {
   @Published private(set) var message = "请输入本机 Mihomo 服务地址和访问密钥。"
 
   private static let addressDefaultsKey = "controllerAddress"
-  private static let staleTimeoutNanoseconds: UInt64 = 2_000_000_000
 
   private let client: any MihomoControllerServing
   private let collector: any ConnectionSnapshotCollecting
   private let secretStore: any ControllerSecretStoring
   private let diagnosticLogger: any AppDiagnosticLogging
+  private let livenessWatchdog: ConnectionLivenessWatchdog
   private let userDefaults: UserDefaults
-  private let clock = ContinuousClock()
 
   private var connectionTask: Task<Void, Never>?
-  private var staleTask: Task<Void, Never>?
   private var catalogRefreshTask: Task<Void, Never>?
   private var runID = UUID()
-  private var classifier: ProxyClassifier?
-  private var deltaTracker = ConnectionDeltaTracker()
-  private var rateAggregator = TrafficRateAggregator()
-  private var lastSnapshotInstant: ContinuousClock.Instant?
+  private var measurementSession = TrafficMeasurementSession()
 
   init(
     client: any MihomoControllerServing = MihomoControllerClient(),
     collector: any ConnectionSnapshotCollecting = ConnectionStreamCollector(),
     secretStore: any ControllerSecretStoring = KeychainSecretStore(),
     diagnosticLogger: any AppDiagnosticLogging = NoOpAppDiagnosticLogger.shared,
+    livenessPolicy: ConnectionLivenessWatchdog.Policy = .production,
     userDefaults: UserDefaults = .standard
   ) {
     self.client = client
     self.collector = collector
     self.secretStore = secretStore
     self.diagnosticLogger = diagnosticLogger
+    livenessWatchdog = ConnectionLivenessWatchdog(policy: livenessPolicy)
     self.userDefaults = userDefaults
     address = userDefaults.string(forKey: Self.addressDefaultsKey) ?? ""
     secret = ""
@@ -78,11 +75,15 @@ final class TrafficMonitor: ObservableObject {
   private func startConnection(trigger: ConnectionAttemptTrigger) {
     let requestedAddress = address
     let requestedSecret = secret
+    let cancellationSource =
+      isConnectionActive ? cancellationSource(for: trigger) : nil
+    let lastSnapshotAgeMilliseconds =
+      livenessWatchdog.currentSnapshotAgeMilliseconds
     let newRunID = UUID()
     runID = newRunID
 
     connectionTask?.cancel()
-    staleTask?.cancel()
+    livenessWatchdog.cancel()
     catalogRefreshTask?.cancel()
     catalogRefreshTask = nil
     resetLiveData()
@@ -95,6 +96,14 @@ final class TrafficMonitor: ObservableObject {
         return
       }
 
+      if let cancellationSource {
+        await diagnosticLogger.record(
+          .connectionCancellationRequested(
+            source: cancellationSource,
+            lastSnapshotAgeMilliseconds: lastSnapshotAgeMilliseconds
+          )
+        )
+      }
       await collector.cancel()
       await runConnectionLoop(
         address: requestedAddress,
@@ -106,14 +115,32 @@ final class TrafficMonitor: ObservableObject {
   }
 
   func disconnect() {
+    stopConnection(source: .userDisconnect)
+  }
+
+  func stopForApplicationTermination() {
+    stopConnection(source: .applicationTermination)
+  }
+
+  private func stopConnection(source: ConnectionCancellationSource) {
+    let shouldLogCancellation = isConnectionActive
+    let lastSnapshotAgeMilliseconds =
+      livenessWatchdog.currentSnapshotAgeMilliseconds
     runID = UUID()
     connectionTask?.cancel()
     connectionTask = nil
-    staleTask?.cancel()
-    staleTask = nil
+    livenessWatchdog.cancel()
     catalogRefreshTask?.cancel()
     catalogRefreshTask = nil
-    Task { [collector] in
+    Task { [collector, diagnosticLogger] in
+      if shouldLogCancellation {
+        await diagnosticLogger.record(
+          .connectionCancellationRequested(
+            source: source,
+            lastSnapshotAgeMilliseconds: lastSnapshotAgeMilliseconds
+          )
+        )
+      }
       await collector.cancel()
     }
     resetLiveData()
@@ -162,7 +189,9 @@ final class TrafficMonitor: ObservableObject {
       do {
         let version = try await client.fetchVersion(endpoint: endpoint, secret: secret)
         let proxies = try await client.fetchProxies(endpoint: endpoint, secret: secret)
-        try await secretStore.saveSecret(secret, reason: .connectionValidated)
+        if isFirstAttempt, initialTrigger == .userRequest {
+          try await secretStore.saveSecret(secret, reason: .connectionValidated)
+        }
         guard isCurrent(runID) else {
           return
         }
@@ -170,12 +199,14 @@ final class TrafficMonitor: ObservableObject {
         userDefaults.set(endpoint.baseURL.absoluteString, forKey: Self.addressDefaultsKey)
         self.address = endpoint.baseURL.absoluteString
         mihomoVersion = version.version
-        classifier = ProxyClassifier(
+        measurementSession.configure(
           catalog: ProxyCatalog(typesByName: proxies.proxies.mapValues(\.type))
         )
-        resetMeasurementBaseline()
+        resetLiveData()
         message = "Mihomo 服务已验证，等待实时数据…"
-        armStaleWatchdog(runID: runID)
+        let streamID = livenessWatchdog.beginStream { [weak self] event in
+          await self?.handleLivenessEvent(event, runID: runID)
+        }
 
         try await collector.collect(
           endpoint: endpoint,
@@ -185,11 +216,15 @@ final class TrafficMonitor: ObservableObject {
             snapshot,
             endpoint: endpoint,
             secret: secret,
-            runID: runID
+            runID: runID,
+            streamID: streamID
           )
         }
         throw ConnectionStreamError.closed
       } catch is CancellationError {
+        if isCurrent(runID) {
+          _ = livenessWatchdog.finishStream()
+        }
         return
       } catch MihomoControllerError.authenticationFailed {
         guard isCurrent(runID) else {
@@ -241,14 +276,18 @@ final class TrafficMonitor: ObservableObject {
           return
         }
 
-        let reason = ConnectionDiagnosticReason.classify(
-          error,
-          dataWasStale: connectionState == .stale
-        )
-        staleTask?.cancel()
+        let streamCompletion = livenessWatchdog.finishStream()
+        if streamCompletion.shouldResetBackoff {
+          backoff.reset()
+        }
+        let reason =
+          streamCompletion.forcedReason
+          ?? ConnectionDiagnosticReason.classify(error)
         resetLiveData()
-        if connectionState != .stale {
-          connectionState = .reconnecting
+        connectionState = .reconnecting
+        if reason == .dataStale {
+          message = "实时数据持续超时，等待重新连接。"
+        } else {
           message = error.localizedDescription
         }
 
@@ -274,45 +313,31 @@ final class TrafficMonitor: ObservableObject {
     _ snapshot: MihomoConnectionsSnapshot,
     endpoint: ControllerEndpoint,
     secret: String,
-    runID: UUID
+    runID: UUID,
+    streamID: UUID
   ) async {
-    guard isCurrent(runID), let classifier else {
+    guard isCurrent(runID), livenessWatchdog.acceptSnapshot(streamID: streamID),
+      let result = measurementSession.consume(snapshot.trafficSnapshot)
+    else {
       return
     }
 
-    let now = clock.now
-    let elapsedSeconds = lastSnapshotInstant.map {
-      Self.seconds(from: $0.duration(to: now))
+    if result.requiresCatalogRefresh {
+      refreshCatalogIfNeeded(
+        endpoint: endpoint,
+        secret: secret,
+        runID: runID
+      )
     }
-    lastSnapshotInstant = now
-    armStaleWatchdog(runID: runID)
-    refreshCatalogIfNeeded(
-      for: snapshot,
-      endpoint: endpoint,
-      secret: secret,
-      runID: runID
-    )
     let connectionWasEstablished = connectionState == .connected
     connectionState = .connected
     message = "正在读取实时连接流量。"
     if !connectionWasEstablished {
       await diagnosticLogger.record(.connectionEstablished)
     }
-    activeProxyLeaves = Array(
-      Set(
-        snapshot.connections.compactMap { connection in
-          guard classifier.classify(chains: connection.chains).category == .proxy else {
-            return nil
-          }
-          return connection.chains.first
-        }
-      )
-    ).sorted()
+    activeProxyLeaves = result.activeProxyLeaves
 
-    let result = deltaTracker.consume(snapshot.trafficSnapshot, classifier: classifier)
-    guard case .delta(let report) = result, let elapsedSeconds,
-      let window = rateAggregator.consume(report, elapsedSeconds: elapsedSeconds)
-    else {
+    guard let window = result.rateWindow else {
       return
     }
 
@@ -322,16 +347,11 @@ final class TrafficMonitor: ObservableObject {
   }
 
   private func refreshCatalogIfNeeded(
-    for snapshot: MihomoConnectionsSnapshot,
     endpoint: ControllerEndpoint,
     secret: String,
     runID: UUID
   ) {
-    guard catalogRefreshTask == nil, let currentClassifier = classifier,
-      snapshot.connections.contains(where: {
-        currentClassifier.classify(chains: $0.chains).unknownReason == .missingCatalogEntry
-      })
-    else {
+    guard catalogRefreshTask == nil else {
       return
     }
 
@@ -346,8 +366,8 @@ final class TrafficMonitor: ObservableObject {
           catalogRefreshTask = nil
           return
         }
-        classifier = ProxyClassifier(
-          catalog: ProxyCatalog(typesByName: proxies.proxies.mapValues(\.type))
+        measurementSession.updateCatalog(
+          ProxyCatalog(typesByName: proxies.proxies.mapValues(\.type))
         )
       } catch {
         // 刷新失败不打断当前流量流，后续未知快照会再次尝试。
@@ -356,23 +376,45 @@ final class TrafficMonitor: ObservableObject {
     }
   }
 
-  private func armStaleWatchdog(runID: UUID) {
-    staleTask?.cancel()
-    staleTask = Task { [weak self] in
-      do {
-        try await Task.sleep(nanoseconds: Self.staleTimeoutNanoseconds)
-      } catch {
-        return
-      }
+  private func handleLivenessEvent(
+    _ event: ConnectionLivenessWatchdog.Event,
+    runID: UUID
+  ) async {
+    guard isCurrent(runID) else {
+      return
+    }
 
-      guard let self, isCurrent(runID) else {
+    switch event {
+    case .stale(let streamID, let lastSnapshotAgeMilliseconds):
+      guard livenessWatchdog.isCurrentStream(streamID) else {
         return
       }
       connectionState = .stale
-      message = "超过 2 秒未收到连接快照，准备重连。"
+      message = "超过 2 秒未收到实时数据；持续 5 秒将重新连接。"
       resetLiveData()
       await diagnosticLogger.record(
-        .connectionDataStale(timeoutSeconds: 2)
+        .connectionDataStale(
+          timeoutSeconds: livenessWatchdog.policy.staleTimeoutSeconds,
+          reconnectAfterSeconds: livenessWatchdog.policy.reconnectTimeoutSeconds,
+          lastSnapshotAgeMilliseconds: lastSnapshotAgeMilliseconds
+        )
+      )
+    case .reconnectRequired(let streamID, let lastSnapshotAgeMilliseconds):
+      guard
+        livenessWatchdog.requestTermination(
+          streamID: streamID,
+          reason: .dataStale
+        )
+      else {
+        return
+      }
+      connectionState = .reconnecting
+      message = "实时数据持续超时，准备重新连接。"
+      await diagnosticLogger.record(
+        .connectionCancellationRequested(
+          source: .staleWatchdog,
+          lastSnapshotAgeMilliseconds: lastSnapshotAgeMilliseconds
+        )
       )
       await collector.cancel()
     }
@@ -382,17 +424,10 @@ final class TrafficMonitor: ObservableObject {
     state: MonitorConnectionState,
     message: String
   ) {
-    staleTask?.cancel()
+    livenessWatchdog.cancel()
     resetLiveData()
     connectionState = state
     self.message = message
-  }
-
-  private func resetMeasurementBaseline() {
-    deltaTracker.reset()
-    rateAggregator.reset()
-    lastSnapshotInstant = nil
-    resetLiveData()
   }
 
   private func resetLiveData() {
@@ -406,9 +441,24 @@ final class TrafficMonitor: ObservableObject {
     self.runID == runID
   }
 
-  private static func seconds(from duration: Duration) -> Double {
-    let components = duration.components
-    return Double(components.seconds)
-      + Double(components.attoseconds) / 1_000_000_000_000_000_000
+  private var isConnectionActive: Bool {
+    switch connectionState {
+    case .connecting, .connected, .stale, .reconnecting:
+      true
+    case .disconnected, .authenticationFailed, .unsupported:
+      false
+    }
   }
+
+  private func cancellationSource(
+    for trigger: ConnectionAttemptTrigger
+  ) -> ConnectionCancellationSource {
+    switch trigger {
+    case .immediateRetry:
+      .immediateRetry
+    case .applicationStartup, .userRequest, .automaticRetry:
+      .userConnectionRequest
+    }
+  }
+
 }

@@ -48,6 +48,10 @@
 		AA00000000000000000000202 /* DiagnosticLoggerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00000000000000000000102 /* DiagnosticLoggerTests.swift */; };
 		AA00000000000000000000203 /* AppDiagnosticEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00000000000000000000103 /* AppDiagnosticEvent.swift */; };
 		AA00000000000000000000204 /* ConnectionDiagnosticReason.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00000000000000000000104 /* ConnectionDiagnosticReason.swift */; };
+		AB0000000000000000000201 /* ConnectionLivenessWatchdog.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0000000000000000000101 /* ConnectionLivenessWatchdog.swift */; };
+		AB0000000000000000000202 /* ConnectionLivenessWatchdogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0000000000000000000102 /* ConnectionLivenessWatchdogTests.swift */; };
+		AC0000000000000000000201 /* TrafficMeasurementSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC0000000000000000000101 /* TrafficMeasurementSession.swift */; };
+		AC0000000000000000000202 /* TrafficMeasurementSessionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC0000000000000000000102 /* TrafficMeasurementSessionTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -105,6 +109,10 @@
 		AA00000000000000000000102 /* DiagnosticLoggerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticLoggerTests.swift; sourceTree = "<group>"; };
 		AA00000000000000000000103 /* AppDiagnosticEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDiagnosticEvent.swift; sourceTree = "<group>"; };
 		AA00000000000000000000104 /* ConnectionDiagnosticReason.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionDiagnosticReason.swift; sourceTree = "<group>"; };
+		AB0000000000000000000101 /* ConnectionLivenessWatchdog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionLivenessWatchdog.swift; sourceTree = "<group>"; };
+		AB0000000000000000000102 /* ConnectionLivenessWatchdogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionLivenessWatchdogTests.swift; sourceTree = "<group>"; };
+		AC0000000000000000000101 /* TrafficMeasurementSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficMeasurementSession.swift; sourceTree = "<group>"; };
+		AC0000000000000000000102 /* TrafficMeasurementSessionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficMeasurementSessionTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -161,6 +169,7 @@
 			isa = PBXGroup;
 			children = (
 				A10000000000000000000102 /* AppDelegate.swift */,
+				AB0000000000000000000101 /* ConnectionLivenessWatchdog.swift */,
 				A10000000000000000000101 /* MihomoMeterApp.swift */,
 				A40000000000000000000102 /* MonitorConnectionState.swift */,
 				A40000000000000000000101 /* ReconnectBackoff.swift */,
@@ -177,6 +186,7 @@
 				A20000000000000000000101 /* ControllerEndpoint.swift */,
 				A30000000000000000000102 /* ProxyClassifier.swift */,
 				A30000000000000000000101 /* TrafficMeasurement.swift */,
+				AC0000000000000000000101 /* TrafficMeasurementSession.swift */,
 				A30000000000000000000104 /* TrafficRateAggregator.swift */,
 			);
 			path = Domain;
@@ -199,6 +209,7 @@
 			isa = PBXGroup;
 			children = (
 				A30000000000000000000106 /* ConnectionDeltaTrackerTests.swift */,
+				AB0000000000000000000102 /* ConnectionLivenessWatchdogTests.swift */,
 				A40000000000000000000106 /* ConnectionSnapshotDecoderTests.swift */,
 				A20000000000000000000106 /* ControllerEndpointTests.swift */,
 				AA00000000000000000000102 /* DiagnosticLoggerTests.swift */,
@@ -208,6 +219,7 @@
 				A40000000000000000000107 /* ReconnectBackoffTests.swift */,
 				A30000000000000000000107 /* TrafficRateAggregatorTests.swift */,
 				A10000000000000000000107 /* TrafficRateTests.swift */,
+				AC0000000000000000000102 /* TrafficMeasurementSessionTests.swift */,
 				A50000000000000000000101 /* TrafficMonitorTests.swift */,
 				A20000000000000000000004 /* Fixtures */,
 			);
@@ -379,6 +391,7 @@
 				AA00000000000000000000203 /* AppDiagnosticEvent.swift in Sources */,
 				AA00000000000000000000201 /* AppDiagnosticLogger.swift in Sources */,
 				A30000000000000000000203 /* ConnectionDeltaTracker.swift in Sources */,
+				AB0000000000000000000201 /* ConnectionLivenessWatchdog.swift in Sources */,
 				A40000000000000000000204 /* ConnectionSnapshotDecoder.swift in Sources */,
 				A40000000000000000000205 /* ConnectionStreamCollector.swift in Sources */,
 				AA00000000000000000000204 /* ConnectionDiagnosticReason.swift in Sources */,
@@ -395,6 +408,7 @@
 				A40000000000000000000201 /* ReconnectBackoff.swift in Sources */,
 				A30000000000000000000201 /* TrafficMeasurement.swift in Sources */,
 				A40000000000000000000203 /* TrafficMonitor.swift in Sources */,
+				AC0000000000000000000201 /* TrafficMeasurementSession.swift in Sources */,
 				A10000000000000000000203 /* TrafficRate.swift in Sources */,
 				A30000000000000000000204 /* TrafficRateAggregator.swift in Sources */,
 				A10000000000000000000204 /* TrafficRateFormatter.swift in Sources */,
@@ -408,6 +422,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A30000000000000000000206 /* ConnectionDeltaTrackerTests.swift in Sources */,
+				AB0000000000000000000202 /* ConnectionLivenessWatchdogTests.swift in Sources */,
 				A40000000000000000000206 /* ConnectionSnapshotDecoderTests.swift in Sources */,
 				A20000000000000000000206 /* ControllerEndpointTests.swift in Sources */,
 				AA00000000000000000000202 /* DiagnosticLoggerTests.swift in Sources */,
@@ -417,6 +432,7 @@
 				A40000000000000000000207 /* ReconnectBackoffTests.swift in Sources */,
 				A30000000000000000000207 /* TrafficRateAggregatorTests.swift in Sources */,
 				A10000000000000000000207 /* TrafficRateTests.swift in Sources */,
+				AC0000000000000000000202 /* TrafficMeasurementSessionTests.swift in Sources */,
 				A50000000000000000000201 /* TrafficMonitorTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -24,6 +24,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   }
 
   func applicationWillTerminate(_ notification: Notification) {
-    trafficMonitor?.disconnect()
+    trafficMonitor?.stopForApplicationTermination()
   }
 }

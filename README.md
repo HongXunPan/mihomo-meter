@@ -40,7 +40,7 @@ Mihomo Meter 是只读监控工具：
 - 独立展示 Proxy、DIRECT、REJECT 和未知实时速度
 - 计算分类覆盖率
 - 最近两个完整一秒窗口平滑
-- 数据超过 2 秒未更新时归零并指数退避重连
+- 数据超过 2 秒未更新时先归零提示，持续 5 秒后才取消旧流并指数退避重连
 - Controller 地址保存到应用设置，Secret 仅保存到 macOS Keychain
 
 应用不会读取 Clash Verge 配置文件或私有 IPC，也不会自动获取 Secret。
