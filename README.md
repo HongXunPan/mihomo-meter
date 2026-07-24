@@ -127,6 +127,7 @@ xcodebuild \
 ## 文档
 
 - [架构概览](docs/架构概览.md)
+- [Swift 代码规范](docs/Swift代码规范.md)
 - [数据与隐私](docs/数据与隐私.md)
 - [MVP-1 使用与统计口径](docs/MVP-1使用与统计口径.md)
 - [开发路线图](docs/路线图.md)
