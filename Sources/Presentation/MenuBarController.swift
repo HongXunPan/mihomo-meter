@@ -114,5 +114,8 @@ final class MenuBarController: NSObject {
       of: button,
       preferredEdge: .minY
     )
+
+    // 在首帧绘制前清除自动焦点，后续仍可使用 Tab 键导航。
+    _ = popover.contentViewController?.view.window?.makeFirstResponder(nil)
   }
 }
