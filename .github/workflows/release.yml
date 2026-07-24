@@ -80,12 +80,14 @@ jobs:
           keychain_password="$(openssl rand -hex 24)"
           certificate_path="${RUNNER_TEMP}/mihomo-meter-release.p12"
           certificate_pem_path="${RUNNER_TEMP}/mihomo-meter-release.pem"
+          trust_helper_path="${RUNNER_TEMP}/mihomo-meter-manage-trust"
           original_keychains_path="${RUNNER_TEMP}/mihomo-meter-original-keychains.txt"
 
           {
             echo "RELEASE_KEYCHAIN_NAME=${keychain_name}"
             echo "RELEASE_KEYCHAIN_PATH=${keychain_path}"
             echo "RELEASE_CERTIFICATE_PEM_PATH=${certificate_pem_path}"
+            echo "RELEASE_TRUST_HELPER_PATH=${trust_helper_path}"
             echo "ORIGINAL_KEYCHAINS_PATH=${original_keychains_path}"
           } >>"${GITHUB_ENV}"
 
@@ -118,12 +120,21 @@ jobs:
             -c "${SIGNING_IDENTITY}" \
             -p \
             "${keychain_name}" >"${certificate_pem_path}"
-          security add-trusted-cert \
-            -r trustRoot \
-            -p codeSign \
-            -k "${keychain_name}" \
-            "${certificate_pem_path}"
+          xcrun swiftc \
+            scripts/manage-release-certificate-trust.swift \
+            -framework Security \
+            -o "${trust_helper_path}"
+          sudo -n "${trust_helper_path}" add "${certificate_pem_path}"
           echo "RELEASE_TRUST_ADDED=1" >>"${GITHUB_ENV}"
+
+          if ! security find-identity \
+            -v \
+            -p codesigning \
+            "${keychain_name}" |
+            grep -Fq "\"${SIGNING_IDENTITY}\""; then
+            echo "固定自签名证书未成为有效代码签名身份。" >&2
+            exit 1
+          fi
 
       - name: 构建三种架构自签名 DMG
         env:
@@ -148,8 +159,13 @@ jobs:
         run: |
           if [[ "${RELEASE_TRUST_ADDED:-0}" == "1" &&
             -n "${RELEASE_CERTIFICATE_PEM_PATH:-}" &&
+            -n "${RELEASE_TRUST_HELPER_PATH:-}" &&
+            -x "${RELEASE_TRUST_HELPER_PATH}" &&
             -f "${RELEASE_CERTIFICATE_PEM_PATH}" ]]; then
-            security remove-trusted-cert "${RELEASE_CERTIFICATE_PEM_PATH}" || true
+            sudo -n \
+              "${RELEASE_TRUST_HELPER_PATH}" \
+              remove \
+              "${RELEASE_CERTIFICATE_PEM_PATH}" || true
           fi
           if [[ -n "${ORIGINAL_KEYCHAINS_PATH:-}" && -f "${ORIGINAL_KEYCHAINS_PATH}" ]]; then
             original_keychains=()
@@ -164,6 +180,7 @@ jobs:
           rm -f \
             "${RUNNER_TEMP}/mihomo-meter-release.p12" \
             "${RUNNER_TEMP}/mihomo-meter-release.pem" \
+            "${RUNNER_TEMP}/mihomo-meter-manage-trust" \
             "${RUNNER_TEMP}/mihomo-meter-original-keychains.txt"
 
       - name: 创建标签并发布 GitHub Release
