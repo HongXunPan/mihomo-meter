@@ -20,7 +20,21 @@
 4. 修改前先阅读相关公开文档和现有实现。
 5. 为领域逻辑补充或更新测试。
 
+## 本地签名与诊断
+
+- 在 `MihomoMeter` Target 的 `Signing & Capabilities` 中选择自己的开发团队并保持自动签名。
+- 不要将 macOS 签名身份强制设为 `-`；ad-hoc 临时签名会导致 Keychain 在重新构建后重复请求授权。
+- 个人 Team ID 和用户级 Xcode 配置不得提交到开源仓库。
+- Debug 诊断日志位于应用沙盒，不得复制到仓库；提交日志用于 Issue 前必须再次确认其中不含本机敏感信息。
+
 ## 验证
+
+本地已完成开发团队配置时，可以在不启动 Xcode GUI 的情况下构建或运行 Debug 应用：
+
+```bash
+scripts/build-debug.sh
+scripts/build-debug.sh --run
+```
 
 提交 Pull Request 前至少执行：
 

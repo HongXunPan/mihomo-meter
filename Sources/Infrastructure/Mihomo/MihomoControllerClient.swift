@@ -99,17 +99,17 @@ enum MihomoControllerError: Error, Equatable, LocalizedError {
   var errorDescription: String? {
     switch self {
     case .authenticationFailed:
-      "鉴权失败，请检查 Secret。"
+      "鉴权失败，请检查访问密钥。"
     case .httpStatus(let statusCode):
-      "Controller 返回异常状态（HTTP \(statusCode)）。"
+      "Mihomo 服务返回异常状态（HTTP \(statusCode)）。"
     case .invalidResponse:
-      "Controller 返回了无效响应。"
+      "Mihomo 服务返回了无效响应。"
     case .unsupportedResponse:
       "当前 Mihomo 响应结构暂不受支持。"
     case .network:
-      "无法连接 Controller，请检查地址和 Mihomo 状态。"
+      "无法连接 Mihomo 服务，请检查地址和 Mihomo 状态。"
     case .transport:
-      "Controller 通信失败。"
+      "Mihomo 服务通信失败。"
     }
   }
 }

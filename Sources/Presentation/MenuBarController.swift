@@ -80,11 +80,17 @@ final class MenuBarController: NSObject {
     rate: TrafficRate,
     state: MonitorConnectionState
   ) {
+    statusContentView.update(rate: rate, state: state)
+
+    guard state == .connected else {
+      button.toolTip = "Mihomo Meter · \(state.title)"
+      button.setAccessibilityValue(state.title)
+      return
+    }
+
     let summary =
       "Proxy 下载 \(TrafficRateFormatter.string(from: rate.downloadBytesPerSecond))，"
       + "上传 \(TrafficRateFormatter.string(from: rate.uploadBytesPerSecond))"
-
-    statusContentView.update(rate: rate)
     button.toolTip = "Mihomo Meter · \(state.title)\n\(summary)"
     button.setAccessibilityValue("\(state.title)，\(summary)")
   }

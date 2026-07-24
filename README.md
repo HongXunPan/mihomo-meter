@@ -32,7 +32,7 @@ Mihomo Meter 是只读监控工具：
 
 ## MVP-1 已实现
 
-- 用户手动填写本机 Controller 地址和 Secret
+- 用户手动填写本机 Mihomo 服务地址和访问密钥
 - 仅允许 `127.0.0.1` 或 `::1`
 - 使用 `/version` 验证连接和鉴权
 - 使用 `/proxies` 建立出口类型目录
@@ -57,6 +57,7 @@ Mihomo Meter 是只读监控工具：
 │   ├── Infrastructure/      # Controller、WebSocket 与 Keychain
 │   └── Presentation/        # 状态栏和弹层界面
 ├── Tests/                   # 单元测试
+├── scripts/                 # 构建与运行辅助脚本
 └── docs/                    # 公开架构、隐私和路线图
 ```
 
@@ -80,17 +81,28 @@ cd mihomo-meter
 open MihomoMeter.xcodeproj
 ```
 
-在 Xcode 中选择 `MihomoMeter` Scheme 后运行。
+在 Xcode 中选择 `MihomoMeter` Scheme；首次构建前，在 `MihomoMeter` Target 的 `Signing & Capabilities` 中选择自己的开发团队并保持自动签名，然后运行。稳定的 Apple Development 签名可以避免 Debug 应用重新构建后被 Keychain 反复识别为新应用。
 
 首次运行：
 
 1. 确认 Mihomo 已启用本机 External Controller。
 2. 点击状态栏中的 Mihomo Meter。
-3. 手动填写回环 Controller 地址，例如 `127.0.0.1:9090`。
-4. 手动填写 Secret；Controller 未配置鉴权时可以留空。
+3. 手动填写回环 Mihomo 服务地址，例如 `127.0.0.1:9090`。
+4. 手动填写访问密钥；Mihomo 未配置鉴权时可以留空。
 5. 点击“连接”。
 
 详细口径与异常状态见 [MVP-1 使用与统计口径](docs/MVP-1使用与统计口径.md)。
+
+Debug 构建的脱敏诊断日志说明见[数据与隐私](docs/数据与隐私.md#debug-诊断日志)。
+
+退出 Xcode GUI 后也可以构建。脚本默认只构建已签名的 Debug 应用，传入 `--run` 时在构建成功后启动：
+
+```bash
+scripts/build-debug.sh
+scripts/build-debug.sh --run
+```
+
+脚本不会硬编码开发团队；首次使用前仍需在本机完成自动签名和开发证书配置。使用 `--run` 前应先退出正在运行的 Mihomo Meter，避免继续使用旧进程。
 
 命令行验证：
 

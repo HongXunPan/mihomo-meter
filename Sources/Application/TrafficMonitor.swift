@@ -11,7 +11,7 @@ final class TrafficMonitor: ObservableObject {
   @Published private(set) var coverage: Double?
   @Published private(set) var activeProxyLeaves: [String] = []
   @Published private(set) var mihomoVersion: String?
-  @Published private(set) var message = "请输入本机 Controller 地址和 Secret。"
+  @Published private(set) var message = "请输入本机 Mihomo 服务地址和访问密钥。"
 
   private static let addressDefaultsKey = "controllerAddress"
   private static let staleTimeoutNanoseconds: UInt64 = 2_000_000_000
@@ -19,6 +19,7 @@ final class TrafficMonitor: ObservableObject {
   private let client: any MihomoControllerServing
   private let collector: any ConnectionSnapshotCollecting
   private let secretStore: any ControllerSecretStoring
+  private let diagnosticLogger: any AppDiagnosticLogging
   private let userDefaults: UserDefaults
   private let clock = ContinuousClock()
 
@@ -35,11 +36,13 @@ final class TrafficMonitor: ObservableObject {
     client: any MihomoControllerServing = MihomoControllerClient(),
     collector: any ConnectionSnapshotCollecting = ConnectionStreamCollector(),
     secretStore: any ControllerSecretStoring = KeychainSecretStore(),
+    diagnosticLogger: any AppDiagnosticLogging = NoOpAppDiagnosticLogger.shared,
     userDefaults: UserDefaults = .standard
   ) {
     self.client = client
     self.collector = collector
     self.secretStore = secretStore
+    self.diagnosticLogger = diagnosticLogger
     self.userDefaults = userDefaults
     address = userDefaults.string(forKey: Self.addressDefaultsKey) ?? ""
     secret = ""
@@ -53,9 +56,9 @@ final class TrafficMonitor: ObservableObject {
       }
 
       do {
-        secret = try await secretStore.loadSecret() ?? ""
+        secret = try await secretStore.loadSecret(reason: .applicationStartup) ?? ""
         if !savedAddress.isEmpty {
-          connect()
+          startConnection(trigger: .applicationStartup)
         }
       } catch {
         connectionState = .disconnected
@@ -65,6 +68,14 @@ final class TrafficMonitor: ObservableObject {
   }
 
   func connect() {
+    startConnection(trigger: .userRequest)
+  }
+
+  func reconnectNow() {
+    startConnection(trigger: .immediateRetry)
+  }
+
+  private func startConnection(trigger: ConnectionAttemptTrigger) {
     let requestedAddress = address
     let requestedSecret = secret
     let newRunID = UUID()
@@ -77,7 +88,7 @@ final class TrafficMonitor: ObservableObject {
     resetLiveData()
     mihomoVersion = nil
     connectionState = .connecting
-    message = "正在验证 Controller…"
+    message = "正在验证 Mihomo 服务…"
 
     connectionTask = Task { [weak self] in
       guard let self else {
@@ -88,6 +99,7 @@ final class TrafficMonitor: ObservableObject {
       await runConnectionLoop(
         address: requestedAddress,
         secret: requestedSecret,
+        initialTrigger: trigger,
         runID: newRunID
       )
     }
@@ -113,6 +125,7 @@ final class TrafficMonitor: ObservableObject {
   private func runConnectionLoop(
     address: String,
     secret: String,
+    initialTrigger: ConnectionAttemptTrigger,
     runID: UUID
   ) async {
     let endpoint: ControllerEndpoint
@@ -122,6 +135,9 @@ final class TrafficMonitor: ObservableObject {
       guard isCurrent(runID) else {
         return
       }
+      await diagnosticLogger.record(
+        .connectionStopped(reason: .classify(error))
+      )
       connectionState = .disconnected
       message = error.localizedDescription
       return
@@ -129,17 +145,24 @@ final class TrafficMonitor: ObservableObject {
 
     var backoff = ReconnectBackoff()
     var isFirstAttempt = true
+    var attemptNumber = 1
 
     while !Task.isCancelled, isCurrent(runID) {
       connectionState = isFirstAttempt ? .connecting : .reconnecting
       if !isFirstAttempt {
-        message = "正在重新连接 Controller…"
+        message = "正在重新连接 Mihomo 服务…"
       }
+      await diagnosticLogger.record(
+        .connectionAttemptStarted(
+          trigger: isFirstAttempt ? initialTrigger : .automaticRetry,
+          attemptNumber: attemptNumber
+        )
+      )
 
       do {
         let version = try await client.fetchVersion(endpoint: endpoint, secret: secret)
         let proxies = try await client.fetchProxies(endpoint: endpoint, secret: secret)
-        try await secretStore.saveSecret(secret)
+        try await secretStore.saveSecret(secret, reason: .connectionValidated)
         guard isCurrent(runID) else {
           return
         }
@@ -151,7 +174,7 @@ final class TrafficMonitor: ObservableObject {
           catalog: ProxyCatalog(typesByName: proxies.proxies.mapValues(\.type))
         )
         resetMeasurementBaseline()
-        message = "Controller 已验证，等待连接快照…"
+        message = "Mihomo 服务已验证，等待实时数据…"
         armStaleWatchdog(runID: runID)
 
         try await collector.collect(
@@ -172,6 +195,9 @@ final class TrafficMonitor: ObservableObject {
         guard isCurrent(runID) else {
           return
         }
+        await diagnosticLogger.record(
+          .connectionStopped(reason: .authenticationFailed)
+        )
         stopForTerminalError(
           state: .authenticationFailed,
           message: MihomoControllerError.authenticationFailed.localizedDescription
@@ -181,6 +207,9 @@ final class TrafficMonitor: ObservableObject {
         guard isCurrent(runID) else {
           return
         }
+        await diagnosticLogger.record(
+          .connectionStopped(reason: .unsupportedResponse)
+        )
         stopForTerminalError(
           state: .unsupported,
           message: MihomoControllerError.unsupportedResponse.localizedDescription
@@ -190,6 +219,9 @@ final class TrafficMonitor: ObservableObject {
         guard isCurrent(runID) else {
           return
         }
+        await diagnosticLogger.record(
+          .connectionStopped(reason: .unsupportedResponse)
+        )
         stopForTerminalError(
           state: .unsupported,
           message: ConnectionStreamError.unsupportedResponse.localizedDescription
@@ -199,6 +231,9 @@ final class TrafficMonitor: ObservableObject {
         guard isCurrent(runID) else {
           return
         }
+        await diagnosticLogger.record(
+          .connectionStopped(reason: .classify(error))
+        )
         stopForTerminalError(state: .disconnected, message: error.localizedDescription)
         return
       } catch {
@@ -206,6 +241,10 @@ final class TrafficMonitor: ObservableObject {
           return
         }
 
+        let reason = ConnectionDiagnosticReason.classify(
+          error,
+          dataWasStale: connectionState == .stale
+        )
         staleTask?.cancel()
         resetLiveData()
         if connectionState != .stale {
@@ -214,12 +253,19 @@ final class TrafficMonitor: ObservableObject {
         }
 
         let delay = backoff.nextDelaySeconds()
+        await diagnosticLogger.record(
+          .connectionReconnectScheduled(
+            reason: reason,
+            delaySeconds: delay
+          )
+        )
         do {
           try await Task.sleep(nanoseconds: delay * 1_000_000_000)
         } catch {
           return
         }
         isFirstAttempt = false
+        attemptNumber += 1
       }
     }
   }
@@ -246,8 +292,12 @@ final class TrafficMonitor: ObservableObject {
       secret: secret,
       runID: runID
     )
+    let connectionWasEstablished = connectionState == .connected
     connectionState = .connected
     message = "正在读取实时连接流量。"
+    if !connectionWasEstablished {
+      await diagnosticLogger.record(.connectionEstablished)
+    }
     activeProxyLeaves = Array(
       Set(
         snapshot.connections.compactMap { connection in
@@ -321,6 +371,9 @@ final class TrafficMonitor: ObservableObject {
       connectionState = .stale
       message = "超过 2 秒未收到连接快照，准备重连。"
       resetLiveData()
+      await diagnosticLogger.record(
+        .connectionDataStale(timeoutSeconds: 2)
+      )
       await collector.cancel()
     }
   }

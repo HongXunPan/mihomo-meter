@@ -8,23 +8,39 @@ enum TrafficPopoverLayout {
 struct TrafficPopoverView: View {
   @ObservedObject var monitor: TrafficMonitor
   @State private var showsDiagnostics = false
+  @State private var showsControllerConfiguration = false
+  @State private var synchronizedConnectionState: MonitorConnectionState?
 
   var body: some View {
-    ScrollView {
-      VStack(alignment: .leading, spacing: 16) {
-        header
-        controllerForm
-        proxyRateCard
-        categorySection
-        qualitySection
-        footer
+    VStack(spacing: 0) {
+      header
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
+
+      Divider()
+
+      ScrollView {
+        VStack(alignment: .leading, spacing: 16) {
+          if prioritizesControllerConfiguration {
+            controllerConfiguration
+            trafficOverview
+          } else {
+            trafficOverview
+            controllerConfiguration
+          }
+        }
+        .padding(16)
       }
-      .padding(16)
+
+      footer
     }
     .frame(
       width: TrafficPopoverLayout.contentSize.width,
       height: TrafficPopoverLayout.contentSize.height
     )
+    .onReceive(monitor.$connectionState) { state in
+      synchronizeControllerVisibility(for: state)
+    }
   }
 
   private var header: some View {
@@ -43,132 +59,44 @@ struct TrafficPopoverView: View {
         .foregroundStyle(stateColor)
       }
 
-      Text(monitor.message)
-        .font(.caption)
-        .foregroundStyle(.secondary)
-        .fixedSize(horizontal: false, vertical: true)
-    }
-  }
+      HStack(spacing: 8) {
+        Text(statusDescription)
+          .font(.caption)
+          .foregroundStyle(.secondary)
+          .lineLimit(1)
+          .truncationMode(.tail)
+          .help(statusDescription)
 
-  private var controllerForm: some View {
-    VStack(alignment: .leading, spacing: 10) {
-      Text("Controller")
-        .font(.headline)
+        Spacer(minLength: 8)
 
-      TextField("127.0.0.1:9090", text: $monitor.address)
-        .textFieldStyle(.roundedBorder)
-
-      SecureField("Secret（无鉴权时可留空）", text: $monitor.secret)
-        .textFieldStyle(.roundedBorder)
-
-      HStack {
-        Button(connectButtonTitle) {
-          monitor.connect()
-        }
-        .keyboardShortcut(.defaultAction)
-        .disabled(trimmedAddress.isEmpty)
-
-        if monitor.connectionState != .disconnected {
-          Button("停止") {
-            monitor.disconnect()
+        if allowsImmediateReconnect {
+          Button("立即重连") {
+            monitor.reconnectNow()
           }
-        }
-
-        Spacer()
-
-        if let version = monitor.mihomoVersion {
-          Text("Mihomo \(version)")
-            .font(.caption2)
-            .foregroundStyle(.secondary)
+          .buttonStyle(.bordered)
+          .controlSize(.small)
+          .accessibilityHint("取消当前等待并立即重新连接 Mihomo 服务")
         }
       }
-
-      Text("仅连接本机回环地址；验证成功后，Secret 保存到本应用的 macOS Keychain。")
-        .font(.caption2)
-        .foregroundStyle(.secondary)
-        .fixedSize(horizontal: false, vertical: true)
     }
   }
 
-  private var proxyRateCard: some View {
-    VStack(alignment: .leading, spacing: 12) {
-      HStack {
-        Label("Proxy 实时速度", systemImage: "network")
-          .font(.headline)
-        Spacer()
-        Text("2 秒平滑")
-          .font(.caption2)
-          .foregroundStyle(.secondary)
-      }
-
-      HStack(spacing: 12) {
-        primaryMetric(
-          title: "下载",
-          symbol: "arrow.down",
-          value: monitor.rates.proxy.downloadBytesPerSecond
-        )
-        primaryMetric(
-          title: "上传",
-          symbol: "arrow.up",
-          value: monitor.rates.proxy.uploadBytesPerSecond
-        )
-      }
-    }
-    .padding(12)
-    .background(Color.accentColor.opacity(0.08))
-    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+  private var trafficOverview: some View {
+    TrafficOverviewView(
+      monitor: monitor,
+      showsDiagnostics: $showsDiagnostics
+    )
   }
 
-  private var categorySection: some View {
-    VStack(alignment: .leading, spacing: 8) {
-      Text("分类速度")
-        .font(.headline)
-
-      categoryRow(title: "DIRECT", rate: monitor.rates.direct)
-      categoryRow(title: "REJECT", rate: monitor.rates.reject)
-      categoryRow(title: "未知", rate: monitor.rates.unknown)
-    }
-  }
-
-  private var qualitySection: some View {
-    VStack(alignment: .leading, spacing: 8) {
-      HStack {
-        Text("分类可信度")
-        Spacer()
-        Text(TrafficRateFormatter.percentage(from: monitor.coverage))
-          .monospacedDigit()
-      }
-
-      if TrafficCoveragePolicy.quality(for: monitor.coverage) == .low {
-        Label(
-          "覆盖率低于 95%，当前结果不适合精确判断。",
-          systemImage: "exclamationmark.triangle.fill"
-        )
-        .font(.caption)
-        .foregroundStyle(.orange)
-      }
-
-      if monitor.activeProxyLeaves.isEmpty {
-        Text("当前没有可确认的 Proxy 叶子出口")
-          .font(.caption)
-          .foregroundStyle(.secondary)
-      } else {
-        Text("Proxy 叶子：\(monitor.activeProxyLeaves.joined(separator: "、"))")
-          .font(.caption)
-          .foregroundStyle(.secondary)
-          .lineLimit(2)
-      }
-
-      DisclosureGroup("诊断：原始 1 秒 Proxy 速度", isExpanded: $showsDiagnostics) {
-        categoryRow(title: "原始值", rate: monitor.rawRates.proxy)
-          .padding(.top, 6)
-      }
-      .font(.caption)
-    }
+  private var controllerConfiguration: some View {
+    ControllerConfigurationView(
+      monitor: monitor,
+      isExpanded: $showsControllerConfiguration
+    )
   }
 
   private var footer: some View {
-    VStack(spacing: 10) {
+    VStack(spacing: 0) {
       Divider()
 
       HStack {
@@ -181,21 +109,31 @@ struct TrafficPopoverView: View {
         Button("退出") {
           NSApplication.shared.terminate(nil)
         }
+        .controlSize(.small)
       }
+      .padding(.horizontal, 16)
+      .padding(.vertical, 10)
     }
   }
 
-  private var trimmedAddress: String {
-    monitor.address.trimmingCharacters(in: .whitespacesAndNewlines)
-  }
-
-  private var connectButtonTitle: String {
+  private var prioritizesControllerConfiguration: Bool {
     switch monitor.connectionState {
+    case .disconnected, .connecting, .authenticationFailed, .unsupported:
+      true
     case .connected, .stale, .reconnecting:
-      "重新连接"
-    default:
-      "连接"
+      false
     }
+  }
+
+  private var statusDescription: String {
+    if monitor.connectionState == .connected {
+      return "正在监控 Proxy 实时流量。"
+    }
+    return monitor.message
+  }
+
+  private var allowsImmediateReconnect: Bool {
+    monitor.connectionState == .stale || monitor.connectionState == .reconnecting
   }
 
   private var stateColor: Color {
@@ -211,31 +149,19 @@ struct TrafficPopoverView: View {
     }
   }
 
-  private func primaryMetric(
-    title: String,
-    symbol: String,
-    value: UInt64
-  ) -> some View {
-    VStack(alignment: .leading, spacing: 4) {
-      Label(title, systemImage: symbol)
-        .font(.caption)
-        .foregroundStyle(.secondary)
-      Text(TrafficRateFormatter.string(from: value))
-        .font(.system(.title3, design: .rounded).weight(.semibold))
-        .monospacedDigit()
+  private func synchronizeControllerVisibility(
+    for state: MonitorConnectionState
+  ) {
+    guard synchronizedConnectionState != state else {
+      return
     }
-    .frame(maxWidth: .infinity, alignment: .leading)
-  }
+    synchronizedConnectionState = state
 
-  private func categoryRow(title: String, rate: TrafficRate) -> some View {
-    HStack {
-      Text(title)
-      Spacer()
-      Text("↓ \(TrafficRateFormatter.string(from: rate.downloadBytesPerSecond))")
-        .monospacedDigit()
-      Text("↑ \(TrafficRateFormatter.string(from: rate.uploadBytesPerSecond))")
-        .monospacedDigit()
+    switch state {
+    case .disconnected, .authenticationFailed, .unsupported:
+      showsControllerConfiguration = true
+    case .connecting, .connected, .stale, .reconnecting:
+      break
     }
-    .font(.caption)
   }
 }

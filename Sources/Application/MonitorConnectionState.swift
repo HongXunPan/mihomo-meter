@@ -40,4 +40,23 @@ enum MonitorConnectionState: Equatable, Sendable {
       "circle.dashed"
     }
   }
+
+  var statusItemTitle: String {
+    switch self {
+    case .disconnected:
+      "未连接"
+    case .connecting:
+      "连接中"
+    case .connected:
+      ""
+    case .stale:
+      "数据超时"
+    case .reconnecting:
+      "重连中"
+    case .authenticationFailed:
+      "鉴权失败"
+    case .unsupported:
+      "不兼容"
+    }
+  }
 }

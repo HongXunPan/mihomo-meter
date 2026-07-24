@@ -7,10 +7,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
   func applicationDidFinishLaunching(_ notification: Notification) {
     NSApplication.shared.setActivationPolicy(.accessory)
-    let monitor = TrafficMonitor()
+    let monitor = TrafficMonitor(
+      diagnosticLogger: DebugDiagnosticLogger.shared
+    )
     trafficMonitor = monitor
     menuBarController = MenuBarController(monitor: monitor)
-    monitor.start()
+
+    Task {
+      #if DEBUG
+        await DebugDiagnosticLogger.shared.record(
+          .applicationLaunched(AppCodeSigningInspector.currentSummary())
+        )
+      #endif
+      monitor.start()
+    }
   }
 
   func applicationWillTerminate(_ notification: Notification) {

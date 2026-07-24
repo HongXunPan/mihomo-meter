@@ -53,7 +53,7 @@ final class TrafficMonitorTests: XCTestCase {
     monitor.connect()
     try await waitUntil { monitor.connectionState == .connected }
 
-    let savedSecret = await secretStore.loadSecret()
+    let savedSecret = await secretStore.loadSecret(reason: .applicationStartup)
     XCTAssertEqual(monitor.mihomoVersion, "v-test")
     XCTAssertEqual(savedSecret, "synthetic-secret")
     XCTAssertEqual(
@@ -129,6 +129,67 @@ final class TrafficMonitorTests: XCTestCase {
     monitor.disconnect()
   }
 
+  func testLogsAutomaticReconnectReasonAndDelay() async throws {
+    let diagnosticLogger = MonitorTestDiagnosticLogger()
+    let collector = MonitorTestCollector(error: .closed)
+    let (userDefaults, suiteName) = makeUserDefaults()
+    defer {
+      userDefaults.removePersistentDomain(forName: suiteName)
+    }
+    let monitor = TrafficMonitor(
+      client: MonitorTestClient(),
+      collector: collector,
+      secretStore: MonitorTestSecretStore(),
+      diagnosticLogger: diagnosticLogger,
+      userDefaults: userDefaults
+    )
+    monitor.address = "127.0.0.1:9090"
+
+    monitor.connect()
+    try await waitUntilAsync {
+      await diagnosticLogger.contains(
+        .connectionReconnectScheduled(
+          reason: .streamClosed,
+          delaySeconds: 1
+        )
+      )
+    }
+
+    monitor.disconnect()
+  }
+
+  func testImmediateReconnectUsesDedicatedDiagnosticTrigger() async throws {
+    let diagnosticLogger = MonitorTestDiagnosticLogger()
+    let (userDefaults, suiteName) = makeUserDefaults()
+    defer {
+      userDefaults.removePersistentDomain(forName: suiteName)
+    }
+    let monitor = TrafficMonitor(
+      client: MonitorTestClient(error: .authenticationFailed),
+      collector: MonitorTestCollector(),
+      secretStore: MonitorTestSecretStore(),
+      diagnosticLogger: diagnosticLogger,
+      userDefaults: userDefaults
+    )
+    monitor.address = "127.0.0.1:9090"
+
+    monitor.reconnectNow()
+    try await waitUntilAsync {
+      await diagnosticLogger.contains(
+        .connectionAttemptStarted(
+          trigger: .immediateRetry,
+          attemptNumber: 1
+        )
+      )
+    }
+    try await waitUntil { monitor.connectionState == .authenticationFailed }
+
+    let didLogTerminalReason = await diagnosticLogger.contains(
+      .connectionStopped(reason: .authenticationFailed)
+    )
+    XCTAssertTrue(didLogTerminalReason)
+  }
+
   private func makeUserDefaults() -> (UserDefaults, String) {
     let suiteName = "MihomoMeterTests.\(UUID().uuidString)"
     return (UserDefaults(suiteName: suiteName) ?? .standard, suiteName)
@@ -195,10 +256,15 @@ private actor MonitorTestClient: MihomoControllerServing {
 
 private actor MonitorTestCollector: ConnectionSnapshotCollecting {
   private let snapshot: MihomoConnectionsSnapshot?
+  private let error: ConnectionStreamError?
   private(set) var collectionCount = 0
 
-  init(snapshot: MihomoConnectionsSnapshot? = nil) {
+  init(
+    snapshot: MihomoConnectionsSnapshot? = nil,
+    error: ConnectionStreamError? = nil
+  ) {
     self.snapshot = snapshot
+    self.error = error
   }
 
   func collect(
@@ -210,24 +276,39 @@ private actor MonitorTestCollector: ConnectionSnapshotCollecting {
     if let snapshot {
       await onSnapshot(snapshot)
     }
+    if let error {
+      throw error
+    }
     try await Task.sleep(nanoseconds: UInt64.max)
   }
 
   func cancel() {}
 }
 
+private actor MonitorTestDiagnosticLogger: AppDiagnosticLogging {
+  private var events: [AppDiagnosticEvent] = []
+
+  func record(_ event: AppDiagnosticEvent) {
+    events.append(event)
+  }
+
+  func contains(_ event: AppDiagnosticEvent) -> Bool {
+    events.contains(event)
+  }
+}
+
 private actor MonitorTestSecretStore: ControllerSecretStoring {
   private var secret: String?
 
-  func loadSecret() -> String? {
+  func loadSecret(reason: KeychainAccessReason) -> String? {
     secret
   }
 
-  func saveSecret(_ secret: String) {
+  func saveSecret(_ secret: String, reason: KeychainAccessReason) {
     self.secret = secret
   }
 
-  func deleteSecret() {
+  func deleteSecret(reason: KeychainAccessReason) {
     secret = nil
   }
 }

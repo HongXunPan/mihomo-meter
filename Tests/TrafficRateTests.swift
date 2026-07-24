@@ -43,4 +43,14 @@ final class TrafficRateTests: XCTestCase {
     XCTAssertEqual(TrafficCoveragePolicy.quality(for: 0.9499), .low)
     XCTAssertEqual(TrafficCoveragePolicy.quality(for: 0.95), .reliable)
   }
+
+  func testConnectionStateProvidesCompactStatusItemTitles() {
+    XCTAssertEqual(MonitorConnectionState.disconnected.statusItemTitle, "未连接")
+    XCTAssertEqual(MonitorConnectionState.connecting.statusItemTitle, "连接中")
+    XCTAssertEqual(MonitorConnectionState.connected.statusItemTitle, "")
+    XCTAssertEqual(MonitorConnectionState.stale.statusItemTitle, "数据超时")
+    XCTAssertEqual(MonitorConnectionState.reconnecting.statusItemTitle, "重连中")
+    XCTAssertEqual(MonitorConnectionState.authenticationFailed.statusItemTitle, "鉴权失败")
+    XCTAssertEqual(MonitorConnectionState.unsupported.statusItemTitle, "不兼容")
+  }
 }

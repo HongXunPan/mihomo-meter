@@ -99,17 +99,17 @@ enum ControllerEndpointError: Error, Equatable, LocalizedError {
   var errorDescription: String? {
     switch self {
     case .emptyAddress:
-      "请输入 Controller 地址。"
+      "请输入 Mihomo 服务地址。"
     case .invalidAddress:
-      "Controller 地址格式无效。"
+      "Mihomo 服务地址格式无效。"
     case .unsupportedScheme:
-      "Controller 地址只支持 HTTP 或 HTTPS。"
+      "Mihomo 服务地址只支持 HTTP 或 HTTPS。"
     case .nonLoopbackAddress:
       "MVP-1 只允许连接 127.0.0.1 或 ::1。"
     case .missingOrInvalidPort:
-      "Controller 地址必须包含有效端口。"
+      "Mihomo 服务地址必须包含有效端口。"
     case .unsupportedPath:
-      "Controller 地址不能包含额外路径。"
+      "Mihomo 服务地址不能包含额外路径。"
     }
   }
 }

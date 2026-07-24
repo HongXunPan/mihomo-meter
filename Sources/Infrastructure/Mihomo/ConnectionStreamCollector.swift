@@ -91,13 +91,13 @@ enum ConnectionStreamError: Error, Equatable, LocalizedError {
   var errorDescription: String? {
     switch self {
     case .malformedMessage:
-      "Controller 推送了无效 WebSocket 消息。"
+      "Mihomo 服务推送了无效实时数据。"
     case .unsupportedResponse:
       "当前连接快照结构暂不受支持。"
     case .network:
-      "Controller WebSocket 连接中断。"
+      "Mihomo 实时数据连接中断。"
     case .closed:
-      "Controller WebSocket 已关闭。"
+      "Mihomo 实时数据连接已关闭。"
     }
   }
 }
