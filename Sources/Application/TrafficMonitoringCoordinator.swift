@@ -3,7 +3,11 @@ import Foundation
 enum TrafficMonitoringEvent: Equatable, Sendable {
   case validating
   case retrying
-  case validated(address: String, version: String)
+  case validated(
+    address: String,
+    version: String,
+    runtimeConfiguration: MihomoRuntimeConfiguration?
+  )
   case measurement(TrafficMeasurementResult)
   case dataStale(
     staleTimeoutSeconds: Int,

@@ -50,6 +50,19 @@ struct ConnectionTrafficSample: Equatable, Sendable {
   let id: String
   let bytes: TrafficBytes
   let chains: [String]
+  let rule: String?
+
+  init(
+    id: String,
+    bytes: TrafficBytes,
+    chains: [String],
+    rule: String? = nil
+  ) {
+    self.id = id
+    self.bytes = bytes
+    self.chains = chains
+    self.rule = rule
+  }
 }
 
 struct ConnectionTrafficSnapshot: Equatable, Sendable {

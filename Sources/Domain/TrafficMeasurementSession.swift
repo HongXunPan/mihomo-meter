@@ -2,6 +2,7 @@ import Foundation
 
 struct TrafficMeasurementResult: Equatable, Sendable {
   let activeProxyLeaves: [String]
+  let activeRuleTypes: [String]
   let requiresCatalogRefresh: Bool
   let rateWindow: TrafficRateWindow?
 }
@@ -42,6 +43,14 @@ struct TrafficMeasurementSession: Sendable {
       return item.connection.chains.first
     }
     let activeProxyLeaves = Array(Set(proxyLeaves)).sorted()
+    let activeRuleTypes = Array(
+      Set(
+        snapshot.connections.compactMap { connection in
+          let rule = connection.rule?.trimmingCharacters(in: .whitespacesAndNewlines)
+          return rule.flatMap { $0.isEmpty ? nil : $0 }
+        }
+      )
+    ).sorted()
     let requiresCatalogRefresh = classifications.contains {
       $0.classification.unknownReason == .missingCatalogEntry
     }
@@ -63,6 +72,7 @@ struct TrafficMeasurementSession: Sendable {
 
     return TrafficMeasurementResult(
       activeProxyLeaves: activeProxyLeaves,
+      activeRuleTypes: activeRuleTypes,
       requiresCatalogRefresh: requiresCatalogRefresh,
       rateWindow: rateWindow
     )

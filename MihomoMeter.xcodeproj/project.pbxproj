@@ -70,6 +70,10 @@
 		AS0000000000000000000201 /* AppUpdateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AS0000000000000000000101 /* AppUpdateTests.swift */; };
 		AT0000000000000000000201 /* AppHelpLinksMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = AT0000000000000000000101 /* AppHelpLinksMenu.swift */; };
 		AU0000000000000000000201 /* AppHelpLinksTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AU0000000000000000000101 /* AppHelpLinksTests.swift */; };
+		AV0000000000000000000201 /* MihomoRuntimeConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = AV0000000000000000000101 /* MihomoRuntimeConfiguration.swift */; };
+		AW0000000000000000000201 /* TrafficClassificationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AW0000000000000000000101 /* TrafficClassificationView.swift */; };
+		AX0000000000000000000201 /* RoutingStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AX0000000000000000000101 /* RoutingStatusView.swift */; };
+		AY0000000000000000000201 /* RuntimeDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AY0000000000000000000101 /* RuntimeDetailsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -150,6 +154,10 @@
 		AS0000000000000000000101 /* AppUpdateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppUpdateTests.swift; sourceTree = "<group>"; };
 		AT0000000000000000000101 /* AppHelpLinksMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppHelpLinksMenu.swift; sourceTree = "<group>"; };
 		AU0000000000000000000101 /* AppHelpLinksTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppHelpLinksTests.swift; sourceTree = "<group>"; };
+		AV0000000000000000000101 /* MihomoRuntimeConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MihomoRuntimeConfiguration.swift; sourceTree = "<group>"; };
+		AW0000000000000000000101 /* TrafficClassificationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficClassificationView.swift; sourceTree = "<group>"; };
+		AX0000000000000000000101 /* RoutingStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoutingStatusView.swift; sourceTree = "<group>"; };
+		AY0000000000000000000101 /* RuntimeDetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuntimeDetailsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -229,6 +237,7 @@
 			children = (
 				A30000000000000000000103 /* ConnectionDeltaTracker.swift */,
 				A20000000000000000000101 /* ControllerEndpoint.swift */,
+				AV0000000000000000000101 /* MihomoRuntimeConfiguration.swift */,
 				A30000000000000000000102 /* ProxyClassifier.swift */,
 				AN0000000000000000000101 /* SemanticVersion.swift */,
 				A30000000000000000000101 /* TrafficMeasurement.swift */,
@@ -247,6 +256,9 @@
 				A90000000000000000000101 /* ControllerConfigurationView.swift */,
 				A10000000000000000000105 /* MenuBarController.swift */,
 				A70000000000000000000101 /* ProxyStatusItemView.swift */,
+				AX0000000000000000000101 /* RoutingStatusView.swift */,
+				AY0000000000000000000101 /* RuntimeDetailsView.swift */,
+				AW0000000000000000000101 /* TrafficClassificationView.swift */,
 				A10000000000000000000104 /* TrafficRateFormatter.swift */,
 				A80000000000000000000101 /* TrafficOverviewView.swift */,
 				A10000000000000000000106 /* TrafficPopoverView.swift */,
@@ -468,6 +480,7 @@
 				AQ0000000000000000000201 /* GitHubReleaseClient.swift in Sources */,
 				A20000000000000000000204 /* KeychainSecretStore.swift in Sources */,
 				A10000000000000000000205 /* MenuBarController.swift in Sources */,
+				AV0000000000000000000201 /* MihomoRuntimeConfiguration.swift in Sources */,
 				A20000000000000000000203 /* MihomoControllerClient.swift in Sources */,
 				A20000000000000000000202 /* MihomoControllerModels.swift in Sources */,
 				AD0000000000000000000201 /* MihomoMonitoringSession.swift in Sources */,
@@ -477,6 +490,8 @@
 				A40000000000000000000202 /* MonitorConnectionState.swift in Sources */,
 				A30000000000000000000202 /* ProxyClassifier.swift in Sources */,
 				A40000000000000000000201 /* ReconnectBackoff.swift in Sources */,
+				AX0000000000000000000201 /* RoutingStatusView.swift in Sources */,
+				AY0000000000000000000201 /* RuntimeDetailsView.swift in Sources */,
 				AN0000000000000000000201 /* SemanticVersion.swift in Sources */,
 				A30000000000000000000201 /* TrafficMeasurement.swift in Sources */,
 				A40000000000000000000203 /* TrafficMonitor.swift in Sources */,
@@ -485,6 +500,7 @@
 				AC0000000000000000000201 /* TrafficMeasurementSession.swift in Sources */,
 				A10000000000000000000203 /* TrafficRate.swift in Sources */,
 				A30000000000000000000204 /* TrafficRateAggregator.swift in Sources */,
+				AW0000000000000000000201 /* TrafficClassificationView.swift in Sources */,
 				A10000000000000000000204 /* TrafficRateFormatter.swift in Sources */,
 				A80000000000000000000201 /* TrafficOverviewView.swift in Sources */,
 				A10000000000000000000206 /* TrafficPopoverView.swift in Sources */,

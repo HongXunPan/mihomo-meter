@@ -44,10 +44,15 @@ class TrafficMonitorTestCase: XCTestCase {
 
 actor MonitorTestClient: MihomoControllerServing {
   private let error: MihomoControllerError?
+  private let runtimeConfigurationError: MihomoControllerError?
   private(set) var proxyFetchCount = 0
 
-  init(error: MihomoControllerError? = nil) {
+  init(
+    error: MihomoControllerError? = nil,
+    runtimeConfigurationError: MihomoControllerError? = nil
+  ) {
     self.error = error
+    self.runtimeConfigurationError = runtimeConfigurationError
   }
 
   func fetchVersion(
@@ -66,6 +71,26 @@ actor MonitorTestClient: MihomoControllerServing {
   ) async throws -> MihomoProxiesResponse {
     proxyFetchCount += 1
     return MihomoProxiesResponse(proxies: [:])
+  }
+
+  func fetchRuntimeConfiguration(
+    endpoint: ControllerEndpoint,
+    secret: String
+  ) async throws -> MihomoRuntimeConfiguration {
+    if let runtimeConfigurationError {
+      throw runtimeConfigurationError
+    }
+    return MihomoRuntimeConfiguration(
+      mode: "rule",
+      tun: MihomoTunRuntimeConfiguration(
+        isEnabled: true,
+        stack: "system",
+        automaticallyRoutesTraffic: true
+      ),
+      isIPv6Enabled: true,
+      allowsLAN: false,
+      mixedPort: 7_890
+    )
   }
 }
 

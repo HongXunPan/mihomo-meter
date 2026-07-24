@@ -72,6 +72,10 @@ final class TrafficMonitoringRun {
       do {
         let version = try await client.fetchVersion(endpoint: endpoint, secret: secret)
         let proxies = try await client.fetchProxies(endpoint: endpoint, secret: secret)
+        let runtimeConfiguration = await fetchRuntimeConfiguration(
+          endpoint: endpoint,
+          secret: secret
+        )
         if isFirstAttempt, initialTrigger == .userRequest {
           try await configurationStore.saveValidatedSecret(secret)
         }
@@ -91,7 +95,8 @@ final class TrafficMonitoringRun {
         eventHandler(
           .validated(
             address: endpoint.baseURL.absoluteString,
-            version: version.version
+            version: version.version,
+            runtimeConfiguration: runtimeConfiguration
           )
         )
 
@@ -213,6 +218,25 @@ final class TrafficMonitoringRun {
     eventHandler(
       .terminal(state: .disconnected, message: error.localizedDescription)
     )
+  }
+
+  private func fetchRuntimeConfiguration(
+    endpoint: ControllerEndpoint,
+    secret: String
+  ) async -> MihomoRuntimeConfiguration? {
+    do {
+      return try await client.fetchRuntimeConfiguration(
+        endpoint: endpoint,
+        secret: secret
+      )
+    } catch {
+      await diagnosticLogger.record(
+        .runtimeConfigurationUnavailable(
+          reason: .classify(error)
+        )
+      )
+      return nil
+    }
   }
 
   private func finish(

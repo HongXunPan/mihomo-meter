@@ -30,6 +30,14 @@ final class TrafficMonitor: ObservableObject {
     state.activeProxyLeaves
   }
 
+  var activeRuleTypes: [String] {
+    state.activeRuleTypes
+  }
+
+  var runtimeConfiguration: MihomoRuntimeConfiguration? {
+    state.runtimeConfiguration
+  }
+
   var mihomoVersion: String? {
     state.mihomoVersion
   }
@@ -139,7 +147,7 @@ final class TrafficMonitor: ObservableObject {
   }
 
   private func apply(_ event: TrafficMonitoringCoordinator.Event) {
-    if case .validated(let address, _) = event {
+    if case .validated(let address, _, _) = event {
       self.address = address
     }
     state = TrafficMonitorReducer.reduce(state, event: event)

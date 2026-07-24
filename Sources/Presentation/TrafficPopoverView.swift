@@ -9,7 +9,7 @@ enum TrafficPopoverLayout {
 struct TrafficPopoverView: View {
   @ObservedObject var monitor: TrafficMonitor
   @ObservedObject var updateModel: AppUpdateModel
-  @State private var showsDiagnostics = false
+  @State private var showsRuntimeDetails = false
   @State private var showsControllerConfiguration = false
   @State private var synchronizedConnectionState: MonitorConnectionState?
 
@@ -88,7 +88,7 @@ struct TrafficPopoverView: View {
   private var trafficOverview: some View {
     TrafficOverviewView(
       monitor: monitor,
-      showsDiagnostics: $showsDiagnostics
+      showsRuntimeDetails: $showsRuntimeDetails
     )
   }
 

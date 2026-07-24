@@ -6,6 +6,8 @@ struct TrafficMonitorState: Equatable, Sendable {
   var rawRates: CategorizedTrafficRates = .zero
   var coverage: Double?
   var activeProxyLeaves: [String] = []
+  var activeRuleTypes: [String] = []
+  var runtimeConfiguration: MihomoRuntimeConfiguration?
   var mihomoVersion: String?
   var message = "请输入本机 Mihomo 服务地址和访问密钥。"
 
@@ -14,6 +16,7 @@ struct TrafficMonitorState: Equatable, Sendable {
     rawRates = .zero
     coverage = nil
     activeProxyLeaves = []
+    activeRuleTypes = []
   }
 }
 

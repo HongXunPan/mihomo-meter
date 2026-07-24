@@ -40,6 +40,7 @@ final class TrafficMeasurementSessionTests: XCTestCase {
     )
 
     XCTAssertEqual(initialResult?.activeProxyLeaves, ["Proxy Node"])
+    XCTAssertEqual(initialResult?.activeRuleTypes, ["DOMAIN", "MATCH"])
     XCTAssertFalse(initialResult?.requiresCatalogRefresh ?? true)
     XCTAssertNil(initialResult?.rateWindow)
     XCTAssertEqual(
@@ -99,7 +100,8 @@ final class TrafficMeasurementSessionTests: XCTestCase {
             upload: proxyUpload,
             download: proxyDownload
           ),
-          chains: ["Proxy Node"]
+          chains: ["Proxy Node"],
+          rule: "DOMAIN"
         ),
         ConnectionTrafficSample(
           id: "direct-connection",
@@ -107,7 +109,8 @@ final class TrafficMeasurementSessionTests: XCTestCase {
             upload: directUpload,
             download: directDownload
           ),
-          chains: ["DIRECT"]
+          chains: ["DIRECT"],
+          rule: "MATCH"
         ),
       ]
     )

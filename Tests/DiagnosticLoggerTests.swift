@@ -64,6 +64,11 @@ final class DiagnosticLoggerTests: XCTestCase {
         delaySeconds: 4
       )
     )
+    await logger.record(
+      .runtimeConfigurationUnavailable(
+        reason: .controllerHTTP(500)
+      )
+    )
 
     let contents = try String(
       contentsOf: directoryURL.appendingPathComponent("diagnostics.log"),
@@ -84,6 +89,8 @@ final class DiagnosticLoggerTests: XCTestCase {
     XCTAssertTrue(contents.contains("last_snapshot_age_ms=5087"))
     XCTAssertTrue(contents.contains("reason=stream_network"))
     XCTAssertTrue(contents.contains("delay_seconds=4"))
+    XCTAssertTrue(contents.contains("event=runtime_configuration.unavailable"))
+    XCTAssertTrue(contents.contains("reason=controller_http code=500"))
     XCTAssertFalse(contents.contains(NSHomeDirectory()))
     XCTAssertFalse(contents.contains("synthetic-secret"))
   }

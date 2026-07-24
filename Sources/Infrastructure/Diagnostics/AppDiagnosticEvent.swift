@@ -121,6 +121,7 @@ enum AppDiagnosticEvent: Equatable, Sendable {
     attemptNumber: Int
   )
   case connectionEstablished
+  case runtimeConfigurationUnavailable(reason: ConnectionDiagnosticReason)
   case connectionDataStale(
     timeoutSeconds: Int,
     reconnectAfterSeconds: Int,
@@ -164,6 +165,11 @@ enum AppDiagnosticEvent: Equatable, Sendable {
       ].joined(separator: " ")
     case .connectionEstablished:
       return "event=connection.established"
+    case .runtimeConfigurationUnavailable(let reason):
+      return [
+        "event=runtime_configuration.unavailable",
+        reason.logFields,
+      ].joined(separator: " ")
     case .connectionDataStale(
       let timeoutSeconds,
       let reconnectAfterSeconds,

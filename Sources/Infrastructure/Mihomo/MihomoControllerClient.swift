@@ -10,6 +10,11 @@ protocol MihomoControllerServing: Sendable {
     endpoint: ControllerEndpoint,
     secret: String
   ) async throws -> MihomoProxiesResponse
+
+  func fetchRuntimeConfiguration(
+    endpoint: ControllerEndpoint,
+    secret: String
+  ) async throws -> MihomoRuntimeConfiguration
 }
 
 actor MihomoControllerClient: MihomoControllerServing {
@@ -41,6 +46,18 @@ actor MihomoControllerClient: MihomoControllerServing {
       url: endpoint.httpURL(path: "/proxies"),
       secret: secret
     )
+  }
+
+  func fetchRuntimeConfiguration(
+    endpoint: ControllerEndpoint,
+    secret: String
+  ) async throws -> MihomoRuntimeConfiguration {
+    let response = try await get(
+      MihomoRuntimeConfigurationResponse.self,
+      url: endpoint.httpURL(path: "/configs"),
+      secret: secret
+    )
+    return response.runtimeConfiguration
   }
 
   private func get<Response: Decodable>(

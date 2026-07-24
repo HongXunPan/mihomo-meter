@@ -152,6 +152,19 @@ private actor MonitoringSessionTestClient: MihomoControllerServing {
     proxyFetchCount += 1
     return MihomoProxiesResponse(proxies: [:])
   }
+
+  func fetchRuntimeConfiguration(
+    endpoint: ControllerEndpoint,
+    secret: String
+  ) async throws -> MihomoRuntimeConfiguration {
+    MihomoRuntimeConfiguration(
+      mode: nil,
+      tun: nil,
+      isIPv6Enabled: nil,
+      allowsLAN: nil,
+      mixedPort: nil
+    )
+  }
 }
 
 private actor MonitoringSessionTestCollector: ConnectionSnapshotCollecting {

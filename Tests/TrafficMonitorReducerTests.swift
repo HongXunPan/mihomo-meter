@@ -13,14 +13,33 @@ final class TrafficMonitorReducerTests: XCTestCase {
     XCTAssertEqual(state.rawRates, .zero)
     XCTAssertNil(state.coverage)
     XCTAssertEqual(state.activeProxyLeaves, [])
+    XCTAssertEqual(state.activeRuleTypes, [])
     XCTAssertNil(state.mihomoVersion)
+    XCTAssertNil(state.runtimeConfiguration)
   }
 
-  func testMeasurementPublishesWindowAndActiveProxyLeaves() {
+  func testValidatedPublishesRuntimeConfiguration() {
+    let runtimeConfiguration = makeRuntimeConfiguration()
+
+    let state = TrafficMonitorReducer.reduce(
+      TrafficMonitorState(),
+      event: .validated(
+        address: "http://127.0.0.1:9090",
+        version: "v-test",
+        runtimeConfiguration: runtimeConfiguration
+      )
+    )
+
+    XCTAssertEqual(state.mihomoVersion, "v-test")
+    XCTAssertEqual(state.runtimeConfiguration, runtimeConfiguration)
+  }
+
+  func testMeasurementPublishesWindowProxyLeavesAndRuleTypes() {
     let raw = makeRates(download: 800, upload: 300)
     let smoothed = makeRates(download: 600, upload: 200)
     let result = TrafficMeasurementResult(
       activeProxyLeaves: ["Synthetic Proxy"],
+      activeRuleTypes: ["DOMAIN", "RULE-SET"],
       requiresCatalogRefresh: false,
       rateWindow: TrafficRateWindow(
         raw: raw,
@@ -39,6 +58,7 @@ final class TrafficMonitorReducerTests: XCTestCase {
     XCTAssertEqual(state.rates, smoothed)
     XCTAssertEqual(state.coverage, 0.98)
     XCTAssertEqual(state.activeProxyLeaves, ["Synthetic Proxy"])
+    XCTAssertEqual(state.activeRuleTypes, ["DOMAIN", "RULE-SET"])
   }
 
   func testDataStaleClearsLiveStateButPreservesVersion() {
@@ -58,7 +78,9 @@ final class TrafficMonitorReducerTests: XCTestCase {
     XCTAssertEqual(state.rawRates, .zero)
     XCTAssertNil(state.coverage)
     XCTAssertEqual(state.activeProxyLeaves, [])
+    XCTAssertEqual(state.activeRuleTypes, [])
     XCTAssertEqual(state.mihomoVersion, "v-test")
+    XCTAssertEqual(state.runtimeConfiguration, makeRuntimeConfiguration())
     XCTAssertEqual(
       state.message,
       "超过 2 秒未收到实时数据；持续 5 秒将重新连接。"
@@ -72,8 +94,24 @@ final class TrafficMonitorReducerTests: XCTestCase {
       rawRates: makeRates(download: 800, upload: 300),
       coverage: 0.98,
       activeProxyLeaves: ["Synthetic Proxy"],
+      activeRuleTypes: ["DOMAIN"],
+      runtimeConfiguration: makeRuntimeConfiguration(),
       mihomoVersion: "v-test",
       message: "正在读取实时连接流量。"
+    )
+  }
+
+  private func makeRuntimeConfiguration() -> MihomoRuntimeConfiguration {
+    MihomoRuntimeConfiguration(
+      mode: "rule",
+      tun: MihomoTunRuntimeConfiguration(
+        isEnabled: true,
+        stack: "system",
+        automaticallyRoutesTraffic: true
+      ),
+      isIPv6Enabled: true,
+      allowsLAN: false,
+      mixedPort: 7_890
     )
   }
 

@@ -132,6 +132,44 @@ final class TrafficMonitorLifecycleTests: TrafficMonitorTestCase {
     monitor.disconnect()
   }
 
+  func testKeepsMonitoringWhenRuntimeConfigurationIsUnavailable() async throws {
+    let diagnosticLogger = MonitorTestDiagnosticLogger()
+    let client = MonitorTestClient(
+      runtimeConfigurationError: .httpStatus(500)
+    )
+    let collector = MonitorTestCollector(
+      snapshot: MihomoConnectionsSnapshot(
+        downloadTotal: 2_000,
+        uploadTotal: 1_000,
+        connections: []
+      )
+    )
+    let (userDefaults, suiteName) = makeUserDefaults()
+    defer {
+      userDefaults.removePersistentDomain(forName: suiteName)
+    }
+    let monitor = TrafficMonitor(
+      client: client,
+      collector: collector,
+      secretStore: MonitorTestSecretStore(),
+      diagnosticLogger: diagnosticLogger,
+      userDefaults: userDefaults
+    )
+    monitor.address = "127.0.0.1:9090"
+
+    monitor.connect()
+    try await waitUntil {
+      monitor.connectionState == .connected
+    }
+
+    XCTAssertNil(monitor.runtimeConfiguration)
+    let didLogUnavailableConfiguration = await diagnosticLogger.contains(
+      .runtimeConfigurationUnavailable(reason: .controllerHTTP(500))
+    )
+    XCTAssertTrue(didLogUnavailableConfiguration)
+    monitor.disconnect()
+  }
+
   func testLogsAutomaticReconnectReasonAndDelay() async throws {
     let diagnosticLogger = MonitorTestDiagnosticLogger()
     let collector = MonitorTestCollector(error: .closed)
