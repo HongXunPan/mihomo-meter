@@ -44,9 +44,11 @@ scripts/build-debug.sh --run
 
 ```bash
 bash -n \
+  scripts/build-release-dmg.sh \
   scripts/generate-sparkle-appcast.sh \
   scripts/generate-release-notes.sh \
   scripts/sign-sparkle-framework.sh \
+  scripts/smoke-test-release-launch.sh \
   scripts/test-generate-release-notes.sh \
   scripts/verify-sparkle-release.sh
 scripts/test-generate-release-notes.sh
@@ -69,6 +71,7 @@ xcodebuild \
 - 命令退出码为 `0`
 - 应用 Target 编译通过
 - `MihomoMeterTests` 全部通过
+- 正式 DMG 构建会在宿主机支持的架构上执行无生产副作用的真实启动冒烟
 
 正式版本的证书准备、GitHub Secrets 和工作流说明见[发布与安装](docs/发布与安装.md)。Pull Request 不应执行正式发布工作流。
 
