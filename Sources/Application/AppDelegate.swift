@@ -44,6 +44,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       monitor: monitor,
       updateModel: updateModel
     )
+    updateModel.start()
 
     Task {
       #if DEBUG
@@ -52,12 +53,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         )
       #endif
       monitor.start()
-      updateModel.checkForUpdates()
     }
   }
 
   func applicationWillTerminate(_ notification: Notification) {
     trafficMonitor?.stopForApplicationTermination()
-    updateModel?.cancel()
   }
 }

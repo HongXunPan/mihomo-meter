@@ -31,7 +31,9 @@ Debug 构建会生成不含 Secret 的本地诊断日志，具体位置、字段
 
 ### 版本与更新
 
-弹层底部展示 `CFBundleShortVersionString`。应用启动后会读取 GitHub 最新公开 Release；仅当严格的 `vX.Y.Z` 标签高于当前版本时显示下载链接。检查失败不会影响 Mihomo 监控，应用也不会静默下载、替换或启动安装包。
+弹层底部展示 `CFBundleShortVersionString`。应用使用 Sparkle 读取 GitHub 最新 Release 中的 `appcast.xml`，启动时检查一次，也允许用户点击“检查更新”手动触发。发现更新后由 Sparkle 标准界面展示发布信息，只有用户确认后才下载 Universal DMG，并在解压前校验 Ed25519 签名，再替换应用和重启；应用不允许后台静默安装。
+
+`0.1.x` 没有内置 Sparkle，因此首次升级到 `0.2.x` 仍需从 GitHub Releases 手动下载 DMG。安装了包含 Sparkle 的版本后，后续版本才能使用应用内更新。更新检查或下载失败不会影响 Mihomo 监控。
 
 ## 实时统计口径
 

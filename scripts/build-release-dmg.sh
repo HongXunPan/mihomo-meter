@@ -67,6 +67,10 @@ verify_app() {
     fail "Release 应用不应声明需要 provisioning profile 的 Keychain 访问组。"
   fi
 
+  "${project_root}/scripts/verify-sparkle-release.sh" \
+    --app "${target_app_path}" \
+    --bundle-identifier "${bundle_identifier}"
+
   actual_version="$(
     /usr/libexec/PlistBuddy \
       -c 'Print :CFBundleShortVersionString' \
@@ -238,6 +242,10 @@ designated_requirement="$(
     "${bundle_identifier}" \
     "${signing_certificate_sha1}"
 )"
+
+"${project_root}/scripts/sign-sparkle-framework.sh" \
+  --app "${app_path}" \
+  --identity "${signing_certificate_sha1}"
 
 codesign \
   --force \

@@ -162,6 +162,45 @@ jobs:
             --version "${VERSION}" \
             --output dist/RELEASE_NOTES.md
 
+      - name: 生成 Sparkle 更新清单
+        env:
+          VERSION: ${{ inputs.version }}
+          SPARKLE_ED_PRIVATE_KEY_BASE64: ${{ secrets.SPARKLE_ED_PRIVATE_KEY_BASE64 }}
+        run: |
+          set -euo pipefail
+          umask 077
+
+          if [[ -z "${SPARKLE_ED_PRIVATE_KEY_BASE64}" ]]; then
+            echo "缺少 Sparkle Ed25519 私钥 Secret。" >&2
+            exit 1
+          fi
+
+          sparkle_private_key_path="${RUNNER_TEMP}/mihomo-meter-sparkle-ed25519-private-key"
+          printf '%s' "${SPARKLE_ED_PRIVATE_KEY_BASE64}" |
+            /usr/bin/base64 -D >"${sparkle_private_key_path}"
+
+          generate_appcast_path="$(
+            find \
+              "${RUNNER_TEMP}/MihomoMeterTestDerivedData/SourcePackages/artifacts" \
+              -type f \
+              -path '*/Sparkle/bin/generate_appcast' \
+              -perm -111 \
+              -print \
+              -quit
+          )"
+          if [[ -z "${generate_appcast_path}" ]]; then
+            echo "未找到 Sparkle 官方 generate_appcast 工具。" >&2
+            exit 1
+          fi
+
+          scripts/generate-sparkle-appcast.sh \
+            --version "${VERSION}" \
+            --dmg "dist/Mihomo-Meter-${VERSION}-macos-universal.dmg" \
+            --release-notes dist/RELEASE_NOTES.md \
+            --private-key "${sparkle_private_key_path}" \
+            --generate-appcast "${generate_appcast_path}" \
+            --output dist/appcast.xml
+
       - name: 清理临时签名材料
         if: always()
         run: |
@@ -189,7 +228,8 @@ jobs:
             "${RUNNER_TEMP}/mihomo-meter-release.p12" \
             "${RUNNER_TEMP}/mihomo-meter-release.pem" \
             "${RUNNER_TEMP}/mihomo-meter-add-trust" \
-            "${RUNNER_TEMP}/mihomo-meter-original-keychains.txt"; then
+            "${RUNNER_TEMP}/mihomo-meter-original-keychains.txt" \
+            "${RUNNER_TEMP}/mihomo-meter-sparkle-ed25519-private-key"; then
             echo "::warning::删除临时签名文件失败，Runner 结束后会自动销毁。" >&2
           fi
 
@@ -206,6 +246,7 @@ jobs:
             "dist/Mihomo-Meter-${VERSION}-macos-arm64.dmg" \
             "dist/Mihomo-Meter-${VERSION}-macos-x86_64.dmg" \
             "dist/Mihomo-Meter-${VERSION}-macos-universal.dmg" \
+            "dist/appcast.xml" \
             "dist/SHA256SUMS" \
             --target "${GITHUB_SHA}" \
             --title "Mihomo Meter ${VERSION}" \
