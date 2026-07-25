@@ -36,13 +36,36 @@ final class TrafficMeasurementSessionTests: XCTestCase {
     let initialResult = session.consume(initial, at: startedAt)
     let nextResult = session.consume(
       next,
-      at: startedAt.advanced(by: .seconds(1))
+      at: startedAt.advanced(by: .seconds(1)),
+      observedAt: Date(timeIntervalSince1970: 1_700_000_001)
     )
 
     XCTAssertEqual(initialResult?.activeProxyLeaves, ["Proxy Node"])
     XCTAssertEqual(initialResult?.activeRuleTypes, ["DOMAIN", "MATCH"])
     XCTAssertFalse(initialResult?.requiresCatalogRefresh ?? true)
     XCTAssertNil(initialResult?.rateWindow)
+    XCTAssertEqual(
+      initialResult?.ledgerObservation.transition,
+      .baselineEstablished
+    )
+    XCTAssertEqual(
+      nextResult?.ledgerObservation,
+      TrafficLedgerObservation(
+        observedAt: Date(timeIntervalSince1970: 1_700_000_001),
+        kernelTotal: next.kernelTotal,
+        transition: .delta(
+          TrafficDeltaReport(
+            kernel: TrafficBytes(upload: 100, download: 200),
+            categories: CategorizedTrafficBytes(
+              proxy: TrafficBytes(upload: 40, download: 80),
+              direct: TrafficBytes(upload: 10, download: 20),
+              reject: .zero,
+              unknown: TrafficBytes(upload: 50, download: 100)
+            )
+          )
+        )
+      )
+    )
     XCTAssertEqual(
       nextResult?.rateWindow?.raw.proxy,
       TrafficRate(
@@ -78,6 +101,30 @@ final class TrafficMeasurementSessionTests: XCTestCase {
 
     XCTAssertTrue(result?.requiresCatalogRefresh ?? false)
     XCTAssertEqual(result?.activeProxyLeaves, [])
+  }
+
+  func testExposesCounterResetForLedgerWithoutProducingRate() {
+    let clock = ContinuousClock()
+    var session = TrafficMeasurementSession()
+    session.configure(catalog: ProxyCatalog(typesByName: [:]))
+
+    _ = session.consume(
+      ConnectionTrafficSnapshot(
+        kernelTotal: TrafficBytes(upload: 100, download: 200),
+        connections: []
+      ),
+      at: clock.now
+    )
+    let result = session.consume(
+      ConnectionTrafficSnapshot(
+        kernelTotal: TrafficBytes(upload: 10, download: 20),
+        connections: []
+      ),
+      at: clock.now.advanced(by: .seconds(1))
+    )
+
+    XCTAssertEqual(result?.ledgerObservation.transition, .countersReset)
+    XCTAssertNil(result?.rateWindow)
   }
 
   private func snapshot(

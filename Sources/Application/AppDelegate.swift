@@ -25,8 +25,10 @@ struct ApplicationRuntimeEnvironment: Sendable {
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
   private var trafficMonitor: TrafficMonitor?
+  private var statisticsController: TrafficStatisticsController?
   private var updateModel: AppUpdateModel?
   private var menuBarController: MenuBarController?
+  private var isTerminationPending = false
 
   func applicationDidFinishLaunching(_ notification: Notification) {
     guard ApplicationRuntimeEnvironment.current.shouldStartProductionServices else {
@@ -34,14 +36,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     NSApplication.shared.setActivationPolicy(.accessory)
+    let statisticsController = TrafficStatisticsController(
+      ledger: SQLiteTrafficLedger(
+        databaseURL: TrafficLedgerLocation.defaultDatabaseURL()
+      )
+    )
     let monitor = TrafficMonitor(
-      diagnosticLogger: DebugDiagnosticLogger.shared
+      diagnosticLogger: DebugDiagnosticLogger.shared,
+      statisticsRecorder: statisticsController
     )
     let updateModel = AppUpdateModel()
     trafficMonitor = monitor
+    self.statisticsController = statisticsController
     self.updateModel = updateModel
     menuBarController = MenuBarController(
       monitor: monitor,
+      statisticsController: statisticsController,
       updateModel: updateModel
     )
     updateModel.start()
@@ -52,11 +62,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
           .applicationLaunched(AppCodeSigningInspector.currentSummary())
         )
       #endif
+      await statisticsController.prepare()
       monitor.start()
     }
   }
 
-  func applicationWillTerminate(_ notification: Notification) {
-    trafficMonitor?.stopForApplicationTermination()
+  func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+    guard let trafficMonitor, let statisticsController else {
+      return .terminateNow
+    }
+    guard !isTerminationPending else {
+      return .terminateLater
+    }
+    isTerminationPending = true
+
+    Task {
+      await trafficMonitor.stopForApplicationTermination()
+      await statisticsController.prepareForApplicationTermination()
+      sender.reply(toApplicationShouldTerminate: true)
+    }
+    return .terminateLater
   }
 }

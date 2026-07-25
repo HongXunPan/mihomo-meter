@@ -11,11 +11,13 @@ final class MenuBarController: NSObject {
   private let statusContentView: ProxyStatusItemView
   private let popover: NSPopover
   private let monitor: TrafficMonitor
+  private let statisticsController: TrafficStatisticsController
   private let updateModel: AppUpdateModel
   private var cancellables: Set<AnyCancellable> = []
 
   init(
     monitor: TrafficMonitor,
+    statisticsController: TrafficStatisticsController,
     updateModel: AppUpdateModel
   ) {
     statusItem = NSStatusBar.system.statusItem(
@@ -24,6 +26,7 @@ final class MenuBarController: NSObject {
     statusContentView = ProxyStatusItemView()
     popover = NSPopover()
     self.monitor = monitor
+    self.statisticsController = statisticsController
     self.updateModel = updateModel
     super.init()
 
@@ -60,6 +63,7 @@ final class MenuBarController: NSObject {
     let hostingController = NSHostingController(
       rootView: TrafficPopoverView(
         monitor: monitor,
+        statisticsController: statisticsController,
         updateModel: updateModel
       )
     )

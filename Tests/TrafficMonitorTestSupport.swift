@@ -183,6 +183,19 @@ actor MonitorTestDiagnosticLogger: AppDiagnosticLogging {
   }
 }
 
+@MainActor
+final class MonitorTestStatisticsRecorder: TrafficStatisticsRecording {
+  private(set) var interruptionCount = 0
+
+  func beginMonitoring(version: String, at date: Date) async {}
+
+  func record(_ observation: TrafficLedgerObservation) async {}
+
+  func interruptMonitoring(at date: Date) async {
+    interruptionCount += 1
+  }
+}
+
 actor MonitorTestSecretStore: ControllerSecretStoring {
   private var secret: String?
   private(set) var saveCount = 0

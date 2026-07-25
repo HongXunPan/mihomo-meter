@@ -4,6 +4,7 @@ struct TrafficMeasurementResult: Equatable, Sendable {
   let activeProxyLeaves: [String]
   let activeRuleTypes: [String]
   let requiresCatalogRefresh: Bool
+  let ledgerObservation: TrafficLedgerObservation
   let rateWindow: TrafficRateWindow?
 }
 
@@ -24,7 +25,8 @@ struct TrafficMeasurementSession: Sendable {
 
   mutating func consume(
     _ snapshot: ConnectionTrafficSnapshot,
-    at instant: ContinuousClock.Instant = ContinuousClock().now
+    at instant: ContinuousClock.Instant = ContinuousClock().now,
+    observedAt: Date = Date()
   ) -> TrafficMeasurementResult? {
     guard let classifier else {
       return nil
@@ -60,20 +62,31 @@ struct TrafficMeasurementSession: Sendable {
     }
     lastSnapshotInstant = instant
 
+    let transition: TrafficLedgerTransition
     let rateWindow: TrafficRateWindow?
     switch deltaTracker.consume(snapshot, classifier: classifier) {
-    case .baselineEstablished, .countersReset:
+    case .baselineEstablished:
+      transition = .baselineEstablished
       rateWindow = nil
     case .delta(let report):
+      transition = .delta(report)
       rateWindow = elapsedSeconds.flatMap {
         rateAggregator.consume(report, elapsedSeconds: $0)
       }
+    case .countersReset:
+      transition = .countersReset
+      rateWindow = nil
     }
 
     return TrafficMeasurementResult(
       activeProxyLeaves: activeProxyLeaves,
       activeRuleTypes: activeRuleTypes,
       requiresCatalogRefresh: requiresCatalogRefresh,
+      ledgerObservation: TrafficLedgerObservation(
+        observedAt: observedAt,
+        kernelTotal: snapshot.kernelTotal,
+        transition: transition
+      ),
       rateWindow: rateWindow
     )
   }

@@ -1,3 +1,4 @@
+import Foundation
 import XCTest
 
 @testable import MihomoMeter
@@ -41,6 +42,11 @@ final class TrafficMonitorReducerTests: XCTestCase {
       activeProxyLeaves: ["Synthetic Proxy"],
       activeRuleTypes: ["DOMAIN", "RULE-SET"],
       requiresCatalogRefresh: false,
+      ledgerObservation: TrafficLedgerObservation(
+        observedAt: Date(timeIntervalSince1970: 1_700_000_000),
+        kernelTotal: .zero,
+        transition: .baselineEstablished
+      ),
       rateWindow: TrafficRateWindow(
         raw: raw,
         smoothed: smoothed,

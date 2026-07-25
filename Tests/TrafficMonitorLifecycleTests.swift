@@ -7,6 +7,7 @@ import XCTest
 final class TrafficMonitorLifecycleTests: TrafficMonitorTestCase {
   func testUserDisconnectWritesTypedCancellationSource() async throws {
     let diagnosticLogger = MonitorTestDiagnosticLogger()
+    let statisticsRecorder = MonitorTestStatisticsRecorder()
     let (userDefaults, suiteName) = makeUserDefaults()
     defer {
       userDefaults.removePersistentDomain(forName: suiteName)
@@ -22,6 +23,7 @@ final class TrafficMonitorLifecycleTests: TrafficMonitorTestCase {
       ),
       secretStore: MonitorTestSecretStore(),
       diagnosticLogger: diagnosticLogger,
+      statisticsRecorder: statisticsRecorder,
       userDefaults: userDefaults
     )
     monitor.address = "127.0.0.1:9090"
@@ -37,6 +39,9 @@ final class TrafficMonitorLifecycleTests: TrafficMonitorTestCase {
     }
     let snapshotAge = await diagnosticLogger.cancellationAge(source: .userDisconnect)
     XCTAssertNotNil(snapshotAge)
+    try await waitUntil {
+      statisticsRecorder.interruptionCount == 1
+    }
   }
 
   func testMarksSnapshotAsStaleBeforeCancellingStream() async throws {

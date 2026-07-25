@@ -3,11 +3,12 @@ import Combine
 import SwiftUI
 
 enum TrafficPopoverLayout {
-  static let contentSize = NSSize(width: 380, height: 560)
+  static let contentSize = NSSize(width: 400, height: 680)
 }
 
 struct TrafficPopoverView: View {
   @ObservedObject var monitor: TrafficMonitor
+  @ObservedObject var statisticsController: TrafficStatisticsController
   @ObservedObject var updateModel: AppUpdateModel
   @State private var showsRuntimeDetails = false
   @State private var showsControllerConfiguration = false
@@ -26,8 +27,10 @@ struct TrafficPopoverView: View {
           if prioritizesControllerConfiguration {
             controllerConfiguration
             trafficOverview
+            trafficStatistics
           } else {
             trafficOverview
+            trafficStatistics
             controllerConfiguration
           }
         }
@@ -99,6 +102,13 @@ struct TrafficPopoverView: View {
     )
   }
 
+  private var trafficStatistics: some View {
+    TrafficStatisticsView(
+      controller: statisticsController,
+      isMonitoringAvailable: allowsTrafficStatistics
+    )
+  }
+
   private var footer: some View {
     VStack(spacing: 0) {
       Divider()
@@ -142,6 +152,15 @@ struct TrafficPopoverView: View {
 
   private var allowsImmediateReconnect: Bool {
     monitor.connectionState == .stale || monitor.connectionState == .reconnecting
+  }
+
+  private var allowsTrafficStatistics: Bool {
+    switch monitor.connectionState {
+    case .connected, .stale, .reconnecting:
+      true
+    case .disconnected, .connecting, .authenticationFailed, .unsupported:
+      false
+    }
   }
 
   private var stateColor: Color {

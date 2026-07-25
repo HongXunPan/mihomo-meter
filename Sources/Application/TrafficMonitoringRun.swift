@@ -9,6 +9,7 @@ final class TrafficMonitoringRun {
   private let configurationStore: ControllerConfigurationStore
   private let diagnosticLogger: any AppDiagnosticLogging
   private let livenessPolicy: ConnectionLivenessWatchdog.Policy
+  private let statisticsRecorder: any TrafficStatisticsRecording
 
   private var activeSession: MihomoMonitoringSession?
   private var hasEstablishedCurrentSession = false
@@ -19,13 +20,15 @@ final class TrafficMonitoringRun {
     collector: any ConnectionSnapshotCollecting,
     configurationStore: ControllerConfigurationStore,
     diagnosticLogger: any AppDiagnosticLogging,
-    livenessPolicy: ConnectionLivenessWatchdog.Policy
+    livenessPolicy: ConnectionLivenessWatchdog.Policy,
+    statisticsRecorder: any TrafficStatisticsRecording
   ) {
     self.client = client
     self.collector = collector
     self.configurationStore = configurationStore
     self.diagnosticLogger = diagnosticLogger
     self.livenessPolicy = livenessPolicy
+    self.statisticsRecorder = statisticsRecorder
   }
 
   var currentSnapshotAgeMilliseconds: Int? {
@@ -83,6 +86,7 @@ final class TrafficMonitoringRun {
           return
         }
 
+        await statisticsRecorder.beginMonitoring(version: version.version, at: Date())
         configurationStore.saveValidatedAddress(endpoint)
         let monitoringSession = MihomoMonitoringSession(
           client: client,
@@ -120,6 +124,7 @@ final class TrafficMonitoringRun {
         }
         if let terminal = terminalOutcome(for: error) {
           _ = finish(session)
+          await statisticsRecorder.interruptMonitoring(at: Date())
           await diagnosticLogger.record(
             .connectionStopped(reason: .classify(error))
           )
@@ -174,6 +179,7 @@ final class TrafficMonitoringRun {
         hasEstablishedCurrentSession = true
         await diagnosticLogger.record(.connectionEstablished)
       }
+      await statisticsRecorder.record(result.ledgerObservation)
       eventHandler(.measurement(result))
     case .dataStale(
       let staleTimeoutSeconds,
@@ -212,6 +218,7 @@ final class TrafficMonitoringRun {
     guard !isCancelled else {
       return
     }
+    await statisticsRecorder.interruptMonitoring(at: Date())
     await diagnosticLogger.record(
       .connectionStopped(reason: .classify(error))
     )
