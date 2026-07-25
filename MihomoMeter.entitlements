@@ -6,5 +6,10 @@
 	<true/>
 	<key>com.apple.security.network.client</key>
 	<true/>
+	<key>com.apple.security.temporary-exception.mach-lookup.global-name</key>
+	<array>
+		<string>com.HongXunPan.MihomoMeter-spks</string>
+		<string>com.HongXunPan.MihomoMeter-spki</string>
+	</array>
 </dict>
 </plist>

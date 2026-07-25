@@ -31,6 +31,13 @@ jobs:
       - name: 检查 Swift 格式
         run: xcrun swift format lint --recursive --strict Sources Tests
 
+      - name: 测试发布说明脚本
+        run: |
+          bash -n \
+            scripts/generate-release-notes.sh \
+            scripts/test-generate-release-notes.sh
+          scripts/test-generate-release-notes.sh
+
       - name: 构建并运行测试
         run: |
           xcodebuild \

@@ -62,10 +62,8 @@
 		AJ0000000000000000000201 /* TrafficMonitorReducerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AJ0000000000000000000101 /* TrafficMonitorReducerTests.swift */; };
 		AK0000000000000000000201 /* TrafficMonitorLifecycleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AK0000000000000000000101 /* TrafficMonitorLifecycleTests.swift */; };
 		AL0000000000000000000201 /* TrafficMonitorTestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = AL0000000000000000000101 /* TrafficMonitorTestSupport.swift */; };
-		AN0000000000000000000201 /* SemanticVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = AN0000000000000000000101 /* SemanticVersion.swift */; };
-		AO0000000000000000000201 /* AppRelease.swift in Sources */ = {isa = PBXBuildFile; fileRef = AO0000000000000000000101 /* AppRelease.swift */; };
 		AP0000000000000000000201 /* AppUpdateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AP0000000000000000000101 /* AppUpdateModel.swift */; };
-		AQ0000000000000000000201 /* GitHubReleaseClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AQ0000000000000000000101 /* GitHubReleaseClient.swift */; };
+		AQ0000000000000000000201 /* SparkleAppUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = AQ0000000000000000000101 /* SparkleAppUpdater.swift */; };
 		AR0000000000000000000201 /* AppUpdateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AR0000000000000000000101 /* AppUpdateView.swift */; };
 		AS0000000000000000000201 /* AppUpdateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AS0000000000000000000101 /* AppUpdateTests.swift */; };
 		AT0000000000000000000201 /* AppHelpLinksMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = AT0000000000000000000101 /* AppHelpLinksMenu.swift */; };
@@ -74,6 +72,7 @@
 		AW0000000000000000000201 /* TrafficClassificationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AW0000000000000000000101 /* TrafficClassificationView.swift */; };
 		AX0000000000000000000201 /* RoutingStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AX0000000000000000000101 /* RoutingStatusView.swift */; };
 		AY0000000000000000000201 /* RuntimeDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AY0000000000000000000101 /* RuntimeDetailsView.swift */; };
+		BA0000000000000000000201 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = BA0000000000000000000101 /* Sparkle */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -146,10 +145,8 @@
 		AK0000000000000000000101 /* TrafficMonitorLifecycleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficMonitorLifecycleTests.swift; sourceTree = "<group>"; };
 		AL0000000000000000000101 /* TrafficMonitorTestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficMonitorTestSupport.swift; sourceTree = "<group>"; };
 		AM0000000000000000000101 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
-		AN0000000000000000000101 /* SemanticVersion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SemanticVersion.swift; sourceTree = "<group>"; };
-		AO0000000000000000000101 /* AppRelease.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRelease.swift; sourceTree = "<group>"; };
 		AP0000000000000000000101 /* AppUpdateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppUpdateModel.swift; sourceTree = "<group>"; };
-		AQ0000000000000000000101 /* GitHubReleaseClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitHubReleaseClient.swift; sourceTree = "<group>"; };
+		AQ0000000000000000000101 /* SparkleAppUpdater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SparkleAppUpdater.swift; sourceTree = "<group>"; };
 		AR0000000000000000000101 /* AppUpdateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppUpdateView.swift; sourceTree = "<group>"; };
 		AS0000000000000000000101 /* AppUpdateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppUpdateTests.swift; sourceTree = "<group>"; };
 		AT0000000000000000000101 /* AppHelpLinksMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppHelpLinksMenu.swift; sourceTree = "<group>"; };
@@ -158,6 +155,7 @@
 		AW0000000000000000000101 /* TrafficClassificationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficClassificationView.swift; sourceTree = "<group>"; };
 		AX0000000000000000000101 /* RoutingStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoutingStatusView.swift; sourceTree = "<group>"; };
 		AY0000000000000000000101 /* RuntimeDetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuntimeDetailsView.swift; sourceTree = "<group>"; };
+		BA0000000000000000000301 /* MihomoMeter-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "MihomoMeter-Info.plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -165,6 +163,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BA0000000000000000000201 /* Sparkle in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -183,6 +182,7 @@
 			isa = PBXGroup;
 			children = (
 				AM0000000000000000000101 /* Config.xcconfig */,
+				BA0000000000000000000301 /* MihomoMeter-Info.plist */,
 				A10000000000000000000004 /* Sources */,
 				A10000000000000000000008 /* Tests */,
 				A10000000000000000000108 /* MihomoMeter.entitlements */,
@@ -215,7 +215,6 @@
 			isa = PBXGroup;
 			children = (
 				A10000000000000000000102 /* AppDelegate.swift */,
-				AO0000000000000000000101 /* AppRelease.swift */,
 				AP0000000000000000000101 /* AppUpdateModel.swift */,
 				AB0000000000000000000101 /* ConnectionLivenessWatchdog.swift */,
 				AE0000000000000000000101 /* ControllerConfigurationStore.swift */,
@@ -239,7 +238,6 @@
 				A20000000000000000000101 /* ControllerEndpoint.swift */,
 				AV0000000000000000000101 /* MihomoRuntimeConfiguration.swift */,
 				A30000000000000000000102 /* ProxyClassifier.swift */,
-				AN0000000000000000000101 /* SemanticVersion.swift */,
 				A30000000000000000000101 /* TrafficMeasurement.swift */,
 				AC0000000000000000000101 /* TrafficMeasurementSession.swift */,
 				A10000000000000000000103 /* TrafficRate.swift */,
@@ -305,9 +303,9 @@
 			isa = PBXGroup;
 			children = (
 				AA00000000000000000000001 /* Diagnostics */,
-				AQ0000000000000000000001 /* GitHub */,
 				A20000000000000000000002 /* Mihomo */,
 				A20000000000000000000003 /* Security */,
+				AQ0000000000000000000001 /* Updates */,
 			);
 			path = Infrastructure;
 			sourceTree = "<group>";
@@ -323,12 +321,12 @@
 			path = Mihomo;
 			sourceTree = "<group>";
 		};
-		AQ0000000000000000000001 /* GitHub */ = {
+		AQ0000000000000000000001 /* Updates */ = {
 			isa = PBXGroup;
 			children = (
-				AQ0000000000000000000101 /* GitHubReleaseClient.swift */,
+				AQ0000000000000000000101 /* SparkleAppUpdater.swift */,
 			);
-			path = GitHub;
+			path = Updates;
 			sourceTree = "<group>";
 		};
 		A20000000000000000000003 /* Security */ = {
@@ -376,6 +374,9 @@
 			dependencies = (
 			);
 			name = MihomoMeter;
+			packageProductDependencies = (
+				BA0000000000000000000101 /* Sparkle */,
+			);
 			productName = MihomoMeter;
 			productReference = A10000000000000000000109 /* MihomoMeter.app */;
 			productType = "com.apple.product-type.application";
@@ -427,6 +428,9 @@
 				"zh-Hans",
 			);
 			mainGroup = A10000000000000000000002;
+			packageReferences = (
+				BA0000000000000000000001 /* XCRemoteSwiftPackageReference "Sparkle" */,
+			);
 			productRefGroup = A10000000000000000000003 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -467,7 +471,6 @@
 				AA00000000000000000000203 /* AppDiagnosticEvent.swift in Sources */,
 				AA00000000000000000000201 /* AppDiagnosticLogger.swift in Sources */,
 				AT0000000000000000000201 /* AppHelpLinksMenu.swift in Sources */,
-				AO0000000000000000000201 /* AppRelease.swift in Sources */,
 				AP0000000000000000000201 /* AppUpdateModel.swift in Sources */,
 				AR0000000000000000000201 /* AppUpdateView.swift in Sources */,
 				A30000000000000000000203 /* ConnectionDeltaTracker.swift in Sources */,
@@ -477,7 +480,6 @@
 				AA00000000000000000000204 /* ConnectionDiagnosticReason.swift in Sources */,
 				AE0000000000000000000201 /* ControllerConfigurationStore.swift in Sources */,
 				A20000000000000000000201 /* ControllerEndpoint.swift in Sources */,
-				AQ0000000000000000000201 /* GitHubReleaseClient.swift in Sources */,
 				A20000000000000000000204 /* KeychainSecretStore.swift in Sources */,
 				A10000000000000000000205 /* MenuBarController.swift in Sources */,
 				AV0000000000000000000201 /* MihomoRuntimeConfiguration.swift in Sources */,
@@ -492,7 +494,7 @@
 				A40000000000000000000201 /* ReconnectBackoff.swift in Sources */,
 				AX0000000000000000000201 /* RoutingStatusView.swift in Sources */,
 				AY0000000000000000000201 /* RuntimeDetailsView.swift in Sources */,
-				AN0000000000000000000201 /* SemanticVersion.swift in Sources */,
+				AQ0000000000000000000201 /* SparkleAppUpdater.swift in Sources */,
 				A30000000000000000000201 /* TrafficMeasurement.swift in Sources */,
 				A40000000000000000000203 /* TrafficMonitor.swift in Sources */,
 				AI0000000000000000000201 /* TrafficMonitorReducer.swift in Sources */,
@@ -544,6 +546,25 @@
 			targetProxy = A10000000000000000000701 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		BA0000000000000000000001 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {
+				kind = exactVersion;
+				version = 2.9.4;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		BA0000000000000000000101 /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BA0000000000000000000001 /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
+		};
+/* End XCSwiftPackageProductDependency section */
 
 /* Begin XCBuildConfiguration section */
 		A10000000000000000000501 /* Debug */ = {
@@ -665,10 +686,8 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "Mihomo Meter";
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
-				INFOPLIST_KEY_LSUIElement = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "MihomoMeter-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -692,10 +711,8 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "Mihomo Meter";
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
-				INFOPLIST_KEY_LSUIElement = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "MihomoMeter-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",

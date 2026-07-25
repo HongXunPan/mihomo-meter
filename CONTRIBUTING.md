@@ -10,7 +10,7 @@
 
 应用 Target 最低支持 macOS 13；测试 Target 因当前 Xcode XCTest 运行库要求使用 macOS 14。
 
-项目不依赖第三方包。请勿为了局部功能引入未经讨论的框架、代码生成器或包管理脚本。
+项目仅固定依赖 Sparkle 2.9.4 处理应用内更新。请勿为了局部功能继续引入未经讨论的框架、代码生成器或包管理脚本。
 
 ## 开始开发
 
@@ -43,6 +43,14 @@ scripts/build-debug.sh --run
 提交 Pull Request 前至少执行：
 
 ```bash
+bash -n \
+  scripts/generate-sparkle-appcast.sh \
+  scripts/generate-release-notes.sh \
+  scripts/sign-sparkle-framework.sh \
+  scripts/test-generate-release-notes.sh \
+  scripts/verify-sparkle-release.sh
+scripts/test-generate-release-notes.sh
+
 xcrun swift format lint --recursive --strict Sources Tests
 
 xcodebuild \
@@ -56,6 +64,7 @@ xcodebuild \
 
 成功标准：
 
+- 发布说明脚本语法检查与隔离 Git 仓测试通过
 - Swift 格式检查无输出并返回退出码 `0`
 - 命令退出码为 `0`
 - 应用 Target 编译通过

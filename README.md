@@ -57,13 +57,15 @@ Mihomo Meter 是只读监控工具：
 - 最近两个完整一秒窗口平滑
 - 数据超过 2 秒未更新时先归零提示，持续 5 秒后才取消旧流并指数退避重连
 - Controller 地址保存到应用设置，Secret 仅保存到 macOS 登录钥匙串
-- 在弹层底部展示应用版本，并检查 GitHub Releases 是否有新版本
+- 在弹层底部展示应用版本，并通过 Sparkle 检查、下载和安装 Ed25519 签名更新
 
 应用不会读取 Clash Verge 配置文件或私有 IPC，也不会自动获取 Secret。
 
 正式版本仅通过 GitHub Releases 分发自签名、未公证的 DMG，不上架 Mac App Store。
 每个版本提供 Apple Silicon、Intel 和 Universal 三种 DMG，首次打开需要按
 [发布与安装](docs/发布与安装.md)处理 macOS Gatekeeper 提示。
+`0.1.x` 首次升级到包含 Sparkle 的 `0.2.x` 仍需手动下载 DMG；之后应用会在启动时检查更新，
+并在用户确认后使用 Universal DMG 完成安装，不会后台静默安装。
 
 ## 项目结构
 
@@ -74,7 +76,7 @@ Mihomo Meter 是只读监控工具：
 ├── Sources/
 │   ├── Application/         # 应用入口与生命周期
 │   ├── Domain/              # 与界面无关的领域模型
-│   ├── Infrastructure/      # Controller、WebSocket 与 Keychain
+│   ├── Infrastructure/      # Controller、WebSocket、Keychain 与 Sparkle
 │   └── Presentation/        # 状态栏和弹层界面
 ├── Tests/                   # 单元测试
 ├── scripts/                 # 构建与运行辅助脚本
@@ -164,3 +166,5 @@ Mihomo Meter 是独立社区项目，与 Mihomo、MetaCubeX 或 Clash Verge Rev 
 ## 许可证
 
 本项目采用 [MIT License](LICENSE)。
+应用内更新使用开源 [Sparkle](https://github.com/sparkle-project/Sparkle)，适用其
+[项目许可声明](https://github.com/sparkle-project/Sparkle/blob/2.9.4/LICENSE)。

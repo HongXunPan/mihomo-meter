@@ -1,82 +1,46 @@
 import Combine
 import Foundation
 
-enum AppUpdateState: Equatable {
-  case idle
-  case checking
-  case upToDate
-  case noRelease
-  case updateAvailable(AppRelease)
-  case failed
+@MainActor
+protocol AppUpdating: AnyObject {
+  var canCheckForUpdatesPublisher: AnyPublisher<Bool, Never> { get }
+
+  func start()
+  func checkForUpdates()
 }
 
 @MainActor
 final class AppUpdateModel: ObservableObject {
-  @Published private(set) var state: AppUpdateState = .idle
+  @Published private(set) var canCheckForUpdates = false
 
   let currentVersionText: String
 
-  private let currentVersion: SemanticVersion?
-  private let releaseClient: any LatestAppReleaseFetching
-  private var checkTask: Task<Void, Never>?
+  private let updater: any AppUpdating
 
   convenience init() {
     self.init(
       currentVersionString: Self.bundleVersion(),
-      releaseClient: GitHubReleaseClient()
+      updater: SparkleAppUpdater()
     )
   }
 
   init(
     currentVersionString: String,
-    releaseClient: any LatestAppReleaseFetching
+    updater: any AppUpdating
   ) {
     currentVersionText = currentVersionString
-    currentVersion = SemanticVersion(currentVersionString)
-    self.releaseClient = releaseClient
+    self.updater = updater
+
+    updater.canCheckForUpdatesPublisher
+      .assign(to: &$canCheckForUpdates)
+  }
+
+  func start() {
+    updater.start()
   }
 
   func checkForUpdates() {
-    guard checkTask == nil else {
-      return
-    }
-    guard let currentVersion else {
-      state = .failed
-      return
-    }
-
-    state = .checking
-    checkTask = Task { [weak self] in
-      guard let self else {
-        return
-      }
-
-      do {
-        let release = try await releaseClient.fetchLatestRelease()
-        guard !Task.isCancelled else {
-          return
-        }
-
-        switch release {
-        case .some(let release) where release.version > currentVersion:
-          state = .updateAvailable(release)
-        case .some:
-          state = .upToDate
-        case .none:
-          state = .noRelease
-        }
-      } catch is CancellationError {
-        return
-      } catch {
-        state = .failed
-      }
-      checkTask = nil
-    }
-  }
-
-  func cancel() {
-    checkTask?.cancel()
-    checkTask = nil
+    updater.checkForUpdates()
   }
 
   private static func bundleVersion(bundle: Bundle = .main) -> String {
