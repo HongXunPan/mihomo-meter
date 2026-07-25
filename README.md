@@ -2,6 +2,7 @@
 
 [![持续集成](https://github.com/HongXunPan/mihomo-meter/actions/workflows/ci.yml/badge.svg)](https://github.com/HongXunPan/mihomo-meter/actions/workflows/ci.yml)
 [![许可证](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![DMG 下载量](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2FHongXunPan%2Fmihomo-meter%2Fbadges%2Fdownload-count.json&cacheSeconds=3600)](https://github.com/HongXunPan/mihomo-meter/releases)
 
 [使用文档（Wiki）](https://github.com/HongXunPan/mihomo-meter/wiki) ·
 [版本发布与下载（GitHub Releases）](https://github.com/HongXunPan/mihomo-meter/releases)
@@ -64,6 +65,8 @@ Mihomo Meter 是只读监控工具：
 正式版本仅通过 GitHub Releases 分发自签名、未公证的 DMG，不上架 Mac App Store。
 每个版本提供 Apple Silicon、Intel 和 Universal 三种 DMG，首次打开需要按
 [发布与安装](docs/发布与安装.md)处理 macOS Gatekeeper 提示。
+README 顶部的下载量徽章汇总所有正式版本 DMG 资产的下载事件，不包含更新清单、校验文件、
+草稿或预发布版本，也不代表唯一用户数或安装量。
 `0.1.x` 首次升级到包含 Sparkle 的 `0.2.x` 仍需手动下载 DMG；之后应用会在启动时检查更新，
 并在用户确认后使用 Universal DMG 完成安装，不会后台静默安装。
 
