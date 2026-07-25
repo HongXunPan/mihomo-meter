@@ -10,6 +10,9 @@ struct TrafficPopoverView: View {
   @ObservedObject var monitor: TrafficMonitor
   @ObservedObject var statisticsController: TrafficStatisticsController
   @ObservedObject var updateModel: AppUpdateModel
+  let showAllStatistics: () -> Void
+  let dismiss: () -> Void
+
   @State private var showsRuntimeDetails = false
   @State private var showsControllerConfiguration = false
   @State private var synchronizedConnectionState: MonitorConnectionState?
@@ -48,6 +51,7 @@ struct TrafficPopoverView: View {
     ) { state in
       synchronizeControllerVisibility(for: state)
     }
+    .onExitCommand(perform: dismiss)
   }
 
   private var header: some View {
@@ -103,9 +107,10 @@ struct TrafficPopoverView: View {
   }
 
   private var trafficStatistics: some View {
-    TrafficStatisticsView(
+    TrafficStatisticsSummaryView(
       controller: statisticsController,
-      isMonitoringAvailable: allowsTrafficStatistics
+      isMonitoringAvailable: allowsTrafficStatistics,
+      showAllStatistics: showAllStatistics
     )
   }
 

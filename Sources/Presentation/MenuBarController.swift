@@ -12,6 +12,7 @@ final class MenuBarController: NSObject {
   private let popover: NSPopover
   private let monitor: TrafficMonitor
   private let statisticsController: TrafficStatisticsController
+  private let statisticsWindowController: TrafficStatisticsWindowController
   private let updateModel: AppUpdateModel
   private var cancellables: Set<AnyCancellable> = []
 
@@ -27,6 +28,10 @@ final class MenuBarController: NSObject {
     popover = NSPopover()
     self.monitor = monitor
     self.statisticsController = statisticsController
+    statisticsWindowController = TrafficStatisticsWindowController(
+      controller: statisticsController,
+      monitor: monitor
+    )
     self.updateModel = updateModel
     super.init()
 
@@ -64,7 +69,13 @@ final class MenuBarController: NSObject {
       rootView: TrafficPopoverView(
         monitor: monitor,
         statisticsController: statisticsController,
-        updateModel: updateModel
+        updateModel: updateModel,
+        showAllStatistics: { [weak self] in
+          self?.showStatisticsWindow()
+        },
+        dismiss: { [weak self] in
+          self?.popover.performClose(nil)
+        }
       )
     )
     hostingController.sizingOptions = []
@@ -129,5 +140,10 @@ final class MenuBarController: NSObject {
 
     // 在首帧绘制前清除自动焦点，后续仍可使用 Tab 键导航。
     _ = popover.contentViewController?.view.window?.makeFirstResponder(nil)
+  }
+
+  private func showStatisticsWindow() {
+    popover.performClose(nil)
+    statisticsWindowController.show()
   }
 }

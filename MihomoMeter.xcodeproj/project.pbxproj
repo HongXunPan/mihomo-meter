@@ -92,6 +92,14 @@
 		BC0000000000000000000211 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = BC0000000000000000000111 /* libsqlite3.tbd */; };
 		BC0000000000000000000212 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = BC0000000000000000000111 /* libsqlite3.tbd */; };
 		BD0000000000000000000201 /* SQLiteTrafficLedgerTestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD0000000000000000000101 /* SQLiteTrafficLedgerTestSupport.swift */; };
+		BE0000000000000000000201 /* TrafficIntervalNameEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE0000000000000000000101 /* TrafficIntervalNameEditor.swift */; };
+		BE0000000000000000000202 /* TrafficStatisticsNoticeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE0000000000000000000102 /* TrafficStatisticsNoticeView.swift */; };
+		BE0000000000000000000203 /* TrafficStatisticsPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE0000000000000000000103 /* TrafficStatisticsPresentation.swift */; };
+		BE0000000000000000000204 /* TrafficStatisticsSummaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE0000000000000000000104 /* TrafficStatisticsSummaryView.swift */; };
+		BE0000000000000000000205 /* TrafficStatisticsTable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE0000000000000000000105 /* TrafficStatisticsTable.swift */; };
+		BE0000000000000000000206 /* TrafficStatisticsTotalsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE0000000000000000000106 /* TrafficStatisticsTotalsView.swift */; };
+		BE0000000000000000000207 /* TrafficStatisticsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE0000000000000000000107 /* TrafficStatisticsWindowController.swift */; };
+		BE0000000000000000000208 /* TrafficStatisticsPresentationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE0000000000000000000108 /* TrafficStatisticsPresentationTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -194,6 +202,14 @@
 		BC0000000000000000000110 /* SQLiteTrafficLedgerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLiteTrafficLedgerTests.swift; sourceTree = "<group>"; };
 		BC0000000000000000000111 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.text-based-dylib-definition; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
 		BD0000000000000000000101 /* SQLiteTrafficLedgerTestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLiteTrafficLedgerTestSupport.swift; sourceTree = "<group>"; };
+		BE0000000000000000000101 /* TrafficIntervalNameEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficIntervalNameEditor.swift; sourceTree = "<group>"; };
+		BE0000000000000000000102 /* TrafficStatisticsNoticeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficStatisticsNoticeView.swift; sourceTree = "<group>"; };
+		BE0000000000000000000103 /* TrafficStatisticsPresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficStatisticsPresentation.swift; sourceTree = "<group>"; };
+		BE0000000000000000000104 /* TrafficStatisticsSummaryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficStatisticsSummaryView.swift; sourceTree = "<group>"; };
+		BE0000000000000000000105 /* TrafficStatisticsTable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficStatisticsTable.swift; sourceTree = "<group>"; };
+		BE0000000000000000000106 /* TrafficStatisticsTotalsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficStatisticsTotalsView.swift; sourceTree = "<group>"; };
+		BE0000000000000000000107 /* TrafficStatisticsWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficStatisticsWindowController.swift; sourceTree = "<group>"; };
+		BE0000000000000000000108 /* TrafficStatisticsPresentationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficStatisticsPresentationTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -304,10 +320,17 @@
 				AX0000000000000000000101 /* RoutingStatusView.swift */,
 				AY0000000000000000000101 /* RuntimeDetailsView.swift */,
 				AW0000000000000000000101 /* TrafficClassificationView.swift */,
+				BE0000000000000000000101 /* TrafficIntervalNameEditor.swift */,
 				BC000000000000000000010D /* TrafficIntervalRow.swift */,
 				A10000000000000000000104 /* TrafficRateFormatter.swift */,
 				BC000000000000000000010E /* TrafficStatisticsFormatter.swift */,
+				BE0000000000000000000102 /* TrafficStatisticsNoticeView.swift */,
+				BE0000000000000000000103 /* TrafficStatisticsPresentation.swift */,
+				BE0000000000000000000104 /* TrafficStatisticsSummaryView.swift */,
+				BE0000000000000000000105 /* TrafficStatisticsTable.swift */,
+				BE0000000000000000000106 /* TrafficStatisticsTotalsView.swift */,
 				BC000000000000000000010F /* TrafficStatisticsView.swift */,
+				BE0000000000000000000107 /* TrafficStatisticsWindowController.swift */,
 				A80000000000000000000101 /* TrafficOverviewView.swift */,
 				A10000000000000000000106 /* TrafficPopoverView.swift */,
 			);
@@ -336,6 +359,7 @@
 				AK0000000000000000000101 /* TrafficMonitorLifecycleTests.swift */,
 				AJ0000000000000000000101 /* TrafficMonitorReducerTests.swift */,
 				AL0000000000000000000101 /* TrafficMonitorTestSupport.swift */,
+				BE0000000000000000000108 /* TrafficStatisticsPresentationTests.swift */,
 				BC0000000000000000000110 /* SQLiteTrafficLedgerTests.swift */,
 				BD0000000000000000000101 /* SQLiteTrafficLedgerTestSupport.swift */,
 				A20000000000000000000004 /* Fixtures */,
@@ -587,9 +611,16 @@
 				BC000000000000000000020A /* TrafficLedgerLocation.swift in Sources */,
 				BC000000000000000000020B /* TrafficLedgerPersistence.swift in Sources */,
 				BC000000000000000000020C /* TrafficLedgerSchema.swift in Sources */,
+				BE0000000000000000000201 /* TrafficIntervalNameEditor.swift in Sources */,
 				BC000000000000000000020D /* TrafficIntervalRow.swift in Sources */,
 				BC000000000000000000020E /* TrafficStatisticsFormatter.swift in Sources */,
+				BE0000000000000000000202 /* TrafficStatisticsNoticeView.swift in Sources */,
+				BE0000000000000000000203 /* TrafficStatisticsPresentation.swift in Sources */,
+				BE0000000000000000000204 /* TrafficStatisticsSummaryView.swift in Sources */,
+				BE0000000000000000000205 /* TrafficStatisticsTable.swift in Sources */,
+				BE0000000000000000000206 /* TrafficStatisticsTotalsView.swift in Sources */,
 				BC000000000000000000020F /* TrafficStatisticsView.swift in Sources */,
+				BE0000000000000000000207 /* TrafficStatisticsWindowController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -616,6 +647,7 @@
 				AK0000000000000000000201 /* TrafficMonitorLifecycleTests.swift in Sources */,
 				AJ0000000000000000000201 /* TrafficMonitorReducerTests.swift in Sources */,
 				AL0000000000000000000201 /* TrafficMonitorTestSupport.swift in Sources */,
+				BE0000000000000000000208 /* TrafficStatisticsPresentationTests.swift in Sources */,
 				BC0000000000000000000210 /* SQLiteTrafficLedgerTests.swift in Sources */,
 				BD0000000000000000000201 /* SQLiteTrafficLedgerTestSupport.swift in Sources */,
 			);
