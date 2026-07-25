@@ -154,6 +154,14 @@ jobs:
             shasum -a 256 ./*.dmg >SHA256SUMS
           )
 
+      - name: 生成中文发布摘要
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          scripts/generate-release-notes.sh \
+            --version "${VERSION}" \
+            --output dist/RELEASE_NOTES.md
+
       - name: 清理临时签名材料
         if: always()
         run: |
@@ -193,6 +201,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_PROMPT_DISABLED: "1"
         run: |
+          release_summary="$(cat dist/RELEASE_NOTES.md)"
           gh release create "v${VERSION}" \
             "dist/Mihomo-Meter-${VERSION}-macos-arm64.dmg" \
             "dist/Mihomo-Meter-${VERSION}-macos-x86_64.dmg" \
@@ -201,4 +210,6 @@ jobs:
             --target "${GITHUB_SHA}" \
             --title "Mihomo Meter ${VERSION}" \
             --generate-notes \
+            --notes "${release_summary}" \
+            --fail-on-no-commits \
             --latest

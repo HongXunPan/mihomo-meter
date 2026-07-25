@@ -43,6 +43,11 @@ scripts/build-debug.sh --run
 提交 Pull Request 前至少执行：
 
 ```bash
+bash -n \
+  scripts/generate-release-notes.sh \
+  scripts/test-generate-release-notes.sh
+scripts/test-generate-release-notes.sh
+
 xcrun swift format lint --recursive --strict Sources Tests
 
 xcodebuild \
@@ -56,6 +61,7 @@ xcodebuild \
 
 成功标准：
 
+- 发布说明脚本语法检查与隔离 Git 仓测试通过
 - Swift 格式检查无输出并返回退出码 `0`
 - 命令退出码为 `0`
 - 应用 Target 编译通过
