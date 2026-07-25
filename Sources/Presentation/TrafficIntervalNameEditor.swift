@@ -25,33 +25,38 @@ struct TrafficIntervalNameEditor: View {
   }
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 8) {
-      Text(title)
-        .font(.subheadline.weight(.semibold))
+    VStack(spacing: 0) {
+      Divider()
 
-      HStack(spacing: 8) {
-        TextField("任务名称", text: $name)
-          .textFieldStyle(.roundedBorder)
-          .focused($isNameFocused)
-          .onSubmit(performSubmit)
+      VStack(alignment: .leading, spacing: 8) {
+        Text(title)
+          .font(.subheadline.weight(.semibold))
 
-        Button("取消", action: cancel)
-          .keyboardShortcut(.cancelAction)
-          .disabled(isSubmitting)
+        HStack(spacing: 8) {
+          TextField("任务名称", text: $name)
+            .textFieldStyle(.roundedBorder)
+            .focused($isNameFocused)
+            .onSubmit(performSubmit)
 
-        Button(actionTitle, action: performSubmit)
-          .buttonStyle(.borderedProminent)
-          .keyboardShortcut(.defaultAction)
-          .disabled(trimmedName.isEmpty || isSubmitting)
+          Button("取消", action: cancel)
+            .keyboardShortcut(.cancelAction)
+            .disabled(isSubmitting)
 
-        if isSubmitting {
-          ProgressView()
-            .controlSize(.small)
+          Button(actionTitle, action: performSubmit)
+            .buttonStyle(.borderedProminent)
+            .keyboardShortcut(.defaultAction)
+            .disabled(trimmedName.isEmpty || isSubmitting)
+
+          if isSubmitting {
+            ProgressView()
+              .controlSize(.small)
+          }
         }
       }
+      .padding(.vertical, 10)
+
+      Divider()
     }
-    .padding(10)
-    .background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 9))
     .onAppear {
       isNameFocused = true
     }

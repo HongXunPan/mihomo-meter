@@ -43,6 +43,10 @@ final class TrafficMonitor: ObservableObject {
     state.mihomoVersion
   }
 
+  var lastObservedAt: Date? {
+    state.lastObservedAt
+  }
+
   var message: String {
     state.message
   }

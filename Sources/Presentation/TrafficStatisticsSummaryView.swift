@@ -69,13 +69,14 @@ struct TrafficStatisticsSummaryView: View {
     )
 
     if intervals.isEmpty {
-      Text("当前没有进行中的任务。历史记录可在完整统计中查看。")
+      Text("暂无进行中的任务。")
         .font(.caption)
         .foregroundStyle(.secondary)
         .fixedSize(horizontal: false, vertical: true)
+        .frame(maxWidth: .infinity, alignment: .center)
     } else {
-      LazyVStack(spacing: 8) {
-        ForEach(intervals) { interval in
+      VStack(spacing: 0) {
+        ForEach(Array(intervals.enumerated()), id: \.element.id) { index, interval in
           TrafficIntervalRow(
             interval: interval,
             isStatisticsAvailable: controller.availability.isAvailable,
@@ -85,6 +86,10 @@ struct TrafficStatisticsSummaryView: View {
               }
             }
           )
+
+          if index < intervals.count - 1 {
+            Divider()
+          }
         }
       }
 
@@ -100,13 +105,27 @@ struct TrafficStatisticsSummaryView: View {
   }
 
   private var showAllAction: some View {
-    HStack {
-      Spacer()
-      Button("查看全部统计") {
+    VStack(spacing: 8) {
+      Divider()
+
+      Button {
         isCreatingInterval = false
         showAllStatistics()
+      } label: {
+        HStack(spacing: 8) {
+          Image(systemName: "chart.bar.xaxis")
+          Text("查看全部统计")
+
+          Spacer()
+
+          Image(systemName: "chevron.right")
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(.tertiary)
+        }
+        .contentShape(Rectangle())
       }
-      .controlSize(.small)
+      .buttonStyle(.borderless)
+      .accessibilityLabel("查看全部统计")
       .accessibilityHint("打开可缩放的完整统计窗口")
     }
   }

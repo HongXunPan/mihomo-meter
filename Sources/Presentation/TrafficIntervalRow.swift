@@ -34,8 +34,7 @@ struct TrafficIntervalRow: View {
           .foregroundStyle(.secondary)
           .lineLimit(1)
       }
-      .padding(10)
-      .background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 9))
+      .padding(.vertical, 8)
     }
   }
 

@@ -3,7 +3,7 @@ import Combine
 import SwiftUI
 
 enum TrafficPopoverLayout {
-  static let contentSize = NSSize(width: 400, height: 680)
+  static let contentSize = NSSize(width: 400, height: 620)
 }
 
 struct TrafficPopoverView: View {
@@ -26,14 +26,18 @@ struct TrafficPopoverView: View {
       Divider()
 
       ScrollView {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 0) {
           if prioritizesControllerConfiguration {
             controllerConfiguration
+            sectionDivider
             trafficOverview
+            sectionDivider
             trafficStatistics
           } else {
             trafficOverview
+            sectionDivider
             trafficStatistics
+            sectionDivider
             controllerConfiguration
           }
         }
@@ -114,6 +118,11 @@ struct TrafficPopoverView: View {
     )
   }
 
+  private var sectionDivider: some View {
+    Divider()
+      .padding(.vertical, 8)
+  }
+
   private var footer: some View {
     VStack(spacing: 0) {
       Divider()
@@ -150,7 +159,10 @@ struct TrafficPopoverView: View {
 
   private var statusDescription: String {
     if monitor.connectionState == .connected {
-      return "正在监控 Proxy 实时流量。"
+      guard monitor.lastObservedAt != nil else {
+        return "正在监控 Proxy 实时流量。"
+      }
+      return "正在监控 Proxy 实时流量 · 刚刚更新"
     }
     return monitor.message
   }

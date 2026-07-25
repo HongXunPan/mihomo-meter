@@ -3,11 +3,15 @@ import SwiftUI
 struct TrafficOverviewView: View {
   @ObservedObject var monitor: TrafficMonitor
   @Binding var showsRuntimeDetails: Bool
+  @State private var showsClassificationDetails = false
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 16) {
+    VStack(alignment: .leading, spacing: 14) {
       proxyRateSection
-      TrafficClassificationView(monitor: monitor)
+      TrafficClassificationView(
+        monitor: monitor,
+        isExpanded: $showsClassificationDetails
+      )
       RoutingStatusView(
         monitor: monitor,
         showsRuntimeDetails: $showsRuntimeDetails
@@ -32,6 +36,8 @@ struct TrafficOverviewView: View {
           symbol: "arrow.down",
           value: monitor.rates.proxy.downloadBytesPerSecond
         )
+        Divider()
+          .frame(height: 40)
         primaryMetric(
           title: "上传",
           symbol: "arrow.up",
@@ -46,7 +52,7 @@ struct TrafficOverviewView: View {
     symbol: String,
     value: UInt64
   ) -> some View {
-    VStack(alignment: .leading, spacing: 4) {
+    VStack(alignment: .center, spacing: 4) {
       Label(title, systemImage: symbol)
         .font(.caption)
         .foregroundStyle(.secondary)
@@ -54,6 +60,6 @@ struct TrafficOverviewView: View {
         .font(.system(.title3, design: .rounded).weight(.semibold))
         .monospacedDigit()
     }
-    .frame(maxWidth: .infinity, alignment: .leading)
+    .frame(maxWidth: .infinity, alignment: .center)
   }
 }
