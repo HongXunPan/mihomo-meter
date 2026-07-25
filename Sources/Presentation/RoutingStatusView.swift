@@ -5,37 +5,49 @@ struct RoutingStatusView: View {
   @Binding var showsRuntimeDetails: Bool
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 8) {
-      Text("路由状态")
-        .font(.headline)
+    DisclosureGroup(isExpanded: $showsRuntimeDetails) {
+      VStack(alignment: .leading, spacing: 8) {
+        statusRow(
+          title: "实际出口",
+          value: proxySummary,
+          help: proxyDetails
+        )
+        statusRow(
+          title: "运行方式",
+          value: runtimeSummary
+        )
+        statusRow(
+          title: "命中规则",
+          value: ruleSummary,
+          help: ruleDetails
+        )
 
-      statusRow(
-        title: "实际出口",
-        value: proxySummary,
-        help: proxyDetails
-      )
-      statusRow(
-        title: "运行方式",
-        value: runtimeSummary
-      )
-      statusRow(
-        title: "命中规则",
-        value: ruleSummary,
-        help: ruleDetails
-      )
+        Divider()
 
-      DisclosureGroup(isExpanded: $showsRuntimeDetails) {
-        RuntimeDetailsView(monitor: monitor)
-          .padding(.top, 8)
-          .padding(.leading, 14)
-      } label: {
         Text("运行详情")
+          .font(.caption.weight(.semibold))
+
+        RuntimeDetailsView(monitor: monitor)
       }
-      .padding(.top, 2)
-      .font(.caption)
-      .accessibilityValue(showsRuntimeDetails ? "已展开" : "已折叠")
-      .accessibilityHint("显示 Mihomo 运行配置和原始 Proxy 速度")
+      .padding(.top, 8)
+      .padding(.leading, 14)
+    } label: {
+      HStack(spacing: 8) {
+        Text("路由状态")
+          .font(.subheadline.weight(.semibold))
+          .fixedSize(horizontal: true, vertical: false)
+
+        Text(statusSummary)
+          .font(.caption)
+          .foregroundStyle(.secondary)
+          .lineLimit(1)
+          .truncationMode(.middle)
+          .frame(maxWidth: .infinity, alignment: .trailing)
+          .help(statusSummaryHelp)
+      }
     }
+    .accessibilityValue(showsRuntimeDetails ? "已展开" : "已折叠")
+    .accessibilityHint("显示实际出口、运行方式、命中规则和 Mihomo 运行详情")
   }
 
   private var proxySummary: String {
@@ -79,6 +91,14 @@ struct RoutingStatusView: View {
       components.append(isTunEnabled ? "TUN" : "TUN 关闭")
     }
     return components.isEmpty ? "—" : components.joined(separator: " · ")
+  }
+
+  private var statusSummary: String {
+    [proxySummary, runtimeSummary].joined(separator: " · ")
+  }
+
+  private var statusSummaryHelp: String {
+    [proxyDetails, runtimeSummary].joined(separator: " · ")
   }
 
   private func compactSummary(

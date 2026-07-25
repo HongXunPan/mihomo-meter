@@ -9,6 +9,7 @@ final class TrafficMonitor: ObservableObject {
 
   private let configurationStore: ControllerConfigurationStore
   private let coordinator: TrafficMonitoringCoordinator
+  private let statisticsRecorder: any TrafficStatisticsRecording
 
   var connectionState: MonitorConnectionState {
     state.connectionState
@@ -42,6 +43,10 @@ final class TrafficMonitor: ObservableObject {
     state.mihomoVersion
   }
 
+  var lastObservedAt: Date? {
+    state.lastObservedAt
+  }
+
   var message: String {
     state.message
   }
@@ -71,6 +76,7 @@ final class TrafficMonitor: ObservableObject {
     secretStore: any ControllerSecretStoring = KeychainSecretStore(),
     diagnosticLogger: any AppDiagnosticLogging = NoOpAppDiagnosticLogger.shared,
     livenessPolicy: ConnectionLivenessWatchdog.Policy = .production,
+    statisticsRecorder: any TrafficStatisticsRecording = NoOpTrafficStatisticsRecorder.shared,
     userDefaults: UserDefaults = .standard
   ) {
     let configurationStore = ControllerConfigurationStore(
@@ -78,6 +84,7 @@ final class TrafficMonitor: ObservableObject {
       userDefaults: userDefaults
     )
     self.configurationStore = configurationStore
+    self.statisticsRecorder = statisticsRecorder
     address = configurationStore.storedAddress
     secret = ""
     coordinator = TrafficMonitoringCoordinator(
@@ -85,7 +92,8 @@ final class TrafficMonitor: ObservableObject {
       collector: collector,
       configurationStore: configurationStore,
       diagnosticLogger: diagnosticLogger,
-      livenessPolicy: livenessPolicy
+      livenessPolicy: livenessPolicy,
+      statisticsRecorder: statisticsRecorder
     )
   }
 
@@ -124,10 +132,15 @@ final class TrafficMonitor: ObservableObject {
 
   func disconnect() {
     stopConnection(source: .userDisconnect)
+    Task {
+      await statisticsRecorder.interruptMonitoring(at: Date())
+    }
   }
 
-  func stopForApplicationTermination() {
-    stopConnection(source: .applicationTermination)
+  func stopForApplicationTermination() async {
+    await coordinator.stopAndWait(source: .applicationTermination) { [weak self] event in
+      self?.apply(event)
+    }
   }
 
   private func startConnection(trigger: ConnectionAttemptTrigger) {

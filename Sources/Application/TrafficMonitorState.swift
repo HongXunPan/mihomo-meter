@@ -9,6 +9,7 @@ struct TrafficMonitorState: Equatable, Sendable {
   var activeRuleTypes: [String] = []
   var runtimeConfiguration: MihomoRuntimeConfiguration?
   var mihomoVersion: String?
+  var lastObservedAt: Date?
   var message = "请输入本机 Mihomo 服务地址和访问密钥。"
 
   mutating func resetLiveData() {
@@ -17,6 +18,7 @@ struct TrafficMonitorState: Equatable, Sendable {
     coverage = nil
     activeProxyLeaves = []
     activeRuleTypes = []
+    lastObservedAt = nil
   }
 }
 

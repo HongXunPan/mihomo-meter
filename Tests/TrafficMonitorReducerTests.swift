@@ -1,3 +1,4 @@
+import Foundation
 import XCTest
 
 @testable import MihomoMeter
@@ -37,10 +38,16 @@ final class TrafficMonitorReducerTests: XCTestCase {
   func testMeasurementPublishesWindowProxyLeavesAndRuleTypes() {
     let raw = makeRates(download: 800, upload: 300)
     let smoothed = makeRates(download: 600, upload: 200)
+    let observedAt = Date(timeIntervalSince1970: 1_700_000_000)
     let result = TrafficMeasurementResult(
       activeProxyLeaves: ["Synthetic Proxy"],
       activeRuleTypes: ["DOMAIN", "RULE-SET"],
       requiresCatalogRefresh: false,
+      ledgerObservation: TrafficLedgerObservation(
+        observedAt: observedAt,
+        kernelTotal: .zero,
+        transition: .baselineEstablished
+      ),
       rateWindow: TrafficRateWindow(
         raw: raw,
         smoothed: smoothed,
@@ -59,6 +66,7 @@ final class TrafficMonitorReducerTests: XCTestCase {
     XCTAssertEqual(state.coverage, 0.98)
     XCTAssertEqual(state.activeProxyLeaves, ["Synthetic Proxy"])
     XCTAssertEqual(state.activeRuleTypes, ["DOMAIN", "RULE-SET"])
+    XCTAssertEqual(state.lastObservedAt, observedAt)
   }
 
   func testDataStaleClearsLiveStateButPreservesVersion() {
@@ -79,6 +87,7 @@ final class TrafficMonitorReducerTests: XCTestCase {
     XCTAssertNil(state.coverage)
     XCTAssertEqual(state.activeProxyLeaves, [])
     XCTAssertEqual(state.activeRuleTypes, [])
+    XCTAssertNil(state.lastObservedAt)
     XCTAssertEqual(state.mihomoVersion, "v-test")
     XCTAssertEqual(state.runtimeConfiguration, makeRuntimeConfiguration())
     XCTAssertEqual(
@@ -97,6 +106,7 @@ final class TrafficMonitorReducerTests: XCTestCase {
       activeRuleTypes: ["DOMAIN"],
       runtimeConfiguration: makeRuntimeConfiguration(),
       mihomoVersion: "v-test",
+      lastObservedAt: Date(timeIntervalSince1970: 1_700_000_000),
       message: "正在读取实时连接流量。"
     )
   }

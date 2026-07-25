@@ -43,7 +43,7 @@ enum AppHelpLink: CaseIterable {
     case .prepareMihomo:
       "准备 Mihomo"
     case .mihomoControllerConfiguration:
-      "External Controller 配置"
+      "Mihomo 服务配置"
     case .userGuide:
       "Mihomo Meter 使用指南"
     case .releases:

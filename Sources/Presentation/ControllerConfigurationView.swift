@@ -10,16 +10,16 @@ struct ControllerConfigurationView: View {
         .padding(.top, 10)
     } label: {
       HStack(spacing: 8) {
-        Label("Mihomo 连接", systemImage: "server.rack")
-          .font(.headline)
-
-        Spacer(minLength: 8)
+        Text("Mihomo 连接")
+          .font(.subheadline.weight(.semibold))
+          .fixedSize(horizontal: true, vertical: false)
 
         Text(controllerSummary)
           .font(.caption2)
           .foregroundStyle(.secondary)
           .lineLimit(1)
           .truncationMode(.middle)
+          .frame(maxWidth: .infinity, alignment: .trailing)
           .help(controllerSummary)
       }
     }

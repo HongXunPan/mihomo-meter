@@ -7,9 +7,9 @@
 [使用文档（Wiki）](https://github.com/HongXunPan/mihomo-meter/wiki) ·
 [版本发布与下载（GitHub Releases）](https://github.com/HongXunPan/mihomo-meter/releases)
 
-Mihomo Meter 是一款原生 macOS 状态栏应用，通过 Mihomo Controller API 统计真实经过代理出口的实时网速。
+Mihomo Meter 是一款原生 macOS 状态栏应用，通过 Mihomo Controller API 统计真实经过代理出口的实时网速和本机累计流量。
 
-> 当前已完成 MVP-1 实时纵切；今日、总累计、统计记录点和订阅余额走势尚未实现。
+> 当前已完成 MVP-1 实时纵切和 MVP-2 本机统计闭环；订阅余额走势尚未实现。
 
 ## 为什么开发
 
@@ -38,13 +38,13 @@ Mihomo Meter 是只读监控工具：
 
 - [x] 阶段 0：工程骨架与 Mihomo Controller API 数据验证
 - [x] 阶段 1A：MVP-1 实时代理流量纵切
-- [ ] 阶段 1B：MVP-2 本机分类流量统计闭环
+- [x] 阶段 1B：MVP-2 本机分类流量统计闭环
 - [ ] 阶段 2：机场订阅余额走势
 - [ ] 阶段 3：本机 Proxy 流量与机场配额对账分析
 
 已勾选项目表示当前源码和测试已经实现；未勾选项目不代表发布时间承诺。各阶段的子任务与完成状态见[开发路线图](docs/路线图.md)。
 
-## MVP-1 已实现
+## 已实现
 
 - 用户手动填写本机 Mihomo 服务地址和访问密钥
 - 仅允许 `127.0.0.1` 或 `::1`
@@ -57,7 +57,11 @@ Mihomo Meter 是只读监控工具：
 - 展示当前可确认出口和活动连接命中的规则类型，不读取规则匹配内容
 - 最近两个完整一秒窗口平滑
 - 数据超过 2 秒未更新时先归零提示，持续 5 秒后才取消旧流并指数退避重连
-- Controller 地址保存到应用设置，Secret 仅保存到 macOS 登录钥匙串
+- 服务地址保存到应用设置，访问密钥（Secret）仅保存到 macOS 登录钥匙串
+- 使用系统 SQLite3 保存分钟级分类流量、每日汇总和本机累计
+- 状态栏弹层快速展示活动任务，并通过独立统计窗口管理全部秒表式 Proxy 流量统计任务
+- 正常退出或崩溃恢复时，将仍在进行的任务收口为“已中断”
+- 清空本地统计时删除账本与任务，但保留服务地址和访问密钥（Secret）
 - 在弹层底部展示应用版本，并通过 Sparkle 检查、下载和安装 Ed25519 签名更新
 
 应用不会读取 Clash Verge 配置文件或私有 IPC，也不会自动获取 Secret。
@@ -79,7 +83,7 @@ README 顶部的下载量徽章汇总所有正式版本 DMG 资产的下载事�
 ├── Sources/
 │   ├── Application/         # 应用入口与生命周期
 │   ├── Domain/              # 与界面无关的领域模型
-│   ├── Infrastructure/      # Controller、WebSocket、Keychain 与 Sparkle
+│   ├── Infrastructure/      # Controller、WebSocket、SQLite、Keychain 与 Sparkle
 │   └── Presentation/        # 状态栏和弹层界面
 ├── Tests/                   # 单元测试
 ├── scripts/                 # 构建与运行辅助脚本
@@ -122,7 +126,8 @@ Xcode 的 Debug 和 Release 配置会通过公共 `Config.xcconfig` 读取本机
 4. 手动填写访问密钥；Mihomo 未配置鉴权时可以留空。
 5. 点击“连接”。
 
-详细口径与异常状态见 [MVP-1 使用与统计口径](docs/MVP-1使用与统计口径.md)。
+实时口径与异常状态见 [MVP-1 使用与统计口径](docs/MVP-1使用与统计口径.md)，
+本机累计和统计任务见 [MVP-2 秒表式流量统计](docs/MVP-2秒表式流量统计.md)。
 
 Debug 构建的脱敏诊断日志说明见[数据与隐私](docs/数据与隐私.md#debug-诊断日志)。
 
@@ -153,6 +158,7 @@ xcodebuild \
 - [Swift 代码规范](docs/Swift代码规范.md)
 - [数据与隐私](docs/数据与隐私.md)
 - [MVP-1 使用与统计口径](docs/MVP-1使用与统计口径.md)
+- [MVP-2 秒表式流量统计](docs/MVP-2秒表式流量统计.md)
 - [发布与安装](docs/发布与安装.md)
 - [开发路线图](docs/路线图.md)
 - [贡献指南](CONTRIBUTING.md)

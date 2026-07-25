@@ -30,6 +30,7 @@ final class TrafficMonitoringCoordinator {
   private let configurationStore: ControllerConfigurationStore
   private let diagnosticLogger: any AppDiagnosticLogging
   private let livenessPolicy: ConnectionLivenessWatchdog.Policy
+  private let statisticsRecorder: any TrafficStatisticsRecording
 
   private var connectionTask: Task<Void, Never>?
   private var activeRun: TrafficMonitoringRun?
@@ -41,13 +42,15 @@ final class TrafficMonitoringCoordinator {
     collector: any ConnectionSnapshotCollecting,
     configurationStore: ControllerConfigurationStore,
     diagnosticLogger: any AppDiagnosticLogging,
-    livenessPolicy: ConnectionLivenessWatchdog.Policy
+    livenessPolicy: ConnectionLivenessWatchdog.Policy,
+    statisticsRecorder: any TrafficStatisticsRecording
   ) {
     self.client = client
     self.collector = collector
     self.configurationStore = configurationStore
     self.diagnosticLogger = diagnosticLogger
     self.livenessPolicy = livenessPolicy
+    self.statisticsRecorder = statisticsRecorder
   }
 
   func start(
@@ -128,13 +131,42 @@ final class TrafficMonitoringCoordinator {
     eventHandler(.stopped)
   }
 
+  func stopAndWait(
+    source: ConnectionCancellationSource,
+    eventHandler: @escaping EventHandler
+  ) async {
+    let shouldLogCancellation = isActive
+    let lastSnapshotAgeMilliseconds =
+      activeRun?.currentSnapshotAgeMilliseconds
+    let task = connectionTask
+    let run = activeRun
+    runID = UUID()
+    connectionTask?.cancel()
+    connectionTask = nil
+    activeRun = nil
+    isActive = false
+
+    if shouldLogCancellation {
+      await diagnosticLogger.record(
+        .connectionCancellationRequested(
+          source: source,
+          lastSnapshotAgeMilliseconds: lastSnapshotAgeMilliseconds
+        )
+      )
+    }
+    await run?.cancel()
+    await task?.value
+    eventHandler(.stopped)
+  }
+
   private func makeRun() -> TrafficMonitoringRun {
     TrafficMonitoringRun(
       client: client,
       collector: collector,
       configurationStore: configurationStore,
       diagnosticLogger: diagnosticLogger,
-      livenessPolicy: livenessPolicy
+      livenessPolicy: livenessPolicy,
+      statisticsRecorder: statisticsRecorder
     )
   }
 
