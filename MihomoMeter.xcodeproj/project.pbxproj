@@ -156,6 +156,7 @@
 		AX0000000000000000000101 /* RoutingStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoutingStatusView.swift; sourceTree = "<group>"; };
 		AY0000000000000000000101 /* RuntimeDetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuntimeDetailsView.swift; sourceTree = "<group>"; };
 		BA0000000000000000000301 /* MihomoMeter-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "MihomoMeter-Info.plist"; sourceTree = "<group>"; };
+		BB0000000000000000000301 /* MihomoMeterSelfSignedRelease.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MihomoMeterSelfSignedRelease.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -186,6 +187,7 @@
 				A10000000000000000000004 /* Sources */,
 				A10000000000000000000008 /* Tests */,
 				A10000000000000000000108 /* MihomoMeter.entitlements */,
+				BB0000000000000000000301 /* MihomoMeterSelfSignedRelease.entitlements */,
 				A10000000000000000000009 /* Frameworks */,
 				A10000000000000000000003 /* Products */,
 			);

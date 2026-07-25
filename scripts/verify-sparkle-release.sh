@@ -81,6 +81,12 @@ if ! grep -Fq \
   fail "Release 应用缺少 Sparkle Installer XPC 所需的沙盒通信权限。"
 fi
 
+if ! grep -Fq \
+  "com.apple.security.cs.disable-library-validation" \
+  <<<"${entitlements_output}"; then
+  fail "固定自签名 Release 必须允许加载没有 Apple Team ID 的 Sparkle.framework。"
+fi
+
 [[ "$(read_plist_value SUEnableInstallerLauncherService "${info_plist}")" == "true" ]] ||
   fail "Release 应用没有启用 Sparkle Installer Launcher Service。"
 [[ "$(read_plist_value SUEnableAutomaticChecks "${info_plist}")" == "true" ]] ||

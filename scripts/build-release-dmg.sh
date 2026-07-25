@@ -252,7 +252,7 @@ codesign \
   --sign "${signing_certificate_sha1}" \
   --identifier "${bundle_identifier}" \
   --requirements "=${designated_requirement}" \
-  --entitlements "${project_root}/MihomoMeter.entitlements" \
+  --entitlements "${project_root}/MihomoMeterSelfSignedRelease.entitlements" \
   --options runtime \
   --timestamp=none \
   "${app_path}"
@@ -301,6 +301,8 @@ verify_app \
   "${build_number}" \
   "${signing_certificate_sha1}" \
   "${architecture}"
+"${project_root}/scripts/smoke-test-release-launch.sh" \
+  --app "${mount_point}/MihomoMeter.app"
 
 hdiutil detach "${mount_point}" >/dev/null
 dmg_is_mounted=0
