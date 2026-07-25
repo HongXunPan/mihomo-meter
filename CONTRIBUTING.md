@@ -45,12 +45,15 @@ scripts/build-debug.sh --run
 ```bash
 bash -n \
   scripts/build-release-dmg.sh \
+  scripts/generate-download-badge-json.sh \
   scripts/generate-sparkle-appcast.sh \
   scripts/generate-release-notes.sh \
   scripts/sign-sparkle-framework.sh \
   scripts/smoke-test-release-launch.sh \
+  scripts/test-generate-download-badge-json.sh \
   scripts/test-generate-release-notes.sh \
   scripts/verify-sparkle-release.sh
+scripts/test-generate-download-badge-json.sh
 scripts/test-generate-release-notes.sh
 
 xcrun swift format lint --recursive --strict Sources Tests

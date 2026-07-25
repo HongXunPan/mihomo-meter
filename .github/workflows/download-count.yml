@@ -1,0 +1,121 @@
+name: 更新 DMG 下载量徽章
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/download-count.yml
+      - scripts/generate-download-badge-json.sh
+  workflow_run:
+    workflows:
+      - 发布自签名 DMG
+    branches:
+      - main
+    types:
+      - completed
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-dmg-download-badge
+  cancel-in-progress: false
+
+jobs:
+  update-download-count:
+    name: 汇总并发布下载量
+    if: >-
+      github.event_name != 'workflow_run' ||
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+          persist-credentials: true
+
+      - name: 生成下载量徽章数据
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_PROMPT_DISABLED: "1"
+        run: |
+          scripts/generate-download-badge-json.sh \
+            --repository "${GITHUB_REPOSITORY}" \
+            --output "${RUNNER_TEMP}/dmg-download-count.json"
+
+      - name: 发布到徽章分支
+        env:
+          BADGE_BRANCH: badges
+          BADGE_FILE: download-count.json
+          GIT_TERMINAL_PROMPT: "0"
+        run: |
+          set -euo pipefail
+
+          badge_directory="${RUNNER_TEMP}/mihomo-meter-badges-branch"
+          cleanup() {
+            git worktree remove --force "${badge_directory}" >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+
+          set +e
+          timeout 30s git ls-remote \
+            --exit-code \
+            --heads \
+            origin \
+            "refs/heads/${BADGE_BRANCH}" >/dev/null 2>&1
+          branch_status=$?
+          set -e
+
+          case "${branch_status}" in
+            0)
+              timeout 60s git fetch \
+                --no-tags \
+                --depth=1 \
+                origin \
+                "refs/heads/${BADGE_BRANCH}:refs/remotes/origin/${BADGE_BRANCH}"
+              git worktree add \
+                --detach \
+                "${badge_directory}" \
+                "refs/remotes/origin/${BADGE_BRANCH}"
+              ;;
+            2)
+              git worktree add --detach "${badge_directory}" HEAD
+              git -C "${badge_directory}" switch --orphan "${BADGE_BRANCH}"
+              git -C "${badge_directory}" rm \
+                -rf \
+                --ignore-unmatch \
+                .
+              ;;
+            *)
+              echo "检查远端徽章分支失败，退出码：${branch_status}" >&2
+              exit "${branch_status}"
+              ;;
+          esac
+
+          cp \
+            "${RUNNER_TEMP}/dmg-download-count.json" \
+            "${badge_directory}/${BADGE_FILE}"
+
+          git -C "${badge_directory}" config user.name "github-actions[bot]"
+          git -C "${badge_directory}" config \
+            user.email \
+            "41898282+github-actions[bot]@users.noreply.github.com"
+          git -C "${badge_directory}" add -- "${BADGE_FILE}"
+
+          if git -C "${badge_directory}" diff --cached --quiet; then
+            echo "DMG 下载量没有变化，无需更新徽章分支。"
+            exit 0
+          fi
+
+          git -C "${badge_directory}" commit \
+            -m "chore: 更新 DMG 下载量"
+          timeout 60s git -C "${badge_directory}" push \
+            origin \
+            "HEAD:refs/heads/${BADGE_BRANCH}"
