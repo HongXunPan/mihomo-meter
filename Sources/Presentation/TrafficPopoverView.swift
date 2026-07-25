@@ -50,6 +50,7 @@ struct TrafficPopoverView: View {
       width: TrafficPopoverLayout.contentSize.width,
       height: TrafficPopoverLayout.contentSize.height
     )
+    .disclosureGroupStyle(PopoverDisclosureGroupStyle())
     .onReceive(
       monitor.connectionStatePublisher
     ) { state in

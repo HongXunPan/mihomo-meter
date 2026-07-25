@@ -13,6 +13,7 @@
 		A10000000000000000000204 /* TrafficRateFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000104 /* TrafficRateFormatter.swift */; };
 		A10000000000000000000205 /* MenuBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000105 /* MenuBarController.swift */; };
 		A10000000000000000000206 /* TrafficPopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000106 /* TrafficPopoverView.swift */; };
+		BF0000000000000000000201 /* PopoverDisclosureGroupStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF0000000000000000000101 /* PopoverDisclosureGroupStyle.swift */; };
 		A10000000000000000000207 /* TrafficRateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000107 /* TrafficRateTests.swift */; };
 		A10000000000000000000208 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A10000000000000000000111 /* XCTest.framework */; };
 		A20000000000000000000201 /* ControllerEndpoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000101 /* ControllerEndpoint.swift */; };
@@ -119,6 +120,7 @@
 		A10000000000000000000104 /* TrafficRateFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficRateFormatter.swift; sourceTree = "<group>"; };
 		A10000000000000000000105 /* MenuBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarController.swift; sourceTree = "<group>"; };
 		A10000000000000000000106 /* TrafficPopoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficPopoverView.swift; sourceTree = "<group>"; };
+		BF0000000000000000000101 /* PopoverDisclosureGroupStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopoverDisclosureGroupStyle.swift; sourceTree = "<group>"; };
 		A10000000000000000000107 /* TrafficRateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficRateTests.swift; sourceTree = "<group>"; };
 		A10000000000000000000108 /* MihomoMeter.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MihomoMeter.entitlements; sourceTree = "<group>"; };
 		A10000000000000000000109 /* MihomoMeter.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MihomoMeter.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -316,6 +318,7 @@
 				AR0000000000000000000101 /* AppUpdateView.swift */,
 				A90000000000000000000101 /* ControllerConfigurationView.swift */,
 				A10000000000000000000105 /* MenuBarController.swift */,
+				BF0000000000000000000101 /* PopoverDisclosureGroupStyle.swift */,
 				A70000000000000000000101 /* ProxyStatusItemView.swift */,
 				AX0000000000000000000101 /* RoutingStatusView.swift */,
 				AY0000000000000000000101 /* RuntimeDetailsView.swift */,
@@ -579,6 +582,7 @@
 				AD0000000000000000000201 /* MihomoMonitoringSession.swift in Sources */,
 				A10000000000000000000201 /* MihomoMeterApp.swift in Sources */,
 				A90000000000000000000201 /* ControllerConfigurationView.swift in Sources */,
+				BF0000000000000000000201 /* PopoverDisclosureGroupStyle.swift in Sources */,
 				A70000000000000000000201 /* ProxyStatusItemView.swift in Sources */,
 				A40000000000000000000202 /* MonitorConnectionState.swift in Sources */,
 				A30000000000000000000202 /* ProxyClassifier.swift in Sources */,
