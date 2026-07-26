@@ -101,6 +101,43 @@
 		BE0000000000000000000206 /* TrafficStatisticsTotalsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE0000000000000000000106 /* TrafficStatisticsTotalsView.swift */; };
 		BE0000000000000000000207 /* TrafficStatisticsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE0000000000000000000107 /* TrafficStatisticsWindowController.swift */; };
 		BE0000000000000000000208 /* TrafficStatisticsPresentationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE0000000000000000000108 /* TrafficStatisticsPresentationTests.swift */; };
+		BQ0000000000000000000201 /* QuotaLedgerStoring.swift in Sources */ = {isa = PBXBuildFile; fileRef = BQ0000000000000000000101 /* QuotaLedgerStoring.swift */; };
+		BQ0000000000000000000202 /* QuotaCycle.swift in Sources */ = {isa = PBXBuildFile; fileRef = BQ0000000000000000000102 /* QuotaCycle.swift */; };
+		BQ0000000000000000000203 /* QuotaCycleDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = BQ0000000000000000000103 /* QuotaCycleDetector.swift */; };
+		BQ0000000000000000000204 /* QuotaLedgerError.swift in Sources */ = {isa = PBXBuildFile; fileRef = BQ0000000000000000000104 /* QuotaLedgerError.swift */; };
+		BQ0000000000000000000205 /* QuotaObservation.swift in Sources */ = {isa = PBXBuildFile; fileRef = BQ0000000000000000000105 /* QuotaObservation.swift */; };
+		BQ0000000000000000000206 /* QuotaTraffic.swift in Sources */ = {isa = PBXBuildFile; fileRef = BQ0000000000000000000106 /* QuotaTraffic.swift */; };
+		BQ0000000000000000000207 /* QuotaTrend.swift in Sources */ = {isa = PBXBuildFile; fileRef = BQ0000000000000000000107 /* QuotaTrend.swift */; };
+		BQ0000000000000000000208 /* QuotaTrendEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = BQ0000000000000000000108 /* QuotaTrendEngine.swift */; };
+		BQ0000000000000000000209 /* SubscriptionQuotaSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = BQ0000000000000000000109 /* SubscriptionQuotaSnapshot.swift */; };
+		BQ000000000000000000020A /* TrackedSubscription.swift in Sources */ = {isa = PBXBuildFile; fileRef = BQ000000000000000000010A /* TrackedSubscription.swift */; };
+		BQ000000000000000000020B /* QuotaCyclePersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = BQ000000000000000000010B /* QuotaCyclePersistence.swift */; };
+		BQ000000000000000000020C /* QuotaLedgerLocation.swift in Sources */ = {isa = PBXBuildFile; fileRef = BQ000000000000000000010C /* QuotaLedgerLocation.swift */; };
+		BQ000000000000000000020D /* QuotaLedgerPersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = BQ000000000000000000010D /* QuotaLedgerPersistence.swift */; };
+		BQ000000000000000000020E /* QuotaLedgerSchema.swift in Sources */ = {isa = PBXBuildFile; fileRef = BQ000000000000000000010E /* QuotaLedgerSchema.swift */; };
+		BQ000000000000000000020F /* QuotaSnapshotPersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = BQ000000000000000000010F /* QuotaSnapshotPersistence.swift */; };
+		BQ0000000000000000000210 /* QuotaSubscriptionPersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = BQ0000000000000000000110 /* QuotaSubscriptionPersistence.swift */; };
+		BQ0000000000000000000211 /* SQLiteQuotaLedger.swift in Sources */ = {isa = PBXBuildFile; fileRef = BQ0000000000000000000111 /* SQLiteQuotaLedger.swift */; };
+		BQ0000000000000000000212 /* QuotaDomainTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BQ0000000000000000000112 /* QuotaDomainTests.swift */; };
+		BQ0000000000000000000213 /* SQLiteQuotaLedgerTestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = BQ0000000000000000000113 /* SQLiteQuotaLedgerTestSupport.swift */; };
+		BQ0000000000000000000214 /* SQLiteQuotaLedgerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BQ0000000000000000000114 /* SQLiteQuotaLedgerTests.swift */; };
+		BR0000000000000000000201 /* RuntimeQuotaCandidate.swift in Sources */ = {isa = PBXBuildFile; fileRef = BR0000000000000000000101 /* RuntimeQuotaCandidate.swift */; };
+		BR0000000000000000000202 /* RuntimeQuotaTrackingSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = BR0000000000000000000102 /* RuntimeQuotaTrackingSnapshot.swift */; };
+		BR0000000000000000000203 /* RuntimeQuotaObserving.swift in Sources */ = {isa = PBXBuildFile; fileRef = BR0000000000000000000103 /* RuntimeQuotaObserving.swift */; };
+		BR0000000000000000000204 /* RuntimeQuotaObservationCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = BR0000000000000000000104 /* RuntimeQuotaObservationCoordinator.swift */; };
+		BR0000000000000000000205 /* RuntimeQuotaLedgerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BR0000000000000000000105 /* RuntimeQuotaLedgerService.swift */; };
+		BR0000000000000000000206 /* RuntimeQuotaTrackingController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BR0000000000000000000106 /* RuntimeQuotaTrackingController.swift */; };
+		BR0000000000000000000207 /* MihomoProxyProviderModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = BR0000000000000000000107 /* MihomoProxyProviderModels.swift */; };
+		BR0000000000000000000208 /* MihomoProxyProviderModelsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BR0000000000000000000108 /* MihomoProxyProviderModelsTests.swift */; };
+		BR0000000000000000000209 /* RuntimeQuotaTrackingControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BR0000000000000000000109 /* RuntimeQuotaTrackingControllerTests.swift */; };
+		BS0000000000000000000201 /* SubscriptionQuotaFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = BS0000000000000000000101 /* SubscriptionQuotaFormatter.swift */; };
+		BS0000000000000000000202 /* SubscriptionQuotaObservationNoticeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BS0000000000000000000102 /* SubscriptionQuotaObservationNoticeView.swift */; };
+		BS0000000000000000000203 /* QuotaTrendChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = BS0000000000000000000103 /* QuotaTrendChart.swift */; };
+		BS0000000000000000000204 /* SubscriptionQuotaMetricsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BS0000000000000000000104 /* SubscriptionQuotaMetricsView.swift */; };
+		BS0000000000000000000205 /* SubscriptionQuotaSummaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BS0000000000000000000105 /* SubscriptionQuotaSummaryView.swift */; };
+		BS0000000000000000000206 /* SubscriptionQuotaStatisticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BS0000000000000000000106 /* SubscriptionQuotaStatisticsView.swift */; };
+		BS0000000000000000000207 /* StatisticsWorkspaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BS0000000000000000000107 /* StatisticsWorkspaceView.swift */; };
+		BS0000000000000000000208 /* TrafficMonitorQuotaLifecycleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BS0000000000000000000108 /* TrafficMonitorQuotaLifecycleTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -212,6 +249,43 @@
 		BE0000000000000000000106 /* TrafficStatisticsTotalsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficStatisticsTotalsView.swift; sourceTree = "<group>"; };
 		BE0000000000000000000107 /* TrafficStatisticsWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficStatisticsWindowController.swift; sourceTree = "<group>"; };
 		BE0000000000000000000108 /* TrafficStatisticsPresentationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficStatisticsPresentationTests.swift; sourceTree = "<group>"; };
+		BQ0000000000000000000101 /* QuotaLedgerStoring.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotaLedgerStoring.swift; sourceTree = "<group>"; };
+		BQ0000000000000000000102 /* QuotaCycle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotaCycle.swift; sourceTree = "<group>"; };
+		BQ0000000000000000000103 /* QuotaCycleDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotaCycleDetector.swift; sourceTree = "<group>"; };
+		BQ0000000000000000000104 /* QuotaLedgerError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotaLedgerError.swift; sourceTree = "<group>"; };
+		BQ0000000000000000000105 /* QuotaObservation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotaObservation.swift; sourceTree = "<group>"; };
+		BQ0000000000000000000106 /* QuotaTraffic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotaTraffic.swift; sourceTree = "<group>"; };
+		BQ0000000000000000000107 /* QuotaTrend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotaTrend.swift; sourceTree = "<group>"; };
+		BQ0000000000000000000108 /* QuotaTrendEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotaTrendEngine.swift; sourceTree = "<group>"; };
+		BQ0000000000000000000109 /* SubscriptionQuotaSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionQuotaSnapshot.swift; sourceTree = "<group>"; };
+		BQ000000000000000000010A /* TrackedSubscription.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackedSubscription.swift; sourceTree = "<group>"; };
+		BQ000000000000000000010B /* QuotaCyclePersistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotaCyclePersistence.swift; sourceTree = "<group>"; };
+		BQ000000000000000000010C /* QuotaLedgerLocation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotaLedgerLocation.swift; sourceTree = "<group>"; };
+		BQ000000000000000000010D /* QuotaLedgerPersistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotaLedgerPersistence.swift; sourceTree = "<group>"; };
+		BQ000000000000000000010E /* QuotaLedgerSchema.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotaLedgerSchema.swift; sourceTree = "<group>"; };
+		BQ000000000000000000010F /* QuotaSnapshotPersistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotaSnapshotPersistence.swift; sourceTree = "<group>"; };
+		BQ0000000000000000000110 /* QuotaSubscriptionPersistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotaSubscriptionPersistence.swift; sourceTree = "<group>"; };
+		BQ0000000000000000000111 /* SQLiteQuotaLedger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLiteQuotaLedger.swift; sourceTree = "<group>"; };
+		BQ0000000000000000000112 /* QuotaDomainTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotaDomainTests.swift; sourceTree = "<group>"; };
+		BQ0000000000000000000113 /* SQLiteQuotaLedgerTestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLiteQuotaLedgerTestSupport.swift; sourceTree = "<group>"; };
+		BQ0000000000000000000114 /* SQLiteQuotaLedgerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLiteQuotaLedgerTests.swift; sourceTree = "<group>"; };
+		BR0000000000000000000101 /* RuntimeQuotaCandidate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuntimeQuotaCandidate.swift; sourceTree = "<group>"; };
+		BR0000000000000000000102 /* RuntimeQuotaTrackingSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuntimeQuotaTrackingSnapshot.swift; sourceTree = "<group>"; };
+		BR0000000000000000000103 /* RuntimeQuotaObserving.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuntimeQuotaObserving.swift; sourceTree = "<group>"; };
+		BR0000000000000000000104 /* RuntimeQuotaObservationCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuntimeQuotaObservationCoordinator.swift; sourceTree = "<group>"; };
+		BR0000000000000000000105 /* RuntimeQuotaLedgerService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuntimeQuotaLedgerService.swift; sourceTree = "<group>"; };
+		BR0000000000000000000106 /* RuntimeQuotaTrackingController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuntimeQuotaTrackingController.swift; sourceTree = "<group>"; };
+		BR0000000000000000000107 /* MihomoProxyProviderModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MihomoProxyProviderModels.swift; sourceTree = "<group>"; };
+		BR0000000000000000000108 /* MihomoProxyProviderModelsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MihomoProxyProviderModelsTests.swift; sourceTree = "<group>"; };
+		BR0000000000000000000109 /* RuntimeQuotaTrackingControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuntimeQuotaTrackingControllerTests.swift; sourceTree = "<group>"; };
+		BS0000000000000000000101 /* SubscriptionQuotaFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionQuotaFormatter.swift; sourceTree = "<group>"; };
+		BS0000000000000000000102 /* SubscriptionQuotaObservationNoticeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionQuotaObservationNoticeView.swift; sourceTree = "<group>"; };
+		BS0000000000000000000103 /* QuotaTrendChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotaTrendChart.swift; sourceTree = "<group>"; };
+		BS0000000000000000000104 /* SubscriptionQuotaMetricsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionQuotaMetricsView.swift; sourceTree = "<group>"; };
+		BS0000000000000000000105 /* SubscriptionQuotaSummaryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionQuotaSummaryView.swift; sourceTree = "<group>"; };
+		BS0000000000000000000106 /* SubscriptionQuotaStatisticsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionQuotaStatisticsView.swift; sourceTree = "<group>"; };
+		BS0000000000000000000107 /* StatisticsWorkspaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatisticsWorkspaceView.swift; sourceTree = "<group>"; };
+		BS0000000000000000000108 /* TrafficMonitorQuotaLifecycleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficMonitorQuotaLifecycleTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -286,6 +360,12 @@
 				AH0000000000000000000101 /* TrafficMonitorState.swift */,
 				AF0000000000000000000101 /* TrafficMonitoringCoordinator.swift */,
 				AG0000000000000000000101 /* TrafficMonitoringRun.swift */,
+				BQ0000000000000000000101 /* QuotaLedgerStoring.swift */,
+				BR0000000000000000000105 /* RuntimeQuotaLedgerService.swift */,
+				BR0000000000000000000104 /* RuntimeQuotaObservationCoordinator.swift */,
+				BR0000000000000000000103 /* RuntimeQuotaObserving.swift */,
+				BR0000000000000000000106 /* RuntimeQuotaTrackingController.swift */,
+				BR0000000000000000000102 /* RuntimeQuotaTrackingSnapshot.swift */,
 				BC0000000000000000000101 /* TrafficLedgerStoring.swift */,
 				BC0000000000000000000102 /* TrafficStatisticsController.swift */,
 				BC0000000000000000000103 /* TrafficStatisticsRecording.swift */,
@@ -300,6 +380,15 @@
 				A20000000000000000000101 /* ControllerEndpoint.swift */,
 				AV0000000000000000000101 /* MihomoRuntimeConfiguration.swift */,
 				A30000000000000000000102 /* ProxyClassifier.swift */,
+				BQ0000000000000000000102 /* QuotaCycle.swift */,
+				BQ0000000000000000000103 /* QuotaCycleDetector.swift */,
+				BQ0000000000000000000104 /* QuotaLedgerError.swift */,
+				BQ0000000000000000000105 /* QuotaObservation.swift */,
+				BQ0000000000000000000106 /* QuotaTraffic.swift */,
+				BQ0000000000000000000107 /* QuotaTrend.swift */,
+				BQ0000000000000000000108 /* QuotaTrendEngine.swift */,
+				BQ0000000000000000000109 /* SubscriptionQuotaSnapshot.swift */,
+				BR0000000000000000000101 /* RuntimeQuotaCandidate.swift */,
 				A30000000000000000000101 /* TrafficMeasurement.swift */,
 				AC0000000000000000000101 /* TrafficMeasurementSession.swift */,
 				BC0000000000000000000104 /* TrafficIntervalInput.swift */,
@@ -307,6 +396,7 @@
 				A10000000000000000000103 /* TrafficRate.swift */,
 				A30000000000000000000104 /* TrafficRateAggregator.swift */,
 				BC0000000000000000000106 /* TrafficStatistics.swift */,
+				BQ000000000000000000010A /* TrackedSubscription.swift */,
 			);
 			path = Domain;
 			sourceTree = "<group>";
@@ -320,8 +410,15 @@
 				A10000000000000000000105 /* MenuBarController.swift */,
 				BF0000000000000000000101 /* PopoverDisclosureGroupStyle.swift */,
 				A70000000000000000000101 /* ProxyStatusItemView.swift */,
+				BS0000000000000000000103 /* QuotaTrendChart.swift */,
 				AX0000000000000000000101 /* RoutingStatusView.swift */,
 				AY0000000000000000000101 /* RuntimeDetailsView.swift */,
+				BS0000000000000000000107 /* StatisticsWorkspaceView.swift */,
+				BS0000000000000000000101 /* SubscriptionQuotaFormatter.swift */,
+				BS0000000000000000000104 /* SubscriptionQuotaMetricsView.swift */,
+				BS0000000000000000000102 /* SubscriptionQuotaObservationNoticeView.swift */,
+				BS0000000000000000000106 /* SubscriptionQuotaStatisticsView.swift */,
+				BS0000000000000000000105 /* SubscriptionQuotaSummaryView.swift */,
 				AW0000000000000000000101 /* TrafficClassificationView.swift */,
 				BE0000000000000000000101 /* TrafficIntervalNameEditor.swift */,
 				BC000000000000000000010D /* TrafficIntervalRow.swift */,
@@ -352,19 +449,25 @@
 				AA00000000000000000000102 /* DiagnosticLoggerTests.swift */,
 				A20000000000000000000105 /* FixtureLoader.swift */,
 				A20000000000000000000107 /* MihomoControllerModelsTests.swift */,
+				BR0000000000000000000108 /* MihomoProxyProviderModelsTests.swift */,
 				AD0000000000000000000102 /* MihomoMonitoringSessionTests.swift */,
 				A30000000000000000000105 /* ProxyClassifierTests.swift */,
+				BQ0000000000000000000112 /* QuotaDomainTests.swift */,
 				A40000000000000000000107 /* ReconnectBackoffTests.swift */,
+				BR0000000000000000000109 /* RuntimeQuotaTrackingControllerTests.swift */,
 				A30000000000000000000107 /* TrafficRateAggregatorTests.swift */,
 				A10000000000000000000107 /* TrafficRateTests.swift */,
 				AC0000000000000000000102 /* TrafficMeasurementSessionTests.swift */,
 				A50000000000000000000101 /* TrafficMonitorConfigurationTests.swift */,
 				AK0000000000000000000101 /* TrafficMonitorLifecycleTests.swift */,
+				BS0000000000000000000108 /* TrafficMonitorQuotaLifecycleTests.swift */,
 				AJ0000000000000000000101 /* TrafficMonitorReducerTests.swift */,
 				AL0000000000000000000101 /* TrafficMonitorTestSupport.swift */,
 				BE0000000000000000000108 /* TrafficStatisticsPresentationTests.swift */,
 				BC0000000000000000000110 /* SQLiteTrafficLedgerTests.swift */,
 				BD0000000000000000000101 /* SQLiteTrafficLedgerTestSupport.swift */,
+				BQ0000000000000000000113 /* SQLiteQuotaLedgerTestSupport.swift */,
+				BQ0000000000000000000114 /* SQLiteQuotaLedgerTests.swift */,
 				A20000000000000000000004 /* Fixtures */,
 			);
 			path = Tests;
@@ -384,7 +487,9 @@
 			children = (
 				AA00000000000000000000001 /* Diagnostics */,
 				A20000000000000000000002 /* Mihomo */,
+				BQ0000000000000000000001 /* Quota */,
 				A20000000000000000000003 /* Security */,
+				BQ0000000000000000000002 /* Storage */,
 				BC0000000000000000000001 /* Statistics */,
 				AQ0000000000000000000001 /* Updates */,
 			);
@@ -398,6 +503,7 @@
 				A40000000000000000000105 /* ConnectionStreamCollector.swift */,
 				A20000000000000000000103 /* MihomoControllerClient.swift */,
 				A20000000000000000000102 /* MihomoControllerModels.swift */,
+				BR0000000000000000000107 /* MihomoProxyProviderModels.swift */,
 			);
 			path = Mihomo;
 			sourceTree = "<group>";
@@ -431,7 +537,6 @@
 		BC0000000000000000000001 /* Statistics */ = {
 			isa = PBXGroup;
 			children = (
-				BC0000000000000000000107 /* SQLiteConnection.swift */,
 				BC0000000000000000000108 /* SQLiteTrafficLedger.swift */,
 				BC0000000000000000000109 /* TrafficIntervalPersistence.swift */,
 				BC000000000000000000010A /* TrafficLedgerLocation.swift */,
@@ -439,6 +544,28 @@
 				BC000000000000000000010C /* TrafficLedgerSchema.swift */,
 			);
 			path = Statistics;
+			sourceTree = "<group>";
+		};
+		BQ0000000000000000000001 /* Quota */ = {
+			isa = PBXGroup;
+			children = (
+				BQ000000000000000000010B /* QuotaCyclePersistence.swift */,
+				BQ000000000000000000010C /* QuotaLedgerLocation.swift */,
+				BQ000000000000000000010D /* QuotaLedgerPersistence.swift */,
+				BQ000000000000000000010E /* QuotaLedgerSchema.swift */,
+				BQ000000000000000000010F /* QuotaSnapshotPersistence.swift */,
+				BQ0000000000000000000110 /* QuotaSubscriptionPersistence.swift */,
+				BQ0000000000000000000111 /* SQLiteQuotaLedger.swift */,
+			);
+			path = Quota;
+			sourceTree = "<group>";
+		};
+		BQ0000000000000000000002 /* Storage */ = {
+			isa = PBXGroup;
+			children = (
+				BC0000000000000000000107 /* SQLiteConnection.swift */,
+			);
+			path = Storage;
 			sourceTree = "<group>";
 		};
 		A20000000000000000000004 /* Fixtures */ = {
@@ -603,6 +730,37 @@
 				A10000000000000000000206 /* TrafficPopoverView.swift in Sources */,
 				AF0000000000000000000201 /* TrafficMonitoringCoordinator.swift in Sources */,
 				AG0000000000000000000201 /* TrafficMonitoringRun.swift in Sources */,
+				BQ0000000000000000000201 /* QuotaLedgerStoring.swift in Sources */,
+				BQ0000000000000000000202 /* QuotaCycle.swift in Sources */,
+				BQ0000000000000000000203 /* QuotaCycleDetector.swift in Sources */,
+				BQ0000000000000000000204 /* QuotaLedgerError.swift in Sources */,
+				BQ0000000000000000000205 /* QuotaObservation.swift in Sources */,
+				BQ0000000000000000000206 /* QuotaTraffic.swift in Sources */,
+				BQ0000000000000000000207 /* QuotaTrend.swift in Sources */,
+				BQ0000000000000000000208 /* QuotaTrendEngine.swift in Sources */,
+				BQ0000000000000000000209 /* SubscriptionQuotaSnapshot.swift in Sources */,
+				BQ000000000000000000020A /* TrackedSubscription.swift in Sources */,
+				BQ000000000000000000020B /* QuotaCyclePersistence.swift in Sources */,
+				BQ000000000000000000020C /* QuotaLedgerLocation.swift in Sources */,
+				BQ000000000000000000020D /* QuotaLedgerPersistence.swift in Sources */,
+				BQ000000000000000000020E /* QuotaLedgerSchema.swift in Sources */,
+				BQ000000000000000000020F /* QuotaSnapshotPersistence.swift in Sources */,
+				BQ0000000000000000000210 /* QuotaSubscriptionPersistence.swift in Sources */,
+				BQ0000000000000000000211 /* SQLiteQuotaLedger.swift in Sources */,
+				BR0000000000000000000201 /* RuntimeQuotaCandidate.swift in Sources */,
+				BR0000000000000000000205 /* RuntimeQuotaLedgerService.swift in Sources */,
+				BR0000000000000000000204 /* RuntimeQuotaObservationCoordinator.swift in Sources */,
+				BR0000000000000000000203 /* RuntimeQuotaObserving.swift in Sources */,
+				BR0000000000000000000206 /* RuntimeQuotaTrackingController.swift in Sources */,
+				BR0000000000000000000202 /* RuntimeQuotaTrackingSnapshot.swift in Sources */,
+				BR0000000000000000000207 /* MihomoProxyProviderModels.swift in Sources */,
+				BS0000000000000000000203 /* QuotaTrendChart.swift in Sources */,
+				BS0000000000000000000207 /* StatisticsWorkspaceView.swift in Sources */,
+				BS0000000000000000000201 /* SubscriptionQuotaFormatter.swift in Sources */,
+				BS0000000000000000000204 /* SubscriptionQuotaMetricsView.swift in Sources */,
+				BS0000000000000000000202 /* SubscriptionQuotaObservationNoticeView.swift in Sources */,
+				BS0000000000000000000206 /* SubscriptionQuotaStatisticsView.swift in Sources */,
+				BS0000000000000000000205 /* SubscriptionQuotaSummaryView.swift in Sources */,
 				BC0000000000000000000201 /* TrafficLedgerStoring.swift in Sources */,
 				BC0000000000000000000202 /* TrafficStatisticsController.swift in Sources */,
 				BC0000000000000000000203 /* TrafficStatisticsRecording.swift in Sources */,
@@ -641,19 +799,25 @@
 				AA00000000000000000000202 /* DiagnosticLoggerTests.swift in Sources */,
 				A20000000000000000000205 /* FixtureLoader.swift in Sources */,
 				A20000000000000000000207 /* MihomoControllerModelsTests.swift in Sources */,
+				BR0000000000000000000208 /* MihomoProxyProviderModelsTests.swift in Sources */,
 				AD0000000000000000000202 /* MihomoMonitoringSessionTests.swift in Sources */,
 				A30000000000000000000205 /* ProxyClassifierTests.swift in Sources */,
+				BQ0000000000000000000212 /* QuotaDomainTests.swift in Sources */,
 				A40000000000000000000207 /* ReconnectBackoffTests.swift in Sources */,
+				BR0000000000000000000209 /* RuntimeQuotaTrackingControllerTests.swift in Sources */,
 				A30000000000000000000207 /* TrafficRateAggregatorTests.swift in Sources */,
 				A10000000000000000000207 /* TrafficRateTests.swift in Sources */,
 				AC0000000000000000000202 /* TrafficMeasurementSessionTests.swift in Sources */,
 				A50000000000000000000201 /* TrafficMonitorConfigurationTests.swift in Sources */,
 				AK0000000000000000000201 /* TrafficMonitorLifecycleTests.swift in Sources */,
+				BS0000000000000000000208 /* TrafficMonitorQuotaLifecycleTests.swift in Sources */,
 				AJ0000000000000000000201 /* TrafficMonitorReducerTests.swift in Sources */,
 				AL0000000000000000000201 /* TrafficMonitorTestSupport.swift in Sources */,
 				BE0000000000000000000208 /* TrafficStatisticsPresentationTests.swift in Sources */,
 				BC0000000000000000000210 /* SQLiteTrafficLedgerTests.swift in Sources */,
 				BD0000000000000000000201 /* SQLiteTrafficLedgerTestSupport.swift in Sources */,
+				BQ0000000000000000000213 /* SQLiteQuotaLedgerTestSupport.swift in Sources */,
+				BQ0000000000000000000214 /* SQLiteQuotaLedgerTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

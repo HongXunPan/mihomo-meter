@@ -12,6 +12,7 @@ final class MenuBarController: NSObject {
   private let popover: NSPopover
   private let monitor: TrafficMonitor
   private let statisticsController: TrafficStatisticsController
+  private let quotaController: RuntimeQuotaTrackingController
   private let statisticsWindowController: TrafficStatisticsWindowController
   private let updateModel: AppUpdateModel
   private var cancellables: Set<AnyCancellable> = []
@@ -19,6 +20,7 @@ final class MenuBarController: NSObject {
   init(
     monitor: TrafficMonitor,
     statisticsController: TrafficStatisticsController,
+    quotaController: RuntimeQuotaTrackingController,
     updateModel: AppUpdateModel
   ) {
     statusItem = NSStatusBar.system.statusItem(
@@ -28,8 +30,10 @@ final class MenuBarController: NSObject {
     popover = NSPopover()
     self.monitor = monitor
     self.statisticsController = statisticsController
+    self.quotaController = quotaController
     statisticsWindowController = TrafficStatisticsWindowController(
       controller: statisticsController,
+      quotaController: quotaController,
       monitor: monitor
     )
     self.updateModel = updateModel
@@ -69,9 +73,13 @@ final class MenuBarController: NSObject {
       rootView: TrafficPopoverView(
         monitor: monitor,
         statisticsController: statisticsController,
+        quotaController: quotaController,
         updateModel: updateModel,
         showAllStatistics: { [weak self] in
-          self?.showStatisticsWindow()
+          self?.showStatisticsWindow(module: .proxyTraffic)
+        },
+        showQuotaStatistics: { [weak self] in
+          self?.showStatisticsWindow(module: .subscriptionQuota)
         },
         dismiss: { [weak self] in
           self?.popover.performClose(nil)
@@ -142,8 +150,8 @@ final class MenuBarController: NSObject {
     _ = popover.contentViewController?.view.window?.makeFirstResponder(nil)
   }
 
-  private func showStatisticsWindow() {
+  private func showStatisticsWindow(module: StatisticsModule) {
     popover.performClose(nil)
-    statisticsWindowController.show()
+    statisticsWindowController.show(module: module)
   }
 }

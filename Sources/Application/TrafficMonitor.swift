@@ -10,6 +10,7 @@ final class TrafficMonitor: ObservableObject {
   private let configurationStore: ControllerConfigurationStore
   private let coordinator: TrafficMonitoringCoordinator
   private let statisticsRecorder: any TrafficStatisticsRecording
+  private let runtimeQuotaLifecycle: any RuntimeQuotaTrackingLifecycle
 
   var connectionState: MonitorConnectionState {
     state.connectionState
@@ -77,6 +78,8 @@ final class TrafficMonitor: ObservableObject {
     diagnosticLogger: any AppDiagnosticLogging = NoOpAppDiagnosticLogger.shared,
     livenessPolicy: ConnectionLivenessWatchdog.Policy = .production,
     statisticsRecorder: any TrafficStatisticsRecording = NoOpTrafficStatisticsRecorder.shared,
+    runtimeQuotaLifecycle: any RuntimeQuotaTrackingLifecycle =
+      NoOpRuntimeQuotaTrackingLifecycle.shared,
     userDefaults: UserDefaults = .standard
   ) {
     let configurationStore = ControllerConfigurationStore(
@@ -85,6 +88,7 @@ final class TrafficMonitor: ObservableObject {
     )
     self.configurationStore = configurationStore
     self.statisticsRecorder = statisticsRecorder
+    self.runtimeQuotaLifecycle = runtimeQuotaLifecycle
     address = configurationStore.storedAddress
     secret = ""
     coordinator = TrafficMonitoringCoordinator(
@@ -163,6 +167,24 @@ final class TrafficMonitor: ObservableObject {
     if case .validated(let address, _, _) = event {
       self.address = address
     }
+    updateRuntimeQuotaLifecycle(for: event)
     state = TrafficMonitorReducer.reduce(state, event: event)
+  }
+
+  private func updateRuntimeQuotaLifecycle(
+    for event: TrafficMonitoringCoordinator.Event
+  ) {
+    switch event {
+    case .validated(let address, _, _):
+      guard let endpoint = try? ControllerEndpoint(address: address) else {
+        runtimeQuotaLifecycle.controllerUnavailable()
+        return
+      }
+      runtimeQuotaLifecycle.controllerValidated(endpoint: endpoint, secret: secret)
+    case .validating, .retrying, .reconnectRequired, .reconnectScheduled, .terminal, .stopped:
+      runtimeQuotaLifecycle.controllerUnavailable()
+    case .measurement, .dataStale:
+      break
+    }
   }
 }

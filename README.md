@@ -7,9 +7,9 @@
 [使用文档（Wiki）](https://github.com/HongXunPan/mihomo-meter/wiki) ·
 [版本发布与下载（GitHub Releases）](https://github.com/HongXunPan/mihomo-meter/releases)
 
-Mihomo Meter 是一款原生 macOS 状态栏应用，通过 Mihomo Controller API 统计真实经过代理出口的实时网速和本机累计流量。
+Mihomo Meter 是一款原生 macOS 状态栏应用，通过 Mihomo Controller API 统计真实经过代理出口的实时网速、本机累计流量和机场订阅剩余流量走势。
 
-> 当前已完成 MVP-1 实时纵切和 MVP-2 本机统计闭环；订阅余额走势尚未实现。
+> 当前已完成 MVP-1、MVP-2 和阶段 2.2“当前运行订阅”轻量模式；指定 Profile、多订阅主动查询和完整高级趋势仍未实现。
 
 ## 为什么开发
 
@@ -39,8 +39,11 @@ Mihomo Meter 是只读监控工具：
 - [x] 阶段 0：工程骨架与 Mihomo Controller API 数据验证
 - [x] 阶段 1A：MVP-1 实时代理流量纵切
 - [x] 阶段 1B：MVP-2 本机分类流量统计闭环
-- [ ] 阶段 2：机场订阅余额走势
-- [ ] 阶段 3：本机 Proxy 流量与机场配额对账分析
+- [x] 阶段 2.1：订阅配额领域与独立账本
+- [x] 阶段 2.2：当前运行订阅轻量追踪
+- [ ] 阶段 2.3：指定 Profile 只读授权与身份映射
+- [ ] 阶段 2.4：多 Profile 主动查询
+- [ ] 阶段 2.5：高级趋势与完整验收
 
 已勾选项目表示当前源码和测试已经实现；未勾选项目不代表发布时间承诺。各阶段的子任务与完成状态见[开发路线图](docs/路线图.md)。
 
@@ -61,10 +64,14 @@ Mihomo Meter 是只读监控工具：
 - 使用系统 SQLite3 保存分钟级分类流量、每日汇总和本机累计
 - 状态栏弹层快速展示活动任务，并通过独立统计窗口管理全部秒表式 Proxy 流量统计任务
 - 正常退出或崩溃恢复时，将仍在进行的任务收口为“已中断”
-- 清空本地统计时删除账本与任务，但保留服务地址和访问密钥（Secret）
+- 清空 Proxy 本地统计时删除流量账本与任务，但保留服务地址和访问密钥（Secret）
+- 连接成功后每 5 分钟只读查询 `/providers/proxies`，只接受唯一有效的 `subscriptionInfo`
+- 用户明确确认后，以本地 UUID 记录“当前运行订阅”；零个、多个候选或来源变化时自动暂停
+- 使用独立的 `quota.sqlite3` 保存机场原始配额快照、周期和 24 小时、7 天、30 天走势
+- 状态栏弹层直接展示剩余流量卡片和走势图，完整统计窗口通过侧边栏切换 Proxy 流量与订阅余额
 - 在弹层底部展示应用版本，并通过 Sparkle 检查、下载和安装 Ed25519 签名更新
 
-应用不会读取 Clash Verge 配置文件或私有 IPC，也不会自动获取 Secret。
+当前轻量模式不会读取 Clash Verge 配置文件或私有 IPC，不接触订阅 URL，也不会自动获取 Secret。它无法识别 Profile UID 或可靠感知同一运行来源背后的 Profile 切换；因此只适合用户确认仅使用一个订阅 Profile 的场景。
 
 正式版本仅通过 GitHub Releases 分发自签名、未公证的 DMG，不上架 Mac App Store。
 每个版本提供 Apple Silicon、Intel 和 Universal 三种 DMG，首次打开需要按
@@ -125,6 +132,8 @@ Xcode 的 Debug 和 Release 配置会通过公共 `Config.xcconfig` 读取本机
 3. 手动填写回环 Mihomo 服务地址，例如 `127.0.0.1:9090`。
 4. 手动填写访问密钥；Mihomo 未配置鉴权时可以留空。
 5. 点击“连接”。
+
+若要启用当前运行订阅轻量追踪，请在连接成功后查看状态栏弹层中的“订阅余额”：只有 Mihomo 恰好暴露一个有效配额候选时才会出现确认入口。确认后应用按自己的 5 分钟观察周期记录；出现零个、多个候选或来源变化时会暂停并要求再次确认。
 
 实时口径与异常状态见 [MVP-1 使用与统计口径](docs/MVP-1使用与统计口径.md)，
 本机累计和统计任务见 [MVP-2 秒表式流量统计](docs/MVP-2秒表式流量统计.md)。

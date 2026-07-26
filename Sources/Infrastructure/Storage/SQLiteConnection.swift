@@ -1,6 +1,14 @@
 import Foundation
 import SQLite3
 
+enum SQLiteConnectionError: Error, LocalizedError {
+  case database(String)
+
+  var errorDescription: String? {
+    "本地数据库暂不可用。"
+  }
+}
+
 final class SQLiteConnection {
   private(set) var handle: OpaquePointer?
   private let fileURL: URL
@@ -14,7 +22,7 @@ final class SQLiteConnection {
       let message = handle.map { String(cString: sqlite3_errmsg($0)) } ?? "无法打开数据库"
       sqlite3_close(handle)
       handle = nil
-      throw TrafficStatisticsError.database(message)
+      throw SQLiteConnectionError.database(message)
     }
 
     try execute("PRAGMA foreign_keys = ON")
@@ -38,7 +46,7 @@ final class SQLiteConnection {
 
   func execute(_ sql: String) throws {
     guard let handle else {
-      throw TrafficStatisticsError.database("数据库连接已关闭")
+      throw SQLiteConnectionError.database("数据库连接已关闭")
     }
 
     var errorMessage: UnsafeMutablePointer<CChar>?
@@ -46,13 +54,13 @@ final class SQLiteConnection {
     guard status == SQLITE_OK else {
       let message = errorMessage.map { String(cString: $0) } ?? "SQLite 执行失败"
       sqlite3_free(errorMessage)
-      throw TrafficStatisticsError.database(message)
+      throw SQLiteConnectionError.database(message)
     }
   }
 
   func prepare(_ sql: String) throws -> SQLiteStatement {
     guard let handle else {
-      throw TrafficStatisticsError.database("数据库连接已关闭")
+      throw SQLiteConnectionError.database("数据库连接已关闭")
     }
     return try SQLiteStatement(database: handle, sql: sql)
   }
@@ -100,7 +108,7 @@ final class SQLiteStatement {
   init(database: OpaquePointer, sql: String) throws {
     self.database = database
     guard sqlite3_prepare_v2(database, sql, -1, &handle, nil) == SQLITE_OK else {
-      throw TrafficStatisticsError.database(String(cString: sqlite3_errmsg(database)))
+      throw SQLiteConnectionError.database(String(cString: sqlite3_errmsg(database)))
     }
   }
 
@@ -137,7 +145,7 @@ final class SQLiteStatement {
   func step() throws -> Int32 {
     let status = sqlite3_step(handle)
     guard status == SQLITE_ROW || status == SQLITE_DONE else {
-      throw TrafficStatisticsError.database(String(cString: sqlite3_errmsg(database)))
+      throw SQLiteConnectionError.database(String(cString: sqlite3_errmsg(database)))
     }
     return status
   }
@@ -160,7 +168,7 @@ final class SQLiteStatement {
 
   private func check(_ status: Int32) throws {
     guard status == SQLITE_OK else {
-      throw TrafficStatisticsError.database(String(cString: sqlite3_errmsg(database)))
+      throw SQLiteConnectionError.database(String(cString: sqlite3_errmsg(database)))
     }
   }
 }

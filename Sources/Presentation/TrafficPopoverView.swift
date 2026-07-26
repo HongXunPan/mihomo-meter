@@ -9,8 +9,10 @@ enum TrafficPopoverLayout {
 struct TrafficPopoverView: View {
   @ObservedObject var monitor: TrafficMonitor
   @ObservedObject var statisticsController: TrafficStatisticsController
+  @ObservedObject var quotaController: RuntimeQuotaTrackingController
   @ObservedObject var updateModel: AppUpdateModel
   let showAllStatistics: () -> Void
+  let showQuotaStatistics: () -> Void
   let dismiss: () -> Void
 
   @State private var showsRuntimeDetails = false
@@ -32,9 +34,13 @@ struct TrafficPopoverView: View {
             sectionDivider
             trafficOverview
             sectionDivider
+            subscriptionQuota
+            sectionDivider
             trafficStatistics
           } else {
             trafficOverview
+            sectionDivider
+            subscriptionQuota
             sectionDivider
             trafficStatistics
             sectionDivider
@@ -116,6 +122,13 @@ struct TrafficPopoverView: View {
       controller: statisticsController,
       isMonitoringAvailable: allowsTrafficStatistics,
       showAllStatistics: showAllStatistics
+    )
+  }
+
+  private var subscriptionQuota: some View {
+    SubscriptionQuotaSummaryView(
+      controller: quotaController,
+      showAllStatistics: showQuotaStatistics
     )
   }
 

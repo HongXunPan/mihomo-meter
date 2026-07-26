@@ -1,0 +1,129 @@
+import SwiftUI
+
+struct SubscriptionQuotaSummaryView: View {
+  @ObservedObject var controller: RuntimeQuotaTrackingController
+  let showAllStatistics: () -> Void
+
+  @State private var showsConfirmation = false
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      header
+      SubscriptionQuotaObservationNoticeView(controller: controller)
+
+      if let quota = controller.snapshot.latestQuota {
+        SubscriptionQuotaMetricsView(
+          quota: quota,
+          trend: controller.snapshot.trends.week,
+          isCompact: true
+        )
+      } else {
+        emptyState
+      }
+
+      confirmationAction
+      showAllAction
+    }
+    .confirmationDialog(
+      confirmationTitle,
+      isPresented: $showsConfirmation
+    ) {
+      Button(confirmationActionTitle) {
+        Task {
+          if controller.snapshot.subscription == nil {
+            await controller.enableTracking()
+          } else {
+            await controller.resumeTracking()
+          }
+        }
+      }
+      Button("取消", role: .cancel) {}
+    } message: {
+      Text(confirmationMessage)
+    }
+  }
+
+  private var header: some View {
+    HStack {
+      Label("订阅余额", systemImage: "chart.line.downtrend.xyaxis")
+        .font(.headline)
+
+      Spacer()
+
+      if controller.snapshot.isActive {
+        Text("轻量追踪")
+          .font(.caption2.weight(.medium))
+          .foregroundStyle(.secondary)
+      } else if controller.snapshot.isPaused {
+        Text("已暂停")
+          .font(.caption2.weight(.medium))
+          .foregroundStyle(.orange)
+      }
+    }
+  }
+
+  private var emptyState: some View {
+    Text(emptyMessage)
+      .font(.caption)
+      .foregroundStyle(.secondary)
+      .fixedSize(horizontal: false, vertical: true)
+      .frame(maxWidth: .infinity, minHeight: 42, alignment: .center)
+  }
+
+  @ViewBuilder
+  private var confirmationAction: some View {
+    if canConfirmTracking {
+      Button(confirmationActionTitle) {
+        showsConfirmation = true
+      }
+      .buttonStyle(.borderedProminent)
+      .controlSize(.small)
+      .frame(maxWidth: .infinity, alignment: .trailing)
+    }
+  }
+
+  private var showAllAction: some View {
+    VStack(spacing: 8) {
+      Divider()
+
+      Button(action: showAllStatistics) {
+        HStack(spacing: 8) {
+          Image(systemName: "rectangle.grid.2x2")
+          Text("查看订阅余额统计")
+          Spacer()
+          Image(systemName: "chevron.right")
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(.tertiary)
+        }
+        .contentShape(Rectangle())
+      }
+      .buttonStyle(.borderless)
+      .accessibilityHint("打开统一统计窗口的订阅余额模块")
+    }
+  }
+
+  private var canConfirmTracking: Bool {
+    guard controller.snapshot.observationStatus == .available else {
+      return false
+    }
+    return controller.snapshot.subscription == nil || controller.snapshot.isPaused
+  }
+
+  private var emptyMessage: String {
+    controller.snapshot.subscription == nil
+      ? "轻量模式不需要目录权限，只观察 Mihomo 当前暴露的唯一有效配额。"
+      : "等待第一条有效配额快照。"
+  }
+
+  private var confirmationTitle: String {
+    controller.snapshot.subscription == nil ? "启用当前运行订阅追踪？" : "继续轻量追踪？"
+  }
+
+  private var confirmationActionTitle: String {
+    controller.snapshot.subscription == nil ? "启用轻量追踪" : "确认并继续"
+  }
+
+  private var confirmationMessage: String {
+    "请确认你通常只使用一个订阅 Profile。轻量模式无法识别 Profile UID，出现零个、多个或来源变化时会自动暂停，不会猜测归属。"
+  }
+}

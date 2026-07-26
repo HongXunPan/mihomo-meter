@@ -34,7 +34,7 @@ struct TrafficStatisticsView: View {
       }
       .padding(20)
     }
-    .frame(minWidth: 820, minHeight: 520)
+    .frame(minWidth: 680, minHeight: 520)
     .confirmationDialog(
       "清空本地统计？",
       isPresented: $showsClearConfirmation

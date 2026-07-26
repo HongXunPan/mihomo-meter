@@ -26,6 +26,7 @@ struct ApplicationRuntimeEnvironment: Sendable {
 final class AppDelegate: NSObject, NSApplicationDelegate {
   private var trafficMonitor: TrafficMonitor?
   private var statisticsController: TrafficStatisticsController?
+  private var quotaController: RuntimeQuotaTrackingController?
   private var updateModel: AppUpdateModel?
   private var menuBarController: MenuBarController?
   private var isTerminationPending = false
@@ -41,17 +42,28 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         databaseURL: TrafficLedgerLocation.defaultDatabaseURL()
       )
     )
+    let mihomoClient = MihomoControllerClient()
+    let quotaController = RuntimeQuotaTrackingController(
+      ledger: SQLiteQuotaLedger(
+        databaseURL: QuotaLedgerLocation.defaultDatabaseURL()
+      ),
+      observer: RuntimeQuotaObservationCoordinator(client: mihomoClient)
+    )
     let monitor = TrafficMonitor(
+      client: mihomoClient,
       diagnosticLogger: DebugDiagnosticLogger.shared,
-      statisticsRecorder: statisticsController
+      statisticsRecorder: statisticsController,
+      runtimeQuotaLifecycle: quotaController
     )
     let updateModel = AppUpdateModel()
     trafficMonitor = monitor
     self.statisticsController = statisticsController
+    self.quotaController = quotaController
     self.updateModel = updateModel
     menuBarController = MenuBarController(
       monitor: monitor,
       statisticsController: statisticsController,
+      quotaController: quotaController,
       updateModel: updateModel
     )
     updateModel.start()
@@ -63,12 +75,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         )
       #endif
       await statisticsController.prepare()
+      await quotaController.prepare()
       monitor.start()
     }
   }
 
   func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
-    guard let trafficMonitor, let statisticsController else {
+    guard let trafficMonitor, let statisticsController, let quotaController else {
       return .terminateNow
     }
     guard !isTerminationPending else {
@@ -77,6 +90,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     isTerminationPending = true
 
     Task {
+      quotaController.stop()
       await trafficMonitor.stopForApplicationTermination()
       await statisticsController.prepareForApplicationTermination()
       sender.reply(toApplicationShouldTerminate: true)

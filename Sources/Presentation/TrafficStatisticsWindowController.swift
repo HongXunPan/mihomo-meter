@@ -3,17 +3,22 @@ import SwiftUI
 
 @MainActor
 final class TrafficStatisticsWindowController: NSWindowController {
-  private static let initialSize = NSSize(width: 960, height: 640)
-  private static let minimumSize = NSSize(width: 820, height: 520)
+  private static let initialSize = NSSize(width: 1_080, height: 680)
+  private static let minimumSize = NSSize(width: 900, height: 560)
   private static let frameAutosaveName = "TrafficStatisticsWindow"
+
+  private let workspaceModel = StatisticsWorkspaceModel()
 
   init(
     controller: TrafficStatisticsController,
+    quotaController: RuntimeQuotaTrackingController,
     monitor: TrafficMonitor
   ) {
     let hostingController = NSHostingController(
-      rootView: TrafficStatisticsView(
-        controller: controller,
+      rootView: StatisticsWorkspaceView(
+        model: workspaceModel,
+        trafficController: controller,
+        quotaController: quotaController,
         monitor: monitor
       )
     )
@@ -23,7 +28,7 @@ final class TrafficStatisticsWindowController: NSWindowController {
       backing: .buffered,
       defer: false
     )
-    window.title = "Proxy 流量统计"
+    window.title = "统计"
     window.contentViewController = hostingController
     window.minSize = Self.minimumSize
     window.isReleasedWhenClosed = false
@@ -39,7 +44,8 @@ final class TrafficStatisticsWindowController: NSWindowController {
     nil
   }
 
-  func show() {
+  func show(module: StatisticsModule) {
+    workspaceModel.selectedModule = module
     showWindow(nil)
     window?.makeKeyAndOrderFront(nil)
 
