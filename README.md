@@ -9,7 +9,7 @@
 
 Mihomo Meter 是一款原生 macOS 状态栏应用，通过 Mihomo Controller API 统计真实经过代理出口的实时网速、本机累计流量和机场订阅剩余流量走势。
 
-> 当前已完成 MVP-1、MVP-2 和阶段 2.2“当前运行订阅”轻量模式；指定 Profile、多订阅主动查询和完整高级趋势仍未实现。
+> 当前已完成 MVP-1、MVP-2、阶段 2.2“当前运行订阅”轻量模式和阶段 2.3“指定 Profile”身份管理；多 Profile 主动查询和完整高级趋势仍未实现。
 
 ## 为什么开发
 
@@ -41,7 +41,7 @@ Mihomo Meter 是只读监控工具：
 - [x] 阶段 1B：MVP-2 本机分类流量统计闭环
 - [x] 阶段 2.1：订阅配额领域与独立账本
 - [x] 阶段 2.2：当前运行订阅轻量追踪
-- [ ] 阶段 2.3：指定 Profile 只读授权与身份映射
+- [x] 阶段 2.3：指定 Profile 只读授权与身份映射
 - [ ] 阶段 2.4：多 Profile 主动查询
 - [ ] 阶段 2.5：高级趋势与完整验收
 
@@ -69,9 +69,14 @@ Mihomo Meter 是只读监控工具：
 - 用户明确确认后，以本地 UUID 记录“当前运行订阅”；零个、多个候选或来源变化时自动暂停
 - 使用独立的 `quota.sqlite3` 保存机场原始配额快照、周期和 24 小时、7 天、30 天走势
 - 状态栏弹层直接展示剩余流量卡片和走势图，完整统计窗口通过侧边栏切换 Proxy 流量与订阅余额
+- 经用户明确选择后，以只读权限访问 Clash Verge Profile 目录并类型化解析 `profiles.yaml`
+- 使用 Profile UID 维持改名和订阅地址重置前后的身份连续性；原始订阅地址只在内存中参与查询准备
+- 订阅地址仅以应用本地 HMAC-SHA256 指纹写入额度账本，指纹密钥保存在 macOS 登录钥匙串
+- 指定 Profile 可独立选择观察间隔；目录变化经过防抖后只刷新身份状态，不产生配额快照或网络请求
+- 完整统计窗口以同屏卡片展示已选择 Profile 的身份状态，并提供授权、重选和停止访问入口
 - 在弹层底部展示应用版本，并通过 Sparkle 检查、下载和安装 Ed25519 签名更新
 
-当前轻量模式不会读取 Clash Verge 配置文件或私有 IPC，不接触订阅 URL，也不会自动获取 Secret。它无法识别 Profile UID 或可靠感知同一运行来源背后的 Profile 切换；因此只适合用户确认仅使用一个订阅 Profile 的场景。
+当前运行订阅轻量模式不会读取 Clash Verge 配置文件或私有 IPC，不接触订阅 URL，也不会自动获取 Secret。它无法识别 Profile UID 或可靠感知同一运行来源背后的 Profile 切换，因此只适合用户确认仅使用一个订阅 Profile 的场景。指定 Profile 模式需要用户明确授予 Profile 目录只读权限，可以识别和选择 Profile UID，但阶段 2.3 尚不会主动请求机场订阅地址或生成指定 Profile 的配额快照。
 
 正式版本仅通过 GitHub Releases 分发自签名、未公证的 DMG，不上架 Mac App Store。
 每个版本提供 Apple Silicon、Intel 和 Universal 三种 DMG，首次打开需要按
@@ -90,7 +95,7 @@ README 顶部的下载量徽章汇总所有正式版本 DMG 资产的下载事�
 ├── Sources/
 │   ├── Application/         # 应用入口与生命周期
 │   ├── Domain/              # 与界面无关的领域模型
-│   ├── Infrastructure/      # Controller、WebSocket、SQLite、Keychain 与 Sparkle
+│   ├── Infrastructure/      # Controller、Profile YAML、SQLite、Keychain 与 Sparkle
 │   └── Presentation/        # 状态栏和弹层界面
 ├── Tests/                   # 单元测试
 ├── scripts/                 # 构建与运行辅助脚本
@@ -135,6 +140,15 @@ Xcode 的 Debug 和 Release 配置会通过公共 `Config.xcconfig` 读取本机
 
 若要启用当前运行订阅轻量追踪，请在连接成功后查看状态栏弹层中的“订阅余额”：只有 Mihomo 恰好暴露一个有效配额候选时才会出现确认入口。确认后应用按自己的 5 分钟观察周期记录；出现零个、多个候选或来源变化时会暂停并要求再次确认。
 
+若要准备指定 Profile 追踪，请打开完整统计窗口并切换到“订阅余额”，点击“管理 Profile”：
+
+1. 选择 Clash Verge 的 Profile 目录，并确认只读授权。
+2. 从解析出的远程 Profile 中选择需要追踪的 UID。
+3. 为指定 Profile 选择独立观察间隔；该间隔不跟随 Clash Verge 的自动刷新设置。
+4. Profile 目录改名或原子替换后，应用会自动重读；移除授权会立即停止目录观察。
+
+当前阶段只完成 Profile 身份、授权和追踪配置管理。主动请求机场订阅、指定 Profile 配额快照以及状态栏弹层的多 Profile 走势属于阶段 2.4。
+
 实时口径与异常状态见 [MVP-1 使用与统计口径](docs/MVP-1使用与统计口径.md)，
 本机累计和统计任务见 [MVP-2 秒表式流量统计](docs/MVP-2秒表式流量统计.md)。
 
@@ -164,6 +178,7 @@ xcodebuild \
 ## 文档
 
 - [架构概览](docs/架构概览.md)
+- [订阅配额架构](docs/订阅配额架构.md)
 - [Swift 代码规范](docs/Swift代码规范.md)
 - [数据与隐私](docs/数据与隐私.md)
 - [MVP-1 使用与统计口径](docs/MVP-1使用与统计口径.md)
@@ -186,3 +201,5 @@ Mihomo Meter 是独立社区项目，与 Mihomo、MetaCubeX 或 Clash Verge Rev 
 本项目采用 [MIT License](LICENSE)。
 应用内更新使用开源 [Sparkle](https://github.com/sparkle-project/Sparkle)，适用其
 [项目许可声明](https://github.com/sparkle-project/Sparkle/blob/2.9.4/LICENSE)。
+Profile YAML 解析使用开源 [Yams](https://github.com/jpsim/Yams)，适用其
+[项目许可声明](https://github.com/jpsim/Yams/blob/6.2.2/LICENSE)。

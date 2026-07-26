@@ -21,6 +21,7 @@ final class MenuBarController: NSObject {
     monitor: TrafficMonitor,
     statisticsController: TrafficStatisticsController,
     quotaController: RuntimeQuotaTrackingController,
+    profileController: ClashProfileDirectoryController,
     updateModel: AppUpdateModel
   ) {
     statusItem = NSStatusBar.system.statusItem(
@@ -34,6 +35,7 @@ final class MenuBarController: NSObject {
     statisticsWindowController = TrafficStatisticsWindowController(
       controller: statisticsController,
       quotaController: quotaController,
+      profileController: profileController,
       monitor: monitor
     )
     self.updateModel = updateModel

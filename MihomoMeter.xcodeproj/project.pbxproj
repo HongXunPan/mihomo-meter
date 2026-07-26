@@ -138,6 +138,26 @@
 		BS0000000000000000000206 /* SubscriptionQuotaStatisticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BS0000000000000000000106 /* SubscriptionQuotaStatisticsView.swift */; };
 		BS0000000000000000000207 /* StatisticsWorkspaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BS0000000000000000000107 /* StatisticsWorkspaceView.swift */; };
 		BS0000000000000000000208 /* TrafficMonitorQuotaLifecycleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BS0000000000000000000108 /* TrafficMonitorQuotaLifecycleTests.swift */; };
+		BT0000000000000000000201 /* ClashProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = BT0000000000000000000111 /* ClashProfile.swift */; };
+		BT0000000000000000000202 /* YAMLClashProfileCatalogReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = BT0000000000000000000112 /* YAMLClashProfileCatalogReader.swift */; };
+		BT0000000000000000000203 /* KeychainProfileFingerprintKeyStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BT0000000000000000000113 /* KeychainProfileFingerprintKeyStore.swift */; };
+		BT0000000000000000000204 /* HMACProfileURLFingerprinter.swift in Sources */ = {isa = PBXBuildFile; fileRef = BT0000000000000000000114 /* HMACProfileURLFingerprinter.swift */; };
+		BT0000000000000000000205 /* ClashProfileCatalogReaderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BT0000000000000000000115 /* ClashProfileCatalogReaderTests.swift */; };
+		BT0000000000000000000206 /* ProfileURLFingerprinterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BT0000000000000000000116 /* ProfileURLFingerprinterTests.swift */; };
+		BT00000000000000000002F1 /* Yams in Frameworks */ = {isa = PBXBuildFile; productRef = BT0000000000000000000101 /* Yams */; };
+		BU0000000000000000000201 /* ProfileDirectoryAccessing.swift in Sources */ = {isa = PBXBuildFile; fileRef = BU0000000000000000000111 /* ProfileDirectoryAccessing.swift */; };
+		BU0000000000000000000202 /* ClashProfileDirectoryState.swift in Sources */ = {isa = PBXBuildFile; fileRef = BU0000000000000000000112 /* ClashProfileDirectoryState.swift */; };
+		BU0000000000000000000203 /* ClashProfileTrackingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BU0000000000000000000113 /* ClashProfileTrackingService.swift */; };
+		BU0000000000000000000204 /* ClashProfileDirectoryController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BU0000000000000000000114 /* ClashProfileDirectoryController.swift */; };
+		BU0000000000000000000205 /* SecurityScopedProfileDirectory.swift in Sources */ = {isa = PBXBuildFile; fileRef = BU0000000000000000000115 /* SecurityScopedProfileDirectory.swift */; };
+		BU0000000000000000000206 /* ProfileDirectoryObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = BU0000000000000000000116 /* ProfileDirectoryObserver.swift */; };
+		BU0000000000000000000207 /* ProfileTrackingManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BU0000000000000000000117 /* ProfileTrackingManagementView.swift */; };
+		BU0000000000000000000208 /* ClashProfileIdentityCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = BU0000000000000000000118 /* ClashProfileIdentityCard.swift */; };
+		BU0000000000000000000209 /* ClashProfileSelectionBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = BU0000000000000000000119 /* ClashProfileSelectionBuilder.swift */; };
+		BV0000000000000000000201 /* ProfileTestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = BV0000000000000000000111 /* ProfileTestSupport.swift */; };
+		BV0000000000000000000202 /* ClashProfileTrackingServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BV0000000000000000000112 /* ClashProfileTrackingServiceTests.swift */; };
+		BV0000000000000000000203 /* ClashProfileDirectoryControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BV0000000000000000000113 /* ClashProfileDirectoryControllerTests.swift */; };
+		BV0000000000000000000204 /* ProfileDirectoryObserverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BV0000000000000000000114 /* ProfileDirectoryObserverTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -286,6 +306,25 @@
 		BS0000000000000000000106 /* SubscriptionQuotaStatisticsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionQuotaStatisticsView.swift; sourceTree = "<group>"; };
 		BS0000000000000000000107 /* StatisticsWorkspaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatisticsWorkspaceView.swift; sourceTree = "<group>"; };
 		BS0000000000000000000108 /* TrafficMonitorQuotaLifecycleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficMonitorQuotaLifecycleTests.swift; sourceTree = "<group>"; };
+		BT0000000000000000000111 /* ClashProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClashProfile.swift; sourceTree = "<group>"; };
+		BT0000000000000000000112 /* YAMLClashProfileCatalogReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YAMLClashProfileCatalogReader.swift; sourceTree = "<group>"; };
+		BT0000000000000000000113 /* KeychainProfileFingerprintKeyStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainProfileFingerprintKeyStore.swift; sourceTree = "<group>"; };
+		BT0000000000000000000114 /* HMACProfileURLFingerprinter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HMACProfileURLFingerprinter.swift; sourceTree = "<group>"; };
+		BT0000000000000000000115 /* ClashProfileCatalogReaderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClashProfileCatalogReaderTests.swift; sourceTree = "<group>"; };
+		BT0000000000000000000116 /* ProfileURLFingerprinterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileURLFingerprinterTests.swift; sourceTree = "<group>"; };
+		BU0000000000000000000111 /* ProfileDirectoryAccessing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileDirectoryAccessing.swift; sourceTree = "<group>"; };
+		BU0000000000000000000112 /* ClashProfileDirectoryState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClashProfileDirectoryState.swift; sourceTree = "<group>"; };
+		BU0000000000000000000113 /* ClashProfileTrackingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClashProfileTrackingService.swift; sourceTree = "<group>"; };
+		BU0000000000000000000114 /* ClashProfileDirectoryController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClashProfileDirectoryController.swift; sourceTree = "<group>"; };
+		BU0000000000000000000115 /* SecurityScopedProfileDirectory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecurityScopedProfileDirectory.swift; sourceTree = "<group>"; };
+		BU0000000000000000000116 /* ProfileDirectoryObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileDirectoryObserver.swift; sourceTree = "<group>"; };
+		BU0000000000000000000117 /* ProfileTrackingManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileTrackingManagementView.swift; sourceTree = "<group>"; };
+		BU0000000000000000000118 /* ClashProfileIdentityCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClashProfileIdentityCard.swift; sourceTree = "<group>"; };
+		BU0000000000000000000119 /* ClashProfileSelectionBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClashProfileSelectionBuilder.swift; sourceTree = "<group>"; };
+		BV0000000000000000000111 /* ProfileTestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileTestSupport.swift; sourceTree = "<group>"; };
+		BV0000000000000000000112 /* ClashProfileTrackingServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClashProfileTrackingServiceTests.swift; sourceTree = "<group>"; };
+		BV0000000000000000000113 /* ClashProfileDirectoryControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClashProfileDirectoryControllerTests.swift; sourceTree = "<group>"; };
+		BV0000000000000000000114 /* ProfileDirectoryObserverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileDirectoryObserverTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -295,6 +334,7 @@
 			files = (
 				BA0000000000000000000201 /* Sparkle in Frameworks */,
 				BC0000000000000000000211 /* libsqlite3.tbd in Frameworks */,
+				BT00000000000000000002F1 /* Yams in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -351,6 +391,10 @@
 				AP0000000000000000000101 /* AppUpdateModel.swift */,
 				AB0000000000000000000101 /* ConnectionLivenessWatchdog.swift */,
 				AE0000000000000000000101 /* ControllerConfigurationStore.swift */,
+				BU0000000000000000000114 /* ClashProfileDirectoryController.swift */,
+				BU0000000000000000000112 /* ClashProfileDirectoryState.swift */,
+				BU0000000000000000000113 /* ClashProfileTrackingService.swift */,
+				BU0000000000000000000119 /* ClashProfileSelectionBuilder.swift */,
 				AD0000000000000000000101 /* MihomoMonitoringSession.swift */,
 				A10000000000000000000101 /* MihomoMeterApp.swift */,
 				A40000000000000000000102 /* MonitorConnectionState.swift */,
@@ -361,6 +405,7 @@
 				AF0000000000000000000101 /* TrafficMonitoringCoordinator.swift */,
 				AG0000000000000000000101 /* TrafficMonitoringRun.swift */,
 				BQ0000000000000000000101 /* QuotaLedgerStoring.swift */,
+				BU0000000000000000000111 /* ProfileDirectoryAccessing.swift */,
 				BR0000000000000000000105 /* RuntimeQuotaLedgerService.swift */,
 				BR0000000000000000000104 /* RuntimeQuotaObservationCoordinator.swift */,
 				BR0000000000000000000103 /* RuntimeQuotaObserving.swift */,
@@ -376,6 +421,7 @@
 		A10000000000000000000006 /* Domain */ = {
 			isa = PBXGroup;
 			children = (
+				BT0000000000000000000111 /* ClashProfile.swift */,
 				A30000000000000000000103 /* ConnectionDeltaTracker.swift */,
 				A20000000000000000000101 /* ControllerEndpoint.swift */,
 				AV0000000000000000000101 /* MihomoRuntimeConfiguration.swift */,
@@ -406,9 +452,11 @@
 			children = (
 				AT0000000000000000000101 /* AppHelpLinksMenu.swift */,
 				AR0000000000000000000101 /* AppUpdateView.swift */,
+				BU0000000000000000000118 /* ClashProfileIdentityCard.swift */,
 				A90000000000000000000101 /* ControllerConfigurationView.swift */,
 				A10000000000000000000105 /* MenuBarController.swift */,
 				BF0000000000000000000101 /* PopoverDisclosureGroupStyle.swift */,
+				BU0000000000000000000117 /* ProfileTrackingManagementView.swift */,
 				A70000000000000000000101 /* ProxyStatusItemView.swift */,
 				BS0000000000000000000103 /* QuotaTrendChart.swift */,
 				AX0000000000000000000101 /* RoutingStatusView.swift */,
@@ -442,6 +490,9 @@
 			children = (
 				AU0000000000000000000101 /* AppHelpLinksTests.swift */,
 				AS0000000000000000000101 /* AppUpdateTests.swift */,
+				BT0000000000000000000115 /* ClashProfileCatalogReaderTests.swift */,
+				BV0000000000000000000113 /* ClashProfileDirectoryControllerTests.swift */,
+				BV0000000000000000000112 /* ClashProfileTrackingServiceTests.swift */,
 				A30000000000000000000106 /* ConnectionDeltaTrackerTests.swift */,
 				AB0000000000000000000102 /* ConnectionLivenessWatchdogTests.swift */,
 				A40000000000000000000106 /* ConnectionSnapshotDecoderTests.swift */,
@@ -468,6 +519,9 @@
 				BD0000000000000000000101 /* SQLiteTrafficLedgerTestSupport.swift */,
 				BQ0000000000000000000113 /* SQLiteQuotaLedgerTestSupport.swift */,
 				BQ0000000000000000000114 /* SQLiteQuotaLedgerTests.swift */,
+				BT0000000000000000000116 /* ProfileURLFingerprinterTests.swift */,
+				BV0000000000000000000114 /* ProfileDirectoryObserverTests.swift */,
+				BV0000000000000000000111 /* ProfileTestSupport.swift */,
 				A20000000000000000000004 /* Fixtures */,
 			);
 			path = Tests;
@@ -487,6 +541,7 @@
 			children = (
 				AA00000000000000000000001 /* Diagnostics */,
 				A20000000000000000000002 /* Mihomo */,
+				BT0000000000000000000002 /* Profile */,
 				BQ0000000000000000000001 /* Quota */,
 				A20000000000000000000003 /* Security */,
 				BQ0000000000000000000002 /* Storage */,
@@ -519,7 +574,9 @@
 		A20000000000000000000003 /* Security */ = {
 			isa = PBXGroup;
 			children = (
+				BT0000000000000000000114 /* HMACProfileURLFingerprinter.swift */,
 				A20000000000000000000104 /* KeychainSecretStore.swift */,
+				BT0000000000000000000113 /* KeychainProfileFingerprintKeyStore.swift */,
 			);
 			path = Security;
 			sourceTree = "<group>";
@@ -568,6 +625,16 @@
 			path = Storage;
 			sourceTree = "<group>";
 		};
+		BT0000000000000000000002 /* Profile */ = {
+			isa = PBXGroup;
+			children = (
+				BU0000000000000000000116 /* ProfileDirectoryObserver.swift */,
+				BU0000000000000000000115 /* SecurityScopedProfileDirectory.swift */,
+				BT0000000000000000000112 /* YAMLClashProfileCatalogReader.swift */,
+			);
+			path = Profile;
+			sourceTree = "<group>";
+		};
 		A20000000000000000000004 /* Fixtures */ = {
 			isa = PBXGroup;
 			children = (
@@ -597,6 +664,7 @@
 			name = MihomoMeter;
 			packageProductDependencies = (
 				BA0000000000000000000101 /* Sparkle */,
+				BT0000000000000000000101 /* Yams */,
 			);
 			productName = MihomoMeter;
 			productReference = A10000000000000000000109 /* MihomoMeter.app */;
@@ -651,6 +719,7 @@
 			mainGroup = A10000000000000000000002;
 			packageReferences = (
 				BA0000000000000000000001 /* XCRemoteSwiftPackageReference "Sparkle" */,
+				BT0000000000000000000001 /* XCRemoteSwiftPackageReference "Yams" */,
 			);
 			productRefGroup = A10000000000000000000003 /* Products */;
 			projectDirPath = "";
@@ -695,6 +764,12 @@
 				AP0000000000000000000201 /* AppUpdateModel.swift in Sources */,
 				AR0000000000000000000201 /* AppUpdateView.swift in Sources */,
 				A30000000000000000000203 /* ConnectionDeltaTracker.swift in Sources */,
+				BT0000000000000000000201 /* ClashProfile.swift in Sources */,
+				BU0000000000000000000204 /* ClashProfileDirectoryController.swift in Sources */,
+				BU0000000000000000000202 /* ClashProfileDirectoryState.swift in Sources */,
+				BU0000000000000000000208 /* ClashProfileIdentityCard.swift in Sources */,
+				BU0000000000000000000209 /* ClashProfileSelectionBuilder.swift in Sources */,
+				BU0000000000000000000203 /* ClashProfileTrackingService.swift in Sources */,
 				AB0000000000000000000201 /* ConnectionLivenessWatchdog.swift in Sources */,
 				A40000000000000000000204 /* ConnectionSnapshotDecoder.swift in Sources */,
 				A40000000000000000000205 /* ConnectionStreamCollector.swift in Sources */,
@@ -702,6 +777,8 @@
 				AE0000000000000000000201 /* ControllerConfigurationStore.swift in Sources */,
 				A20000000000000000000201 /* ControllerEndpoint.swift in Sources */,
 				A20000000000000000000204 /* KeychainSecretStore.swift in Sources */,
+				BT0000000000000000000203 /* KeychainProfileFingerprintKeyStore.swift in Sources */,
+				BT0000000000000000000204 /* HMACProfileURLFingerprinter.swift in Sources */,
 				A10000000000000000000205 /* MenuBarController.swift in Sources */,
 				AV0000000000000000000201 /* MihomoRuntimeConfiguration.swift in Sources */,
 				A20000000000000000000203 /* MihomoControllerClient.swift in Sources */,
@@ -710,6 +787,9 @@
 				A10000000000000000000201 /* MihomoMeterApp.swift in Sources */,
 				A90000000000000000000201 /* ControllerConfigurationView.swift in Sources */,
 				BF0000000000000000000201 /* PopoverDisclosureGroupStyle.swift in Sources */,
+				BU0000000000000000000201 /* ProfileDirectoryAccessing.swift in Sources */,
+				BU0000000000000000000206 /* ProfileDirectoryObserver.swift in Sources */,
+				BU0000000000000000000207 /* ProfileTrackingManagementView.swift in Sources */,
 				A70000000000000000000201 /* ProxyStatusItemView.swift in Sources */,
 				A40000000000000000000202 /* MonitorConnectionState.swift in Sources */,
 				A30000000000000000000202 /* ProxyClassifier.swift in Sources */,
@@ -783,6 +863,8 @@
 				BE0000000000000000000206 /* TrafficStatisticsTotalsView.swift in Sources */,
 				BC000000000000000000020F /* TrafficStatisticsView.swift in Sources */,
 				BE0000000000000000000207 /* TrafficStatisticsWindowController.swift in Sources */,
+				BU0000000000000000000205 /* SecurityScopedProfileDirectory.swift in Sources */,
+				BT0000000000000000000202 /* YAMLClashProfileCatalogReader.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -792,6 +874,9 @@
 			files = (
 				AU0000000000000000000201 /* AppHelpLinksTests.swift in Sources */,
 				AS0000000000000000000201 /* AppUpdateTests.swift in Sources */,
+				BT0000000000000000000205 /* ClashProfileCatalogReaderTests.swift in Sources */,
+				BV0000000000000000000203 /* ClashProfileDirectoryControllerTests.swift in Sources */,
+				BV0000000000000000000202 /* ClashProfileTrackingServiceTests.swift in Sources */,
 				A30000000000000000000206 /* ConnectionDeltaTrackerTests.swift in Sources */,
 				AB0000000000000000000202 /* ConnectionLivenessWatchdogTests.swift in Sources */,
 				A40000000000000000000206 /* ConnectionSnapshotDecoderTests.swift in Sources */,
@@ -818,6 +903,9 @@
 				BD0000000000000000000201 /* SQLiteTrafficLedgerTestSupport.swift in Sources */,
 				BQ0000000000000000000213 /* SQLiteQuotaLedgerTestSupport.swift in Sources */,
 				BQ0000000000000000000214 /* SQLiteQuotaLedgerTests.swift in Sources */,
+				BT0000000000000000000206 /* ProfileURLFingerprinterTests.swift in Sources */,
+				BV0000000000000000000204 /* ProfileDirectoryObserverTests.swift in Sources */,
+				BV0000000000000000000201 /* ProfileTestSupport.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -840,6 +928,14 @@
 				version = 2.9.4;
 			};
 		};
+		BT0000000000000000000001 /* XCRemoteSwiftPackageReference "Yams" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/jpsim/Yams";
+			requirement = {
+				kind = exactVersion;
+				version = 6.2.2;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -847,6 +943,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = BA0000000000000000000001 /* XCRemoteSwiftPackageReference "Sparkle" */;
 			productName = Sparkle;
+		};
+		BT0000000000000000000101 /* Yams */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BT0000000000000000000001 /* XCRemoteSwiftPackageReference "Yams" */;
+			productName = Yams;
 		};
 /* End XCSwiftPackageProductDependency section */
 

@@ -12,6 +12,7 @@ final class TrafficStatisticsWindowController: NSWindowController {
   init(
     controller: TrafficStatisticsController,
     quotaController: RuntimeQuotaTrackingController,
+    profileController: ClashProfileDirectoryController,
     monitor: TrafficMonitor
   ) {
     let hostingController = NSHostingController(
@@ -19,6 +20,7 @@ final class TrafficStatisticsWindowController: NSWindowController {
         model: workspaceModel,
         trafficController: controller,
         quotaController: quotaController,
+        profileController: profileController,
         monitor: monitor
       )
     )

@@ -36,6 +36,7 @@ struct StatisticsWorkspaceView: View {
   @ObservedObject var model: StatisticsWorkspaceModel
   @ObservedObject var trafficController: TrafficStatisticsController
   @ObservedObject var quotaController: RuntimeQuotaTrackingController
+  @ObservedObject var profileController: ClashProfileDirectoryController
   @ObservedObject var monitor: TrafficMonitor
 
   var body: some View {
@@ -54,7 +55,10 @@ struct StatisticsWorkspaceView: View {
           monitor: monitor
         )
       case .subscriptionQuota:
-        SubscriptionQuotaStatisticsView(controller: quotaController)
+        SubscriptionQuotaStatisticsView(
+          controller: quotaController,
+          profileController: profileController
+        )
       }
     }
   }

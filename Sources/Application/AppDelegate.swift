@@ -27,6 +27,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   private var trafficMonitor: TrafficMonitor?
   private var statisticsController: TrafficStatisticsController?
   private var quotaController: RuntimeQuotaTrackingController?
+  private var profileDirectoryController: ClashProfileDirectoryController?
   private var updateModel: AppUpdateModel?
   private var menuBarController: MenuBarController?
   private var isTerminationPending = false
@@ -43,11 +44,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       )
     )
     let mihomoClient = MihomoControllerClient()
+    let quotaLedger = SQLiteQuotaLedger(
+      databaseURL: QuotaLedgerLocation.defaultDatabaseURL()
+    )
     let quotaController = RuntimeQuotaTrackingController(
-      ledger: SQLiteQuotaLedger(
-        databaseURL: QuotaLedgerLocation.defaultDatabaseURL()
-      ),
+      ledger: quotaLedger,
       observer: RuntimeQuotaObservationCoordinator(client: mihomoClient)
+    )
+    let profileDirectoryController = ClashProfileDirectoryController(
+      authorizer: SystemProfileDirectoryAuthorizer(),
+      bookmarkStore: UserDefaultsProfileDirectoryBookmarkStore(userDefaults: .standard),
+      securityScope: SystemProfileDirectorySecurityScope(),
+      reader: YAMLClashProfileCatalogReader(),
+      observer: ProfileDirectoryObserver(),
+      trackingService: ClashProfileTrackingService(
+        ledger: quotaLedger,
+        fingerprinter: HMACProfileURLFingerprinter(
+          keyStore: KeychainProfileFingerprintKeyStore()
+        )
+      )
     )
     let monitor = TrafficMonitor(
       client: mihomoClient,
@@ -59,11 +74,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     trafficMonitor = monitor
     self.statisticsController = statisticsController
     self.quotaController = quotaController
+    self.profileDirectoryController = profileDirectoryController
     self.updateModel = updateModel
     menuBarController = MenuBarController(
       monitor: monitor,
       statisticsController: statisticsController,
       quotaController: quotaController,
+      profileController: profileDirectoryController,
       updateModel: updateModel
     )
     updateModel.start()
@@ -76,12 +93,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       #endif
       await statisticsController.prepare()
       await quotaController.prepare()
+      await profileDirectoryController.prepare()
       monitor.start()
     }
   }
 
   func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
-    guard let trafficMonitor, let statisticsController, let quotaController else {
+    guard
+      let trafficMonitor,
+      let statisticsController,
+      let quotaController,
+      let profileDirectoryController
+    else {
       return .terminateNow
     }
     guard !isTerminationPending else {
@@ -91,6 +114,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     Task {
       quotaController.stop()
+      profileDirectoryController.stop()
       await trafficMonitor.stopForApplicationTermination()
       await statisticsController.prepareForApplicationTermination()
       sender.reply(toApplicationShouldTerminate: true)

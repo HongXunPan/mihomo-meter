@@ -3,8 +3,10 @@ import SwiftUI
 
 struct SubscriptionQuotaStatisticsView: View {
   @ObservedObject var controller: RuntimeQuotaTrackingController
+  @ObservedObject var profileController: ClashProfileDirectoryController
 
   @State private var window = QuotaTrendWindow.week
+  @State private var showsProfileManager = false
 
   var body: some View {
     VStack(spacing: 0) {
@@ -23,6 +25,9 @@ struct SubscriptionQuotaStatisticsView: View {
       }
     }
     .frame(minWidth: 680, minHeight: 520)
+    .sheet(isPresented: $showsProfileManager) {
+      ProfileTrackingManagementView(controller: profileController)
+    }
   }
 
   private var header: some View {
@@ -45,45 +50,55 @@ struct SubscriptionQuotaStatisticsView: View {
       .pickerStyle(.segmented)
       .labelsHidden()
       .frame(width: 260)
+
+      Button("管理 Profile") {
+        showsProfileManager = true
+      }
     }
   }
 
   @ViewBuilder
   private var content: some View {
-    if let subscription = controller.snapshot.subscription,
-      let quota = controller.snapshot.latestQuota
-    {
+    if hasContent {
       LazyVGrid(
         columns: [GridItem(.adaptive(minimum: 300, maximum: 420), spacing: 16)],
         alignment: .leading,
         spacing: 16
       ) {
-        VStack(alignment: .leading, spacing: 14) {
-          HStack {
-            VStack(alignment: .leading, spacing: 2) {
-              Text(subscription.name)
-                .font(.headline)
-              Text("当前运行订阅 · 未绑定 Profile UID")
-                .font(.caption2)
-                .foregroundStyle(.secondary)
+        if let subscription = controller.snapshot.subscription,
+          let quota = controller.snapshot.latestQuota
+        {
+          VStack(alignment: .leading, spacing: 14) {
+            HStack {
+              VStack(alignment: .leading, spacing: 2) {
+                Text(subscription.name)
+                  .font(.headline)
+                Text("当前运行订阅 · 未绑定 Profile UID")
+                  .font(.caption2)
+                  .foregroundStyle(.secondary)
+              }
+              Spacer()
+              Image(systemName: "dot.radiowaves.left.and.right")
+                .foregroundStyle(.cyan)
             }
-            Spacer()
-            Image(systemName: "dot.radiowaves.left.and.right")
-              .foregroundStyle(.cyan)
+
+            Divider()
+
+            SubscriptionQuotaMetricsView(
+              quota: quota,
+              trend: controller.snapshot.trends.trend(for: window)
+            )
           }
-
-          Divider()
-
-          SubscriptionQuotaMetricsView(
-            quota: quota,
-            trend: controller.snapshot.trends.trend(for: window)
+          .padding(16)
+          .background(
+            Color(nsColor: .controlBackgroundColor),
+            in: RoundedRectangle(cornerRadius: 12)
           )
         }
-        .padding(16)
-        .background(
-          Color(nsColor: .controlBackgroundColor),
-          in: RoundedRectangle(cornerRadius: 12)
-        )
+
+        ForEach(profileController.snapshot.selectedProfiles) { profile in
+          ClashProfileIdentityCard(profile: profile)
+        }
       }
     } else {
       VStack(spacing: 10) {
@@ -92,11 +107,20 @@ struct SubscriptionQuotaStatisticsView: View {
           .foregroundStyle(.secondary)
         Text("尚无订阅余额记录")
           .font(.headline)
-        Text("在状态栏弹窗确认启用轻量追踪后，这里会显示当前运行订阅。")
+        Text("可在状态栏弹窗启用轻量追踪，或管理需要精确识别的 Profile。")
           .font(.caption)
           .foregroundStyle(.secondary)
+
+        Button("管理 Profile") {
+          showsProfileManager = true
+        }
       }
       .frame(maxWidth: .infinity, minHeight: 260, alignment: .center)
     }
+  }
+
+  private var hasContent: Bool {
+    controller.snapshot.latestQuota != nil
+      || !profileController.snapshot.selectedProfiles.isEmpty
   }
 }
