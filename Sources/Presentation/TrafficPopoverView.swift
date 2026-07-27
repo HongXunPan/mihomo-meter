@@ -35,15 +35,15 @@ struct TrafficPopoverView: View {
             sectionDivider
             trafficOverview
             sectionDivider
-            subscriptionQuota
-            sectionDivider
             trafficStatistics
+            sectionDivider
+            subscriptionQuota
           } else {
             trafficOverview
             sectionDivider
-            subscriptionQuota
-            sectionDivider
             trafficStatistics
+            sectionDivider
+            subscriptionQuota
             sectionDivider
             controllerConfiguration
           }
