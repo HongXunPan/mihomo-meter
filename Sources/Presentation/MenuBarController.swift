@@ -18,6 +18,7 @@ final class MenuBarController: NSObject {
   private let updateModel: AppUpdateModel
   private var cancellables: Set<AnyCancellable> = []
   private var globalMouseMonitor: Any?
+  private var pendingStatisticsModule: StatisticsModule?
 
   init(
     monitor: TrafficMonitor,
@@ -212,7 +213,19 @@ final class MenuBarController: NSObject {
   }
 
   private func showStatisticsWindow(module: StatisticsModule) {
+    pendingStatisticsModule = module
+    guard popover.isShown else {
+      presentPendingStatisticsWindow()
+      return
+    }
     closePopover()
+  }
+
+  private func presentPendingStatisticsWindow() {
+    guard let module = pendingStatisticsModule else {
+      return
+    }
+    pendingStatisticsModule = nil
     statisticsWindowController.show(module: module)
   }
 }
@@ -220,5 +233,6 @@ final class MenuBarController: NSObject {
 extension MenuBarController: NSPopoverDelegate {
   func popoverDidClose(_ notification: Notification) {
     stopGlobalMouseMonitoring()
+    presentPendingStatisticsWindow()
   }
 }
