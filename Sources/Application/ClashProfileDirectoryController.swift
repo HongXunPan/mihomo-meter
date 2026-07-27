@@ -11,6 +11,7 @@ final class ClashProfileDirectoryController: ObservableObject {
   private let reader: any ClashProfileCatalogReading
   private let observer: any ProfileDirectoryObserving
   private let trackingService: ClashProfileTrackingService
+  private let profileQuotaLifecycle: any ProfileQuotaTrackingLifecycle
   private let now: @MainActor () -> Date
 
   private var activeDirectoryURL: URL?
@@ -24,6 +25,8 @@ final class ClashProfileDirectoryController: ObservableObject {
     reader: any ClashProfileCatalogReading,
     observer: any ProfileDirectoryObserving,
     trackingService: ClashProfileTrackingService,
+    profileQuotaLifecycle: any ProfileQuotaTrackingLifecycle =
+      NoOpProfileQuotaTrackingLifecycle.shared,
     now: @escaping @MainActor () -> Date = Date.init
   ) {
     self.authorizer = authorizer
@@ -32,6 +35,7 @@ final class ClashProfileDirectoryController: ObservableObject {
     self.reader = reader
     self.observer = observer
     self.trackingService = trackingService
+    self.profileQuotaLifecycle = profileQuotaLifecycle
     self.now = now
   }
 
@@ -182,6 +186,9 @@ final class ClashProfileDirectoryController: ObservableObject {
       profiles: rows,
       ignoredRemoteProfileCount: catalog?.ignoredRemoteProfileCount ?? 0,
       trackedProfileCount: rows.filter(\.isSelected).count
+    )
+    profileQuotaLifecycle.updateTargets(
+      ProfileQuotaTargetBuilder().build(catalog: catalog, subscriptions: subscriptions)
     )
   }
 

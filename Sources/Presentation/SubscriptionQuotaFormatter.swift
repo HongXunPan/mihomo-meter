@@ -27,6 +27,13 @@ enum SubscriptionQuotaFormatter {
     return "到期 \(formatter.string(from: date))"
   }
 
+  static func refreshInterval(_ minutes: Int?) -> String {
+    guard let minutes, minutes > 0 else {
+      return "未设置查询周期"
+    }
+    return "每 \(minutes / 60) 小时查询"
+  }
+
   static func consumption(_ trend: QuotaTrend) -> String {
     guard let consumedBytes = trend.consumedBytes else {
       return "样本积累中"

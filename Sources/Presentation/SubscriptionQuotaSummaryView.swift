@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SubscriptionQuotaSummaryView: View {
   @ObservedObject var controller: RuntimeQuotaTrackingController
+  @ObservedObject var profileQuotaController: ProfileQuotaTrackingController
   let showAllStatistics: () -> Void
 
   @State private var showsConfirmation = false
@@ -9,19 +10,24 @@ struct SubscriptionQuotaSummaryView: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       header
-      SubscriptionQuotaObservationNoticeView(controller: controller)
-
-      if let quota = controller.snapshot.latestQuota {
-        SubscriptionQuotaMetricsView(
-          quota: quota,
-          trend: controller.snapshot.trends.week,
-          isCompact: true
-        )
+      if hasTrackedProfiles {
+        ProfileQuotaAccordionView(controller: profileQuotaController)
       } else {
-        emptyState
+        SubscriptionQuotaObservationNoticeView(controller: controller)
+
+        if let quota = controller.snapshot.latestQuota {
+          SubscriptionQuotaMetricsView(
+            quota: quota,
+            trend: controller.snapshot.trends.week,
+            isCompact: true
+          )
+        } else {
+          emptyState
+        }
+
+        confirmationAction
       }
 
-      confirmationAction
       showAllAction
     }
     .confirmationDialog(
@@ -50,7 +56,11 @@ struct SubscriptionQuotaSummaryView: View {
 
       Spacer()
 
-      if controller.snapshot.isActive {
+      if hasTrackedProfiles {
+        Text("精确追踪 \(profileQuotaController.snapshot.profiles.count)")
+          .font(.caption2.weight(.medium))
+          .foregroundStyle(.cyan)
+      } else if controller.snapshot.isActive {
         Text("轻量追踪")
           .font(.caption2.weight(.medium))
           .foregroundStyle(.secondary)
@@ -107,6 +117,10 @@ struct SubscriptionQuotaSummaryView: View {
       return false
     }
     return controller.snapshot.subscription == nil || controller.snapshot.isPaused
+  }
+
+  private var hasTrackedProfiles: Bool {
+    !profileQuotaController.snapshot.profiles.isEmpty
   }
 
   private var emptyMessage: String {

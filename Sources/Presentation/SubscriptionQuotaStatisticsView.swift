@@ -3,6 +3,7 @@ import SwiftUI
 
 struct SubscriptionQuotaStatisticsView: View {
   @ObservedObject var controller: RuntimeQuotaTrackingController
+  @ObservedObject var profileQuotaController: ProfileQuotaTrackingController
   @ObservedObject var profileController: ClashProfileDirectoryController
 
   @State private var window = QuotaTrendWindow.week
@@ -18,7 +19,9 @@ struct SubscriptionQuotaStatisticsView: View {
 
       ScrollView {
         VStack(alignment: .leading, spacing: 16) {
-          SubscriptionQuotaObservationNoticeView(controller: controller)
+          if profileQuotaController.snapshot.profiles.isEmpty {
+            SubscriptionQuotaObservationNoticeView(controller: controller)
+          }
           content
         }
         .padding(20)
@@ -51,6 +54,20 @@ struct SubscriptionQuotaStatisticsView: View {
       .labelsHidden()
       .frame(width: 260)
 
+      if !profileQuotaController.snapshot.profiles.isEmpty {
+        Button {
+          Task {
+            await profileQuotaController.refreshAll()
+          }
+        } label: {
+          Label(
+            profileQuotaController.snapshot.isRefreshingAll ? "正在查询" : "全部查询",
+            systemImage: "arrow.clockwise"
+          )
+        }
+        .disabled(!canRefreshAnyProfile)
+      }
+
       Button("管理 Profile") {
         showsProfileManager = true
       }
@@ -65,7 +82,8 @@ struct SubscriptionQuotaStatisticsView: View {
         alignment: .leading,
         spacing: 16
       ) {
-        if let subscription = controller.snapshot.subscription,
+        if profileQuotaController.snapshot.profiles.isEmpty,
+          let subscription = controller.snapshot.subscription,
           let quota = controller.snapshot.latestQuota
         {
           VStack(alignment: .leading, spacing: 14) {
@@ -96,8 +114,12 @@ struct SubscriptionQuotaStatisticsView: View {
           )
         }
 
-        ForEach(profileController.snapshot.selectedProfiles) { profile in
-          ClashProfileIdentityCard(profile: profile)
+        ForEach(profileQuotaController.snapshot.profiles) { item in
+          ProfileQuotaCardView(
+            controller: profileQuotaController,
+            item: item,
+            window: window
+          )
         }
       }
     } else {
@@ -121,6 +143,11 @@ struct SubscriptionQuotaStatisticsView: View {
 
   private var hasContent: Bool {
     controller.snapshot.latestQuota != nil
-      || !profileController.snapshot.selectedProfiles.isEmpty
+      || !profileQuotaController.snapshot.profiles.isEmpty
+  }
+
+  private var canRefreshAnyProfile: Bool {
+    !profileQuotaController.snapshot.isRefreshingAll
+      && profileQuotaController.snapshot.profiles.contains(where: \.canRefresh)
   }
 }

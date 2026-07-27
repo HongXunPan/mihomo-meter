@@ -49,6 +49,7 @@
 		AA00000000000000000000202 /* DiagnosticLoggerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00000000000000000000102 /* DiagnosticLoggerTests.swift */; };
 		AA00000000000000000000203 /* AppDiagnosticEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00000000000000000000103 /* AppDiagnosticEvent.swift */; };
 		AA00000000000000000000204 /* ConnectionDiagnosticReason.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00000000000000000000104 /* ConnectionDiagnosticReason.swift */; };
+		AA00000000000000000000205 /* ProfileQuotaDiagnosticEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00000000000000000000105 /* ProfileQuotaDiagnosticEvent.swift */; };
 		AB0000000000000000000201 /* ConnectionLivenessWatchdog.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0000000000000000000101 /* ConnectionLivenessWatchdog.swift */; };
 		AB0000000000000000000202 /* ConnectionLivenessWatchdogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0000000000000000000102 /* ConnectionLivenessWatchdogTests.swift */; };
 		AC0000000000000000000201 /* TrafficMeasurementSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC0000000000000000000101 /* TrafficMeasurementSession.swift */; };
@@ -158,6 +159,28 @@
 		BV0000000000000000000202 /* ClashProfileTrackingServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BV0000000000000000000112 /* ClashProfileTrackingServiceTests.swift */; };
 		BV0000000000000000000203 /* ClashProfileDirectoryControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BV0000000000000000000113 /* ClashProfileDirectoryControllerTests.swift */; };
 		BV0000000000000000000204 /* ProfileDirectoryObserverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BV0000000000000000000114 /* ProfileDirectoryObserverTests.swift */; };
+		BW0000000000000000000201 /* ActiveQuotaQueryResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = BW0000000000000000000101 /* ActiveQuotaQueryResult.swift */; };
+		BW0000000000000000000202 /* MihomoLocalProxy.swift in Sources */ = {isa = PBXBuildFile; fileRef = BW0000000000000000000102 /* MihomoLocalProxy.swift */; };
+		BW0000000000000000000203 /* MihomoActiveQuotaQueryClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = BW0000000000000000000103 /* MihomoActiveQuotaQueryClient.swift */; };
+		BW0000000000000000000204 /* SubscriptionUserInfoParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = BW0000000000000000000104 /* SubscriptionUserInfoParser.swift */; };
+		BW0000000000000000000205 /* SubscriptionUserInfoParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BW0000000000000000000105 /* SubscriptionUserInfoParserTests.swift */; };
+		BW0000000000000000000206 /* MihomoLocalProxyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BW0000000000000000000106 /* MihomoLocalProxyTests.swift */; };
+		BX0000000000000000000201 /* ProfileQuotaQueryState.swift in Sources */ = {isa = PBXBuildFile; fileRef = BX0000000000000000000101 /* ProfileQuotaQueryState.swift */; };
+		BX0000000000000000000202 /* ProfileQuotaQueryStatePersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = BX0000000000000000000102 /* ProfileQuotaQueryStatePersistence.swift */; };
+		BY0000000000000000000201 /* ProfileQuotaTrackingLifecycle.swift in Sources */ = {isa = PBXBuildFile; fileRef = BY0000000000000000000101 /* ProfileQuotaTrackingLifecycle.swift */; };
+		BY0000000000000000000202 /* ProfileQuotaTrackingSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = BY0000000000000000000102 /* ProfileQuotaTrackingSnapshot.swift */; };
+		BY0000000000000000000203 /* ProfileQuotaSchedulePolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = BY0000000000000000000103 /* ProfileQuotaSchedulePolicy.swift */; };
+		BY0000000000000000000204 /* ProfileQuotaLedgerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BY0000000000000000000104 /* ProfileQuotaLedgerService.swift */; };
+		BY0000000000000000000205 /* ProfileQuotaTrackingController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BY0000000000000000000105 /* ProfileQuotaTrackingController.swift */; };
+		BY0000000000000000000206 /* ProfileQuotaSchedulePolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BY0000000000000000000106 /* ProfileQuotaSchedulePolicyTests.swift */; };
+		BY0000000000000000000207 /* ProfileQuotaTrackingControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BY0000000000000000000107 /* ProfileQuotaTrackingControllerTests.swift */; };
+		BZ0000000000000000000201 /* ProfileQuotaSnapshotBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = BZ0000000000000000000101 /* ProfileQuotaSnapshotBuilder.swift */; };
+		BZ0000000000000000000202 /* ProfileQuotaQueryWorker.swift in Sources */ = {isa = PBXBuildFile; fileRef = BZ0000000000000000000102 /* ProfileQuotaQueryWorker.swift */; };
+		BZ0000000000000000000203 /* ProfileQuotaQueryExecutor.swift in Sources */ = {isa = PBXBuildFile; fileRef = BZ0000000000000000000103 /* ProfileQuotaQueryExecutor.swift */; };
+		CA0000000000000000000201 /* ProfileQuotaStatusPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA0000000000000000000101 /* ProfileQuotaStatusPresentation.swift */; };
+		CA0000000000000000000202 /* ProfileQuotaAccordionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA0000000000000000000102 /* ProfileQuotaAccordionView.swift */; };
+		CA0000000000000000000203 /* ProfileQuotaCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA0000000000000000000103 /* ProfileQuotaCardView.swift */; };
+		CB0000000000000000000201 /* MihomoActiveQuotaQueryClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB0000000000000000000101 /* MihomoActiveQuotaQueryClientTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -216,6 +239,7 @@
 		AA00000000000000000000102 /* DiagnosticLoggerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticLoggerTests.swift; sourceTree = "<group>"; };
 		AA00000000000000000000103 /* AppDiagnosticEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDiagnosticEvent.swift; sourceTree = "<group>"; };
 		AA00000000000000000000104 /* ConnectionDiagnosticReason.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionDiagnosticReason.swift; sourceTree = "<group>"; };
+		AA00000000000000000000105 /* ProfileQuotaDiagnosticEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileQuotaDiagnosticEvent.swift; sourceTree = "<group>"; };
 		AB0000000000000000000101 /* ConnectionLivenessWatchdog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionLivenessWatchdog.swift; sourceTree = "<group>"; };
 		AB0000000000000000000102 /* ConnectionLivenessWatchdogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionLivenessWatchdogTests.swift; sourceTree = "<group>"; };
 		AC0000000000000000000101 /* TrafficMeasurementSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficMeasurementSession.swift; sourceTree = "<group>"; };
@@ -325,6 +349,28 @@
 		BV0000000000000000000112 /* ClashProfileTrackingServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClashProfileTrackingServiceTests.swift; sourceTree = "<group>"; };
 		BV0000000000000000000113 /* ClashProfileDirectoryControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClashProfileDirectoryControllerTests.swift; sourceTree = "<group>"; };
 		BV0000000000000000000114 /* ProfileDirectoryObserverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileDirectoryObserverTests.swift; sourceTree = "<group>"; };
+		BW0000000000000000000101 /* ActiveQuotaQueryResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveQuotaQueryResult.swift; sourceTree = "<group>"; };
+		BW0000000000000000000102 /* MihomoLocalProxy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MihomoLocalProxy.swift; sourceTree = "<group>"; };
+		BW0000000000000000000103 /* MihomoActiveQuotaQueryClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MihomoActiveQuotaQueryClient.swift; sourceTree = "<group>"; };
+		BW0000000000000000000104 /* SubscriptionUserInfoParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionUserInfoParser.swift; sourceTree = "<group>"; };
+		BW0000000000000000000105 /* SubscriptionUserInfoParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionUserInfoParserTests.swift; sourceTree = "<group>"; };
+		BW0000000000000000000106 /* MihomoLocalProxyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MihomoLocalProxyTests.swift; sourceTree = "<group>"; };
+		BX0000000000000000000101 /* ProfileQuotaQueryState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileQuotaQueryState.swift; sourceTree = "<group>"; };
+		BX0000000000000000000102 /* ProfileQuotaQueryStatePersistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileQuotaQueryStatePersistence.swift; sourceTree = "<group>"; };
+		BY0000000000000000000101 /* ProfileQuotaTrackingLifecycle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileQuotaTrackingLifecycle.swift; sourceTree = "<group>"; };
+		BY0000000000000000000102 /* ProfileQuotaTrackingSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileQuotaTrackingSnapshot.swift; sourceTree = "<group>"; };
+		BY0000000000000000000103 /* ProfileQuotaSchedulePolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileQuotaSchedulePolicy.swift; sourceTree = "<group>"; };
+		BY0000000000000000000104 /* ProfileQuotaLedgerService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileQuotaLedgerService.swift; sourceTree = "<group>"; };
+		BY0000000000000000000105 /* ProfileQuotaTrackingController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileQuotaTrackingController.swift; sourceTree = "<group>"; };
+		BY0000000000000000000106 /* ProfileQuotaSchedulePolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileQuotaSchedulePolicyTests.swift; sourceTree = "<group>"; };
+		BY0000000000000000000107 /* ProfileQuotaTrackingControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileQuotaTrackingControllerTests.swift; sourceTree = "<group>"; };
+		BZ0000000000000000000101 /* ProfileQuotaSnapshotBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileQuotaSnapshotBuilder.swift; sourceTree = "<group>"; };
+		BZ0000000000000000000102 /* ProfileQuotaQueryWorker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileQuotaQueryWorker.swift; sourceTree = "<group>"; };
+		BZ0000000000000000000103 /* ProfileQuotaQueryExecutor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileQuotaQueryExecutor.swift; sourceTree = "<group>"; };
+		CA0000000000000000000101 /* ProfileQuotaStatusPresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileQuotaStatusPresentation.swift; sourceTree = "<group>"; };
+		CA0000000000000000000102 /* ProfileQuotaAccordionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileQuotaAccordionView.swift; sourceTree = "<group>"; };
+		CA0000000000000000000103 /* ProfileQuotaCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileQuotaCardView.swift; sourceTree = "<group>"; };
+		CB0000000000000000000101 /* MihomoActiveQuotaQueryClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MihomoActiveQuotaQueryClientTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -395,6 +441,14 @@
 				BU0000000000000000000112 /* ClashProfileDirectoryState.swift */,
 				BU0000000000000000000113 /* ClashProfileTrackingService.swift */,
 				BU0000000000000000000119 /* ClashProfileSelectionBuilder.swift */,
+				BY0000000000000000000104 /* ProfileQuotaLedgerService.swift */,
+				BZ0000000000000000000103 /* ProfileQuotaQueryExecutor.swift */,
+				BZ0000000000000000000102 /* ProfileQuotaQueryWorker.swift */,
+				BY0000000000000000000103 /* ProfileQuotaSchedulePolicy.swift */,
+				BZ0000000000000000000101 /* ProfileQuotaSnapshotBuilder.swift */,
+				BY0000000000000000000105 /* ProfileQuotaTrackingController.swift */,
+				BY0000000000000000000101 /* ProfileQuotaTrackingLifecycle.swift */,
+				BY0000000000000000000102 /* ProfileQuotaTrackingSnapshot.swift */,
 				AD0000000000000000000101 /* MihomoMonitoringSession.swift */,
 				A10000000000000000000101 /* MihomoMeterApp.swift */,
 				A40000000000000000000102 /* MonitorConnectionState.swift */,
@@ -421,10 +475,13 @@
 		A10000000000000000000006 /* Domain */ = {
 			isa = PBXGroup;
 			children = (
+				BW0000000000000000000101 /* ActiveQuotaQueryResult.swift */,
 				BT0000000000000000000111 /* ClashProfile.swift */,
 				A30000000000000000000103 /* ConnectionDeltaTracker.swift */,
 				A20000000000000000000101 /* ControllerEndpoint.swift */,
 				AV0000000000000000000101 /* MihomoRuntimeConfiguration.swift */,
+				BW0000000000000000000102 /* MihomoLocalProxy.swift */,
+				BX0000000000000000000101 /* ProfileQuotaQueryState.swift */,
 				A30000000000000000000102 /* ProxyClassifier.swift */,
 				BQ0000000000000000000102 /* QuotaCycle.swift */,
 				BQ0000000000000000000103 /* QuotaCycleDetector.swift */,
@@ -456,6 +513,9 @@
 				A90000000000000000000101 /* ControllerConfigurationView.swift */,
 				A10000000000000000000105 /* MenuBarController.swift */,
 				BF0000000000000000000101 /* PopoverDisclosureGroupStyle.swift */,
+				CA0000000000000000000102 /* ProfileQuotaAccordionView.swift */,
+				CA0000000000000000000103 /* ProfileQuotaCardView.swift */,
+				CA0000000000000000000101 /* ProfileQuotaStatusPresentation.swift */,
 				BU0000000000000000000117 /* ProfileTrackingManagementView.swift */,
 				A70000000000000000000101 /* ProxyStatusItemView.swift */,
 				BS0000000000000000000103 /* QuotaTrendChart.swift */,
@@ -501,11 +561,14 @@
 				A20000000000000000000105 /* FixtureLoader.swift */,
 				A20000000000000000000107 /* MihomoControllerModelsTests.swift */,
 				BR0000000000000000000108 /* MihomoProxyProviderModelsTests.swift */,
+				BW0000000000000000000106 /* MihomoLocalProxyTests.swift */,
 				AD0000000000000000000102 /* MihomoMonitoringSessionTests.swift */,
 				A30000000000000000000105 /* ProxyClassifierTests.swift */,
 				BQ0000000000000000000112 /* QuotaDomainTests.swift */,
 				A40000000000000000000107 /* ReconnectBackoffTests.swift */,
 				BR0000000000000000000109 /* RuntimeQuotaTrackingControllerTests.swift */,
+				BY0000000000000000000106 /* ProfileQuotaSchedulePolicyTests.swift */,
+				BY0000000000000000000107 /* ProfileQuotaTrackingControllerTests.swift */,
 				A30000000000000000000107 /* TrafficRateAggregatorTests.swift */,
 				A10000000000000000000107 /* TrafficRateTests.swift */,
 				AC0000000000000000000102 /* TrafficMeasurementSessionTests.swift */,
@@ -519,6 +582,8 @@
 				BD0000000000000000000101 /* SQLiteTrafficLedgerTestSupport.swift */,
 				BQ0000000000000000000113 /* SQLiteQuotaLedgerTestSupport.swift */,
 				BQ0000000000000000000114 /* SQLiteQuotaLedgerTests.swift */,
+				CB0000000000000000000101 /* MihomoActiveQuotaQueryClientTests.swift */,
+				BW0000000000000000000105 /* SubscriptionUserInfoParserTests.swift */,
 				BT0000000000000000000116 /* ProfileURLFingerprinterTests.swift */,
 				BV0000000000000000000114 /* ProfileDirectoryObserverTests.swift */,
 				BV0000000000000000000111 /* ProfileTestSupport.swift */,
@@ -587,6 +652,7 @@
 				AA00000000000000000000103 /* AppDiagnosticEvent.swift */,
 				AA00000000000000000000101 /* AppDiagnosticLogger.swift */,
 				AA00000000000000000000104 /* ConnectionDiagnosticReason.swift */,
+				AA00000000000000000000105 /* ProfileQuotaDiagnosticEvent.swift */,
 			);
 			path = Diagnostics;
 			sourceTree = "<group>";
@@ -606,6 +672,8 @@
 		BQ0000000000000000000001 /* Quota */ = {
 			isa = PBXGroup;
 			children = (
+				BW0000000000000000000103 /* MihomoActiveQuotaQueryClient.swift */,
+				BX0000000000000000000102 /* ProfileQuotaQueryStatePersistence.swift */,
 				BQ000000000000000000010B /* QuotaCyclePersistence.swift */,
 				BQ000000000000000000010C /* QuotaLedgerLocation.swift */,
 				BQ000000000000000000010D /* QuotaLedgerPersistence.swift */,
@@ -613,6 +681,7 @@
 				BQ000000000000000000010F /* QuotaSnapshotPersistence.swift */,
 				BQ0000000000000000000110 /* QuotaSubscriptionPersistence.swift */,
 				BQ0000000000000000000111 /* SQLiteQuotaLedger.swift */,
+				BW0000000000000000000104 /* SubscriptionUserInfoParser.swift */,
 			);
 			path = Quota;
 			sourceTree = "<group>";
@@ -757,9 +826,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BW0000000000000000000201 /* ActiveQuotaQueryResult.swift in Sources */,
 				A10000000000000000000202 /* AppDelegate.swift in Sources */,
 				AA00000000000000000000203 /* AppDiagnosticEvent.swift in Sources */,
 				AA00000000000000000000201 /* AppDiagnosticLogger.swift in Sources */,
+				AA00000000000000000000205 /* ProfileQuotaDiagnosticEvent.swift in Sources */,
 				AT0000000000000000000201 /* AppHelpLinksMenu.swift in Sources */,
 				AP0000000000000000000201 /* AppUpdateModel.swift in Sources */,
 				AR0000000000000000000201 /* AppUpdateView.swift in Sources */,
@@ -782,6 +853,21 @@
 				A10000000000000000000205 /* MenuBarController.swift in Sources */,
 				AV0000000000000000000201 /* MihomoRuntimeConfiguration.swift in Sources */,
 				A20000000000000000000203 /* MihomoControllerClient.swift in Sources */,
+				BW0000000000000000000203 /* MihomoActiveQuotaQueryClient.swift in Sources */,
+				BW0000000000000000000202 /* MihomoLocalProxy.swift in Sources */,
+				BX0000000000000000000201 /* ProfileQuotaQueryState.swift in Sources */,
+				BX0000000000000000000202 /* ProfileQuotaQueryStatePersistence.swift in Sources */,
+				BY0000000000000000000204 /* ProfileQuotaLedgerService.swift in Sources */,
+				BZ0000000000000000000203 /* ProfileQuotaQueryExecutor.swift in Sources */,
+				BZ0000000000000000000202 /* ProfileQuotaQueryWorker.swift in Sources */,
+				BY0000000000000000000203 /* ProfileQuotaSchedulePolicy.swift in Sources */,
+				BZ0000000000000000000201 /* ProfileQuotaSnapshotBuilder.swift in Sources */,
+				BY0000000000000000000205 /* ProfileQuotaTrackingController.swift in Sources */,
+				BY0000000000000000000201 /* ProfileQuotaTrackingLifecycle.swift in Sources */,
+				BY0000000000000000000202 /* ProfileQuotaTrackingSnapshot.swift in Sources */,
+				CA0000000000000000000201 /* ProfileQuotaStatusPresentation.swift in Sources */,
+				CA0000000000000000000202 /* ProfileQuotaAccordionView.swift in Sources */,
+				CA0000000000000000000203 /* ProfileQuotaCardView.swift in Sources */,
 				A20000000000000000000202 /* MihomoControllerModels.swift in Sources */,
 				AD0000000000000000000201 /* MihomoMonitoringSession.swift in Sources */,
 				A10000000000000000000201 /* MihomoMeterApp.swift in Sources */,
@@ -841,6 +927,7 @@
 				BS0000000000000000000202 /* SubscriptionQuotaObservationNoticeView.swift in Sources */,
 				BS0000000000000000000206 /* SubscriptionQuotaStatisticsView.swift in Sources */,
 				BS0000000000000000000205 /* SubscriptionQuotaSummaryView.swift in Sources */,
+				BW0000000000000000000204 /* SubscriptionUserInfoParser.swift in Sources */,
 				BC0000000000000000000201 /* TrafficLedgerStoring.swift in Sources */,
 				BC0000000000000000000202 /* TrafficStatisticsController.swift in Sources */,
 				BC0000000000000000000203 /* TrafficStatisticsRecording.swift in Sources */,
@@ -885,11 +972,14 @@
 				A20000000000000000000205 /* FixtureLoader.swift in Sources */,
 				A20000000000000000000207 /* MihomoControllerModelsTests.swift in Sources */,
 				BR0000000000000000000208 /* MihomoProxyProviderModelsTests.swift in Sources */,
+				BW0000000000000000000206 /* MihomoLocalProxyTests.swift in Sources */,
 				AD0000000000000000000202 /* MihomoMonitoringSessionTests.swift in Sources */,
 				A30000000000000000000205 /* ProxyClassifierTests.swift in Sources */,
 				BQ0000000000000000000212 /* QuotaDomainTests.swift in Sources */,
 				A40000000000000000000207 /* ReconnectBackoffTests.swift in Sources */,
 				BR0000000000000000000209 /* RuntimeQuotaTrackingControllerTests.swift in Sources */,
+				BY0000000000000000000206 /* ProfileQuotaSchedulePolicyTests.swift in Sources */,
+				BY0000000000000000000207 /* ProfileQuotaTrackingControllerTests.swift in Sources */,
 				A30000000000000000000207 /* TrafficRateAggregatorTests.swift in Sources */,
 				A10000000000000000000207 /* TrafficRateTests.swift in Sources */,
 				AC0000000000000000000202 /* TrafficMeasurementSessionTests.swift in Sources */,
@@ -903,6 +993,8 @@
 				BD0000000000000000000201 /* SQLiteTrafficLedgerTestSupport.swift in Sources */,
 				BQ0000000000000000000213 /* SQLiteQuotaLedgerTestSupport.swift in Sources */,
 				BQ0000000000000000000214 /* SQLiteQuotaLedgerTests.swift in Sources */,
+				CB0000000000000000000201 /* MihomoActiveQuotaQueryClientTests.swift in Sources */,
+				BW0000000000000000000205 /* SubscriptionUserInfoParserTests.swift in Sources */,
 				BT0000000000000000000206 /* ProfileURLFingerprinterTests.swift in Sources */,
 				BV0000000000000000000204 /* ProfileDirectoryObserverTests.swift in Sources */,
 				BV0000000000000000000201 /* ProfileTestSupport.swift in Sources */,

@@ -30,4 +30,12 @@ protocol QuotaLedgerStoring: Sendable {
     window: QuotaTrendWindow,
     now: Date
   ) async throws -> QuotaTrend
+
+  func profileQueryState(
+    for subscriptionID: UUID
+  ) async throws -> ProfileQuotaQueryState?
+
+  func saveProfileQueryState(
+    _ state: ProfileQuotaQueryState
+  ) async throws
 }

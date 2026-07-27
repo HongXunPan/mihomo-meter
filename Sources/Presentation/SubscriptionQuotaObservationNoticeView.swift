@@ -27,7 +27,7 @@ struct SubscriptionQuotaObservationNoticeView: View {
         ? "发现唯一有效配额；确认后才会开始记录。"
         : "额度来自 Mihomo 当前运行信息，不等同于本机 Proxy 流量。"
     case .noCandidate:
-      return "当前没有发现有效配额，已停止自动归属。"
+      return "当前运行配置未暴露可用配额。轻量模式暂时无法记录；可授权 Profile 目录后启用主动查询。"
     case .multipleCandidates(let count):
       return "发现 \(count) 个有效配额，无法判断所属 Profile，已暂停记录。"
     case .failed(let message):

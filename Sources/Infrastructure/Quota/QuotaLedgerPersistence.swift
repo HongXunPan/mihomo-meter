@@ -16,6 +16,10 @@ final class QuotaLedgerPersistence {
     QuotaCyclePersistence(persistence: self)
   }
 
+  var queryStates: ProfileQuotaQueryStatePersistence {
+    ProfileQuotaQueryStatePersistence(persistence: self)
+  }
+
   var changeCount: Int32 {
     sqlite3_changes(connection.handle)
   }

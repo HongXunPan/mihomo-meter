@@ -10,6 +10,7 @@ struct TrafficPopoverView: View {
   @ObservedObject var monitor: TrafficMonitor
   @ObservedObject var statisticsController: TrafficStatisticsController
   @ObservedObject var quotaController: RuntimeQuotaTrackingController
+  @ObservedObject var profileQuotaController: ProfileQuotaTrackingController
   @ObservedObject var updateModel: AppUpdateModel
   let showAllStatistics: () -> Void
   let showQuotaStatistics: () -> Void
@@ -128,6 +129,7 @@ struct TrafficPopoverView: View {
   private var subscriptionQuota: some View {
     SubscriptionQuotaSummaryView(
       controller: quotaController,
+      profileQuotaController: profileQuotaController,
       showAllStatistics: showQuotaStatistics
     )
   }

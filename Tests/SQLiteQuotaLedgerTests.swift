@@ -211,7 +211,7 @@ final class SQLiteQuotaLedgerTests: SQLiteQuotaLedgerTestCase {
     defer { removeDatabase(at: database) }
     do {
       let connection = try SQLiteConnection(fileURL: database)
-      try connection.execute("PRAGMA user_version = 2")
+      try connection.execute("PRAGMA user_version = 3")
       connection.close()
     }
 
@@ -220,8 +220,58 @@ final class SQLiteQuotaLedgerTests: SQLiteQuotaLedgerTestCase {
       try await ledger.prepare()
       XCTFail("不应打开未来版本的配额数据库")
     } catch {
-      XCTAssertEqual(error as? QuotaLedgerError, .unsupportedSchema(2))
+      XCTAssertEqual(error as? QuotaLedgerError, .unsupportedSchema(3))
     }
+  }
+
+  func testPersistsSanitizedQueryStateAcrossConnections() async throws {
+    let database = temporaryDatabase()
+    defer { removeDatabase(at: database) }
+    let date = Date(timeIntervalSince1970: 1_700_600_000)
+    let subscription = try profileSubscription(at: date)
+    let ledger = SQLiteQuotaLedger(databaseURL: database)
+    _ = try await ledger.upsertSubscription(subscription)
+
+    let state = ProfileQuotaQueryState(
+      subscriptionID: subscription.id,
+      lastAttemptAt: date,
+      nextAttemptAt: date.addingTimeInterval(300),
+      lastQueriedURLFingerprint: "fingerprint-test",
+      consecutiveFailures: 1,
+      retryDayStart: Calendar.current.startOfDay(for: date),
+      automaticRetryCount: 0
+    )
+    try await ledger.saveProfileQueryState(state)
+
+    let reopened = SQLiteQuotaLedger(databaseURL: database)
+    let reopenedState = try await reopened.profileQueryState(for: subscription.id)
+    XCTAssertEqual(reopenedState, state)
+
+    let connection = try SQLiteConnection(fileURL: database)
+    let columns = try queryStateColumnNames(connection)
+    XCTAssertTrue(columns.contains("last_queried_url_fingerprint"))
+    XCTAssertFalse(columns.contains("url"))
+    XCTAssertFalse(columns.contains("error_message"))
+  }
+
+  func testMigratesVersionOneDatabaseToQueryStateSchema() async throws {
+    let database = temporaryDatabase()
+    defer { removeDatabase(at: database) }
+    do {
+      let connection = try SQLiteConnection(fileURL: database)
+      try connection.execute("CREATE TABLE subscriptions (id TEXT PRIMARY KEY)")
+      try connection.execute("PRAGMA user_version = 1")
+      connection.close()
+    }
+
+    let ledger = SQLiteQuotaLedger(databaseURL: database)
+    try await ledger.prepare()
+
+    let connection = try SQLiteConnection(fileURL: database)
+    let versionStatement = try connection.prepare("PRAGMA user_version")
+    XCTAssertEqual(try versionStatement.step(), SQLITE_ROW)
+    XCTAssertEqual(versionStatement.int64(at: 0), 2)
+    XCTAssertTrue(try queryStateColumnNames(connection).contains("next_attempt_at"))
   }
 
   func testQuotaDatabaseUsesIndependentLocation() {
@@ -231,5 +281,16 @@ final class SQLiteQuotaLedgerTests: SQLiteQuotaLedgerTestCase {
     XCTAssertEqual(quotaURL.lastPathComponent, "quota.sqlite3")
     XCTAssertEqual(trafficURL.lastPathComponent, "traffic.sqlite3")
     XCTAssertNotEqual(quotaURL, trafficURL)
+  }
+
+  private func queryStateColumnNames(_ connection: SQLiteConnection) throws -> [String] {
+    let statement = try connection.prepare("PRAGMA table_info(quota_query_state)")
+    var columns: [String] = []
+    while try statement.step() == SQLITE_ROW {
+      if let name = statement.text(at: 1) {
+        columns.append(name)
+      }
+    }
+    return columns
   }
 }

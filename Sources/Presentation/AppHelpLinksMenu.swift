@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 struct AppHelpLinksMenu: View {
@@ -10,6 +11,11 @@ struct AppHelpLinksMenu: View {
 
       navigationLink(.userGuide)
       navigationLink(.releases)
+
+      Button(action: openDiagnosticLogDirectory) {
+        Label("打开诊断日志文件夹", systemImage: "doc.text.magnifyingglass")
+      }
+
       navigationLink(.issueReport)
     } label: {
       Image(systemName: "questionmark.circle")
@@ -28,6 +34,10 @@ struct AppHelpLinksMenu: View {
     Link(destination: link.destination) {
       Label(link.title, systemImage: link.systemImage)
     }
+  }
+
+  private func openDiagnosticLogDirectory() {
+    NSWorkspace.shared.open(AppDiagnosticLogger.defaultDirectoryURL())
   }
 }
 

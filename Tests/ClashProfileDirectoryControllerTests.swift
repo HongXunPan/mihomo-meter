@@ -116,6 +116,22 @@ final class ClashProfileDirectoryControllerTests: SQLiteQuotaLedgerTestCase {
     XCTAssertEqual(selected.refreshIntervalMinutes, 180)
   }
 
+  func testForwardsSelectedProfileAsQuotaTrackingTarget() async throws {
+    let context = try makeContext(bookmark: nil)
+    defer { removeDatabase(at: context.database) }
+
+    await context.controller.prepare()
+    await context.controller.authorizeDirectory()
+    await context.controller.setTracking(true, profileUID: "profile-a")
+
+    let target = try XCTUnwrap(context.quotaLifecycle.lastTargets.first)
+    XCTAssertEqual(target.profileUID, "profile-a")
+    XCTAssertEqual(target.subscription.name, "测试订阅")
+    XCTAssertEqual(target.subscriptionURL, URL(string: "https://example.com/sub?token=test"))
+    XCTAssertTrue(target.isCurrent)
+    XCTAssertEqual(target.availability, .available)
+  }
+
   private func makeContext(
     bookmark: Data?,
     isStale: Bool = false,
@@ -140,6 +156,7 @@ final class ClashProfileDirectoryControllerTests: SQLiteQuotaLedgerTestCase {
       isStale: isStale
     )
     let observer = TestProfileDirectoryObserver()
+    let quotaLifecycle = ProfileDirectoryTestQuotaLifecycle()
     let controller = ClashProfileDirectoryController(
       authorizer: authorizer,
       bookmarkStore: bookmarkStore,
@@ -147,6 +164,7 @@ final class ClashProfileDirectoryControllerTests: SQLiteQuotaLedgerTestCase {
       reader: reader,
       observer: observer,
       trackingService: testProfileTrackingService(ledger: ledger),
+      profileQuotaLifecycle: quotaLifecycle,
       now: { Date(timeIntervalSince1970: 1_702_300_000) }
     )
     return ProfileDirectoryControllerTestContext(
@@ -157,6 +175,7 @@ final class ClashProfileDirectoryControllerTests: SQLiteQuotaLedgerTestCase {
       bookmarkStore: bookmarkStore,
       securityScope: securityScope,
       observer: observer,
+      quotaLifecycle: quotaLifecycle,
       controller: controller
     )
   }
@@ -171,5 +190,22 @@ private struct ProfileDirectoryControllerTestContext {
   let bookmarkStore: TestProfileDirectoryBookmarkStore
   let securityScope: TestProfileDirectorySecurityScope
   let observer: TestProfileDirectoryObserver
+  let quotaLifecycle: ProfileDirectoryTestQuotaLifecycle
   let controller: ClashProfileDirectoryController
+}
+
+@MainActor
+private final class ProfileDirectoryTestQuotaLifecycle: ProfileQuotaTrackingLifecycle {
+  private(set) var lastTargets: [ProfileQuotaTarget] = []
+
+  func updateTargets(_ targets: [ProfileQuotaTarget]) {
+    lastTargets = targets
+  }
+
+  func controllerValidated(
+    endpoint: ControllerEndpoint,
+    runtimeConfiguration: MihomoRuntimeConfiguration
+  ) {}
+
+  func controllerUnavailable() {}
 }

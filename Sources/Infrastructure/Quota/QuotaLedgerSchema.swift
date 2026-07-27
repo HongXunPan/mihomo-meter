@@ -2,7 +2,7 @@ import Foundation
 import SQLite3
 
 enum QuotaLedgerSchema {
-  static let currentVersion = 1
+  static let currentVersion = 2
 
   static func migrate(_ connection: SQLiteConnection) throws {
     let statement = try connection.prepare("PRAGMA user_version")
@@ -13,15 +13,24 @@ enum QuotaLedgerSchema {
     guard version <= currentVersion else {
       throw QuotaLedgerError.unsupportedSchema(version)
     }
-    guard version == 0 else {
+    switch version {
+    case 0:
+      try connection.transaction {
+        try createSubscriptions(connection)
+        try createCycles(connection)
+        try createSnapshots(connection)
+        try createQueryStates(connection)
+        try connection.execute("PRAGMA user_version = \(currentVersion)")
+      }
+    case 1:
+      try connection.transaction {
+        try createQueryStates(connection)
+        try connection.execute("PRAGMA user_version = \(currentVersion)")
+      }
+    case currentVersion:
       return
-    }
-
-    try connection.transaction {
-      try createSubscriptions(connection)
-      try createCycles(connection)
-      try createSnapshots(connection)
-      try connection.execute("PRAGMA user_version = \(currentVersion)")
+    default:
+      throw QuotaLedgerError.unsupportedSchema(version)
     }
   }
 
@@ -124,6 +133,23 @@ enum QuotaLedgerSchema {
       """
       CREATE INDEX quota_snapshots_cycle
       ON quota_snapshots(cycle_id, observed_at)
+      """
+    )
+  }
+
+  private static func createQueryStates(_ connection: SQLiteConnection) throws {
+    try connection.execute(
+      """
+      CREATE TABLE quota_query_state (
+        subscription_id TEXT PRIMARY KEY,
+        last_attempt_at REAL,
+        next_attempt_at REAL,
+        last_queried_url_fingerprint TEXT,
+        consecutive_failures INTEGER NOT NULL CHECK(consecutive_failures >= 0),
+        retry_day_start REAL,
+        automatic_retry_count INTEGER NOT NULL CHECK(automatic_retry_count >= 0),
+        FOREIGN KEY(subscription_id) REFERENCES subscriptions(id)
+      )
       """
     )
   }

@@ -102,6 +102,24 @@ actor SQLiteQuotaLedger: QuotaLedgerStoring {
     return QuotaTrendEngine.calculate(snapshots: snapshots, window: window, now: now)
   }
 
+  func profileQueryState(
+    for subscriptionID: UUID
+  ) async throws -> ProfileQuotaQueryState? {
+    try requirePersistence().queryStates.load(for: subscriptionID)
+  }
+
+  func saveProfileQueryState(
+    _ state: ProfileQuotaQueryState
+  ) async throws {
+    let persistence = try requirePersistence()
+    try persistence.transaction {
+      guard try persistence.subscriptions.load(id: state.subscriptionID) != nil else {
+        throw QuotaLedgerError.subscriptionNotFound
+      }
+      try persistence.queryStates.upsert(state)
+    }
+  }
+
   private func requirePersistence() throws -> QuotaLedgerPersistence {
     if let persistence {
       return persistence

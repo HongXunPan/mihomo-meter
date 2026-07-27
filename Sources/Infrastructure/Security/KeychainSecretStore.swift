@@ -16,7 +16,7 @@ actor KeychainSecretStore: ControllerSecretStoring {
   init(
     service: String = "com.HongXunPan.MihomoMeter.controller",
     account: String = "default",
-    diagnosticLogger: any AppDiagnosticLogging = DebugDiagnosticLogger.shared
+    diagnosticLogger: any AppDiagnosticLogging = AppDiagnosticLogger.shared
   ) {
     self.service = service
     self.account = account

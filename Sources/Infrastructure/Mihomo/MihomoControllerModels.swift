@@ -21,6 +21,9 @@ struct MihomoRuntimeConfigurationResponse: Decodable, Equatable, Sendable {
   let allowLan: Bool?
   let ipv6: Bool?
   let mixedPort: Int?
+  let port: Int?
+  let socksPort: Int?
+  let globalUserAgent: String?
   let tun: MihomoTunConfigurationResponse?
 
   private enum CodingKeys: String, CodingKey {
@@ -28,6 +31,9 @@ struct MihomoRuntimeConfigurationResponse: Decodable, Equatable, Sendable {
     case allowLan = "allow-lan"
     case ipv6
     case mixedPort = "mixed-port"
+    case port
+    case socksPort = "socks-port"
+    case globalUserAgent = "global-ua"
     case tun
   }
 
@@ -37,7 +43,10 @@ struct MihomoRuntimeConfigurationResponse: Decodable, Equatable, Sendable {
       tun: tun?.runtimeConfiguration,
       isIPv6Enabled: ipv6,
       allowsLAN: allowLan,
-      mixedPort: mixedPort
+      mixedPort: mixedPort,
+      httpPort: port,
+      socksPort: socksPort,
+      globalUserAgent: globalUserAgent
     )
   }
 }

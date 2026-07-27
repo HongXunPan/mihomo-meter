@@ -1,7 +1,7 @@
 import Foundation
 
-actor DebugDiagnosticLogger: AppDiagnosticLogging {
-  static let shared = DebugDiagnosticLogger()
+actor AppDiagnosticLogger: AppDiagnosticLogging {
+  static let shared = AppDiagnosticLogger()
 
   let logFileURL: URL
   let archivedLogFileURL: URL
@@ -13,7 +13,7 @@ actor DebugDiagnosticLogger: AppDiagnosticLogging {
   private let timestampFormatter: ISO8601DateFormatter
 
   init(
-    directoryURL: URL = DebugDiagnosticLogger.defaultDirectoryURL(),
+    directoryURL: URL = AppDiagnosticLogger.defaultDirectoryURL(),
     maxFileSizeBytes: UInt64 = 512 * 1_024,
     retentionInterval: TimeInterval = 7 * 24 * 60 * 60
   ) {
@@ -29,23 +29,21 @@ actor DebugDiagnosticLogger: AppDiagnosticLogging {
   }
 
   func record(_ event: AppDiagnosticEvent) {
-    #if DEBUG
-      let timestamp = timestampFormatter.string(from: Date())
-      let line = "\(timestamp) session=\(sessionID) \(event.logMessage)\n"
-      let data = Data(line.utf8)
+    let timestamp = timestampFormatter.string(from: Date())
+    let line = "\(timestamp) session=\(sessionID) \(event.logMessage)\n"
+    let data = Data(line.utf8)
 
-      do {
-        try FileManager.default.createDirectory(
-          at: directoryURL,
-          withIntermediateDirectories: true
-        )
-        try removeExpiredLogs(referenceDate: Date())
-        try rotateIfNeeded(addingByteCount: data.count)
-        try append(data)
-      } catch {
-        // 诊断日志不得影响应用启动、Keychain 或实时监控主流程。
-      }
-    #endif
+    do {
+      try FileManager.default.createDirectory(
+        at: directoryURL,
+        withIntermediateDirectories: true
+      )
+      try removeExpiredLogs(referenceDate: Date())
+      try rotateIfNeeded(addingByteCount: data.count)
+      try append(data)
+    } catch {
+      // 诊断日志不得影响应用启动、Keychain、查询或实时监控主流程。
+    }
   }
 
   private func append(_ data: Data) throws {
@@ -99,7 +97,7 @@ actor DebugDiagnosticLogger: AppDiagnosticLogging {
     }
   }
 
-  private static func defaultDirectoryURL() -> URL {
+  static func defaultDirectoryURL() -> URL {
     let libraryURL =
       FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask).first
       ?? FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library")
