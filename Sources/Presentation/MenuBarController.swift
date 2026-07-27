@@ -17,6 +17,7 @@ final class MenuBarController: NSObject {
   private let statisticsWindowController: TrafficStatisticsWindowController
   private let updateModel: AppUpdateModel
   private var cancellables: Set<AnyCancellable> = []
+  private var globalMouseMonitor: Any?
 
   init(
     monitor: TrafficMonitor,
@@ -48,6 +49,7 @@ final class MenuBarController: NSObject {
     configureStatusItem()
     configurePopover()
     observeMonitor()
+    observeApplication()
   }
 
   private func configureStatusItem() {
@@ -75,6 +77,7 @@ final class MenuBarController: NSObject {
 
   private func configurePopover() {
     popover.behavior = .transient
+    popover.delegate = self
     let hostingController = NSHostingController(
       rootView: TrafficPopoverView(
         monitor: monitor,
@@ -89,7 +92,7 @@ final class MenuBarController: NSObject {
           self?.showStatisticsWindow(module: .subscriptionQuota)
         },
         dismiss: { [weak self] in
-          self?.popover.performClose(nil)
+          self?.closePopover()
         }
       )
     )
@@ -116,6 +119,17 @@ final class MenuBarController: NSObject {
       .store(in: &cancellables)
   }
 
+  private func observeApplication() {
+    NotificationCenter.default.publisher(
+      for: NSApplication.didResignActiveNotification,
+      object: NSApplication.shared
+    )
+    .sink { [weak self] _ in
+      self?.closePopover()
+    }
+    .store(in: &cancellables)
+  }
+
   private func updateStatusItemButton(
     _ button: NSStatusBarButton,
     rate: TrafficRate,
@@ -139,7 +153,7 @@ final class MenuBarController: NSObject {
   @objc
   private func togglePopover() {
     if popover.isShown {
-      popover.performClose(nil)
+      closePopover()
       return
     }
 
@@ -152,13 +166,59 @@ final class MenuBarController: NSObject {
       of: button,
       preferredEdge: .minY
     )
+    activateApplication()
+    startGlobalMouseMonitoring()
 
     // 在首帧绘制前清除自动焦点，后续仍可使用 Tab 键导航。
     _ = popover.contentViewController?.view.window?.makeFirstResponder(nil)
   }
 
-  private func showStatisticsWindow(module: StatisticsModule) {
+  private func activateApplication() {
+    if #available(macOS 14.0, *) {
+      NSApplication.shared.activate()
+    } else {
+      NSApplication.shared.activate(ignoringOtherApps: true)
+    }
+  }
+
+  private func startGlobalMouseMonitoring() {
+    guard globalMouseMonitor == nil else {
+      return
+    }
+
+    globalMouseMonitor = NSEvent.addGlobalMonitorForEvents(
+      matching: [.leftMouseDown, .rightMouseDown, .otherMouseDown]
+    ) { [weak self] _ in
+      Task { @MainActor [weak self] in
+        self?.closePopover()
+      }
+    }
+  }
+
+  private func stopGlobalMouseMonitoring() {
+    guard let globalMouseMonitor else {
+      return
+    }
+
+    NSEvent.removeMonitor(globalMouseMonitor)
+    self.globalMouseMonitor = nil
+  }
+
+  private func closePopover() {
+    guard popover.isShown else {
+      return
+    }
     popover.performClose(nil)
+  }
+
+  private func showStatisticsWindow(module: StatisticsModule) {
+    closePopover()
     statisticsWindowController.show(module: module)
+  }
+}
+
+extension MenuBarController: NSPopoverDelegate {
+  func popoverDidClose(_ notification: Notification) {
+    stopGlobalMouseMonitoring()
   }
 }
