@@ -82,6 +82,24 @@ final class RuntimeQuotaTrackingControllerTests: XCTestCase {
     XCTAssertEqual(context.controller.snapshot.observationStatus, .multipleCandidates(2))
   }
 
+  func testResetStoredDataKeepsCurrentCandidateAvailableForReenabling() async throws {
+    let context = try await makeEnabledController()
+    defer { removeDatabase(at: context.database) }
+
+    context.controller.prepareForDataReset()
+    try await context.ledger.reset()
+    context.controller.completeDataReset()
+
+    XCTAssertNil(context.controller.snapshot.subscription)
+    XCTAssertNil(context.controller.snapshot.latestQuota)
+    XCTAssertEqual(context.controller.snapshot.observationStatus, .available)
+
+    await context.controller.enableTracking()
+
+    XCTAssertTrue(context.controller.snapshot.isActive)
+    XCTAssertEqual(context.controller.snapshot.latestQuota?.traffic.usedBytes, 200)
+  }
+
   private func makeEnabledController() async throws -> RuntimeQuotaTestContext {
     let database = temporaryDatabase()
     let ledger = SQLiteQuotaLedger(databaseURL: database)

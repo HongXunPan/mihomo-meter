@@ -29,6 +29,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   private var quotaController: RuntimeQuotaTrackingController?
   private var profileQuotaController: ProfileQuotaTrackingController?
   private var profileDirectoryController: ClashProfileDirectoryController?
+  private var subscriptionQuotaDataController: SubscriptionQuotaDataController?
   private var updateModel: AppUpdateModel?
   private var menuBarController: MenuBarController?
   private var isTerminationPending = false
@@ -70,6 +71,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       ),
       profileQuotaLifecycle: profileQuotaController
     )
+    let subscriptionQuotaDataController = SubscriptionQuotaDataController(
+      ledger: quotaLedger,
+      runtimeController: quotaController,
+      profileQuotaController: profileQuotaController,
+      profileDirectoryController: profileDirectoryController
+    )
     let monitor = TrafficMonitor(
       client: mihomoClient,
       diagnosticLogger: AppDiagnosticLogger.shared,
@@ -83,6 +90,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     self.quotaController = quotaController
     self.profileQuotaController = profileQuotaController
     self.profileDirectoryController = profileDirectoryController
+    self.subscriptionQuotaDataController = subscriptionQuotaDataController
     self.updateModel = updateModel
     menuBarController = MenuBarController(
       monitor: monitor,
@@ -90,6 +98,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       quotaController: quotaController,
       profileQuotaController: profileQuotaController,
       profileController: profileDirectoryController,
+      subscriptionQuotaDataController: subscriptionQuotaDataController,
       updateModel: updateModel
     )
     updateModel.start()

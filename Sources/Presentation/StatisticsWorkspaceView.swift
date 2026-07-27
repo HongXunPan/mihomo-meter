@@ -38,6 +38,7 @@ struct StatisticsWorkspaceView: View {
   @ObservedObject var quotaController: RuntimeQuotaTrackingController
   @ObservedObject var profileQuotaController: ProfileQuotaTrackingController
   @ObservedObject var profileController: ClashProfileDirectoryController
+  @ObservedObject var subscriptionQuotaDataController: SubscriptionQuotaDataController
   @ObservedObject var monitor: TrafficMonitor
 
   var body: some View {
@@ -59,7 +60,8 @@ struct StatisticsWorkspaceView: View {
         SubscriptionQuotaStatisticsView(
           controller: quotaController,
           profileQuotaController: profileQuotaController,
-          profileController: profileController
+          profileController: profileController,
+          dataController: subscriptionQuotaDataController
         )
       }
     }

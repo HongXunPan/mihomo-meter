@@ -5,9 +5,11 @@ struct SubscriptionQuotaStatisticsView: View {
   @ObservedObject var controller: RuntimeQuotaTrackingController
   @ObservedObject var profileQuotaController: ProfileQuotaTrackingController
   @ObservedObject var profileController: ClashProfileDirectoryController
+  @ObservedObject var dataController: SubscriptionQuotaDataController
 
   @State private var window = QuotaTrendWindow.week
   @State private var showsProfileManager = false
+  @State private var showsClearConfirmation = false
 
   var body: some View {
     VStack(spacing: 0) {
@@ -30,6 +32,19 @@ struct SubscriptionQuotaStatisticsView: View {
     .frame(minWidth: 680, minHeight: 520)
     .sheet(isPresented: $showsProfileManager) {
       ProfileTrackingManagementView(controller: profileController)
+    }
+    .confirmationDialog(
+      "清空全部订阅余额数据？",
+      isPresented: $showsClearConfirmation
+    ) {
+      Button("清空", role: .destructive) {
+        Task {
+          await dataController.clear()
+        }
+      }
+      Button("取消", role: .cancel) {}
+    } message: {
+      Text("订阅身份、Profile 选择、快照、周期、变化事件和查询状态都会删除；Controller 配置与 Profile 目录授权会保留。")
     }
   }
 
@@ -71,6 +86,18 @@ struct SubscriptionQuotaStatisticsView: View {
       Button("管理 Profile") {
         showsProfileManager = true
       }
+
+      Menu {
+        Button("清空订阅余额数据", role: .destructive) {
+          showsClearConfirmation = true
+        }
+        .disabled(dataController.isClearing || !hasContent)
+      } label: {
+        Image(systemName: "ellipsis.circle")
+      }
+      .menuStyle(.borderlessButton)
+      .menuIndicator(.hidden)
+      .accessibilityLabel("更多订阅余额操作")
     }
   }
 
@@ -106,6 +133,10 @@ struct SubscriptionQuotaStatisticsView: View {
               quota: quota,
               trend: controller.snapshot.trends.trend(for: window)
             )
+
+            QuotaEventSummaryView(analysis: controller.snapshot.analysis) {
+              await controller.confirmCurrentCycle()
+            }
           }
           .padding(16)
           .background(
@@ -138,6 +169,12 @@ struct SubscriptionQuotaStatisticsView: View {
         }
       }
       .frame(maxWidth: .infinity, minHeight: 260, alignment: .center)
+    }
+
+    if let operationMessage = dataController.operationMessage {
+      Label(operationMessage, systemImage: "exclamationmark.triangle.fill")
+        .font(.caption)
+        .foregroundStyle(.red)
     }
   }
 

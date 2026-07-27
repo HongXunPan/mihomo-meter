@@ -17,6 +17,8 @@ final class ClashProfileCatalogReaderTests: XCTestCase {
           url: https://EXAMPLE.com/sub?token=secret
           extra:
             upload: 100
+          option:
+            user_agent: mihomo
         - uid: local-a
           type: local
           name: 本地配置
@@ -78,6 +80,48 @@ final class ClashProfileCatalogReaderTests: XCTestCase {
     )
 
     XCTAssertFalse(profile.supportsActiveQuery)
+  }
+
+  func testAcceptsEmptyCurrentAndItems() throws {
+    let directory = temporaryDirectory()
+    defer { try? FileManager.default.removeItem(at: directory) }
+    try write(
+      """
+      current: null
+      items: null
+      """,
+      to: directory
+    )
+
+    let catalog = try YAMLClashProfileCatalogReader().readCatalog(in: directory)
+
+    XCTAssertNil(catalog.currentUID)
+    XCTAssertTrue(catalog.profiles.isEmpty)
+  }
+
+  func testRejectsOversizedProfilesFile() throws {
+    let directory = temporaryDirectory()
+    defer { try? FileManager.default.removeItem(at: directory) }
+    try write(String(repeating: "a", count: 2 * 1_024 * 1_024 + 1), to: directory)
+
+    XCTAssertThrowsError(try YAMLClashProfileCatalogReader().readCatalog(in: directory)) {
+      XCTAssertEqual($0 as? ClashProfileCatalogReaderError, .profilesFileTooLarge)
+    }
+  }
+
+  func testRejectsSymbolicLinkProfilesFile() throws {
+    let directory = temporaryDirectory()
+    defer { try? FileManager.default.removeItem(at: directory) }
+    let target = directory.appendingPathComponent("real-profiles.yaml")
+    try "items: []".write(to: target, atomically: true, encoding: .utf8)
+    try FileManager.default.createSymbolicLink(
+      at: directory.appendingPathComponent("profiles.yaml"),
+      withDestinationURL: target
+    )
+
+    XCTAssertThrowsError(try YAMLClashProfileCatalogReader().readCatalog(in: directory)) {
+      XCTAssertEqual($0 as? ClashProfileCatalogReaderError, .invalidProfilesFile)
+    }
   }
 
   private func temporaryDirectory() -> URL {

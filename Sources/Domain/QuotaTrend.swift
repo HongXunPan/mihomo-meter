@@ -23,12 +23,57 @@ struct QuotaTrendPoint: Identifiable, Equatable, Sendable {
   let traffic: QuotaTraffic
 }
 
+enum QuotaForecastUnavailableReason: Equatable, Sendable {
+  case insufficientSamples
+  case insufficientObservationSpan
+  case staleData
+  case unconfirmedCycle
+  case noRecentConsumption
+  case expired
+  case depleted
+}
+
+enum QuotaDepletionForecast: Equatable, Sendable {
+  case available(Date)
+  case unavailable(QuotaForecastUnavailableReason)
+}
+
+struct QuotaTrendContext: Equatable, Sendable {
+  let latestSnapshot: SubscriptionQuotaSnapshot?
+  let currentCycle: QuotaCycle?
+  let maximumDataAge: TimeInterval
+}
+
+struct RuntimeQuotaTrends: Equatable, Sendable {
+  var day = QuotaTrend.empty(window: .day)
+  var week = QuotaTrend.empty(window: .week)
+  var month = QuotaTrend.empty(window: .month)
+
+  func trend(for window: QuotaTrendWindow) -> QuotaTrend {
+    switch window {
+    case .day:
+      day
+    case .week:
+      week
+    case .month:
+      month
+    }
+  }
+}
+
 struct QuotaTrend: Equatable, Sendable {
   let window: QuotaTrendWindow
   let points: [QuotaTrendPoint]
   let consumedBytes: UInt64?
   let dailyConsumptionBytes: Double?
-  let estimatedDepletionAt: Date?
+  let depletionForecast: QuotaDepletionForecast
+
+  var estimatedDepletionAt: Date? {
+    guard case .available(let date) = depletionForecast else {
+      return nil
+    }
+    return date
+  }
 
   static func empty(window: QuotaTrendWindow) -> QuotaTrend {
     QuotaTrend(
@@ -36,7 +81,7 @@ struct QuotaTrend: Equatable, Sendable {
       points: [],
       consumedBytes: nil,
       dailyConsumptionBytes: nil,
-      estimatedDepletionAt: nil
+      depletionForecast: .unavailable(.insufficientSamples)
     )
   }
 }

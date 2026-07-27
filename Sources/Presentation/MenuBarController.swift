@@ -27,6 +27,7 @@ final class MenuBarController: NSObject {
     quotaController: RuntimeQuotaTrackingController,
     profileQuotaController: ProfileQuotaTrackingController,
     profileController: ClashProfileDirectoryController,
+    subscriptionQuotaDataController: SubscriptionQuotaDataController,
     updateModel: AppUpdateModel
   ) {
     statusItem = NSStatusBar.system.statusItem(
@@ -43,6 +44,7 @@ final class MenuBarController: NSObject {
       quotaController: quotaController,
       profileQuotaController: profileQuotaController,
       profileController: profileController,
+      subscriptionQuotaDataController: subscriptionQuotaDataController,
       monitor: monitor
     )
     self.updateModel = updateModel

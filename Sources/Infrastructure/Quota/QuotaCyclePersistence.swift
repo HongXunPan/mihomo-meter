@@ -40,6 +40,20 @@ final class QuotaCyclePersistence {
     }
   }
 
+  func confirm(id: UUID) throws {
+    let statement = try persistence.prepare(
+      """
+      UPDATE quota_cycles SET is_user_confirmed = 1
+      WHERE id = ? AND ended_at IS NULL AND is_user_confirmed = 0
+      """
+    )
+    try statement.bind(id.uuidString, at: 1)
+    try statement.step()
+    guard persistence.changeCount == 1 else {
+      throw QuotaLedgerError.invalidStoredData
+    }
+  }
+
   func load(for subscriptionID: UUID) throws -> [QuotaCycle] {
     let statement = try persistence.prepare(
       """
@@ -55,6 +69,22 @@ final class QuotaCyclePersistence {
       cycles.append(try cycle(from: statement))
     }
     return cycles
+  }
+
+  func open(for subscriptionID: UUID) throws -> QuotaCycle? {
+    let statement = try persistence.prepare(
+      """
+      SELECT id, subscription_id, started_at, ended_at, start_reason, is_user_confirmed
+      FROM quota_cycles
+      WHERE subscription_id = ? AND ended_at IS NULL
+      LIMIT 1
+      """
+    )
+    try statement.bind(subscriptionID.uuidString, at: 1)
+    guard try statement.step() == SQLITE_ROW else {
+      return nil
+    }
+    return try cycle(from: statement)
   }
 
   private func cycle(from statement: SQLiteStatement) throws -> QuotaCycle {

@@ -2,7 +2,8 @@ import Foundation
 import SQLite3
 
 final class QuotaLedgerPersistence {
-  private let connection: SQLiteConnection
+  private let databaseURL: URL
+  private var connection: SQLiteConnection
 
   var subscriptions: QuotaSubscriptionPersistence {
     QuotaSubscriptionPersistence(persistence: self)
@@ -20,11 +21,25 @@ final class QuotaLedgerPersistence {
     ProfileQuotaQueryStatePersistence(persistence: self)
   }
 
+  var events: QuotaEventPersistence {
+    QuotaEventPersistence(persistence: self)
+  }
+
   var changeCount: Int32 {
     sqlite3_changes(connection.handle)
   }
 
   init(databaseURL: URL) throws {
+    self.databaseURL = databaseURL
+    connection = try SQLiteConnection(fileURL: databaseURL)
+    try QuotaLedgerSchema.migrate(connection)
+  }
+
+  func reset() throws {
+    connection.close()
+    for url in databaseFiles where FileManager.default.fileExists(atPath: url.path) {
+      try FileManager.default.removeItem(at: url)
+    }
     connection = try SQLiteConnection(fileURL: databaseURL)
     try QuotaLedgerSchema.migrate(connection)
   }
@@ -35,5 +50,13 @@ final class QuotaLedgerPersistence {
 
   func prepare(_ sql: String) throws -> SQLiteStatement {
     try connection.prepare(sql)
+  }
+
+  private var databaseFiles: [URL] {
+    [
+      databaseURL,
+      URL(fileURLWithPath: databaseURL.path + "-wal"),
+      URL(fileURLWithPath: databaseURL.path + "-shm"),
+    ]
   }
 }

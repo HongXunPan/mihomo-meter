@@ -3,6 +3,8 @@ import Foundation
 protocol QuotaLedgerStoring: Sendable {
   func prepare() async throws
 
+  func reset() async throws
+
   func upsertSubscription(
     _ subscription: TrackedSubscription
   ) async throws -> TrackedSubscription
@@ -24,6 +26,18 @@ protocol QuotaLedgerStoring: Sendable {
   ) async throws -> [SubscriptionQuotaSnapshot]
 
   func cycles(for subscriptionID: UUID) async throws -> [QuotaCycle]
+
+  func events(
+    for subscriptionID: UUID,
+    limit: Int
+  ) async throws -> [QuotaEvent]
+
+  func confirmCycle(id: UUID) async throws
+
+  func analysis(
+    for subscriptionID: UUID,
+    at date: Date
+  ) async throws -> SubscriptionQuotaAnalysis
 
   func trend(
     for subscriptionID: UUID,

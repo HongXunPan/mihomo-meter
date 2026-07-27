@@ -21,6 +21,12 @@ struct SubscriptionQuotaSummaryView: View {
             trend: controller.snapshot.trends.week,
             isCompact: true
           )
+
+          if controller.snapshot.analysis.pendingCycleConfirmation != nil {
+            QuotaCycleConfirmationView {
+              await controller.confirmCurrentCycle()
+            }
+          }
         } else {
           emptyState
         }

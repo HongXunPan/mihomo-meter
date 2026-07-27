@@ -14,6 +14,7 @@ final class TrafficStatisticsWindowController: NSWindowController {
     quotaController: RuntimeQuotaTrackingController,
     profileQuotaController: ProfileQuotaTrackingController,
     profileController: ClashProfileDirectoryController,
+    subscriptionQuotaDataController: SubscriptionQuotaDataController,
     monitor: TrafficMonitor
   ) {
     let hostingController = NSHostingController(
@@ -23,6 +24,7 @@ final class TrafficStatisticsWindowController: NSWindowController {
         quotaController: quotaController,
         profileQuotaController: profileQuotaController,
         profileController: profileController,
+        subscriptionQuotaDataController: subscriptionQuotaDataController,
         monitor: monitor
       )
     )

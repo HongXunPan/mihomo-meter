@@ -52,7 +52,8 @@ class SQLiteQuotaLedgerTestCase: XCTestCase {
     at date: Date,
     source: QuotaObservationSource,
     usedBytes: UInt64,
-    totalBytes: UInt64
+    totalBytes: UInt64,
+    expireAt: Date? = nil
   ) throws -> QuotaObservation {
     QuotaObservation(
       subscriptionID: subscriptionID,
@@ -64,7 +65,7 @@ class SQLiteQuotaLedgerTestCase: XCTestCase {
         downloadBytes: 0,
         totalBytes: totalBytes
       ),
-      expireAt: nil
+      expireAt: expireAt
     )
   }
 

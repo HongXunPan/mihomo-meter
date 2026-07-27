@@ -13,7 +13,7 @@ struct ProfileQuotaSnapshotBuilder {
     var items: [ProfileQuotaTrackingItem] = []
     for target in targets {
       let state = try await ledgerService.queryState(for: target.subscription.id)
-      let quotaState = try await ledgerService.quotaState(
+      let analysis = try await ledgerService.analysis(
         for: target.subscription.id,
         at: date
       )
@@ -24,8 +24,7 @@ struct ProfileQuotaSnapshotBuilder {
           profileUID: target.profileUID,
           isCurrent: target.isCurrent,
           availability: target.availability,
-          latestQuota: quotaState.0,
-          trends: quotaState.1,
+          analysis: analysis,
           queryStatus: queryStatus(
             for: target,
             state: state,

@@ -181,6 +181,11 @@
 		CA0000000000000000000202 /* ProfileQuotaAccordionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA0000000000000000000102 /* ProfileQuotaAccordionView.swift */; };
 		CA0000000000000000000203 /* ProfileQuotaCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA0000000000000000000103 /* ProfileQuotaCardView.swift */; };
 		CB0000000000000000000201 /* MihomoActiveQuotaQueryClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB0000000000000000000101 /* MihomoActiveQuotaQueryClientTests.swift */; };
+		CC0000000000000000000201 /* QuotaEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000101 /* QuotaEvent.swift */; };
+		CC0000000000000000000202 /* SubscriptionQuotaAnalysis.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000102 /* SubscriptionQuotaAnalysis.swift */; };
+		CC0000000000000000000203 /* QuotaEventPersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000103 /* QuotaEventPersistence.swift */; };
+		CC0000000000000000000204 /* SubscriptionQuotaDataController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000104 /* SubscriptionQuotaDataController.swift */; };
+		CC0000000000000000000205 /* QuotaEventSummaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000105 /* QuotaEventSummaryView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -371,6 +376,11 @@
 		CA0000000000000000000102 /* ProfileQuotaAccordionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileQuotaAccordionView.swift; sourceTree = "<group>"; };
 		CA0000000000000000000103 /* ProfileQuotaCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileQuotaCardView.swift; sourceTree = "<group>"; };
 		CB0000000000000000000101 /* MihomoActiveQuotaQueryClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MihomoActiveQuotaQueryClientTests.swift; sourceTree = "<group>"; };
+		CC0000000000000000000101 /* QuotaEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotaEvent.swift; sourceTree = "<group>"; };
+		CC0000000000000000000102 /* SubscriptionQuotaAnalysis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionQuotaAnalysis.swift; sourceTree = "<group>"; };
+		CC0000000000000000000103 /* QuotaEventPersistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotaEventPersistence.swift; sourceTree = "<group>"; };
+		CC0000000000000000000104 /* SubscriptionQuotaDataController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionQuotaDataController.swift; sourceTree = "<group>"; };
+		CC0000000000000000000105 /* QuotaEventSummaryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotaEventSummaryView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -465,6 +475,7 @@
 				BR0000000000000000000103 /* RuntimeQuotaObserving.swift */,
 				BR0000000000000000000106 /* RuntimeQuotaTrackingController.swift */,
 				BR0000000000000000000102 /* RuntimeQuotaTrackingSnapshot.swift */,
+				CC0000000000000000000104 /* SubscriptionQuotaDataController.swift */,
 				BC0000000000000000000101 /* TrafficLedgerStoring.swift */,
 				BC0000000000000000000102 /* TrafficStatisticsController.swift */,
 				BC0000000000000000000103 /* TrafficStatisticsRecording.swift */,
@@ -485,12 +496,14 @@
 				A30000000000000000000102 /* ProxyClassifier.swift */,
 				BQ0000000000000000000102 /* QuotaCycle.swift */,
 				BQ0000000000000000000103 /* QuotaCycleDetector.swift */,
+				CC0000000000000000000101 /* QuotaEvent.swift */,
 				BQ0000000000000000000104 /* QuotaLedgerError.swift */,
 				BQ0000000000000000000105 /* QuotaObservation.swift */,
 				BQ0000000000000000000106 /* QuotaTraffic.swift */,
 				BQ0000000000000000000107 /* QuotaTrend.swift */,
 				BQ0000000000000000000108 /* QuotaTrendEngine.swift */,
 				BQ0000000000000000000109 /* SubscriptionQuotaSnapshot.swift */,
+				CC0000000000000000000102 /* SubscriptionQuotaAnalysis.swift */,
 				BR0000000000000000000101 /* RuntimeQuotaCandidate.swift */,
 				A30000000000000000000101 /* TrafficMeasurement.swift */,
 				AC0000000000000000000101 /* TrafficMeasurementSession.swift */,
@@ -519,6 +532,7 @@
 				BU0000000000000000000117 /* ProfileTrackingManagementView.swift */,
 				A70000000000000000000101 /* ProxyStatusItemView.swift */,
 				BS0000000000000000000103 /* QuotaTrendChart.swift */,
+				CC0000000000000000000105 /* QuotaEventSummaryView.swift */,
 				AX0000000000000000000101 /* RoutingStatusView.swift */,
 				AY0000000000000000000101 /* RuntimeDetailsView.swift */,
 				BS0000000000000000000107 /* StatisticsWorkspaceView.swift */,
@@ -675,6 +689,7 @@
 				BW0000000000000000000103 /* MihomoActiveQuotaQueryClient.swift */,
 				BX0000000000000000000102 /* ProfileQuotaQueryStatePersistence.swift */,
 				BQ000000000000000000010B /* QuotaCyclePersistence.swift */,
+				CC0000000000000000000103 /* QuotaEventPersistence.swift */,
 				BQ000000000000000000010C /* QuotaLedgerLocation.swift */,
 				BQ000000000000000000010D /* QuotaLedgerPersistence.swift */,
 				BQ000000000000000000010E /* QuotaLedgerSchema.swift */,
@@ -899,6 +914,7 @@
 				BQ0000000000000000000201 /* QuotaLedgerStoring.swift in Sources */,
 				BQ0000000000000000000202 /* QuotaCycle.swift in Sources */,
 				BQ0000000000000000000203 /* QuotaCycleDetector.swift in Sources */,
+				CC0000000000000000000201 /* QuotaEvent.swift in Sources */,
 				BQ0000000000000000000204 /* QuotaLedgerError.swift in Sources */,
 				BQ0000000000000000000205 /* QuotaObservation.swift in Sources */,
 				BQ0000000000000000000206 /* QuotaTraffic.swift in Sources */,
@@ -907,6 +923,7 @@
 				BQ0000000000000000000209 /* SubscriptionQuotaSnapshot.swift in Sources */,
 				BQ000000000000000000020A /* TrackedSubscription.swift in Sources */,
 				BQ000000000000000000020B /* QuotaCyclePersistence.swift in Sources */,
+				CC0000000000000000000203 /* QuotaEventPersistence.swift in Sources */,
 				BQ000000000000000000020C /* QuotaLedgerLocation.swift in Sources */,
 				BQ000000000000000000020D /* QuotaLedgerPersistence.swift in Sources */,
 				BQ000000000000000000020E /* QuotaLedgerSchema.swift in Sources */,
@@ -919,14 +936,17 @@
 				BR0000000000000000000203 /* RuntimeQuotaObserving.swift in Sources */,
 				BR0000000000000000000206 /* RuntimeQuotaTrackingController.swift in Sources */,
 				BR0000000000000000000202 /* RuntimeQuotaTrackingSnapshot.swift in Sources */,
+				CC0000000000000000000204 /* SubscriptionQuotaDataController.swift in Sources */,
 				BR0000000000000000000207 /* MihomoProxyProviderModels.swift in Sources */,
 				BS0000000000000000000203 /* QuotaTrendChart.swift in Sources */,
+				CC0000000000000000000205 /* QuotaEventSummaryView.swift in Sources */,
 				BS0000000000000000000207 /* StatisticsWorkspaceView.swift in Sources */,
 				BS0000000000000000000201 /* SubscriptionQuotaFormatter.swift in Sources */,
 				BS0000000000000000000204 /* SubscriptionQuotaMetricsView.swift in Sources */,
 				BS0000000000000000000202 /* SubscriptionQuotaObservationNoticeView.swift in Sources */,
 				BS0000000000000000000206 /* SubscriptionQuotaStatisticsView.swift in Sources */,
 				BS0000000000000000000205 /* SubscriptionQuotaSummaryView.swift in Sources */,
+				CC0000000000000000000202 /* SubscriptionQuotaAnalysis.swift in Sources */,
 				BW0000000000000000000204 /* SubscriptionUserInfoParser.swift in Sources */,
 				BC0000000000000000000201 /* TrafficLedgerStoring.swift in Sources */,
 				BC0000000000000000000202 /* TrafficStatisticsController.swift in Sources */,

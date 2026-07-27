@@ -105,6 +105,71 @@ final class SQLiteQuotaLedgerTests: SQLiteQuotaLedgerTestCase {
     XCTAssertNil(trend.estimatedDepletionAt)
   }
 
+  func testPersistsQuotaChangeEventsAndConfirmsUsageResetCycle() async throws {
+    let database = temporaryDatabase()
+    defer { removeDatabase(at: database) }
+    let start = Date(timeIntervalSince1970: 1_700_350_000)
+    let subscription = try runtimeSubscription(at: start)
+    let ledger = SQLiteQuotaLedger(databaseURL: database)
+
+    _ = try await ledger.upsertSubscription(subscription)
+    _ = try await ledger.record(
+      observation(
+        subscriptionID: subscription.id,
+        at: start,
+        source: .mihomoRuntime,
+        usedBytes: 100,
+        totalBytes: 1_000,
+        expireAt: start.addingTimeInterval(30 * 86_400)
+      )
+    )
+    _ = try await ledger.record(
+      observation(
+        subscriptionID: subscription.id,
+        at: start.addingTimeInterval(8 * 60 * 60),
+        source: .mihomoRuntime,
+        usedBytes: 200,
+        totalBytes: 1_200,
+        expireAt: start.addingTimeInterval(60 * 86_400)
+      )
+    )
+    _ = try await ledger.record(
+      observation(
+        subscriptionID: subscription.id,
+        at: start.addingTimeInterval(16 * 60 * 60),
+        source: .mihomoRuntime,
+        usedBytes: 20,
+        totalBytes: 900,
+        expireAt: start.addingTimeInterval(60 * 86_400)
+      )
+    )
+
+    let events = try await ledger.events(for: subscription.id, limit: 10)
+    XCTAssertEqual(
+      Set(events.map(\.kind)),
+      Set([.usageReset, .totalIncreased, .totalDecreased, .expirationChanged])
+    )
+    let resetEvent = try XCTUnwrap(events.first(where: { $0.kind == .usageReset }))
+    XCTAssertFalse(resetEvent.isUserConfirmed)
+
+    let cyclesBeforeConfirmation = try await ledger.cycles(for: subscription.id)
+    let currentCycle = try XCTUnwrap(
+      cyclesBeforeConfirmation.first(where: { $0.endedAt == nil })
+    )
+    try await ledger.confirmCycle(id: currentCycle.id)
+
+    let cyclesAfterConfirmation = try await ledger.cycles(for: subscription.id)
+    let confirmedCycle = try XCTUnwrap(
+      cyclesAfterConfirmation.first(where: { $0.endedAt == nil })
+    )
+    let eventsAfterConfirmation = try await ledger.events(for: subscription.id, limit: 10)
+    let confirmedResetEvent = try XCTUnwrap(
+      eventsAfterConfirmation.first(where: { $0.kind == .usageReset })
+    )
+    XCTAssertTrue(confirmedCycle.isUserConfirmed)
+    XCTAssertTrue(confirmedResetEvent.isUserConfirmed)
+  }
+
   func testRejectsMismatchedSourceAndNonMonotonicObservation() async throws {
     let database = temporaryDatabase()
     defer { removeDatabase(at: database) }
@@ -211,7 +276,7 @@ final class SQLiteQuotaLedgerTests: SQLiteQuotaLedgerTestCase {
     defer { removeDatabase(at: database) }
     do {
       let connection = try SQLiteConnection(fileURL: database)
-      try connection.execute("PRAGMA user_version = 3")
+      try connection.execute("PRAGMA user_version = 4")
       connection.close()
     }
 
@@ -220,7 +285,7 @@ final class SQLiteQuotaLedgerTests: SQLiteQuotaLedgerTestCase {
       try await ledger.prepare()
       XCTFail("不应打开未来版本的配额数据库")
     } catch {
-      XCTAssertEqual(error as? QuotaLedgerError, .unsupportedSchema(3))
+      XCTAssertEqual(error as? QuotaLedgerError, .unsupportedSchema(4))
     }
   }
 
@@ -254,7 +319,7 @@ final class SQLiteQuotaLedgerTests: SQLiteQuotaLedgerTestCase {
     XCTAssertFalse(columns.contains("error_message"))
   }
 
-  func testMigratesVersionOneDatabaseToQueryStateSchema() async throws {
+  func testMigratesVersionOneDatabaseToCurrentSchema() async throws {
     let database = temporaryDatabase()
     defer { removeDatabase(at: database) }
     do {
@@ -270,8 +335,70 @@ final class SQLiteQuotaLedgerTests: SQLiteQuotaLedgerTestCase {
     let connection = try SQLiteConnection(fileURL: database)
     let versionStatement = try connection.prepare("PRAGMA user_version")
     XCTAssertEqual(try versionStatement.step(), SQLITE_ROW)
-    XCTAssertEqual(versionStatement.int64(at: 0), 2)
+    XCTAssertEqual(versionStatement.int64(at: 0), 3)
     XCTAssertTrue(try queryStateColumnNames(connection).contains("next_attempt_at"))
+    XCTAssertTrue(try tableNames(connection).contains("quota_events"))
+  }
+
+  func testMigratesVersionTwoDatabaseToEventSchema() async throws {
+    let database = temporaryDatabase()
+    defer { removeDatabase(at: database) }
+    do {
+      let connection = try SQLiteConnection(fileURL: database)
+      try connection.execute("PRAGMA user_version = 2")
+      connection.close()
+    }
+
+    let ledger = SQLiteQuotaLedger(databaseURL: database)
+    try await ledger.prepare()
+
+    let connection = try SQLiteConnection(fileURL: database)
+    let versionStatement = try connection.prepare("PRAGMA user_version")
+    XCTAssertEqual(try versionStatement.step(), SQLITE_ROW)
+    XCTAssertEqual(versionStatement.int64(at: 0), 3)
+    XCTAssertTrue(try tableNames(connection).contains("quota_events"))
+  }
+
+  func testResetRemovesAllQuotaDataAndRecreatesCurrentSchema() async throws {
+    let database = temporaryDatabase()
+    defer { removeDatabase(at: database) }
+    let date = Date(timeIntervalSince1970: 1_700_700_000)
+    let subscription = try profileSubscription(at: date)
+    let ledger = SQLiteQuotaLedger(databaseURL: database)
+    _ = try await ledger.upsertSubscription(subscription)
+    _ = try await ledger.record(
+      observation(
+        subscriptionID: subscription.id,
+        at: date,
+        source: .meterActiveQuery,
+        usedBytes: 100,
+        totalBytes: 1_000
+      )
+    )
+
+    try await ledger.reset()
+
+    let subscriptions = try await ledger.subscriptions()
+    XCTAssertTrue(subscriptions.isEmpty)
+    let connection = try SQLiteConnection(fileURL: database)
+    let versionStatement = try connection.prepare("PRAGMA user_version")
+    XCTAssertEqual(try versionStatement.step(), SQLITE_ROW)
+    XCTAssertEqual(versionStatement.int64(at: 0), 3)
+    XCTAssertTrue(try tableNames(connection).contains("quota_events"))
+  }
+
+  func testQuotaSchemaDoesNotStoreRawSensitiveQueryData() async throws {
+    let database = temporaryDatabase()
+    defer { removeDatabase(at: database) }
+    let ledger = SQLiteQuotaLedger(databaseURL: database)
+    try await ledger.prepare()
+
+    let connection = try SQLiteConnection(fileURL: database)
+    let schema = try schemaDefinitions(connection).lowercased()
+    XCTAssertFalse(schema.contains("subscription_url"))
+    XCTAssertFalse(schema.contains("raw_header"))
+    XCTAssertFalse(schema.contains("access_token"))
+    XCTAssertFalse(schema.contains("error_message"))
   }
 
   func testQuotaDatabaseUsesIndependentLocation() {
@@ -292,5 +419,31 @@ final class SQLiteQuotaLedgerTests: SQLiteQuotaLedgerTestCase {
       }
     }
     return columns
+  }
+
+  private func tableNames(_ connection: SQLiteConnection) throws -> [String] {
+    let statement = try connection.prepare(
+      "SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name"
+    )
+    var names: [String] = []
+    while try statement.step() == SQLITE_ROW {
+      if let name = statement.text(at: 0) {
+        names.append(name)
+      }
+    }
+    return names
+  }
+
+  private func schemaDefinitions(_ connection: SQLiteConnection) throws -> String {
+    let statement = try connection.prepare(
+      "SELECT sql FROM sqlite_master WHERE sql IS NOT NULL ORDER BY name"
+    )
+    var definitions: [String] = []
+    while try statement.step() == SQLITE_ROW {
+      if let definition = statement.text(at: 0) {
+        definitions.append(definition)
+      }
+    }
+    return definitions.joined(separator: "\n")
   }
 }

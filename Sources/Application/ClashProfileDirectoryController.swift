@@ -120,6 +120,15 @@ final class ClashProfileDirectoryController: ObservableObject {
     apply(accessStatus: .notAuthorized)
   }
 
+  func resetTrackingAfterQuotaClear() {
+    subscriptions = []
+    apply(accessStatus: snapshot.accessStatus)
+  }
+
+  func republishTrackingTargets() {
+    apply(accessStatus: snapshot.accessStatus)
+  }
+
   func stop() {
     observer.stopObserving()
     if let activeDirectoryURL {

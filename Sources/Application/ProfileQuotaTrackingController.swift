@@ -89,6 +89,31 @@ final class ProfileQuotaTrackingController: ObservableObject, ProfileQuotaTracki
     await worker.refreshAll()
   }
 
+  func confirmCurrentCycle(subscriptionID: UUID) async {
+    guard
+      let item = snapshot.profiles.first(where: { $0.id == subscriptionID }),
+      let cycleID = item.analysis.pendingCycleConfirmation?.id
+    else {
+      return
+    }
+    do {
+      try await ledgerService.confirmCycle(id: cycleID)
+      await refreshSnapshot()
+    } catch {
+      snapshot.storageErrorMessage = error.localizedDescription
+    }
+  }
+
+  func prepareForDataReset() async {
+    targets = []
+    await worker.reset()
+    snapshot = .empty
+  }
+
+  func resumeAfterDataReset() {
+    worker.start()
+  }
+
   func stop() {
     worker.stop()
   }

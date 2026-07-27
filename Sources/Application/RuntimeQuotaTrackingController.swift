@@ -13,6 +13,7 @@ final class RuntimeQuotaTrackingController: ObservableObject, RuntimeQuotaTracki
   private var runtimeSourceKey: String?
   private var validatedEndpoint: ControllerEndpoint?
   private var requiresConfirmationBeforeRecording = false
+  private var isDataResetInProgress = false
   private var isPrepared = false
 
   init(
@@ -98,6 +99,48 @@ final class RuntimeQuotaTrackingController: ObservableObject, RuntimeQuotaTracki
     }
   }
 
+  func confirmCurrentCycle() async {
+    guard
+      let subscriptionID = snapshot.subscription?.id,
+      let cycleID = snapshot.analysis.pendingCycleConfirmation?.id
+    else {
+      return
+    }
+    do {
+      snapshot.analysis = try await ledgerService.confirmCycle(
+        id: cycleID,
+        subscriptionID: subscriptionID,
+        at: now()
+      )
+    } catch {
+      setUnavailable(error)
+    }
+  }
+
+  func prepareForDataReset() {
+    isDataResetInProgress = true
+  }
+
+  func completeDataReset() {
+    snapshot.subscription = nil
+    snapshot.analysis = .empty
+    snapshot.pauseReason = nil
+    runtimeSourceKey = nil
+    requiresConfirmationBeforeRecording = false
+    isDataResetInProgress = false
+    if latestCandidate != nil {
+      snapshot.observationStatus = .available
+    } else if validatedEndpoint != nil {
+      snapshot.observationStatus = .checking
+    } else {
+      snapshot.observationStatus = .controllerUnavailable
+    }
+  }
+
+  func cancelDataReset() {
+    isDataResetInProgress = false
+  }
+
   func stop() {
     observer.stop()
   }
@@ -110,6 +153,9 @@ final class RuntimeQuotaTrackingController: ObservableObject, RuntimeQuotaTracki
   }
 
   private func handle(_ result: RuntimeQuotaObservationResult) async {
+    guard !isDataResetInProgress else {
+      return
+    }
     switch result {
     case .failed(let message):
       latestCandidate = nil
@@ -184,15 +230,13 @@ final class RuntimeQuotaTrackingController: ObservableObject, RuntimeQuotaTracki
   private var storedState: RuntimeQuotaStoredState {
     RuntimeQuotaStoredState(
       subscription: snapshot.subscription,
-      latestQuota: snapshot.latestQuota,
-      trends: snapshot.trends
+      analysis: snapshot.analysis
     )
   }
 
   private func apply(_ state: RuntimeQuotaStoredState) {
     snapshot.subscription = state.subscription
-    snapshot.latestQuota = state.latestQuota
-    snapshot.trends = state.trends
+    snapshot.analysis = state.analysis
   }
 
   private func setUnavailable(_ error: any Error) {

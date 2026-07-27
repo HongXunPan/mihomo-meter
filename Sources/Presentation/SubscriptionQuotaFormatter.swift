@@ -42,13 +42,43 @@ enum SubscriptionQuotaFormatter {
   }
 
   static func depletion(_ trend: QuotaTrend) -> String {
-    guard let estimatedDepletionAt = trend.estimatedDepletionAt else {
-      return "暂无耗尽预测"
+    switch trend.depletionForecast {
+    case .available(let estimatedDepletionAt):
+      let remainingDays = max(
+        Int((estimatedDepletionAt.timeIntervalSinceNow / 86_400).rounded(.up)),
+        0
+      )
+      return remainingDays == 0 ? "可能即将耗尽" : "预计可用约 \(remainingDays) 天"
+    case .unavailable(let reason):
+      switch reason {
+      case .insufficientSamples:
+        return "样本不足，暂不预测"
+      case .insufficientObservationSpan:
+        return "观察不足 6 小时"
+      case .staleData:
+        return "数据已过期，暂不预测"
+      case .unconfirmedCycle:
+        return "待确认新周期"
+      case .noRecentConsumption:
+        return "近期无消耗"
+      case .expired:
+        return "订阅已到期"
+      case .depleted:
+        return "额度已耗尽"
+      }
     }
-    let remainingDays = max(
-      Int((estimatedDepletionAt.timeIntervalSinceNow / 86_400).rounded(.up)),
-      0
-    )
-    return remainingDays == 0 ? "可能即将耗尽" : "预计可用约 \(remainingDays) 天"
+  }
+
+  static func quotaEvent(_ event: QuotaEvent) -> String {
+    switch event.kind {
+    case .usageReset:
+      "检测到用量重置"
+    case .totalIncreased:
+      "检测到总额度增加"
+    case .totalDecreased:
+      "检测到总额度减少"
+    case .expirationChanged:
+      "检测到到期时间变化"
+    }
   }
 }

@@ -25,6 +25,10 @@ struct ProfileQuotaCardView: View {
           quota: quota,
           trend: item.trends.trend(for: window)
         )
+
+        QuotaEventSummaryView(analysis: item.analysis) {
+          await controller.confirmCurrentCycle(subscriptionID: item.id)
+        }
       } else {
         VStack(spacing: 8) {
           Image(systemName: "chart.line.downtrend.xyaxis")

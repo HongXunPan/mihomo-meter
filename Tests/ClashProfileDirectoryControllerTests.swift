@@ -132,6 +132,23 @@ final class ClashProfileDirectoryControllerTests: SQLiteQuotaLedgerTestCase {
     XCTAssertEqual(target.availability, .available)
   }
 
+  func testQuotaClearResetsProfileSelectionButKeepsDirectoryAuthorization() async throws {
+    let context = try makeContext(bookmark: Data("stored".utf8))
+    defer { removeDatabase(at: context.database) }
+
+    await context.controller.prepare()
+    await context.controller.setTracking(true, profileUID: "profile-a")
+    try await context.ledger.reset()
+    context.controller.resetTrackingAfterQuotaClear()
+
+    XCTAssertEqual(context.controller.snapshot.accessStatus, .available)
+    XCTAssertTrue(context.controller.snapshot.selectedProfiles.isEmpty)
+    XCTAssertEqual(context.bookmarkStore.bookmark, Data("stored".utf8))
+    XCTAssertTrue(context.quotaLifecycle.lastTargets.isEmpty)
+    let subscriptions = try await context.ledger.subscriptions()
+    XCTAssertTrue(subscriptions.isEmpty)
+  }
+
   private func makeContext(
     bookmark: Data?,
     isStale: Bool = false,

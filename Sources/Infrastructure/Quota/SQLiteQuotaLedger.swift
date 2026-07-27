@@ -12,6 +12,15 @@ actor SQLiteQuotaLedger: QuotaLedgerStoring {
     _ = try requirePersistence()
   }
 
+  func reset() async throws {
+    do {
+      try requirePersistence().reset()
+    } catch {
+      persistence = nil
+      throw error
+    }
+  }
+
   func upsertSubscription(
     _ subscription: TrackedSubscription
   ) async throws -> TrackedSubscription {
@@ -60,6 +69,9 @@ actor SQLiteQuotaLedger: QuotaLedgerStoring {
         observation: observation
       )
       try persistence.snapshots.insert(snapshot)
+      for event in QuotaEventDetector.events(previous: previous, current: snapshot) {
+        try persistence.events.insert(event)
+      }
       return snapshot
     }
   }
@@ -89,17 +101,84 @@ actor SQLiteQuotaLedger: QuotaLedgerStoring {
     try requirePersistence().cycles.load(for: subscriptionID)
   }
 
+  func events(
+    for subscriptionID: UUID,
+    limit: Int
+  ) async throws -> [QuotaEvent] {
+    guard limit > 0 else {
+      return []
+    }
+    return try requirePersistence().events.load(for: subscriptionID, limit: limit)
+  }
+
+  func confirmCycle(id: UUID) async throws {
+    let persistence = try requirePersistence()
+    try persistence.transaction {
+      try persistence.cycles.confirm(id: id)
+      try persistence.events.confirmUsageReset(cycleID: id)
+    }
+  }
+
+  func analysis(
+    for subscriptionID: UUID,
+    at date: Date
+  ) async throws -> SubscriptionQuotaAnalysis {
+    let persistence = try requirePersistence()
+    guard let subscription = try persistence.subscriptions.load(id: subscriptionID) else {
+      throw QuotaLedgerError.subscriptionNotFound
+    }
+    let latestQuota = try persistence.snapshots.latest(for: subscriptionID)
+    let currentCycle = try persistence.cycles.open(for: subscriptionID)
+    return try SubscriptionQuotaAnalysis(
+      latestQuota: latestQuota,
+      trends: RuntimeQuotaTrends(
+        day: trend(
+          for: subscription,
+          window: .day,
+          now: date,
+          latestQuota: latestQuota,
+          currentCycle: currentCycle,
+          persistence: persistence
+        ),
+        week: trend(
+          for: subscription,
+          window: .week,
+          now: date,
+          latestQuota: latestQuota,
+          currentCycle: currentCycle,
+          persistence: persistence
+        ),
+        month: trend(
+          for: subscription,
+          window: .month,
+          now: date,
+          latestQuota: latestQuota,
+          currentCycle: currentCycle,
+          persistence: persistence
+        )
+      ),
+      currentCycle: currentCycle,
+      recentEvents: persistence.events.load(for: subscriptionID, limit: 5)
+    )
+  }
+
   func trend(
     for subscriptionID: UUID,
     window: QuotaTrendWindow,
     now: Date
   ) async throws -> QuotaTrend {
-    let snapshots = try await snapshots(
-      for: subscriptionID,
-      from: now.addingTimeInterval(-window.duration),
-      through: now
+    let persistence = try requirePersistence()
+    guard let subscription = try persistence.subscriptions.load(id: subscriptionID) else {
+      throw QuotaLedgerError.subscriptionNotFound
+    }
+    return try trend(
+      for: subscription,
+      window: window,
+      now: now,
+      latestQuota: persistence.snapshots.latest(for: subscriptionID),
+      currentCycle: persistence.cycles.open(for: subscriptionID),
+      persistence: persistence
     )
-    return QuotaTrendEngine.calculate(snapshots: snapshots, window: window, now: now)
   }
 
   func profileQueryState(
@@ -139,6 +218,39 @@ actor SQLiteQuotaLedger: QuotaLedgerStoring {
     default:
       throw QuotaLedgerError.sourceMismatch
     }
+  }
+
+  private func maximumDataAge(for subscription: TrackedSubscription) -> TimeInterval {
+    let minimumAge: TimeInterval = 24 * 60 * 60
+    guard let refreshIntervalMinutes = subscription.refreshIntervalMinutes else {
+      return minimumAge
+    }
+    return max(minimumAge, TimeInterval(refreshIntervalMinutes) * 2 * 60)
+  }
+
+  private func trend(
+    for subscription: TrackedSubscription,
+    window: QuotaTrendWindow,
+    now: Date,
+    latestQuota: SubscriptionQuotaSnapshot?,
+    currentCycle: QuotaCycle?,
+    persistence: QuotaLedgerPersistence
+  ) throws -> QuotaTrend {
+    let snapshots = try persistence.snapshots.load(
+      for: subscription.id,
+      from: now.addingTimeInterval(-window.duration),
+      through: now
+    )
+    return QuotaTrendEngine.calculate(
+      snapshots: snapshots,
+      window: window,
+      now: now,
+      context: QuotaTrendContext(
+        latestSnapshot: latestQuota,
+        currentCycle: currentCycle,
+        maximumDataAge: maximumDataAge(for: subscription)
+      )
+    )
   }
 
   private func resolveCycleID(

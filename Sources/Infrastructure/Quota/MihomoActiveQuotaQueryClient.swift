@@ -55,9 +55,7 @@ struct MihomoActiveQuotaQueryClient: ActiveQuotaQuerying {
         }
         throw ActiveQuotaQueryError.httpStatus(response.statusCode)
       }
-      guard
-        let headerValue = response.value(forHTTPHeaderField: "Subscription-Userinfo")
-      else {
+      guard let headerValue = subscriptionUserInfoHeader(in: response) else {
         throw ActiveQuotaQueryError.missingSubscriptionUserInfo(
           statusCode: response.statusCode
         )
@@ -82,6 +80,26 @@ struct MihomoActiveQuotaQueryClient: ActiveQuotaQuerying {
     request.setValue("*/*", forHTTPHeaderField: "Accept")
     request.setValue(userAgent, forHTTPHeaderField: "User-Agent")
     return request
+  }
+
+  func subscriptionUserInfoHeader(in response: HTTPURLResponse) -> String? {
+    if let standardValue = response.value(forHTTPHeaderField: "Subscription-Userinfo") {
+      return standardValue
+    }
+
+    return response.allHeaderFields
+      .compactMap { key, value -> (name: String, value: String)? in
+        guard
+          let name = key as? String,
+          name.lowercased().hasSuffix("-subscription-userinfo"),
+          let value = value as? String
+        else {
+          return nil
+        }
+        return (name.lowercased(), value)
+      }
+      .sorted { $0.name < $1.name }
+      .first?.value
   }
 }
 

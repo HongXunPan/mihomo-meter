@@ -137,6 +137,21 @@ final class ProfileQuotaQueryWorker {
     isRefreshingAll = false
   }
 
+  func reset() async {
+    isStarted = false
+    targets = []
+    statuses = [:]
+    manualQueue = []
+    activeSubscriptionID = nil
+    isRefreshingAll = false
+    workerID = UUID()
+    let activeTask = workerTask
+    workerTask = nil
+    activeTask?.cancel()
+    await activeTask?.value
+    notifyStateChange()
+  }
+
   private func enqueueManualRefresh(_ subscriptionID: UUID) {
     guard !manualQueue.contains(subscriptionID) else {
       return

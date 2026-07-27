@@ -2,8 +2,7 @@ import Foundation
 
 struct RuntimeQuotaStoredState: Equatable, Sendable {
   var subscription: TrackedSubscription?
-  var latestQuota: SubscriptionQuotaSnapshot?
-  var trends = RuntimeQuotaTrends()
+  var analysis = SubscriptionQuotaAnalysis.empty
 }
 
 struct RuntimeQuotaLedgerService: Sendable {
@@ -25,11 +24,9 @@ struct RuntimeQuotaLedgerService: Sendable {
     guard let subscription = subscriptions.first else {
       return RuntimeQuotaStoredState()
     }
-    let latestQuota = try await ledger.latestSnapshot(for: subscription.id)
     return RuntimeQuotaStoredState(
       subscription: subscription,
-      latestQuota: latestQuota,
-      trends: try await loadTrends(for: subscription.id, referenceDate: date)
+      analysis: try await ledger.analysis(for: subscription.id, at: date)
     )
   }
 
@@ -89,7 +86,7 @@ struct RuntimeQuotaLedgerService: Sendable {
     guard let subscription = state.subscription else {
       return state
     }
-    if let latestQuota = state.latestQuota, candidate.matches(latestQuota) {
+    if let latestQuota = state.analysis.latestQuota, candidate.matches(latestQuota) {
       return state
     }
 
@@ -103,9 +100,15 @@ struct RuntimeQuotaLedgerService: Sendable {
     )
     return RuntimeQuotaStoredState(
       subscription: subscription,
-      latestQuota: try await ledger.record(observation),
-      trends: try await loadTrends(for: subscription.id, referenceDate: date)
+      analysis: try await recordedAnalysis(observation, at: date)
     )
+  }
+
+  func confirmCycle(id: UUID, subscriptionID: UUID, at date: Date) async throws
+    -> SubscriptionQuotaAnalysis
+  {
+    try await ledger.confirmCycle(id: id)
+    return try await ledger.analysis(for: subscriptionID, at: date)
   }
 
   private func updating(
@@ -125,14 +128,12 @@ struct RuntimeQuotaLedgerService: Sendable {
     )
   }
 
-  private func loadTrends(
-    for subscriptionID: UUID,
-    referenceDate: Date
-  ) async throws -> RuntimeQuotaTrends {
-    let day = try await ledger.trend(for: subscriptionID, window: .day, now: referenceDate)
-    let week = try await ledger.trend(for: subscriptionID, window: .week, now: referenceDate)
-    let month = try await ledger.trend(for: subscriptionID, window: .month, now: referenceDate)
-    return RuntimeQuotaTrends(day: day, week: week, month: month)
+  private func recordedAnalysis(
+    _ observation: QuotaObservation,
+    at date: Date
+  ) async throws -> SubscriptionQuotaAnalysis {
+    _ = try await ledger.record(observation)
+    return try await ledger.analysis(for: observation.subscriptionID, at: date)
   }
 }
 

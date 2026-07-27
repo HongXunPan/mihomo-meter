@@ -2,7 +2,7 @@ import Foundation
 import SQLite3
 
 enum QuotaLedgerSchema {
-  static let currentVersion = 2
+  static let currentVersion = 3
 
   static func migrate(_ connection: SQLiteConnection) throws {
     let statement = try connection.prepare("PRAGMA user_version")
@@ -20,11 +20,18 @@ enum QuotaLedgerSchema {
         try createCycles(connection)
         try createSnapshots(connection)
         try createQueryStates(connection)
+        try createEvents(connection)
         try connection.execute("PRAGMA user_version = \(currentVersion)")
       }
     case 1:
       try connection.transaction {
         try createQueryStates(connection)
+        try createEvents(connection)
+        try connection.execute("PRAGMA user_version = \(currentVersion)")
+      }
+    case 2:
+      try connection.transaction {
+        try createEvents(connection)
         try connection.execute("PRAGMA user_version = \(currentVersion)")
       }
     case currentVersion:
@@ -150,6 +157,34 @@ enum QuotaLedgerSchema {
         automatic_retry_count INTEGER NOT NULL CHECK(automatic_retry_count >= 0),
         FOREIGN KEY(subscription_id) REFERENCES subscriptions(id)
       )
+      """
+    )
+  }
+
+  private static func createEvents(_ connection: SQLiteConnection) throws {
+    try connection.execute(
+      """
+      CREATE TABLE quota_events (
+        id TEXT PRIMARY KEY,
+        subscription_id TEXT NOT NULL,
+        previous_snapshot_id TEXT NOT NULL,
+        current_snapshot_id TEXT NOT NULL,
+        occurred_at REAL NOT NULL,
+        kind TEXT NOT NULL CHECK(
+          kind IN ('usage_reset', 'total_increased', 'total_decreased', 'expiration_changed')
+        ),
+        is_user_confirmed INTEGER NOT NULL CHECK(is_user_confirmed IN (0, 1)),
+        UNIQUE(current_snapshot_id, kind),
+        FOREIGN KEY(subscription_id) REFERENCES subscriptions(id),
+        FOREIGN KEY(previous_snapshot_id) REFERENCES quota_snapshots(id),
+        FOREIGN KEY(current_snapshot_id) REFERENCES quota_snapshots(id)
+      )
+      """
+    )
+    try connection.execute(
+      """
+      CREATE INDEX quota_events_history
+      ON quota_events(subscription_id, occurred_at DESC)
       """
     )
   }

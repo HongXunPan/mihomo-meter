@@ -19,27 +19,9 @@ enum RuntimeQuotaPauseReason: Equatable, Sendable {
   case controllerChanged
 }
 
-struct RuntimeQuotaTrends: Equatable, Sendable {
-  var day = QuotaTrend.empty(window: .day)
-  var week = QuotaTrend.empty(window: .week)
-  var month = QuotaTrend.empty(window: .month)
-
-  func trend(for window: QuotaTrendWindow) -> QuotaTrend {
-    switch window {
-    case .day:
-      day
-    case .week:
-      week
-    case .month:
-      month
-    }
-  }
-}
-
 struct RuntimeQuotaTrackingSnapshot: Equatable, Sendable {
   var subscription: TrackedSubscription?
-  var latestQuota: SubscriptionQuotaSnapshot?
-  var trends = RuntimeQuotaTrends()
+  var analysis = SubscriptionQuotaAnalysis.empty
   var observationStatus = RuntimeQuotaObservationStatus.loading
   var pauseReason: RuntimeQuotaPauseReason?
 
@@ -51,5 +33,13 @@ struct RuntimeQuotaTrackingSnapshot: Equatable, Sendable {
 
   var isPaused: Bool {
     subscription?.status == .paused
+  }
+
+  var latestQuota: SubscriptionQuotaSnapshot? {
+    analysis.latestQuota
+  }
+
+  var trends: RuntimeQuotaTrends {
+    analysis.trends
   }
 }

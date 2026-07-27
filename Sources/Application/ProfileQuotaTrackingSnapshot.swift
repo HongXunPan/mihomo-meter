@@ -15,14 +15,21 @@ struct ProfileQuotaTrackingItem: Identifiable, Equatable, Sendable {
   let profileUID: String
   let isCurrent: Bool
   let availability: ClashProfileAvailability
-  let latestQuota: SubscriptionQuotaSnapshot?
-  let trends: RuntimeQuotaTrends
+  let analysis: SubscriptionQuotaAnalysis
   let queryStatus: ProfileQuotaQueryStatus
   let canRefresh: Bool
   let manualRefreshAvailableAt: Date?
 
   var id: UUID {
     subscription.id
+  }
+
+  var latestQuota: SubscriptionQuotaSnapshot? {
+    analysis.latestQuota
+  }
+
+  var trends: RuntimeQuotaTrends {
+    analysis.trends
   }
 }
 

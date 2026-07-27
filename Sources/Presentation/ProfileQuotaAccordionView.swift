@@ -83,6 +83,13 @@ private struct ProfileQuotaAccordionRow: View {
             isCompact: true
           )
           .padding(.top, 10)
+
+          if item.analysis.pendingCycleConfirmation != nil {
+            QuotaCycleConfirmationView {
+              await controller.confirmCurrentCycle(subscriptionID: item.id)
+            }
+            .padding(.top, 8)
+          }
         } else {
           Text("取得第一条有效快照后显示剩余流量和走势。")
             .font(.caption)

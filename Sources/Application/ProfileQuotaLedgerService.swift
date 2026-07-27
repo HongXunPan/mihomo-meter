@@ -38,17 +38,14 @@ struct ProfileQuotaLedgerService {
     )
   }
 
-  func quotaState(
+  func analysis(
     for subscriptionID: UUID,
     at date: Date
-  ) async throws -> (SubscriptionQuotaSnapshot?, RuntimeQuotaTrends) {
-    async let latest = ledger.latestSnapshot(for: subscriptionID)
-    async let day = ledger.trend(for: subscriptionID, window: .day, now: date)
-    async let week = ledger.trend(for: subscriptionID, window: .week, now: date)
-    async let month = ledger.trend(for: subscriptionID, window: .month, now: date)
-    return try await (
-      latest,
-      RuntimeQuotaTrends(day: day, week: week, month: month)
-    )
+  ) async throws -> SubscriptionQuotaAnalysis {
+    try await ledger.analysis(for: subscriptionID, at: date)
+  }
+
+  func confirmCycle(id: UUID) async throws {
+    try await ledger.confirmCycle(id: id)
   }
 }
