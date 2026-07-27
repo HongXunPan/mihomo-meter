@@ -40,7 +40,15 @@ scripts/build-debug.sh
 scripts/build-debug.sh --run
 ```
 
-提交 Pull Request 前至少执行：
+日常修改 Swift 源码或测试后，默认只执行严格格式检查：
+
+```bash
+xcrun swift format lint --recursive --strict Sources Tests
+```
+
+该检查只证明代码格式符合规范，不代表应用已编译或测试已通过。涉及脚本、配置或文档时，还应执行与变更直接相关的语法检查和定向复核，不扩大到无关门禁。
+
+完整无签名构建与测试属于重型门禁，不作为每次任务完成或普通提交前的默认本地验证。所有分支 Push 和 Pull Request 都会由持续集成自动执行；用户明确要求本机完整验证时，可执行：
 
 ```bash
 bash -n \
@@ -56,8 +64,6 @@ bash -n \
 scripts/test-generate-download-badge-json.sh
 scripts/test-generate-release-notes.sh
 
-xcrun swift format lint --recursive --strict Sources Tests
-
 xcodebuild \
   -project MihomoMeter.xcodeproj \
   -scheme MihomoMeter \
@@ -69,12 +75,14 @@ xcodebuild \
 
 成功标准：
 
+- 日常严格格式检查无输出并返回退出码 `0`
 - 发布说明脚本语法检查与隔离 Git 仓测试通过
-- Swift 格式检查无输出并返回退出码 `0`
-- 命令退出码为 `0`
+- 完整门禁命令退出码为 `0`
 - 应用 Target 编译通过
 - `MihomoMeterTests` 全部通过
 - 正式 DMG 构建会在宿主机支持的架构上执行无生产副作用的真实启动冒烟
+
+提交 Pull Request 前应确认对应提交的远端持续集成完整通过；远端门禁仍在运行或未执行时，不得表述为完整验证通过。
 
 正式版本的证书准备、GitHub Secrets 和工作流说明见[发布与安装](docs/发布与安装.md)。Pull Request 不应执行正式发布工作流。
 
