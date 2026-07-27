@@ -18,6 +18,7 @@ final class MenuBarController: NSObject {
   private let updateModel: AppUpdateModel
   private var cancellables: Set<AnyCancellable> = []
   private var globalMouseMonitor: Any?
+  private var isPopoverPresentationPending = false
   private var pendingStatisticsModule: StatisticsModule?
 
   init(
@@ -122,10 +123,20 @@ final class MenuBarController: NSObject {
 
   private func observeApplication() {
     NotificationCenter.default.publisher(
+      for: NSApplication.didBecomeActiveNotification,
+      object: NSApplication.shared
+    )
+    .sink { [weak self] _ in
+      self?.presentPendingPopover()
+    }
+    .store(in: &cancellables)
+
+    NotificationCenter.default.publisher(
       for: NSApplication.didResignActiveNotification,
       object: NSApplication.shared
     )
     .sink { [weak self] _ in
+      self?.isPopoverPresentationPending = false
       self?.closePopover()
     }
     .store(in: &cancellables)
@@ -158,6 +169,24 @@ final class MenuBarController: NSObject {
       return
     }
 
+    guard !NSApplication.shared.isActive else {
+      showPopover()
+      return
+    }
+
+    isPopoverPresentationPending = true
+    activateApplication()
+  }
+
+  private func presentPendingPopover() {
+    guard isPopoverPresentationPending, NSApplication.shared.isActive else {
+      return
+    }
+    isPopoverPresentationPending = false
+    showPopover()
+  }
+
+  private func showPopover() {
     guard let button = statusItem.button else {
       return
     }
@@ -167,7 +196,6 @@ final class MenuBarController: NSObject {
       of: button,
       preferredEdge: .minY
     )
-    activateApplication()
     startGlobalMouseMonitoring()
 
     // 在首帧绘制前清除自动焦点，后续仍可使用 Tab 键导航。
@@ -175,11 +203,8 @@ final class MenuBarController: NSObject {
   }
 
   private func activateApplication() {
-    if #available(macOS 14.0, *) {
-      NSApplication.shared.activate()
-    } else {
-      NSApplication.shared.activate(ignoringOtherApps: true)
-    }
+    // 状态栏点击代表明确用户意图；普通 activate() 在关闭最后一个窗口后可能被系统拒绝。
+    NSApplication.shared.activate(ignoringOtherApps: true)
   }
 
   private func startGlobalMouseMonitoring() {
