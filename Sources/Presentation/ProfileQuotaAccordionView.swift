@@ -7,14 +7,23 @@ struct ProfileQuotaAccordionView: View {
   @State private var hasInitializedExpansion = false
 
   var body: some View {
-    VStack(spacing: 8) {
+    VStack(spacing: 0) {
       ForEach(controller.snapshot.profiles) { item in
         ProfileQuotaAccordionRow(
           controller: controller,
           item: item,
-          isExpanded: expandedProfileID == item.id,
-          toggleExpansion: { toggle(item.id) }
+          isExpanded: Binding(
+            get: { expandedProfileID == item.id },
+            set: { isExpanded in
+              setExpansion(isExpanded, for: item.id)
+            }
+          )
         )
+
+        if item.id != controller.snapshot.profiles.last?.id {
+          Divider()
+            .padding(.vertical, 8)
+        }
       }
     }
     .onAppear {
@@ -25,9 +34,13 @@ struct ProfileQuotaAccordionView: View {
     }
   }
 
-  private func toggle(_ profileID: UUID) {
+  private func setExpansion(_ isExpanded: Bool, for profileID: UUID) {
     withAnimation(.easeInOut(duration: 0.18)) {
-      expandedProfileID = expandedProfileID == profileID ? nil : profileID
+      if isExpanded {
+        expandedProfileID = profileID
+      } else if expandedProfileID == profileID {
+        expandedProfileID = nil
+      }
       hasInitializedExpansion = true
     }
   }
@@ -49,53 +62,15 @@ struct ProfileQuotaAccordionView: View {
 private struct ProfileQuotaAccordionRow: View {
   @ObservedObject var controller: ProfileQuotaTrackingController
   let item: ProfileQuotaTrackingItem
-  let isExpanded: Bool
-  let toggleExpansion: () -> Void
+  @Binding var isExpanded: Bool
 
   private var status: ProfileQuotaStatusPresentation {
     ProfileQuotaStatusPresentation(item: item)
   }
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 0) {
-      Button(action: toggleExpansion) {
-        HStack(spacing: 10) {
-          VStack(alignment: .leading, spacing: 3) {
-            HStack(spacing: 6) {
-              Text(item.subscription.name)
-                .font(.subheadline.weight(.semibold))
-                .lineLimit(1)
-              if item.isCurrent {
-                Text("当前")
-                  .font(.caption2.weight(.semibold))
-                  .foregroundStyle(.blue)
-              }
-            }
-
-            Text(collapsedSummary)
-              .font(.caption2)
-              .foregroundStyle(.secondary)
-              .lineLimit(1)
-          }
-
-          Spacer(minLength: 8)
-
-          Image(systemName: status.symbolName)
-            .foregroundStyle(status.tone.color)
-
-          Image(systemName: "chevron.right")
-            .font(.caption.weight(.semibold))
-            .foregroundStyle(.tertiary)
-            .rotationEffect(.degrees(isExpanded ? 90 : 0))
-        }
-        .contentShape(Rectangle())
-      }
-      .buttonStyle(.plain)
-
-      if isExpanded {
-        Divider()
-          .padding(.vertical, 10)
-
+    DisclosureGroup(isExpanded: $isExpanded) {
+      VStack(alignment: .leading, spacing: 0) {
         Label(status.message, systemImage: status.symbolName)
           .font(.caption)
           .foregroundStyle(status.tone.color)
@@ -139,12 +114,36 @@ private struct ProfileQuotaAccordionRow: View {
         }
         .padding(.top, 8)
       }
+      .padding(.top, 10)
+      .padding(.leading, 14)
+    } label: {
+      HStack(spacing: 10) {
+        VStack(alignment: .leading, spacing: 3) {
+          HStack(spacing: 6) {
+            Text(item.subscription.name)
+              .font(.subheadline.weight(.semibold))
+              .lineLimit(1)
+            if item.isCurrent {
+              Text("当前")
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(.blue)
+            }
+          }
+
+          Text(collapsedSummary)
+            .font(.caption2)
+            .foregroundStyle(.secondary)
+            .lineLimit(1)
+        }
+
+        Spacer(minLength: 8)
+
+        Image(systemName: status.symbolName)
+          .foregroundStyle(status.tone.color)
+      }
     }
-    .padding(12)
-    .background(
-      Color(nsColor: .controlBackgroundColor),
-      in: RoundedRectangle(cornerRadius: 10)
-    )
+    .accessibilityValue(isExpanded ? "已展开" : "已折叠")
+    .accessibilityHint("显示这个 Profile 的剩余流量、走势和查询操作")
   }
 
   private var collapsedSummary: String {
