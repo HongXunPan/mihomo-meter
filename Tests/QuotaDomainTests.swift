@@ -118,6 +118,8 @@ final class QuotaDomainTests: XCTestCase {
 
     XCTAssertEqual(trend.points.count, 2)
     XCTAssertEqual(trend.points.first?.date, now.addingTimeInterval(-86_400))
+    XCTAssertEqual(trend.segments.map(\.cycleID), [previousCycleID, latestCycleID])
+    XCTAssertEqual(trend.segments.map(\.points.count), [1, 2])
     XCTAssertEqual(trend.consumedBytes, 200)
     XCTAssertEqual(trend.dailyConsumptionBytes, 200)
     XCTAssertEqual(trend.estimatedDepletionAt, now.addingTimeInterval(3.5 * 86_400))

@@ -24,8 +24,7 @@ struct ProfileQuotaCardView: View {
       if let quota = item.latestQuota {
         SubscriptionQuotaMetricsView(
           quota: quota,
-          trend: item.trends.trend(for: window),
-          aggregation: window.defaultUsageAggregation
+          trend: item.trends.trend(for: window)
         )
 
         QuotaEventSummaryView(analysis: item.analysis) {
@@ -80,7 +79,7 @@ struct ProfileQuotaCardView: View {
       }
       .buttonStyle(.borderless)
       .disabled(item.latestQuota == nil)
-      .help("放大查看并切换统计粒度")
+      .help("放大查看累计用量走势")
 
       Button {
         Task {

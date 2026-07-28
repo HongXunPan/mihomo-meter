@@ -4,9 +4,6 @@ struct SubscriptionQuotaMetricsView: View {
   let quota: SubscriptionQuotaSnapshot
   let trend: QuotaTrend
   var isCompact = false
-  var aggregation: QuotaUsageAggregation?
-
-  @State private var compactAggregation = QuotaUsageAggregation.hour
 
   var body: some View {
     VStack(alignment: .leading, spacing: isCompact ? 9 : 13) {
@@ -49,14 +46,11 @@ struct SubscriptionQuotaMetricsView: View {
 
       usageChartHeader
 
-      QuotaTrendChart(
-        trend: trend,
-        aggregation: selectedAggregation,
-        isCompact: isCompact
-      )
+      cumulativeTrendSummary
+
+      QuotaCumulativeTrendChart(trend: trend, isCompact: isCompact)
 
       HStack {
-        Text(SubscriptionQuotaFormatter.usageSummary(selectedSeries))
         Spacer()
         Text(SubscriptionQuotaFormatter.depletion(trend))
       }
@@ -78,53 +72,27 @@ struct SubscriptionQuotaMetricsView: View {
     )
   }
 
-  private var selectedAggregation: QuotaUsageAggregation {
-    if let aggregation {
-      return trend.usageSeries(for: aggregation).bars.isEmpty ? .automatic : aggregation
-    }
-    let localSeries = trend.usageSeries(for: compactAggregation)
-    return localSeries.bars.isEmpty ? .automatic : compactAggregation
-  }
-
-  private var selectedSeries: QuotaUsageSeries {
-    trend.usageSeries(for: selectedAggregation)
-  }
-
   private var usageChartHeader: some View {
     HStack(spacing: 8) {
-      Text("区间新增用量")
+      Text("累计用量走势")
         .font(.caption.weight(.medium))
         .foregroundStyle(.secondary)
 
       Spacer()
 
-      if isCompact, aggregation == nil {
-        Menu {
-          ForEach(QuotaUsageAggregation.selectableCases, id: \.self) { option in
-            let series = trend.usageSeries(for: option)
-            Button(series.isAvailable ? option.title : "\(option.title)（数据不足）") {
-              compactAggregation = option
-            }
-            .disabled(!series.isAvailable)
-          }
-        } label: {
-          Text(selectedAggregationTitle)
-            .font(.caption2)
-        }
-        .menuStyle(.borderlessButton)
-        .fixedSize()
-      } else {
-        Text(selectedAggregationTitle)
-          .font(.caption2)
-          .foregroundStyle(.secondary)
-      }
-
       Label("下载", systemImage: "arrow.down")
         .foregroundStyle(.cyan)
       Label("上传", systemImage: "arrow.up")
         .foregroundStyle(.indigo)
+      Label("总消耗", systemImage: "chart.line.uptrend.xyaxis")
+        .foregroundStyle(.blue)
     }
     .font(.caption2)
+  }
+
+  private var cumulativeTrendSummary: some View {
+    let traffic = latestTrendPoint?.traffic ?? quota.traffic
+    return QuotaCumulativeTrendSummaryView(traffic: traffic)
   }
 
   private func metric(title: String, value: UInt64) -> some View {
@@ -139,12 +107,9 @@ struct SubscriptionQuotaMetricsView: View {
     .frame(maxWidth: .infinity, alignment: .leading)
   }
 
-  private var selectedAggregationTitle: String {
-    guard selectedAggregation == .automatic,
-      selectedSeries.resolvedAggregation != .automatic
-    else {
-      return selectedAggregation.title
-    }
-    return "自动 · \(selectedSeries.resolvedAggregation.title)"
+  private var latestTrendPoint: QuotaTrendPoint? {
+    trend.segments
+      .flatMap(\.points)
+      .max { $0.date < $1.date }
   }
 }

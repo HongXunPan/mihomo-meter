@@ -149,6 +149,12 @@
 		BS0000000000000000000206 /* SubscriptionQuotaStatisticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BS0000000000000000000106 /* SubscriptionQuotaStatisticsView.swift */; };
 		BS0000000000000000000207 /* StatisticsWorkspaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BS0000000000000000000107 /* StatisticsWorkspaceView.swift */; };
 		BS0000000000000000000208 /* TrafficMonitorQuotaLifecycleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BS0000000000000000000108 /* TrafficMonitorQuotaLifecycleTests.swift */; };
+		CV0000000000000000000201 /* QuotaCumulativeTrendChartModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CV0000000000000000000101 /* QuotaCumulativeTrendChartModel.swift */; };
+		CV0000000000000000000202 /* QuotaCumulativeTrendChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = CV0000000000000000000102 /* QuotaCumulativeTrendChart.swift */; };
+		CV0000000000000000000203 /* QuotaCumulativeTrendChartMarks.swift in Sources */ = {isa = PBXBuildFile; fileRef = CV0000000000000000000103 /* QuotaCumulativeTrendChartMarks.swift */; };
+		CV0000000000000000000204 /* QuotaCumulativeTrendHoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CV0000000000000000000104 /* QuotaCumulativeTrendHoverView.swift */; };
+		CV0000000000000000000205 /* QuotaCumulativeTrendSummaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CV0000000000000000000105 /* QuotaCumulativeTrendSummaryView.swift */; };
+		CV0000000000000000000206 /* QuotaCumulativeTrendChartModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CV0000000000000000000106 /* QuotaCumulativeTrendChartModelTests.swift */; };
 		BT0000000000000000000201 /* ClashProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = BT0000000000000000000111 /* ClashProfile.swift */; };
 		BT0000000000000000000202 /* YAMLClashProfileCatalogReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = BT0000000000000000000112 /* YAMLClashProfileCatalogReader.swift */; };
 		BT0000000000000000000203 /* KeychainProfileFingerprintKeyStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BT0000000000000000000113 /* KeychainProfileFingerprintKeyStore.swift */; };
@@ -355,6 +361,12 @@
 		BS0000000000000000000106 /* SubscriptionQuotaStatisticsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionQuotaStatisticsView.swift; sourceTree = "<group>"; };
 		BS0000000000000000000107 /* StatisticsWorkspaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatisticsWorkspaceView.swift; sourceTree = "<group>"; };
 		BS0000000000000000000108 /* TrafficMonitorQuotaLifecycleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficMonitorQuotaLifecycleTests.swift; sourceTree = "<group>"; };
+		CV0000000000000000000101 /* QuotaCumulativeTrendChartModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotaCumulativeTrendChartModel.swift; sourceTree = "<group>"; };
+		CV0000000000000000000102 /* QuotaCumulativeTrendChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotaCumulativeTrendChart.swift; sourceTree = "<group>"; };
+		CV0000000000000000000103 /* QuotaCumulativeTrendChartMarks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotaCumulativeTrendChartMarks.swift; sourceTree = "<group>"; };
+		CV0000000000000000000104 /* QuotaCumulativeTrendHoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotaCumulativeTrendHoverView.swift; sourceTree = "<group>"; };
+		CV0000000000000000000105 /* QuotaCumulativeTrendSummaryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotaCumulativeTrendSummaryView.swift; sourceTree = "<group>"; };
+		CV0000000000000000000106 /* QuotaCumulativeTrendChartModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotaCumulativeTrendChartModelTests.swift; sourceTree = "<group>"; };
 		BT0000000000000000000111 /* ClashProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClashProfile.swift; sourceTree = "<group>"; };
 		BT0000000000000000000112 /* YAMLClashProfileCatalogReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YAMLClashProfileCatalogReader.swift; sourceTree = "<group>"; };
 		BT0000000000000000000113 /* KeychainProfileFingerprintKeyStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainProfileFingerprintKeyStore.swift; sourceTree = "<group>"; };
@@ -554,6 +566,11 @@
 				CA0000000000000000000101 /* ProfileQuotaStatusPresentation.swift */,
 				BU0000000000000000000117 /* ProfileTrackingManagementView.swift */,
 				A70000000000000000000101 /* ProxyStatusItemView.swift */,
+				CV0000000000000000000102 /* QuotaCumulativeTrendChart.swift */,
+				CV0000000000000000000103 /* QuotaCumulativeTrendChartMarks.swift */,
+				CV0000000000000000000101 /* QuotaCumulativeTrendChartModel.swift */,
+				CV0000000000000000000104 /* QuotaCumulativeTrendHoverView.swift */,
+				CV0000000000000000000105 /* QuotaCumulativeTrendSummaryView.swift */,
 				BS0000000000000000000103 /* QuotaTrendChart.swift */,
 				CU0000000000000000000105 /* QuotaTrendControls.swift */,
 				CU0000000000000000000107 /* QuotaTrendDetailView.swift */,
@@ -606,6 +623,7 @@
 				BW0000000000000000000106 /* MihomoLocalProxyTests.swift */,
 				AD0000000000000000000102 /* MihomoMonitoringSessionTests.swift */,
 				A30000000000000000000105 /* ProxyClassifierTests.swift */,
+				CV0000000000000000000106 /* QuotaCumulativeTrendChartModelTests.swift */,
 				BQ0000000000000000000112 /* QuotaDomainTests.swift */,
 				CU0000000000000000000102 /* QuotaUsageTrendTests.swift */,
 				CU0000000000000000000106 /* QuotaUsageChartAxisTests.swift */,
@@ -971,6 +989,11 @@
 				BR0000000000000000000202 /* RuntimeQuotaTrackingSnapshot.swift in Sources */,
 				CC0000000000000000000204 /* SubscriptionQuotaDataController.swift in Sources */,
 				BR0000000000000000000207 /* MihomoProxyProviderModels.swift in Sources */,
+				CV0000000000000000000202 /* QuotaCumulativeTrendChart.swift in Sources */,
+				CV0000000000000000000203 /* QuotaCumulativeTrendChartMarks.swift in Sources */,
+				CV0000000000000000000201 /* QuotaCumulativeTrendChartModel.swift in Sources */,
+				CV0000000000000000000204 /* QuotaCumulativeTrendHoverView.swift in Sources */,
+				CV0000000000000000000205 /* QuotaCumulativeTrendSummaryView.swift in Sources */,
 				BS0000000000000000000203 /* QuotaTrendChart.swift in Sources */,
 				CU0000000000000000000205 /* QuotaTrendControls.swift in Sources */,
 				CU0000000000000000000207 /* QuotaTrendDetailView.swift in Sources */,
@@ -1033,6 +1056,7 @@
 				BW0000000000000000000206 /* MihomoLocalProxyTests.swift in Sources */,
 				AD0000000000000000000202 /* MihomoMonitoringSessionTests.swift in Sources */,
 				A30000000000000000000205 /* ProxyClassifierTests.swift in Sources */,
+				CV0000000000000000000206 /* QuotaCumulativeTrendChartModelTests.swift in Sources */,
 				BQ0000000000000000000212 /* QuotaDomainTests.swift in Sources */,
 				CU0000000000000000000202 /* QuotaUsageTrendTests.swift in Sources */,
 				CU0000000000000000000206 /* QuotaUsageChartAxisTests.swift in Sources */,

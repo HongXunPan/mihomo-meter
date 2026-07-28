@@ -24,7 +24,7 @@ struct RuntimeQuotaCardView: View {
           Image(systemName: "arrow.up.left.and.arrow.down.right")
         }
         .buttonStyle(.borderless)
-        .help("放大查看并切换统计粒度")
+        .help("放大查看累计用量走势")
 
         Image(systemName: "dot.radiowaves.left.and.right")
           .foregroundStyle(.cyan)
@@ -34,8 +34,7 @@ struct RuntimeQuotaCardView: View {
 
       SubscriptionQuotaMetricsView(
         quota: quota,
-        trend: controller.snapshot.trends.trend(for: window),
-        aggregation: window.defaultUsageAggregation
+        trend: controller.snapshot.trends.trend(for: window)
       )
 
       QuotaEventSummaryView(analysis: controller.snapshot.analysis) {

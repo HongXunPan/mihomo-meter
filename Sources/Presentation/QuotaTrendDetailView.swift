@@ -19,7 +19,6 @@ struct QuotaTrendDetailView: View {
 
   @Environment(\.dismiss) private var dismiss
   @State private var window: QuotaTrendWindow
-  @State private var aggregation: QuotaUsageAggregation
 
   init(
     title: String,
@@ -29,12 +28,6 @@ struct QuotaTrendDetailView: View {
     self.title = title
     self.trends = trends
     _window = State(initialValue: initialWindow)
-    _aggregation = State(
-      initialValue: Self.preferredAggregation(
-        for: initialWindow,
-        trends: trends
-      )
-    )
   }
 
   var body: some View {
@@ -47,36 +40,15 @@ struct QuotaTrendDetailView: View {
       VStack(alignment: .leading, spacing: 16) {
         QuotaTrendRangeControl(window: $window)
 
-        HStack {
-          QuotaTrendAggregationControl(
-            aggregation: $aggregation,
-            availableAggregations: availableAggregations
-          )
-          Spacer()
-          Text(SubscriptionQuotaFormatter.usageSummary(series))
-            .font(.caption)
-            .foregroundStyle(.secondary)
+        if let latestPoint {
+          QuotaCumulativeTrendSummaryView(traffic: latestPoint.traffic)
         }
 
-        ScrollView(.horizontal) {
-          QuotaTrendChart(
-            trend: trend,
-            aggregation: aggregation,
-            preferredBarWidth: 10
-          )
-          .frame(
-            width: QuotaTrendChartLayout.contentWidth(
-              slotCount: chartAxis.slots.count
-            )
-          )
-        }
+        QuotaCumulativeTrendChart(trend: trend, isExpanded: true)
       }
       .padding(20)
     }
     .frame(minWidth: 840, minHeight: 520)
-    .onChange(of: window) { newWindow in
-      aggregation = Self.preferredAggregation(for: newWindow, trends: trends)
-    }
   }
 
   private var header: some View {
@@ -84,7 +56,7 @@ struct QuotaTrendDetailView: View {
       VStack(alignment: .leading, spacing: 3) {
         Text(title)
           .font(.title2.weight(.semibold))
-        Text("订阅新增用量大图")
+        Text("订阅累计用量大图")
           .font(.caption)
           .foregroundStyle(.secondary)
       }
@@ -102,28 +74,9 @@ struct QuotaTrendDetailView: View {
     trends.trend(for: window)
   }
 
-  private var series: QuotaUsageSeries {
-    trend.usageSeries(for: aggregation)
-  }
-
-  private var chartAxis: QuotaUsageChartAxis {
-    QuotaUsageChartAxis(series: series)
-  }
-
-  private var availableAggregations: Set<QuotaUsageAggregation> {
-    Set(
-      QuotaUsageAggregation.selectableCases.filter {
-        trend.usageSeries(for: $0).isAvailable
-      }
-    )
-  }
-
-  private static func preferredAggregation(
-    for window: QuotaTrendWindow,
-    trends: RuntimeQuotaTrends
-  ) -> QuotaUsageAggregation {
-    let preferred = window.defaultUsageAggregation
-    let trend = trends.trend(for: window)
-    return trend.usageSeries(for: preferred).bars.isEmpty ? .automatic : preferred
+  private var latestPoint: QuotaTrendPoint? {
+    trend.segments
+      .flatMap(\.points)
+      .max { $0.date < $1.date }
   }
 }

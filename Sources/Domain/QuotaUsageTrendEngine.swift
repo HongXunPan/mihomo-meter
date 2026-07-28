@@ -100,15 +100,16 @@ enum QuotaUsageTrendEngine {
     rangeEnd: Date
   ) -> QuotaUsageSeries {
     let rangeDuration = rangeEnd.timeIntervalSince(rangeStart)
-    let candidates = QuotaUsageAggregation.calculationCases.compactMap { aggregation in
-      guard aggregation.nominalDuration <= rangeDuration,
-        let series = manualSeries[aggregation],
-        !series.bars.isEmpty
-      else {
-        return nil
+    let candidates: [QuotaUsageSeries] =
+      QuotaUsageAggregation.calculationCases.compactMap { aggregation -> QuotaUsageSeries? in
+        guard aggregation.nominalDuration <= rangeDuration,
+          let series = manualSeries[aggregation],
+          !series.bars.isEmpty
+        else {
+          return nil
+        }
+        return series
       }
-      return series
-    }
     guard let selected = candidates.min(by: { score($0) < score($1) }) else {
       let fallback = manualSeries[.hour] ?? .empty(aggregation: .hour)
       return QuotaUsageSeries(

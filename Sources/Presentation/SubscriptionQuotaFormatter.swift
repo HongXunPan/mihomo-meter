@@ -103,6 +103,43 @@ enum SubscriptionQuotaFormatter {
     }
   }
 
+  static func trendTimestamp(_ date: Date) -> String {
+    usageDate(date, template: "yyyyMdHHmm")
+  }
+
+  static func trendTick(_ date: Date, window: QuotaTrendWindow) -> String {
+    switch window {
+    case .day, .week:
+      usageDate(date, template: "MdHH")
+    case .month:
+      usageDate(date, template: "Md")
+    case .year:
+      usageDate(date, template: "yyyyM")
+    }
+  }
+
+  static func trendCoverage(
+    from start: Date,
+    to end: Date,
+    displayedPointCount: Int,
+    sourcePointCount: Int
+  ) -> String {
+    "覆盖 \(trendTimestamp(start))–\(trendTimestamp(end)) · "
+      + "展示 \(displayedPointCount)/\(sourcePointCount) 个真实快照"
+  }
+
+  static func preciseDuration(_ interval: TimeInterval) -> String {
+    guard interval >= 60 else {
+      return "不足 1 分钟"
+    }
+    let formatter = DateComponentsFormatter()
+    formatter.unitsStyle = .abbreviated
+    formatter.allowedUnits = [.day, .hour, .minute]
+    formatter.maximumUnitCount = 2
+    formatter.zeroFormattingBehavior = .dropAll
+    return formatter.string(from: interval) ?? duration(interval)
+  }
+
   static func depletion(_ trend: QuotaTrend) -> String {
     switch trend.depletionForecast {
     case .available(let estimatedDepletionAt):

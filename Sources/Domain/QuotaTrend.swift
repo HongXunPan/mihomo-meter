@@ -46,6 +46,15 @@ struct QuotaTrendPoint: Identifiable, Equatable, Sendable {
   let traffic: QuotaTraffic
 }
 
+struct QuotaTrendSegment: Identifiable, Equatable, Sendable {
+  let cycleID: UUID
+  let points: [QuotaTrendPoint]
+
+  var id: UUID {
+    cycleID
+  }
+}
+
 enum QuotaForecastUnavailableReason: Equatable, Sendable {
   case insufficientSamples
   case insufficientObservationSpan
@@ -90,6 +99,7 @@ struct RuntimeQuotaTrends: Equatable, Sendable {
 struct QuotaTrend: Equatable, Sendable {
   let window: QuotaTrendWindow
   let points: [QuotaTrendPoint]
+  let segments: [QuotaTrendSegment]
   let usageByAggregation: [QuotaUsageAggregation: QuotaUsageSeries]
   let consumedBytes: UInt64?
   let dailyConsumptionBytes: Double?
@@ -110,6 +120,7 @@ struct QuotaTrend: Equatable, Sendable {
     QuotaTrend(
       window: window,
       points: [],
+      segments: [],
       usageByAggregation: [:],
       consumedBytes: nil,
       dailyConsumptionBytes: nil,

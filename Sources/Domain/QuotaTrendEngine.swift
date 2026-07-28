@@ -21,27 +21,22 @@ enum QuotaTrendEngine {
       windowEnd: now,
       calendar: calendar
     )
-    let points =
+    let windowSnapshots =
       snapshots
       .filter { snapshot in
-        snapshot.cycleID == latestSnapshot.cycleID
-          && snapshot.effectiveAt >= windowStart
+        snapshot.effectiveAt >= windowStart
           && snapshot.effectiveAt <= now
       }
-      .sorted { left, right in
-        if left.effectiveAt == right.effectiveAt {
-          return left.observedAt < right.observedAt
-        }
-        return left.effectiveAt < right.effectiveAt
-      }
-      .map {
-        QuotaTrendPoint(id: $0.id, date: $0.effectiveAt, traffic: $0.traffic)
-      }
+      .sorted(by: snapshotOrder)
+    let segments = trendSegments(from: windowSnapshots)
+    let points =
+      segments.first(where: { $0.cycleID == latestSnapshot.cycleID })?.points ?? []
 
     guard let first = points.first, let last = points.last, points.count >= 2 else {
       return QuotaTrend(
         window: window,
         points: points,
+        segments: segments,
         usageByAggregation: usageByAggregation,
         consumedBytes: nil,
         dailyConsumptionBytes: nil,
@@ -58,6 +53,7 @@ enum QuotaTrendEngine {
       return QuotaTrend(
         window: window,
         points: points,
+        segments: segments,
         usageByAggregation: usageByAggregation,
         consumedBytes: nil,
         dailyConsumptionBytes: nil,
@@ -73,6 +69,7 @@ enum QuotaTrendEngine {
       return QuotaTrend(
         window: window,
         points: points,
+        segments: segments,
         usageByAggregation: usageByAggregation,
         consumedBytes: nil,
         dailyConsumptionBytes: nil,
@@ -93,11 +90,49 @@ enum QuotaTrendEngine {
     return QuotaTrend(
       window: window,
       points: points,
+      segments: segments,
       usageByAggregation: usageByAggregation,
       consumedBytes: consumedBytes,
       dailyConsumptionBytes: dailyConsumptionBytes,
       depletionForecast: depletionForecast
     )
+  }
+
+  private static func snapshotOrder(
+    _ left: SubscriptionQuotaSnapshot,
+    _ right: SubscriptionQuotaSnapshot
+  ) -> Bool {
+    if left.effectiveAt == right.effectiveAt {
+      return left.observedAt < right.observedAt
+    }
+    return left.effectiveAt < right.effectiveAt
+  }
+
+  private static func trendSegments(
+    from snapshots: [SubscriptionQuotaSnapshot]
+  ) -> [QuotaTrendSegment] {
+    var cycleIDs: [UUID] = []
+    var pointsByCycle: [UUID: [QuotaTrendPoint]] = [:]
+
+    for snapshot in snapshots {
+      if pointsByCycle[snapshot.cycleID] == nil {
+        cycleIDs.append(snapshot.cycleID)
+      }
+      pointsByCycle[snapshot.cycleID, default: []].append(
+        QuotaTrendPoint(
+          id: snapshot.id,
+          date: snapshot.effectiveAt,
+          traffic: snapshot.traffic
+        )
+      )
+    }
+
+    return cycleIDs.compactMap { cycleID in
+      guard let points = pointsByCycle[cycleID], !points.isEmpty else {
+        return nil
+      }
+      return QuotaTrendSegment(cycleID: cycleID, points: points)
+    }
   }
 
   private static func forecast(
