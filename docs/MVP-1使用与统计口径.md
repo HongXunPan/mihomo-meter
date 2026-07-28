@@ -31,7 +31,7 @@ Debug 与正式版本都会生成不含 Secret 的本地脱敏诊断日志，具
 
 ### 版本与更新
 
-快速菜单底部展示 `CFBundleShortVersionString`。应用使用 Sparkle 读取 GitHub 最新 Release 中的 `appcast.xml`，启动时检查一次，也允许用户点击“检查更新”手动触发。发现更新后由 Sparkle 标准界面展示发布信息，只有用户确认后才下载 Universal DMG，并在解压前校验 Ed25519 签名，再替换应用和重启；应用不允许后台静默安装。
+连接设置窗口展示 `CFBundleShortVersionString`。应用使用 Sparkle 读取 GitHub 最新 Release 中的 `appcast.xml`，启动时检查一次，也允许用户通过快速菜单原生“检查更新”动作手动触发。发现更新后由 Sparkle 标准界面展示发布信息，只有用户确认后才下载 Universal DMG，并在解压前校验 Ed25519 签名，再替换应用和重启；应用不允许后台静默安装。
 
 `0.1.x` 没有内置 Sparkle，因此首次升级到 `0.2.x` 仍需从 GitHub Releases 手动下载 DMG。安装了包含 Sparkle 的版本后，后续版本才能使用应用内更新。更新检查或下载失败不会影响 Mihomo 监控。
 

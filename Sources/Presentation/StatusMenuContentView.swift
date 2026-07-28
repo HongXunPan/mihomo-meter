@@ -2,17 +2,24 @@ import AppKit
 import SwiftUI
 
 enum StatusMenuLayout {
-  static let contentSize = NSSize(width: 400, height: 620)
+  static let contentSize = NSSize(width: 400, height: 560)
+}
+
+@MainActor
+final class StatusMenuPresentationState: ObservableObject {
+  @Published private(set) var presentationID = UUID()
+
+  func prepareForPresentation() {
+    presentationID = UUID()
+  }
 }
 
 struct StatusMenuContentView: View {
+  @ObservedObject var presentationState: StatusMenuPresentationState
   @ObservedObject var monitor: TrafficMonitor
   @ObservedObject var statisticsController: TrafficStatisticsController
   @ObservedObject var quotaController: RuntimeQuotaTrackingController
   @ObservedObject var profileQuotaController: ProfileQuotaTrackingController
-  @ObservedObject var updateModel: AppUpdateModel
-  let checkForUpdates: () -> Void
-  let startStatistics: () -> Void
   let showAllStatistics: () -> Void
   let showQuotaStatistics: () -> Void
 
@@ -22,22 +29,31 @@ struct StatusMenuContentView: View {
     VStack(spacing: 0) {
       header
         .padding(.horizontal, 16)
-        .padding(.vertical, 14)
+        .padding(.vertical, 12)
 
       Divider()
 
-      ScrollView {
-        VStack(alignment: .leading, spacing: 0) {
-          trafficOverview
-          sectionDivider
-          trafficStatistics
-          sectionDivider
-          subscriptionQuota
+      ScrollViewReader { proxy in
+        ScrollView {
+          VStack(alignment: .leading, spacing: 0) {
+            trafficOverview
+            sectionDivider
+            trafficStatistics
+            sectionDivider
+            subscriptionQuota
+          }
+          .id(StatusMenuScrollAnchor.top)
+          .padding(16)
         }
-        .padding(16)
+        .onAppear {
+          proxy.scrollTo(StatusMenuScrollAnchor.top, anchor: .top)
+        }
+        .onChange(of: presentationState.presentationID) { _, _ in
+          Task { @MainActor in
+            proxy.scrollTo(StatusMenuScrollAnchor.top, anchor: .top)
+          }
+        }
       }
-
-      footer
     }
     .frame(
       width: StatusMenuLayout.contentSize.width,
@@ -47,10 +63,10 @@ struct StatusMenuContentView: View {
   }
 
   private var header: some View {
-    VStack(alignment: .leading, spacing: 8) {
+    VStack(alignment: .leading, spacing: 5) {
       HStack {
         Text("Mihomo Meter")
-          .font(.title3.weight(.semibold))
+          .font(.headline)
 
         Spacer()
 
@@ -76,7 +92,7 @@ struct StatusMenuContentView: View {
           Button("立即重连") {
             monitor.reconnectNow()
           }
-          .buttonStyle(.bordered)
+          .buttonStyle(.borderless)
           .controlSize(.small)
           .accessibilityHint("取消当前等待并立即重新连接 Mihomo 服务")
         }
@@ -95,7 +111,6 @@ struct StatusMenuContentView: View {
     TrafficStatisticsSummaryView(
       controller: statisticsController,
       isMonitoringAvailable: allowsTrafficStatistics,
-      startStatistics: startStatistics,
       showAllStatistics: showAllStatistics
     )
   }
@@ -113,32 +128,12 @@ struct StatusMenuContentView: View {
       .padding(.vertical, 8)
   }
 
-  private var footer: some View {
-    VStack(spacing: 0) {
-      Divider()
-
-      VStack(alignment: .leading, spacing: 3) {
-        Text("只读监控，不修改 Mihomo 或系统代理。")
-          .font(.caption2)
-          .foregroundStyle(.secondary)
-
-        AppUpdateView(
-          model: updateModel,
-          checkForUpdates: checkForUpdates
-        )
-      }
-      .frame(maxWidth: .infinity, alignment: .leading)
-      .padding(.horizontal, 16)
-      .padding(.vertical, 10)
-    }
-  }
-
   private var statusDescription: String {
     if monitor.connectionState == .connected {
       guard monitor.lastObservedAt != nil else {
-        return "正在监控 Proxy 实时流量。"
+        return "Proxy 监控 · 等待首份数据"
       }
-      return "正在监控 Proxy 实时流量 · 刚刚更新"
+      return "Proxy 监控 · 刚刚更新"
     }
     return monitor.message
   }
@@ -168,5 +163,8 @@ struct StatusMenuContentView: View {
       .secondary
     }
   }
+}
 
+private enum StatusMenuScrollAnchor {
+  static let top = "status-menu-top"
 }

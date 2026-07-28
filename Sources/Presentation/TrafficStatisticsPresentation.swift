@@ -35,6 +35,10 @@ enum TrafficStatisticsFilter: String, CaseIterable, Identifiable {
 enum TrafficStatisticsPresentation {
   static let quickActiveLimit = 3
 
+  static func suggestedIntervalName(from intervals: [TrafficInterval]) -> String {
+    "统计任务 \(intervals.count + 1)"
+  }
+
   static func quickActiveIntervals(from intervals: [TrafficInterval]) -> [TrafficInterval] {
     Array(
       intervals

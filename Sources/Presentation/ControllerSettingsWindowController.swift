@@ -7,9 +7,12 @@ final class ControllerSettingsWindowController: NSWindowController {
   private static let minimumSize = NSSize(width: 480, height: 320)
   private static let frameAutosaveName = "ControllerSettingsWindow"
 
-  init(monitor: TrafficMonitor) {
+  init(monitor: TrafficMonitor, updateModel: AppUpdateModel) {
     let hostingController = NSHostingController(
-      rootView: ControllerSettingsView(monitor: monitor)
+      rootView: ControllerSettingsView(
+        monitor: monitor,
+        updateModel: updateModel
+      )
     )
     let window = NSWindow(
       contentRect: NSRect(origin: .zero, size: Self.initialSize),

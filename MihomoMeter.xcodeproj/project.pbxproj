@@ -69,7 +69,6 @@
 		AL0000000000000000000201 /* TrafficMonitorTestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = AL0000000000000000000101 /* TrafficMonitorTestSupport.swift */; };
 		AP0000000000000000000201 /* AppUpdateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AP0000000000000000000101 /* AppUpdateModel.swift */; };
 		AQ0000000000000000000201 /* SparkleAppUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = AQ0000000000000000000101 /* SparkleAppUpdater.swift */; };
-		AR0000000000000000000201 /* AppUpdateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AR0000000000000000000101 /* AppUpdateView.swift */; };
 		AS0000000000000000000201 /* AppUpdateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AS0000000000000000000101 /* AppUpdateTests.swift */; };
 		AT0000000000000000000201 /* AppHelpLinksMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = AT0000000000000000000101 /* AppHelpLinksMenu.swift */; };
 		AU0000000000000000000201 /* AppHelpLinksTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AU0000000000000000000101 /* AppHelpLinksTests.swift */; };
@@ -284,7 +283,6 @@
 		AM0000000000000000000101 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 		AP0000000000000000000101 /* AppUpdateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppUpdateModel.swift; sourceTree = "<group>"; };
 		AQ0000000000000000000101 /* SparkleAppUpdater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SparkleAppUpdater.swift; sourceTree = "<group>"; };
-		AR0000000000000000000101 /* AppUpdateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppUpdateView.swift; sourceTree = "<group>"; };
 		AS0000000000000000000101 /* AppUpdateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppUpdateTests.swift; sourceTree = "<group>"; };
 		AT0000000000000000000101 /* AppHelpLinksMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppHelpLinksMenu.swift; sourceTree = "<group>"; };
 		AU0000000000000000000101 /* AppHelpLinksTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppHelpLinksTests.swift; sourceTree = "<group>"; };
@@ -563,7 +561,6 @@
 			isa = PBXGroup;
 			children = (
 				AT0000000000000000000101 /* AppHelpLinksMenu.swift */,
-				AR0000000000000000000101 /* AppUpdateView.swift */,
 				BU0000000000000000000118 /* ClashProfileIdentityCard.swift */,
 				A90000000000000000000101 /* ControllerSettingsView.swift */,
 				C30000000000000000000101 /* ControllerSettingsWindowController.swift */,
@@ -906,7 +903,6 @@
 				AA00000000000000000000205 /* ProfileQuotaDiagnosticEvent.swift in Sources */,
 				AT0000000000000000000201 /* AppHelpLinksMenu.swift in Sources */,
 				AP0000000000000000000201 /* AppUpdateModel.swift in Sources */,
-				AR0000000000000000000201 /* AppUpdateView.swift in Sources */,
 				A30000000000000000000203 /* ConnectionDeltaTracker.swift in Sources */,
 				BT0000000000000000000201 /* ClashProfile.swift in Sources */,
 				BU0000000000000000000204 /* ClashProfileDirectoryController.swift in Sources */,

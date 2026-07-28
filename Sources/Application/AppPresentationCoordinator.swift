@@ -26,9 +26,6 @@ final class AppPresentationCoordinator {
       showStatistics: { [weak self] module in
         self?.showStatisticsWindow(module: module)
       },
-      startTrafficStatistics: { [weak self] in
-        self?.showTrafficIntervalCreation()
-      },
       showControllerSettings: { [weak self] in
         self?.showControllerSettings()
       }
@@ -46,7 +43,8 @@ final class AppPresentationCoordinator {
       monitor: dependencies.monitor
     )
     controllerSettingsWindowController = ControllerSettingsWindowController(
-      monitor: dependencies.monitor
+      monitor: dependencies.monitor,
+      updateModel: dependencies.updateModel
     )
 
     // 状态栏必须随应用协调器一起完成装配并保持整个应用生命周期。
@@ -61,11 +59,6 @@ final class AppPresentationCoordinator {
   private func showStatisticsWindow(module: StatisticsModule) {
     menuBarController.dismissStatusMenuForWindowPresentation()
     statisticsWindowController.show(module: module)
-  }
-
-  private func showTrafficIntervalCreation() {
-    menuBarController.dismissStatusMenuForWindowPresentation()
-    statisticsWindowController.showTrafficIntervalCreation()
   }
 
   private func showControllerSettings() {

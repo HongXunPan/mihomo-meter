@@ -3,7 +3,6 @@ import SwiftUI
 struct TrafficStatisticsView: View {
   @ObservedObject var controller: TrafficStatisticsController
   @ObservedObject var monitor: TrafficMonitor
-  @Binding var requestsIntervalCreation: Bool
 
   @State private var filter = TrafficStatisticsFilter.all
   @State private var editor: TrafficIntervalEditor?
@@ -53,13 +52,6 @@ struct TrafficStatisticsView: View {
       Button("取消", role: .cancel) {}
     } message: {
       Text("账本和全部统计任务会被删除；服务地址与访问密钥（Secret）会保留。")
-    }
-    .onAppear(perform: presentRequestedIntervalEditor)
-    .onChange(of: requestsIntervalCreation) { _, isRequested in
-      guard isRequested else {
-        return
-      }
-      presentRequestedIntervalEditor()
     }
   }
 
@@ -209,18 +201,8 @@ struct TrafficStatisticsView: View {
     controller.availability.isAvailable && isMonitoringAvailable && editor == nil
   }
 
-  private func presentRequestedIntervalEditor() {
-    guard requestsIntervalCreation else {
-      return
-    }
-
-    requestsIntervalCreation = false
-    intervalPendingDeletion = nil
-    editor = .create(initialName: suggestedName)
-  }
-
   private var suggestedName: String {
-    "统计任务 \(controller.snapshot.intervals.count + 1)"
+    TrafficStatisticsPresentation.suggestedIntervalName(from: controller.snapshot.intervals)
   }
 
   private var emptyMessage: String {

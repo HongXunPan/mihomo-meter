@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ControllerSettingsView: View {
   @ObservedObject var monitor: TrafficMonitor
+  @ObservedObject var updateModel: AppUpdateModel
 
   var body: some View {
     VStack(spacing: 0) {
@@ -37,6 +38,20 @@ struct ControllerSettingsView: View {
         }
       }
       .formStyle(.grouped)
+
+      Divider()
+
+      HStack(spacing: 12) {
+        Text("只读监控，不修改 Mihomo 或系统代理。")
+
+        Spacer()
+
+        Text("版本 \(updateModel.currentVersionText)")
+      }
+      .font(.caption)
+      .foregroundStyle(.secondary)
+      .padding(.horizontal, 20)
+      .padding(.vertical, 10)
     }
     .frame(minWidth: 480, minHeight: 320)
   }

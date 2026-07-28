@@ -3,8 +3,9 @@ import SwiftUI
 struct TrafficStatisticsSummaryView: View {
   @ObservedObject var controller: TrafficStatisticsController
   let isMonitoringAvailable: Bool
-  let startStatistics: () -> Void
   let showAllStatistics: () -> Void
+
+  @State private var isStartingInterval = false
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
@@ -30,12 +31,20 @@ struct TrafficStatisticsSummaryView: View {
 
       Spacer()
 
-      Button("开始统计") {
-        startStatistics()
+      Button {
+        startInterval()
+      } label: {
+        HStack(spacing: 5) {
+          if isStartingInterval {
+            ProgressView()
+              .controlSize(.small)
+          }
+          Text(isStartingInterval ? "正在开始…" : "开始统计")
+        }
       }
       .buttonStyle(.borderedProminent)
       .controlSize(.small)
-      .disabled(!canStartInterval)
+      .disabled(!canStartInterval || isStartingInterval)
     }
   }
 
@@ -108,5 +117,20 @@ struct TrafficStatisticsSummaryView: View {
 
   private var canStartInterval: Bool {
     controller.availability.isAvailable && isMonitoringAvailable
+  }
+
+  private func startInterval() {
+    guard canStartInterval, !isStartingInterval else {
+      return
+    }
+
+    let name = TrafficStatisticsPresentation.suggestedIntervalName(
+      from: controller.snapshot.intervals
+    )
+    isStartingInterval = true
+    Task { @MainActor in
+      await controller.startInterval(name: name)
+      isStartingInterval = false
+    }
   }
 }

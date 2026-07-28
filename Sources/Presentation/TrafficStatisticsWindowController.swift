@@ -55,12 +55,6 @@ final class TrafficStatisticsWindowController: NSWindowController {
     showCurrentModule()
   }
 
-  func showTrafficIntervalCreation() {
-    workspaceModel.selectedModule = .proxyTraffic
-    workspaceModel.requestsTrafficIntervalCreation = true
-    showCurrentModule()
-  }
-
   func showCurrentModule() {
     NSApplication.shared.activate()
     showWindow(nil)

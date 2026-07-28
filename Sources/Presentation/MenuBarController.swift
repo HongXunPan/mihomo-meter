@@ -4,7 +4,6 @@ import SwiftUI
 
 struct MenuBarPresentationActions {
   let showStatistics: (StatisticsModule) -> Void
-  let startTrafficStatistics: () -> Void
   let showControllerSettings: () -> Void
 }
 
@@ -21,6 +20,8 @@ final class MenuBarController: NSObject {
   private let profileQuotaController: ProfileQuotaTrackingController
   private let updateModel: AppUpdateModel
   private let actions: MenuBarPresentationActions
+  private let statusMenuPresentationState = StatusMenuPresentationState()
+  private var updateMenuItem: NSMenuItem?
   private var cancellables: Set<AnyCancellable> = []
 
   private lazy var statusMenuController = makeStatusMenuController()
@@ -48,6 +49,7 @@ final class MenuBarController: NSObject {
     configureStatusItem()
     statusItem.menu = statusMenuController.menu
     observeMonitor()
+    observeUpdateAvailability()
   }
 
   private func configureStatusItem() {
@@ -73,22 +75,11 @@ final class MenuBarController: NSObject {
   private func makeStatusMenuController() -> StatusMenuController {
     let hostingController = NSHostingController(
       rootView: StatusMenuContentView(
+        presentationState: statusMenuPresentationState,
         monitor: monitor,
         statisticsController: statisticsController,
         quotaController: quotaController,
         profileQuotaController: profileQuotaController,
-        updateModel: updateModel,
-        checkForUpdates: { [weak self] in
-          self?.performMenuAction {
-            NSApplication.shared.activate()
-            self?.updateModel.checkForUpdates()
-          }
-        },
-        startStatistics: { [weak self] in
-          self?.performMenuAction {
-            self?.actions.startTrafficStatistics()
-          }
-        },
         showAllStatistics: { [weak self] in
           self?.performMenuAction {
             self?.actions.showStatistics(.proxyTraffic)
@@ -106,7 +97,10 @@ final class MenuBarController: NSObject {
 
     let controller = StatusMenuController(
       contentViewController: hostingController,
-      contentSize: StatusMenuLayout.contentSize
+      contentSize: StatusMenuLayout.contentSize,
+      prepareForPresentation: { [weak self] in
+        self?.statusMenuPresentationState.prepareForPresentation()
+      }
     )
     appendNativeActions(to: controller.menu)
     return controller
@@ -123,6 +117,18 @@ final class MenuBarController: NSObject {
     settingsItem.target = self
     settingsItem.keyEquivalentModifierMask = [.command]
     menu.addItem(settingsItem)
+
+    let updateItem = NSMenuItem(
+      title: "检查更新…",
+      action: #selector(checkForUpdates),
+      keyEquivalent: ""
+    )
+    updateItem.target = self
+    updateItem.isEnabled = updateModel.canCheckForUpdates
+    updateMenuItem = updateItem
+    menu.addItem(updateItem)
+
+    menu.addItem(.separator())
 
     let quitItem = NSMenuItem(
       title: "退出 Mihomo Meter",
@@ -146,6 +152,15 @@ final class MenuBarController: NSObject {
           rate: snapshot.rate,
           state: snapshot.connectionState
         )
+      }
+      .store(in: &cancellables)
+  }
+
+  private func observeUpdateAvailability() {
+    updateModel.$canCheckForUpdates
+      .removeDuplicates()
+      .sink { [weak self] canCheckForUpdates in
+        self?.updateMenuItem?.isEnabled = canCheckForUpdates
       }
       .store(in: &cancellables)
   }
@@ -179,6 +194,14 @@ final class MenuBarController: NSObject {
   private func showControllerSettings() {
     performMenuAction {
       actions.showControllerSettings()
+    }
+  }
+
+  @objc
+  private func checkForUpdates() {
+    performMenuAction {
+      NSApplication.shared.activate()
+      updateModel.checkForUpdates()
     }
   }
 
