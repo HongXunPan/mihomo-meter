@@ -11,7 +11,34 @@ usage() {
 说明：
   默认构建已签名的 Debug 应用。
   使用 --run 时，构建完成后启动应用。
+  构建失败时会提取真实错误上下文，并保留完整日志用于反馈。
 EOF
+}
+
+print_build_diagnostics() {
+  local build_log_path="$1"
+  local error_context
+
+  error_context="$(
+    grep \
+      -n \
+      -E \
+      -B 2 \
+      -A 4 \
+      ':[0-9]+:[0-9]+: (fatal )?error:|(^|[[:space:]])(fatal )?error:|Could not resolve package dependencies:|Command .* failed with a nonzero exit code|compile command failed|fatal error encountered during compilation' \
+      "${build_log_path}" || true
+  )"
+
+  echo >&2
+  echo "========== 构建失败的真实错误上下文 ==========" >&2
+  if [[ -n "${error_context}" ]]; then
+    printf '%s\n' "${error_context}" | sed -n '1,200p' >&2
+  else
+    echo "未匹配到标准错误诊断，以下为构建日志最后 120 行：" >&2
+    tail -n 120 "${build_log_path}" >&2
+  fi
+  echo "=====================================================" >&2
+  echo "完整构建日志：${build_log_path}" >&2
 }
 
 verify_app_entitlements() {
@@ -96,28 +123,55 @@ fi
 
 derived_data_path="${MIHOMO_METER_DERIVED_DATA_PATH:-${project_root}/.build/LocalDerivedData}"
 app_path="${derived_data_path}/Build/Products/Debug/MihomoMeter.app"
+diagnostic_log_directory="${project_root}/.build/Diagnostics"
+build_log_path="${diagnostic_log_directory}/build-debug-$(date '+%Y%m%d-%H%M%S').log"
 
 cd "${project_root}"
+mkdir -p "${diagnostic_log_directory}"
 
-if ! xcodebuild \
+set +e
+xcodebuild \
   -project MihomoMeter.xcodeproj \
   -scheme MihomoMeter \
   -configuration Debug \
   -destination 'platform=macOS' \
   -derivedDataPath "${derived_data_path}" \
   -allowProvisioningUpdates \
-  build; then
-  cat >&2 <<'EOF'
+  build 2>&1 | tee "${build_log_path}"
+pipeline_status=("${PIPESTATUS[@]}")
+set -e
 
-构建失败。若上方错误为 CodeSign/errSecInternalComponent：
+build_status="${pipeline_status[0]}"
+tee_status="${pipeline_status[1]}"
+if [[ "${tee_status}" -ne 0 ]]; then
+  echo "无法写入完整构建日志：${build_log_path}" >&2
+fi
+
+if [[ "${build_status}" -ne 0 ]]; then
+  if [[ -s "${build_log_path}" ]]; then
+    print_build_diagnostics "${build_log_path}"
+  fi
+
+  if [[ -s "${build_log_path}" ]] &&
+    grep -Eq 'CodeSign|errSecInternalComponent' "${build_log_path}"; then
+    cat >&2 <<'EOF'
+
+检测到代码签名错误，请检查：
 1. 打开“钥匙串访问”，确认“登录”钥匙串已经解锁；
 2. 确认 Apple Development 证书存在对应私钥；
 3. 返回 Xcode 完成一次本机签名后再重试。
 
 请勿把登录钥匙串密码写入脚本。
 EOF
-  exit 1
+  fi
+  exit "${build_status}"
 fi
+
+if [[ "${tee_status}" -ne 0 ]]; then
+  exit "${tee_status}"
+fi
+
+rm -f "${build_log_path}"
 
 if ! verify_app_entitlements "${app_path}"; then
   exit 1

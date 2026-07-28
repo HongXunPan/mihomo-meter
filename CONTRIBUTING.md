@@ -40,6 +40,8 @@ scripts/build-debug.sh
 scripts/build-debug.sh --run
 ```
 
+Debug 构建失败时，脚本会在终端末尾重新输出真实错误上下文，并将完整构建日志保留到 `.build/Diagnostics/`，可供脱敏后复制反馈。构建成功时不保留该次诊断日志。
+
 日常修改 Swift 源码或测试后，默认只执行严格格式检查：
 
 ```bash
