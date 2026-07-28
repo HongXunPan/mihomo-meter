@@ -18,11 +18,14 @@ struct QuotaUsageHoverSummaryView: View {
 
           if let bar = slot.bar {
             Text("下载 \(SubscriptionQuotaFormatter.bytes(bar.downloadBytes))")
+              .foregroundStyle(MihomoColorToken.trafficDownload)
             Text("上传 \(SubscriptionQuotaFormatter.bytes(bar.uploadBytes))")
+              .foregroundStyle(MihomoColorToken.trafficUpload)
             Text("合计 \(SubscriptionQuotaFormatter.bytes(bar.totalBytes))")
+              .foregroundStyle(MihomoColorToken.trafficTotal)
             if bar.isBoundaryApproximation {
               Text("边界近似")
-                .foregroundStyle(.orange)
+                .foregroundStyle(MihomoColorToken.statusWarning)
             }
           } else {
             Text("无可归属数据")

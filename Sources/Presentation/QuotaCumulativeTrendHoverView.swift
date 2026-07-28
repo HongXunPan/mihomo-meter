@@ -33,45 +33,55 @@ struct QuotaCumulativeTrendHoverView: View {
         .font(.caption2.weight(.medium))
         .foregroundStyle(.secondary)
 
-      Text(cumulativeSummary)
+      cumulativeSummary
         .font(.caption.monospacedDigit())
         .lineLimit(1)
 
-      Text(comparisonSummary)
+      comparisonSummary
         .font(.caption2)
-        .foregroundStyle(comparisonTone)
         .fixedSize(horizontal: false, vertical: true)
     }
     .frame(maxWidth: isCompact ? .infinity : nil, alignment: .leading)
   }
 
-  private var cumulativeSummary: String {
+  private var cumulativeSummary: Text {
     let traffic = displayPoint.point.traffic
-    return "累计 ↓\(SubscriptionQuotaFormatter.bytes(traffic.downloadBytes)) "
-      + "↑\(SubscriptionQuotaFormatter.bytes(traffic.uploadBytes)) · "
-      + "总消耗 \(SubscriptionQuotaFormatter.bytes(traffic.usedBytes))"
+    return Text("累计 ").foregroundStyle(.secondary)
+      + Text("↓\(SubscriptionQuotaFormatter.bytes(traffic.downloadBytes))")
+      .foregroundStyle(MihomoColorToken.trafficDownload)
+      + Text(" ").foregroundStyle(.secondary)
+      + Text("↑\(SubscriptionQuotaFormatter.bytes(traffic.uploadBytes))")
+      .foregroundStyle(MihomoColorToken.trafficUpload)
+      + Text(" · ").foregroundStyle(.secondary)
+      + Text("总消耗 \(SubscriptionQuotaFormatter.bytes(traffic.usedBytes))")
+      .foregroundStyle(MihomoColorToken.trafficTotal)
   }
 
-  private var comparisonSummary: String {
+  private var comparisonSummary: Text {
     guard let previousPoint = displayPoint.previousPoint,
       let delta = displayPoint.delta
     else {
       if breakReason == .counterRegression {
-        return "累计值回退后的首个点，无可比较增量"
+        return Text("累计值回退后的首个点，无可比较增量")
+          .foregroundStyle(MihomoColorToken.statusWarning)
       }
-      return "本周期首个展示点，无可比较增量"
+      return Text("本周期首个展示点，无可比较增量")
+        .foregroundStyle(.secondary)
     }
 
-    return "\(SubscriptionQuotaFormatter.trendTimestamp(previousPoint.date))–"
+    let interval =
+      "\(SubscriptionQuotaFormatter.trendTimestamp(previousPoint.date))–"
       + "\(SubscriptionQuotaFormatter.trendTimestamp(displayPoint.point.date)) · "
       + "\(SubscriptionQuotaFormatter.preciseDuration(delta.duration)) "
-      + "↓\(SubscriptionQuotaFormatter.bytes(delta.downloadBytes)) "
-      + "↑\(SubscriptionQuotaFormatter.bytes(delta.uploadBytes)) · "
-      + "合计 \(SubscriptionQuotaFormatter.bytes(delta.totalBytes))"
-  }
-
-  private var comparisonTone: Color {
-    breakReason == .counterRegression ? .orange : .secondary
+    return Text(interval).foregroundStyle(.secondary)
+      + Text("↓\(SubscriptionQuotaFormatter.bytes(delta.downloadBytes))")
+      .foregroundStyle(MihomoColorToken.trafficDownload)
+      + Text(" ").foregroundStyle(.secondary)
+      + Text("↑\(SubscriptionQuotaFormatter.bytes(delta.uploadBytes))")
+      .foregroundStyle(MihomoColorToken.trafficUpload)
+      + Text(" · ").foregroundStyle(.secondary)
+      + Text("合计 \(SubscriptionQuotaFormatter.bytes(delta.totalBytes))")
+      .foregroundStyle(MihomoColorToken.trafficTotal)
   }
 }
 

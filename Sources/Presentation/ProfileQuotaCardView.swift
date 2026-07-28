@@ -62,7 +62,7 @@ struct ProfileQuotaCardView: View {
           if item.isCurrent {
             Text("当前")
               .font(.caption2.weight(.semibold))
-              .foregroundStyle(.blue)
+              .foregroundStyle(MihomoColorToken.statusInfo)
           }
         }
         Text(

@@ -64,7 +64,7 @@ struct ProfileTrackingManagementView: View {
     case .failed(let message):
       VStack(spacing: 14) {
         Label(message, systemImage: "exclamationmark.triangle.fill")
-          .foregroundStyle(.orange)
+          .foregroundStyle(MihomoColorToken.statusWarning)
           .fixedSize(horizontal: false, vertical: true)
 
         HStack {
@@ -179,7 +179,7 @@ private struct ProfileTrackingSelectionRow: View {
           if profile.isCurrent {
             Text("当前")
               .font(.caption2.weight(.semibold))
-              .foregroundStyle(.blue)
+              .foregroundStyle(MihomoColorToken.statusInfo)
           }
           availabilityBadge
         }
@@ -223,11 +223,11 @@ private struct ProfileTrackingSelectionRow: View {
     case .unsupportedURL:
       Text("仅支持 HTTPS")
         .font(.caption2)
-        .foregroundStyle(.orange)
+        .foregroundStyle(MihomoColorToken.statusWarning)
     case .missing:
       Text("已从目录移除")
         .font(.caption2)
-        .foregroundStyle(.orange)
+        .foregroundStyle(MihomoColorToken.statusWarning)
     }
   }
 

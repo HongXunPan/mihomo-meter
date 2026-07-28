@@ -13,7 +13,7 @@ struct ClashProfileIdentityCard: View {
             if profile.isCurrent {
               Text("当前")
                 .font(.caption2.weight(.semibold))
-                .foregroundStyle(.blue)
+                .foregroundStyle(MihomoColorToken.statusInfo)
             }
           }
           Text(profile.subscriptionDomain ?? "Profile 已不在授权目录中")
@@ -73,6 +73,7 @@ struct ClashProfileIdentityCard: View {
   }
 
   private var statusColor: Color {
-    profile.availability == .available ? .cyan : .orange
+    profile.availability == .available
+      ? MihomoColorToken.statusInfo : MihomoColorToken.statusWarning
   }
 }

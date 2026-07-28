@@ -16,7 +16,7 @@ struct QuotaEventSummaryView: View {
             Image(systemName: symbolName(for: event.kind))
               .foregroundStyle(
                 event.kind.requiresUserConfirmation && !event.isUserConfirmed
-                  ? .orange : .secondary
+                  ? MihomoColorToken.statusWarning : MihomoColorToken.statusNeutral
               )
             Text(SubscriptionQuotaFormatter.quotaEvent(event))
             Spacer()
@@ -51,7 +51,7 @@ struct QuotaCycleConfirmationView: View {
   var body: some View {
     HStack(spacing: 8) {
       Label("用量下降可能代表套餐重置，请确认新周期。", systemImage: "exclamationmark.triangle.fill")
-        .foregroundStyle(.orange)
+        .foregroundStyle(MihomoColorToken.statusWarning)
         .fixedSize(horizontal: false, vertical: true)
 
       Spacer(minLength: 8)

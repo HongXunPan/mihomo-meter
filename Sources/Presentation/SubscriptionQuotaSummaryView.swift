@@ -65,15 +65,15 @@ struct SubscriptionQuotaSummaryView: View {
       if hasTrackedProfiles {
         Text("精确追踪 \(profileQuotaController.snapshot.profiles.count)")
           .font(.caption2.weight(.medium))
-          .foregroundStyle(.cyan)
+          .foregroundStyle(MihomoColorToken.statusInfo)
       } else if controller.snapshot.isActive {
         Text("轻量追踪")
           .font(.caption2.weight(.medium))
-          .foregroundStyle(.secondary)
+          .foregroundStyle(MihomoColorToken.statusInfo)
       } else if controller.snapshot.isPaused {
         Text("已暂停")
           .font(.caption2.weight(.medium))
-          .foregroundStyle(.orange)
+          .foregroundStyle(MihomoColorToken.statusWarning)
       }
     }
   }

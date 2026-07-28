@@ -124,13 +124,15 @@ struct ControllerSettingsView: View {
   private var stateColor: Color {
     switch monitor.connectionState {
     case .connected:
-      .green
+      MihomoColorToken.statusSuccess
     case .connecting, .reconnecting:
-      .orange
-    case .stale, .authenticationFailed, .unsupported:
-      .red
+      MihomoColorToken.statusInfo
+    case .stale:
+      MihomoColorToken.statusWarning
+    case .authenticationFailed, .unsupported:
+      MihomoColorToken.statusDanger
     case .disconnected:
-      .secondary
+      MihomoColorToken.statusNeutral
     }
   }
 }

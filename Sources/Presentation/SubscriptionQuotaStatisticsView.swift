@@ -169,7 +169,7 @@ struct SubscriptionQuotaStatisticsView: View {
     if let operationMessage = dataController.operationMessage {
       Label(operationMessage, systemImage: "exclamationmark.triangle.fill")
         .font(.caption)
-        .foregroundStyle(.red)
+        .foregroundStyle(MihomoColorToken.statusDanger)
     }
   }
 

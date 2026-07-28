@@ -11,6 +11,7 @@
 		A10000000000000000000202 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000102 /* AppDelegate.swift */; };
 		C10000000000000000000201 /* AppPresentationCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C10000000000000000000101 /* AppPresentationCoordinator.swift */; };
 		C20000000000000000000201 /* StatusMenuController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000000000000000000101 /* StatusMenuController.swift */; };
+		CD0000000000000000000201 /* MihomoColorToken.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD0000000000000000000101 /* MihomoColorToken.swift */; };
 		A10000000000000000000203 /* TrafficRate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000103 /* TrafficRate.swift */; };
 		A10000000000000000000204 /* TrafficRateFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000104 /* TrafficRateFormatter.swift */; };
 		A10000000000000000000205 /* MenuBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000105 /* MenuBarController.swift */; };
@@ -221,6 +222,7 @@
 		A10000000000000000000102 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		C10000000000000000000101 /* AppPresentationCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppPresentationCoordinator.swift; sourceTree = "<group>"; };
 		C20000000000000000000101 /* StatusMenuController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusMenuController.swift; sourceTree = "<group>"; };
+		CD0000000000000000000101 /* MihomoColorToken.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MihomoColorToken.swift; sourceTree = "<group>"; };
 		A10000000000000000000103 /* TrafficRate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficRate.swift; sourceTree = "<group>"; };
 		A10000000000000000000104 /* TrafficRateFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficRateFormatter.swift; sourceTree = "<group>"; };
 		A10000000000000000000105 /* MenuBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarController.swift; sourceTree = "<group>"; };
@@ -564,6 +566,7 @@
 				BU0000000000000000000118 /* ClashProfileIdentityCard.swift */,
 				A90000000000000000000101 /* ControllerSettingsView.swift */,
 				C30000000000000000000101 /* ControllerSettingsWindowController.swift */,
+				CD0000000000000000000101 /* MihomoColorToken.swift */,
 				A10000000000000000000105 /* MenuBarController.swift */,
 				BF0000000000000000000101 /* StatusMenuDisclosureGroupStyle.swift */,
 				CA0000000000000000000102 /* ProfileQuotaAccordionView.swift */,
@@ -940,6 +943,7 @@
 				A20000000000000000000202 /* MihomoControllerModels.swift in Sources */,
 				AD0000000000000000000201 /* MihomoMonitoringSession.swift in Sources */,
 				A10000000000000000000201 /* MihomoMeterApp.swift in Sources */,
+				CD0000000000000000000201 /* MihomoColorToken.swift in Sources */,
 				A90000000000000000000201 /* ControllerSettingsView.swift in Sources */,
 				C30000000000000000000201 /* ControllerSettingsWindowController.swift in Sources */,
 				BF0000000000000000000201 /* StatusMenuDisclosureGroupStyle.swift in Sources */,

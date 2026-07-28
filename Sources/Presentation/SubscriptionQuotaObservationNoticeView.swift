@@ -68,13 +68,14 @@ struct SubscriptionQuotaObservationNoticeView: View {
   private var color: Color {
     switch controller.snapshot.observationStatus {
     case .available:
-      controller.snapshot.isPaused ? .orange : .secondary
+      controller.snapshot.isPaused
+        ? MihomoColorToken.statusWarning : MihomoColorToken.statusSuccess
     case .loading, .checking, .controllerUnavailable:
-      .secondary
+      MihomoColorToken.statusInfo
     case .noCandidate, .multipleCandidates, .failed:
-      .orange
+      MihomoColorToken.statusWarning
     case .unavailable:
-      .red
+      MihomoColorToken.statusDanger
     }
   }
 }

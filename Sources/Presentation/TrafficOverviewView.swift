@@ -34,14 +34,16 @@ struct TrafficOverviewView: View {
         primaryMetric(
           title: "下载",
           symbol: "arrow.down",
-          value: monitor.rates.proxy.downloadBytesPerSecond
+          value: monitor.rates.proxy.downloadBytesPerSecond,
+          color: MihomoColorToken.trafficDownload
         )
         Divider()
           .frame(height: 40)
         primaryMetric(
           title: "上传",
           symbol: "arrow.up",
-          value: monitor.rates.proxy.uploadBytesPerSecond
+          value: monitor.rates.proxy.uploadBytesPerSecond,
+          color: MihomoColorToken.trafficUpload
         )
       }
     }
@@ -50,12 +52,13 @@ struct TrafficOverviewView: View {
   private func primaryMetric(
     title: String,
     symbol: String,
-    value: UInt64
+    value: UInt64,
+    color: Color
   ) -> some View {
     VStack(alignment: .center, spacing: 4) {
       Label(title, systemImage: symbol)
         .font(.caption)
-        .foregroundStyle(.secondary)
+        .foregroundStyle(color)
       Text(TrafficRateFormatter.string(from: value))
         .font(.system(.title3, design: .rounded).weight(.semibold))
         .monospacedDigit()

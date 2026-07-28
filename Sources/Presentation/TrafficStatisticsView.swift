@@ -132,7 +132,7 @@ struct TrafficStatisticsView: View {
     if let interval = intervalPendingDeletion {
       HStack(spacing: 10) {
         Image(systemName: "trash")
-          .foregroundStyle(.red)
+          .foregroundStyle(MihomoColorToken.statusDanger)
         Text("确认删除“\(interval.name)”？只删除该任务，不影响底层累计。")
           .font(.callout)
           .lineLimit(2)
@@ -152,7 +152,10 @@ struct TrafficStatisticsView: View {
         }
       }
       .padding(10)
-      .background(.red.opacity(0.08), in: RoundedRectangle(cornerRadius: 9))
+      .background(
+        MihomoColorToken.statusDangerBackground,
+        in: RoundedRectangle(cornerRadius: 9)
+      )
     }
   }
 

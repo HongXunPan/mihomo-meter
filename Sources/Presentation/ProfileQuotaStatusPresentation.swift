@@ -10,15 +10,15 @@ enum ProfileQuotaStatusTone {
   var color: Color {
     switch self {
     case .neutral:
-      .secondary
+      MihomoColorToken.statusNeutral
     case .positive:
-      .green
+      MihomoColorToken.statusSuccess
     case .waiting:
-      .cyan
+      MihomoColorToken.statusInfo
     case .warning:
-      .orange
+      MihomoColorToken.statusWarning
     case .negative:
-      .red
+      MihomoColorToken.statusDanger
     }
   }
 }

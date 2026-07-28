@@ -9,9 +9,9 @@ private struct QuotaUsageChartSegment: Identifiable {
     var color: Color {
       switch self {
       case .download:
-        .cyan
+        MihomoColorToken.trafficDownload
       case .upload:
-        .indigo
+        MihomoColorToken.trafficUpload
       }
     }
   }
@@ -114,7 +114,7 @@ struct QuotaTrendChart: View {
           )
         )
         .font(.caption2)
-        .foregroundStyle(.orange)
+        .foregroundStyle(MihomoColorToken.statusWarning)
         .fixedSize(horizontal: false, vertical: true)
       }
     }

@@ -91,6 +91,7 @@ final class MenuBarController: NSObject {
           }
         }
       )
+      .mihomoTheme()
     )
     hostingController.sizingOptions = []
     hostingController.preferredContentSize = StatusMenuLayout.contentSize

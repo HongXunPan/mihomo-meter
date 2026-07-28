@@ -7,10 +7,18 @@ struct TrafficStatisticsTotalsView: View {
 
   var body: some View {
     HStack(spacing: 12) {
-      metric(title: "今日 Proxy", value: TrafficStatisticsFormatter.bytes(todayBytes))
+      metric(
+        title: "今日 Proxy",
+        value: TrafficStatisticsFormatter.bytes(todayBytes),
+        titleColor: MihomoColorToken.trafficTotal
+      )
       Divider()
         .frame(height: 32)
-      metric(title: "本机累计 Proxy", value: TrafficStatisticsFormatter.bytes(lifetimeBytes))
+      metric(
+        title: "本机累计 Proxy",
+        value: TrafficStatisticsFormatter.bytes(lifetimeBytes),
+        titleColor: MihomoColorToken.trafficTotal
+      )
 
       if let activeCount {
         Divider()
@@ -21,11 +29,15 @@ struct TrafficStatisticsTotalsView: View {
     .padding(.vertical, 4)
   }
 
-  private func metric(title: String, value: String) -> some View {
+  private func metric(
+    title: String,
+    value: String,
+    titleColor: Color = MihomoColorToken.statusNeutral
+  ) -> some View {
     VStack(alignment: .center, spacing: 3) {
       Text(title)
         .font(.caption2)
-        .foregroundStyle(.secondary)
+        .foregroundStyle(titleColor)
       Text(value)
         .font(.subheadline.monospacedDigit().weight(.semibold))
         .lineLimit(1)

@@ -13,14 +13,16 @@ struct TrafficClassificationView: View {
       VStack(alignment: .leading, spacing: 8) {
         HStack(spacing: Layout.columnSpacing) {
           Text("分类")
+            .foregroundStyle(.secondary)
             .frame(maxWidth: .infinity, alignment: .leading)
           Label("下载", systemImage: "arrow.down")
+            .foregroundStyle(MihomoColorToken.trafficDownload)
             .frame(maxWidth: .infinity, alignment: .trailing)
           Label("上传", systemImage: "arrow.up")
+            .foregroundStyle(MihomoColorToken.trafficUpload)
             .frame(maxWidth: .infinity, alignment: .trailing)
         }
         .font(.caption2)
-        .foregroundStyle(.secondary)
 
         VStack(spacing: 8) {
           categoryRow(title: "DIRECT", rate: monitor.rates.direct)
@@ -87,11 +89,11 @@ struct TrafficClassificationView: View {
   private var coverageColor: Color {
     switch coverageQuality {
     case .reliable:
-      .green
+      MihomoColorToken.statusSuccess
     case .low:
-      .orange
+      MihomoColorToken.statusWarning
     case .unavailable:
-      .secondary
+      MihomoColorToken.statusNeutral
     }
   }
 

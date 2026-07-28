@@ -26,7 +26,10 @@ struct SubscriptionQuotaMetricsView: View {
       }
 
       ProgressView(value: remainingFraction)
-        .tint(quota.traffic.isOverQuota ? .red : .accentColor)
+        .tint(
+          quota.traffic.isOverQuota
+            ? MihomoColorToken.statusDanger : MihomoColorToken.interactiveAccent
+        )
         .accessibilityLabel("剩余流量比例")
         .accessibilityValue(
           quota.traffic.isOverQuota
@@ -45,7 +48,9 @@ struct SubscriptionQuotaMetricsView: View {
             .foregroundStyle(.secondary)
           Text(quota.traffic.isOverQuota ? "已超额" : "可用")
             .font(.caption.weight(.semibold))
-            .foregroundStyle(quota.traffic.isOverQuota ? .red : .primary)
+            .foregroundStyle(
+              quota.traffic.isOverQuota ? MihomoColorToken.statusDanger : .primary
+            )
         }
         .frame(maxWidth: .infinity, alignment: .leading)
       }

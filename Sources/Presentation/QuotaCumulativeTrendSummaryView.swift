@@ -59,21 +59,21 @@ struct QuotaCumulativeTrendSummaryView: View {
         title: "下载增量",
         value: usage.traffic.download,
         systemImage: "arrow.down",
-        color: .cyan
+        color: MihomoColorToken.trafficDownload
       )
       Divider().frame(height: 28)
       metric(
         title: "上传增量",
         value: usage.traffic.upload,
         systemImage: "arrow.up",
-        color: .indigo
+        color: MihomoColorToken.trafficUpload
       )
       Divider().frame(height: 28)
       metric(
         title: "合计增量",
         value: usage.traffic.total,
         systemImage: "chart.line.uptrend.xyaxis",
-        color: .blue
+        color: MihomoColorToken.trafficTotal
       )
     }
     .accessibilityElement(children: .combine)
