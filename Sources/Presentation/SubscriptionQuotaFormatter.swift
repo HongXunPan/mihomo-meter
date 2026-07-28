@@ -6,10 +6,14 @@ enum SubscriptionQuotaFormatter {
   }
 
   static func updatedAt(_ date: Date) -> String {
+    relativeDate(date, relativeTo: Date())
+  }
+
+  static func relativeDate(_ date: Date, relativeTo referenceDate: Date) -> String {
     let formatter = RelativeDateTimeFormatter()
-    formatter.locale = .autoupdatingCurrent
+    formatter.locale = Locale(identifier: "zh_Hans_CN")
     formatter.unitsStyle = .short
-    return formatter.localizedString(for: date, relativeTo: Date())
+    return formatter.localizedString(for: date, relativeTo: referenceDate)
   }
 
   static func expiration(_ date: Date?) -> String {

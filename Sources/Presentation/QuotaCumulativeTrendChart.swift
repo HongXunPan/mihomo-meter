@@ -19,9 +19,16 @@ struct QuotaCumulativeTrendChart: View {
       )
 
       VStack(alignment: .leading, spacing: 5) {
-        if let dateDomain = model.dateDomain, model.points.count >= 2 {
-          chart(model: model, dateDomain: dateDomain)
-            .frame(height: plotHeight)
+        if let dateDomain = model.dateDomain,
+          let totalUsageDomain = model.totalUsageDomain,
+          model.points.count >= 2
+        {
+          chart(
+            model: model,
+            dateDomain: dateDomain,
+            totalUsageDomain: totalUsageDomain
+          )
+          .frame(height: plotHeight)
         } else {
           emptyState(sourcePointCount: model.sourcePointCount)
             .frame(height: plotHeight)
@@ -50,7 +57,8 @@ struct QuotaCumulativeTrendChart: View {
   @ViewBuilder
   private func chart(
     model: QuotaCumulativeTrendChartModel,
-    dateDomain: ClosedRange<Date>
+    dateDomain: ClosedRange<Date>,
+    totalUsageDomain: ClosedRange<Double>
   ) -> some View {
     let hoveredPoint = hoveredPoint(in: model)
     let chart = Chart {
@@ -58,10 +66,16 @@ struct QuotaCumulativeTrendChart: View {
         let seriesID = segmentSeriesID(segment.id)
 
         ForEach(segment.points) { displayPoint in
-          QuotaDownloadAreaMark(displayPoint: displayPoint, seriesID: seriesID)
+          QuotaDownloadIncrementAreaMark(
+            displayPoint: displayPoint,
+            seriesID: seriesID
+          )
         }
         ForEach(segment.points) { displayPoint in
-          QuotaUploadAreaMark(displayPoint: displayPoint, seriesID: seriesID)
+          QuotaUploadIncrementAreaMark(
+            displayPoint: displayPoint,
+            seriesID: seriesID
+          )
         }
         ForEach(segment.points) { displayPoint in
           QuotaTotalLineMark(displayPoint: displayPoint, seriesID: seriesID)
@@ -69,66 +83,90 @@ struct QuotaCumulativeTrendChart: View {
         if let firstPoint = segment.points.first {
           QuotaCycleStartMark(displayPoint: firstPoint)
         }
+        if let firstPoint = segment.points.first,
+          let lastPoint = segment.points.last,
+          lastPoint.id != firstPoint.id
+        {
+          QuotaLatestPointMark(displayPoint: lastPoint)
+        }
       }
 
-      if !isCompact, let hoveredPoint {
+      if let hoveredPoint {
         QuotaCumulativeHoverMarks(
-          displayPoint: hoveredPoint,
-          breakReason: breakReason(for: hoveredPoint.id, in: model),
-          annotationAlignment: annotationAlignment(
-            for: hoveredPoint.point.date,
-            in: dateDomain
-          )
+          displayPoint: hoveredPoint
         )
       }
     }
-    .chartXScale(domain: dateDomain)
+    .chartXScale(
+      domain: dateDomain,
+      range: .plotDimension(startPadding: 6, endPadding: 6)
+    )
+    .chartYScale(domain: totalUsageDomain)
+    .chartPlotStyle { plotContent in
+      plotContent.clipped()
+    }
     .chartOverlay { proxy in
       GeometryReader { geometry in
-        Rectangle()
-          .fill(.clear)
-          .contentShape(Rectangle())
-          .onContinuousHover { phase in
-            updateHover(
-              phase,
-              proxy: proxy,
-              geometry: geometry,
-              model: model
+        ZStack(alignment: .topLeading) {
+          Rectangle()
+            .fill(.clear)
+            .contentShape(Rectangle())
+            .onContinuousHover { phase in
+              updateHover(
+                phase,
+                proxy: proxy,
+                geometry: geometry,
+                model: model
+              )
+            }
+
+          if !isCompact,
+            let hoveredPoint,
+            let plotFrame = resolvedPlotFrame(proxy: proxy, geometry: geometry),
+            let xPosition = proxy.position(forX: hoveredPoint.point.date)
+          {
+            QuotaCumulativeTrendHoverOverlay(
+              displayPoint: hoveredPoint,
+              breakReason: breakReason(for: hoveredPoint.id, in: model),
+              selectedX: plotFrame.minX + xPosition,
+              plotFrame: plotFrame
             )
           }
+        }
       }
     }
     .accessibilityElement(children: .ignore)
-    .accessibilityLabel("机场累计用量走势")
+    .accessibilityLabel("机场累计总消耗走势")
     .accessibilityValue(accessibilityValue(model: model, dateDomain: dateDomain))
 
-    if isCompact {
-      chart
-        .chartXAxis(.hidden)
-        .chartYAxis(.hidden)
-    } else {
-      chart
-        .chartXAxis {
-          AxisMarks(values: .automatic(desiredCount: 4)) { value in
-            AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5, dash: [3, 3]))
-            AxisValueLabel {
-              if let date = value.as(Date.self) {
-                Text(SubscriptionQuotaFormatter.trendTick(date, window: trend.window))
-              }
+    chart
+      .chartXAxis {
+        AxisMarks(values: .automatic(desiredCount: isCompact ? 3 : 4)) { value in
+          AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5, dash: [3, 3]))
+          AxisTick(stroke: StrokeStyle(lineWidth: 0.5))
+          AxisValueLabel {
+            if let date = value.as(Date.self) {
+              Text(SubscriptionQuotaFormatter.trendTick(date, window: trend.window))
+                .font(isCompact ? .caption2 : .caption)
             }
           }
         }
-        .chartYAxis {
-          AxisMarks(position: .leading) { value in
-            AxisGridLine()
-            AxisValueLabel {
-              if let bytes = value.as(Double.self), bytes >= 0 {
-                Text(SubscriptionQuotaFormatter.bytes(UInt64(bytes)))
-              }
+      }
+      .chartYAxis {
+        AxisMarks(
+          position: .leading,
+          values: .automatic(desiredCount: isCompact ? 2 : 4)
+        ) { value in
+          AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
+          AxisTick(stroke: StrokeStyle(lineWidth: 0.5))
+          AxisValueLabel {
+            if let bytes = value.as(Double.self), bytes >= 0 {
+              Text(SubscriptionQuotaFormatter.bytes(UInt64(bytes)))
+                .font(isCompact ? .caption2 : .caption)
             }
           }
         }
-    }
+      }
   }
 
   @ViewBuilder
@@ -167,16 +205,6 @@ struct QuotaCumulativeTrendChart: View {
     in model: QuotaCumulativeTrendChartModel
   ) -> QuotaCumulativeTrendDisplaySegment.BreakReason? {
     model.segments.first(where: { $0.points.first?.id == pointID })?.breakReason
-  }
-
-  private func annotationAlignment(
-    for date: Date,
-    in domain: ClosedRange<Date>
-  ) -> Alignment {
-    let midpoint = domain.lowerBound.addingTimeInterval(
-      domain.upperBound.timeIntervalSince(domain.lowerBound) / 2
-    )
-    return date <= midpoint ? .topLeading : .topTrailing
   }
 
   private func updateHover(
@@ -244,19 +272,19 @@ struct QuotaCumulativeTrendChart: View {
 
   private var plotHeight: CGFloat {
     if isCompact {
-      return 82
+      return 100
     }
     return isExpanded ? 245 : 190
   }
 
   private var chartHeight: CGFloat {
     if isCompact {
-      return 143
+      return 165
     }
     return isExpanded ? 270 : 215
   }
 
   private var axisReserveWidth: CGFloat {
-    isCompact ? 0 : 58
+    isCompact ? 52 : 58
   }
 }

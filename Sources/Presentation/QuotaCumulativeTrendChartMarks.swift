@@ -1,32 +1,53 @@
 import Charts
 import SwiftUI
 
-struct QuotaDownloadAreaMark: ChartContent {
+struct QuotaCumulativeTrendAreaValues: Equatable, Sendable {
+  let baseline: Double
+  let downloadEnd: Double
+  let total: Double
+
+  init(displayPoint: QuotaCumulativeTrendDisplayPoint) {
+    let startTraffic = displayPoint.segmentStartPoint.traffic
+    let currentTraffic = displayPoint.point.traffic
+    let downloadIncrement =
+      currentTraffic.downloadBytes >= startTraffic.downloadBytes
+      ? currentTraffic.downloadBytes - startTraffic.downloadBytes
+      : 0
+
+    baseline = Double(startTraffic.usedBytes)
+    downloadEnd = baseline + Double(downloadIncrement)
+    total = Double(currentTraffic.usedBytes)
+  }
+}
+
+struct QuotaDownloadIncrementAreaMark: ChartContent {
   let displayPoint: QuotaCumulativeTrendDisplayPoint
   let seriesID: String
 
   var body: some ChartContent {
+    let values = QuotaCumulativeTrendAreaValues(displayPoint: displayPoint)
     AreaMark(
       x: .value("快照时间", displayPoint.point.date),
-      yStart: .value("下载起点", 0),
-      yEnd: .value("累计下载", Double(displayPoint.point.traffic.downloadBytes)),
-      series: .value("下载周期", "download-\(seriesID)")
+      yStart: .value("区间起点", values.baseline),
+      yEnd: .value("下载增量", values.downloadEnd),
+      series: .value("下载增量周期", "download-increment-\(seriesID)")
     )
     .foregroundStyle(Color.cyan.opacity(0.3))
     .interpolationMethod(.linear)
   }
 }
 
-struct QuotaUploadAreaMark: ChartContent {
+struct QuotaUploadIncrementAreaMark: ChartContent {
   let displayPoint: QuotaCumulativeTrendDisplayPoint
   let seriesID: String
 
   var body: some ChartContent {
+    let values = QuotaCumulativeTrendAreaValues(displayPoint: displayPoint)
     AreaMark(
       x: .value("快照时间", displayPoint.point.date),
-      yStart: .value("上传起点", Double(displayPoint.point.traffic.downloadBytes)),
-      yEnd: .value("总消耗", Double(displayPoint.point.traffic.usedBytes)),
-      series: .value("上传周期", "upload-\(seriesID)")
+      yStart: .value("上传起点", values.downloadEnd),
+      yEnd: .value("总消耗", values.total),
+      series: .value("上传增量周期", "upload-increment-\(seriesID)")
     )
     .foregroundStyle(Color.indigo.opacity(0.24))
     .interpolationMethod(.linear)
@@ -69,10 +90,21 @@ struct QuotaCycleStartMark: ChartContent {
   }
 }
 
+struct QuotaLatestPointMark: ChartContent {
+  let displayPoint: QuotaCumulativeTrendDisplayPoint
+
+  var body: some ChartContent {
+    PointMark(
+      x: .value("最新快照", displayPoint.point.date),
+      y: .value("总消耗", Double(displayPoint.point.traffic.usedBytes))
+    )
+    .foregroundStyle(.blue)
+    .symbolSize(38)
+  }
+}
+
 struct QuotaCumulativeHoverMarks: ChartContent {
   let displayPoint: QuotaCumulativeTrendDisplayPoint
-  let breakReason: QuotaCumulativeTrendDisplaySegment.BreakReason?
-  let annotationAlignment: Alignment
 
   var body: some ChartContent {
     RuleMark(x: .value("选中时间", displayPoint.point.date))
@@ -85,16 +117,5 @@ struct QuotaCumulativeHoverMarks: ChartContent {
     )
     .foregroundStyle(.blue)
     .symbolSize(48)
-    .annotation(
-      position: .overlay,
-      alignment: annotationAlignment,
-      spacing: 10
-    ) {
-      QuotaCumulativeTrendHoverView(
-        displayPoint: displayPoint,
-        breakReason: breakReason
-      )
-      .allowsHitTesting(false)
-    }
   }
 }

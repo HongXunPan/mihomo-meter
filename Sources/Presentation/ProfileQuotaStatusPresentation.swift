@@ -55,7 +55,7 @@ struct ProfileQuotaStatusPresentation {
     case .scheduled(let queryAt):
       self.init(
         title: item.latestQuota == nil ? "等待首次查询" : "已安排下次查询",
-        message: "查询时间：\(Self.relativeDate(queryAt, relativeTo: date))",
+        message: "\(SubscriptionQuotaFormatter.relativeDate(queryAt, relativeTo: date))查询",
         symbolName: "clock",
         tone: .neutral
       )
@@ -78,7 +78,7 @@ struct ProfileQuotaStatusPresentation {
     case .failed(let message, let retryAt):
       let retryMessage =
         retryAt.map {
-          "；自动重试 \(Self.relativeDate($0, relativeTo: date))"
+          "；\(SubscriptionQuotaFormatter.relativeDate($0, relativeTo: date))自动重试"
         } ?? "；等待下一个常规查询周期"
       self.init(
         title: "本次查询失败",
@@ -122,12 +122,5 @@ struct ProfileQuotaStatusPresentation {
         tone: .warning
       )
     }
-  }
-
-  private static func relativeDate(_ date: Date, relativeTo referenceDate: Date) -> String {
-    let formatter = RelativeDateTimeFormatter()
-    formatter.locale = .autoupdatingCurrent
-    formatter.unitsStyle = .short
-    return formatter.localizedString(for: date, relativeTo: referenceDate)
   }
 }

@@ -25,8 +25,14 @@ struct SubscriptionQuotaMetricsView: View {
           .foregroundStyle(.secondary)
       }
 
-      ProgressView(value: usedFraction)
-        .tint(quota.traffic.isOverQuota ? .red : .cyan)
+      ProgressView(value: remainingFraction)
+        .tint(quota.traffic.isOverQuota ? .red : .accentColor)
+        .accessibilityLabel("剩余流量比例")
+        .accessibilityValue(
+          quota.traffic.isOverQuota
+            ? "已无剩余额度"
+            : remainingFraction.formatted(.percent.precision(.fractionLength(0)))
+        )
 
       HStack(spacing: 10) {
         metric(title: "已用", value: quota.traffic.usedBytes)
@@ -65,34 +71,21 @@ struct SubscriptionQuotaMetricsView: View {
     }
   }
 
-  private var usedFraction: Double {
+  private var remainingFraction: Double {
     min(
-      Double(quota.traffic.usedBytes) / Double(quota.traffic.totalBytes),
+      Double(quota.traffic.remainingBytes) / Double(quota.traffic.totalBytes),
       1
     )
   }
 
   private var usageChartHeader: some View {
-    HStack(spacing: 8) {
-      Text("累计用量走势")
-        .font(.caption.weight(.medium))
-        .foregroundStyle(.secondary)
-
-      Spacer()
-
-      Label("下载", systemImage: "arrow.down")
-        .foregroundStyle(.cyan)
-      Label("上传", systemImage: "arrow.up")
-        .foregroundStyle(.indigo)
-      Label("总消耗", systemImage: "chart.line.uptrend.xyaxis")
-        .foregroundStyle(.blue)
-    }
-    .font(.caption2)
+    Text("累计总消耗走势")
+      .font(.caption.weight(.medium))
+      .foregroundStyle(.secondary)
   }
 
   private var cumulativeTrendSummary: some View {
-    let traffic = latestTrendPoint?.traffic ?? quota.traffic
-    return QuotaCumulativeTrendSummaryView(traffic: traffic)
+    QuotaCumulativeTrendSummaryView(trend: trend)
   }
 
   private func metric(title: String, value: UInt64) -> some View {
@@ -105,11 +98,5 @@ struct SubscriptionQuotaMetricsView: View {
         .lineLimit(1)
     }
     .frame(maxWidth: .infinity, alignment: .leading)
-  }
-
-  private var latestTrendPoint: QuotaTrendPoint? {
-    trend.segments
-      .flatMap(\.points)
-      .max { $0.date < $1.date }
   }
 }

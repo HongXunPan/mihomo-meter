@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct QuotaCumulativeTrendHoverView: View {
+  static let cardWidth: CGFloat = 270
+
   let displayPoint: QuotaCumulativeTrendDisplayPoint
   let breakReason: QuotaCumulativeTrendDisplaySegment.BreakReason?
   var isCompact = false
@@ -11,6 +13,7 @@ struct QuotaCumulativeTrendHoverView: View {
         content
       } else {
         content
+          .frame(width: Self.cardWidth - 18, alignment: .leading)
           .padding(9)
           .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
           .overlay {
@@ -18,6 +21,7 @@ struct QuotaCumulativeTrendHoverView: View {
               .stroke(Color(nsColor: .separatorColor).opacity(0.7), lineWidth: 0.5)
           }
           .shadow(color: .black.opacity(0.12), radius: 5, y: 2)
+          .fixedSize(horizontal: true, vertical: true)
       }
     }
     .accessibilityElement(children: .combine)
@@ -38,10 +42,7 @@ struct QuotaCumulativeTrendHoverView: View {
         .foregroundStyle(comparisonTone)
         .fixedSize(horizontal: false, vertical: true)
     }
-    .frame(
-      maxWidth: isCompact ? .infinity : 270,
-      alignment: .leading
-    )
+    .frame(maxWidth: isCompact ? .infinity : nil, alignment: .leading)
   }
 
   private var cumulativeSummary: String {
@@ -71,5 +72,32 @@ struct QuotaCumulativeTrendHoverView: View {
 
   private var comparisonTone: Color {
     breakReason == .counterRegression ? .orange : .secondary
+  }
+}
+
+struct QuotaCumulativeTrendHoverOverlay: View {
+  let displayPoint: QuotaCumulativeTrendDisplayPoint
+  let breakReason: QuotaCumulativeTrendDisplaySegment.BreakReason?
+  let selectedX: CGFloat
+  let plotFrame: CGRect
+
+  var body: some View {
+    QuotaCumulativeTrendHoverView(
+      displayPoint: displayPoint,
+      breakReason: breakReason
+    )
+    .offset(x: horizontalOffset, y: plotFrame.minY + 8)
+    .allowsHitTesting(false)
+  }
+
+  private var horizontalOffset: CGFloat {
+    let inset: CGFloat = 8
+    if selectedX <= plotFrame.midX {
+      return max(
+        plotFrame.minX + inset,
+        plotFrame.maxX - QuotaCumulativeTrendHoverView.cardWidth - inset
+      )
+    }
+    return plotFrame.minX + inset
   }
 }

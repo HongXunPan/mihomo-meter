@@ -104,7 +104,7 @@ final class QuotaCumulativeTrendChartModelTests: XCTestCase {
     XCTAssertNil(model.segments[1].points[0].delta)
   }
 
-  func testNearestPointAndStackedTotalUseRealSnapshotValues() throws {
+  func testNearestPointAndTotalUseRealSnapshotValues() throws {
     let points = [
       try point(at: 0, uploadBytes: 10, downloadBytes: 20),
       try point(at: 120, uploadBytes: 30, downloadBytes: 70),
@@ -125,6 +125,109 @@ final class QuotaCumulativeTrendChartModelTests: XCTestCase {
           + displayPoint.point.traffic.downloadBytes
       )
     }
+  }
+
+  func testAreaValuesStackRangeIncrementsToActualTotal() throws {
+    let points = [
+      try point(at: 0, uploadBytes: 10, downloadBytes: 20),
+      try point(at: 120, uploadBytes: 30, downloadBytes: 70),
+    ]
+    let model = QuotaCumulativeTrendChartModel(
+      segments: [QuotaTrendSegment(cycleID: UUID(), points: points)],
+      targetPointCount: 30
+    )
+    let lastPoint = try XCTUnwrap(model.points.last)
+    let values = QuotaCumulativeTrendAreaValues(displayPoint: lastPoint)
+
+    XCTAssertEqual(values.baseline, 30)
+    XCTAssertEqual(values.downloadEnd, 80)
+    XCTAssertEqual(values.total, 100)
+    XCTAssertEqual(values.downloadEnd - values.baseline, 50)
+    XCTAssertEqual(values.total - values.downloadEnd, 20)
+  }
+
+  func testTotalUsageDomainUsesRangeExtremaWithoutForcingZero() throws {
+    let points = [
+      try point(at: 0, uploadBytes: 100, downloadBytes: 200),
+      try point(at: 60, uploadBytes: 160, downloadBytes: 260),
+    ]
+    let model = QuotaCumulativeTrendChartModel(
+      segments: [QuotaTrendSegment(cycleID: UUID(), points: points)],
+      targetPointCount: 30
+    )
+    let domain = try XCTUnwrap(model.totalUsageDomain)
+
+    XCTAssertEqual(domain.lowerBound, 294, accuracy: 0.001)
+    XCTAssertEqual(domain.upperBound, 426, accuracy: 0.001)
+    XCTAssertGreaterThan(domain.lowerBound, 0)
+  }
+
+  func testTotalUsageDomainExpandsConstantValues() throws {
+    let points = [
+      try point(at: 0, uploadBytes: 100, downloadBytes: 200),
+      try point(at: 60, uploadBytes: 100, downloadBytes: 200),
+    ]
+    let model = QuotaCumulativeTrendChartModel(
+      segments: [QuotaTrendSegment(cycleID: UUID(), points: points)],
+      targetPointCount: 30
+    )
+    let domain = try XCTUnwrap(model.totalUsageDomain)
+
+    XCTAssertEqual(domain.lowerBound, 297, accuracy: 0.001)
+    XCTAssertEqual(domain.upperBound, 303, accuracy: 0.001)
+  }
+
+  func testRangeUsageSumsComparableIntervalsWithoutCrossingCycles() throws {
+    let firstCycle = QuotaTrendSegment(
+      cycleID: UUID(),
+      points: [
+        try point(at: 0, uploadBytes: 10, downloadBytes: 20),
+        try point(at: 60, uploadBytes: 30, downloadBytes: 70),
+      ]
+    )
+    let secondCycle = QuotaTrendSegment(
+      cycleID: UUID(),
+      points: [
+        try point(at: 120, uploadBytes: 5, downloadBytes: 10),
+        try point(at: 180, uploadBytes: 8, downloadBytes: 25),
+      ]
+    )
+    let usage = QuotaCumulativeTrendRangeUsage(
+      segments: [firstCycle, secondCycle]
+    )
+
+    XCTAssertTrue(usage.isAvailable)
+    XCTAssertEqual(usage.comparableIntervalCount, 2)
+    XCTAssertEqual(usage.traffic.upload, 23)
+    XCTAssertEqual(usage.traffic.download, 65)
+    XCTAssertEqual(usage.traffic.total, 88)
+  }
+
+  func testRangeUsageSkipsRegressionAndContinuesFromNewBaseline() throws {
+    let points = [
+      try point(at: 0, uploadBytes: 100, downloadBytes: 200),
+      try point(at: 60, uploadBytes: 120, downloadBytes: 240),
+      try point(at: 120, uploadBytes: 10, downloadBytes: 20),
+      try point(at: 180, uploadBytes: 15, downloadBytes: 35),
+    ]
+    let usage = QuotaCumulativeTrendRangeUsage(
+      segments: [QuotaTrendSegment(cycleID: UUID(), points: points)]
+    )
+
+    XCTAssertEqual(usage.comparableIntervalCount, 2)
+    XCTAssertEqual(usage.traffic.upload, 25)
+    XCTAssertEqual(usage.traffic.download, 55)
+    XCTAssertEqual(usage.traffic.total, 80)
+  }
+
+  func testRelativeDateUsesChinesePresentation() {
+    let text = SubscriptionQuotaFormatter.relativeDate(
+      baseDate.addingTimeInterval(30 * 60),
+      relativeTo: baseDate
+    )
+
+    XCTAssertTrue(text.contains("后"))
+    XCTAssertFalse(text.contains("in"))
   }
 
   private func segment(

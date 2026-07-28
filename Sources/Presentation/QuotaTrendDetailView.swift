@@ -40,9 +40,7 @@ struct QuotaTrendDetailView: View {
       VStack(alignment: .leading, spacing: 16) {
         QuotaTrendRangeControl(window: $window)
 
-        if let latestPoint {
-          QuotaCumulativeTrendSummaryView(traffic: latestPoint.traffic)
-        }
+        QuotaCumulativeTrendSummaryView(trend: trend)
 
         QuotaCumulativeTrendChart(trend: trend, isExpanded: true)
       }
@@ -72,11 +70,5 @@ struct QuotaTrendDetailView: View {
 
   private var trend: QuotaTrend {
     trends.trend(for: window)
-  }
-
-  private var latestPoint: QuotaTrendPoint? {
-    trend.segments
-      .flatMap(\.points)
-      .max { $0.date < $1.date }
   }
 }

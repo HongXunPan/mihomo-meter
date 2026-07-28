@@ -10,6 +10,7 @@ struct QuotaCumulativeTrendDelta: Equatable, Sendable {
 struct QuotaCumulativeTrendDisplayPoint: Identifiable, Equatable, Sendable {
   let point: QuotaTrendPoint
   let previousPoint: QuotaTrendPoint?
+  let segmentStartPoint: QuotaTrendPoint
 
   var id: UUID {
     point.id
@@ -66,6 +67,9 @@ struct QuotaCumulativeTrendChartModel: Equatable, Sendable {
       targetPointCount: targetPointCount
     )
     segments = splitSegments.compactMap { segment in
+      guard let segmentStartPoint = segment.points.first else {
+        return nil
+      }
       var previousPoint: QuotaTrendPoint?
       let points = segment.points.compactMap { point -> QuotaCumulativeTrendDisplayPoint? in
         guard selectedPointIDs.contains(point.id) else {
@@ -74,7 +78,8 @@ struct QuotaCumulativeTrendChartModel: Equatable, Sendable {
         defer { previousPoint = point }
         return QuotaCumulativeTrendDisplayPoint(
           point: point,
-          previousPoint: previousPoint
+          previousPoint: previousPoint,
+          segmentStartPoint: segmentStartPoint
         )
       }
       guard !points.isEmpty else {
@@ -109,6 +114,21 @@ struct QuotaCumulativeTrendChartModel: Equatable, Sendable {
       return nil
     }
     return first.point.date...last.point.date
+  }
+
+  var totalUsageDomain: ClosedRange<Double>? {
+    let values = points.map { Double($0.point.traffic.usedBytes) }
+    guard let minimum = values.min(), let maximum = values.max() else {
+      return nil
+    }
+
+    let span = maximum - minimum
+    let padding =
+      span > 0
+      ? max(span * 0.05, 1)
+      : max(maximum * 0.01, 1)
+    let lowerBound = max(minimum - padding, 0)
+    return lowerBound...(maximum + padding)
   }
 
   func nearestPoint(to date: Date) -> QuotaCumulativeTrendDisplayPoint? {
