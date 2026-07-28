@@ -26,10 +26,24 @@ final class StatusMenuController: NSObject, NSMenuDelegate {
     menu.autoenablesItems = false
     menu.delegate = self
     menu.addItem(contentItem)
+    NotificationCenter.default.addObserver(
+      self,
+      selector: #selector(menuDidBeginTracking(_:)),
+      name: NSMenu.didBeginTrackingNotification,
+      object: menu
+    )
   }
 
   func menuWillOpen(_ menu: NSMenu) {
     prepareForPresentation()
+  }
+
+  @objc
+  private func menuDidBeginTracking(_ notification: Notification) {
+    Task { @MainActor [weak self] in
+      await Task.yield()
+      self?.contentViewController.view.window?.makeFirstResponder(nil)
+    }
   }
 
   func close() {
