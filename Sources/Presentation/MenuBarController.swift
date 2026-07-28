@@ -2,6 +2,12 @@ import AppKit
 import Combine
 import SwiftUI
 
+struct MenuBarPresentationActions {
+  let showStatistics: (StatisticsModule) -> Void
+  let startTrafficStatistics: () -> Void
+  let showControllerSettings: () -> Void
+}
+
 @MainActor
 final class MenuBarController: NSObject {
   private static let statusItemLength: CGFloat = 58
@@ -9,51 +15,39 @@ final class MenuBarController: NSObject {
 
   private let statusItem: NSStatusItem
   private let statusContentView: ProxyStatusItemView
-  private let popover: NSPopover
   private let monitor: TrafficMonitor
   private let statisticsController: TrafficStatisticsController
   private let quotaController: RuntimeQuotaTrackingController
   private let profileQuotaController: ProfileQuotaTrackingController
-  private let statisticsWindowController: TrafficStatisticsWindowController
   private let updateModel: AppUpdateModel
+  private let actions: MenuBarPresentationActions
   private var cancellables: Set<AnyCancellable> = []
-  private var globalMouseMonitor: Any?
-  private var isPopoverPresentationPending = false
-  private var pendingStatisticsModule: StatisticsModule?
+
+  private lazy var statusMenuController = makeStatusMenuController()
 
   init(
     monitor: TrafficMonitor,
     statisticsController: TrafficStatisticsController,
     quotaController: RuntimeQuotaTrackingController,
     profileQuotaController: ProfileQuotaTrackingController,
-    profileController: ClashProfileDirectoryController,
-    subscriptionQuotaDataController: SubscriptionQuotaDataController,
-    updateModel: AppUpdateModel
+    updateModel: AppUpdateModel,
+    actions: MenuBarPresentationActions
   ) {
     statusItem = NSStatusBar.system.statusItem(
       withLength: MenuBarController.statusItemLength
     )
     statusContentView = ProxyStatusItemView()
-    popover = NSPopover()
     self.monitor = monitor
     self.statisticsController = statisticsController
     self.quotaController = quotaController
     self.profileQuotaController = profileQuotaController
-    statisticsWindowController = TrafficStatisticsWindowController(
-      controller: statisticsController,
-      quotaController: quotaController,
-      profileQuotaController: profileQuotaController,
-      profileController: profileController,
-      subscriptionQuotaDataController: subscriptionQuotaDataController,
-      monitor: monitor
-    )
     self.updateModel = updateModel
+    self.actions = actions
     super.init()
 
     configureStatusItem()
-    configurePopover()
+    statusItem.menu = statusMenuController.menu
     observeMonitor()
-    observeApplication()
   }
 
   private func configureStatusItem() {
@@ -63,9 +57,6 @@ final class MenuBarController: NSObject {
 
     button.title = ""
     button.setAccessibilityLabel("Mihomo Meter")
-    button.target = self
-    button.action = #selector(togglePopover)
-    button.sendAction(on: [.leftMouseUp])
 
     statusContentView.translatesAutoresizingMaskIntoConstraints = false
     button.addSubview(statusContentView)
@@ -79,32 +70,68 @@ final class MenuBarController: NSObject {
     updateStatusItemButton(button, rate: .zero, state: monitor.connectionState)
   }
 
-  private func configurePopover() {
-    popover.behavior = .transient
-    popover.delegate = self
+  private func makeStatusMenuController() -> StatusMenuController {
     let hostingController = NSHostingController(
-      rootView: TrafficPopoverView(
+      rootView: StatusMenuContentView(
         monitor: monitor,
         statisticsController: statisticsController,
         quotaController: quotaController,
         profileQuotaController: profileQuotaController,
         updateModel: updateModel,
+        checkForUpdates: { [weak self] in
+          self?.performMenuAction {
+            NSApplication.shared.activate()
+            self?.updateModel.checkForUpdates()
+          }
+        },
+        startStatistics: { [weak self] in
+          self?.performMenuAction {
+            self?.actions.startTrafficStatistics()
+          }
+        },
         showAllStatistics: { [weak self] in
-          self?.showStatisticsWindow(module: .proxyTraffic)
+          self?.performMenuAction {
+            self?.actions.showStatistics(.proxyTraffic)
+          }
         },
         showQuotaStatistics: { [weak self] in
-          self?.showStatisticsWindow(module: .subscriptionQuota)
-        },
-        dismiss: { [weak self] in
-          self?.closePopover()
+          self?.performMenuAction {
+            self?.actions.showStatistics(.subscriptionQuota)
+          }
         }
       )
     )
     hostingController.sizingOptions = []
-    hostingController.preferredContentSize = TrafficPopoverLayout.contentSize
+    hostingController.preferredContentSize = StatusMenuLayout.contentSize
 
-    popover.contentViewController = hostingController
-    popover.contentSize = TrafficPopoverLayout.contentSize
+    let controller = StatusMenuController(
+      contentViewController: hostingController,
+      contentSize: StatusMenuLayout.contentSize
+    )
+    appendNativeActions(to: controller.menu)
+    return controller
+  }
+
+  private func appendNativeActions(to menu: NSMenu) {
+    menu.addItem(.separator())
+
+    let settingsItem = NSMenuItem(
+      title: "Mihomo 连接设置…",
+      action: #selector(showControllerSettings),
+      keyEquivalent: ","
+    )
+    settingsItem.target = self
+    settingsItem.keyEquivalentModifierMask = [.command]
+    menu.addItem(settingsItem)
+
+    let quitItem = NSMenuItem(
+      title: "退出 Mihomo Meter",
+      action: #selector(terminateApplication),
+      keyEquivalent: "q"
+    )
+    quitItem.target = self
+    quitItem.keyEquivalentModifierMask = [.command]
+    menu.addItem(quitItem)
   }
 
   private func observeMonitor() {
@@ -121,27 +148,6 @@ final class MenuBarController: NSObject {
         )
       }
       .store(in: &cancellables)
-  }
-
-  private func observeApplication() {
-    NotificationCenter.default.publisher(
-      for: NSApplication.didBecomeActiveNotification,
-      object: NSApplication.shared
-    )
-    .sink { [weak self] _ in
-      self?.presentPendingPopover()
-    }
-    .store(in: &cancellables)
-
-    NotificationCenter.default.publisher(
-      for: NSApplication.didResignActiveNotification,
-      object: NSApplication.shared
-    )
-    .sink { [weak self] _ in
-      self?.isPopoverPresentationPending = false
-      self?.closePopover()
-    }
-    .store(in: &cancellables)
   }
 
   private func updateStatusItemButton(
@@ -164,102 +170,24 @@ final class MenuBarController: NSObject {
     button.setAccessibilityValue("\(state.title)，\(summary)")
   }
 
+  private func performMenuAction(_ action: () -> Void) {
+    statusMenuController.close()
+    action()
+  }
+
   @objc
-  private func togglePopover() {
-    if popover.isShown {
-      closePopover()
-      return
-    }
-
-    guard !NSApplication.shared.isActive else {
-      showPopover()
-      return
-    }
-
-    isPopoverPresentationPending = true
-    activateApplication()
-  }
-
-  private func presentPendingPopover() {
-    guard isPopoverPresentationPending, NSApplication.shared.isActive else {
-      return
-    }
-    isPopoverPresentationPending = false
-    showPopover()
-  }
-
-  private func showPopover() {
-    guard let button = statusItem.button else {
-      return
-    }
-
-    popover.show(
-      relativeTo: button.bounds,
-      of: button,
-      preferredEdge: .minY
-    )
-    startGlobalMouseMonitoring()
-
-    // 在首帧绘制前清除自动焦点，后续仍可使用 Tab 键导航。
-    _ = popover.contentViewController?.view.window?.makeFirstResponder(nil)
-  }
-
-  private func activateApplication() {
-    // 状态栏点击代表明确用户意图；普通 activate() 在关闭最后一个窗口后可能被系统拒绝。
-    NSApplication.shared.activate(ignoringOtherApps: true)
-  }
-
-  private func startGlobalMouseMonitoring() {
-    guard globalMouseMonitor == nil else {
-      return
-    }
-
-    globalMouseMonitor = NSEvent.addGlobalMonitorForEvents(
-      matching: [.leftMouseDown, .rightMouseDown, .otherMouseDown]
-    ) { [weak self] _ in
-      Task { @MainActor [weak self] in
-        self?.closePopover()
-      }
+  private func showControllerSettings() {
+    performMenuAction {
+      actions.showControllerSettings()
     }
   }
 
-  private func stopGlobalMouseMonitoring() {
-    guard let globalMouseMonitor else {
-      return
-    }
-
-    NSEvent.removeMonitor(globalMouseMonitor)
-    self.globalMouseMonitor = nil
+  @objc
+  private func terminateApplication() {
+    NSApplication.shared.terminate(nil)
   }
 
-  private func closePopover() {
-    guard popover.isShown else {
-      return
-    }
-    popover.performClose(nil)
-  }
-
-  private func showStatisticsWindow(module: StatisticsModule) {
-    pendingStatisticsModule = module
-    guard popover.isShown else {
-      presentPendingStatisticsWindow()
-      return
-    }
-    closePopover()
-  }
-
-  private func presentPendingStatisticsWindow() {
-    guard let module = pendingStatisticsModule else {
-      return
-    }
-    pendingStatisticsModule = nil
-    statisticsWindowController.show(module: module)
-  }
-}
-
-extension MenuBarController: NSPopoverDelegate {
-  func popoverDidClose(_ notification: Notification) {
-    stopGlobalMouseMonitoring()
-    presentPendingStatisticsWindow()
+  func dismissStatusMenuForWindowPresentation() {
+    statusMenuController.close()
   }
 }

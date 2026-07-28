@@ -52,13 +52,18 @@ final class TrafficStatisticsWindowController: NSWindowController {
 
   func show(module: StatisticsModule) {
     workspaceModel.selectedModule = module
+    showCurrentModule()
+  }
+
+  func showTrafficIntervalCreation() {
+    workspaceModel.selectedModule = .proxyTraffic
+    workspaceModel.requestsTrafficIntervalCreation = true
+    showCurrentModule()
+  }
+
+  func showCurrentModule() {
+    NSApplication.shared.activate()
     showWindow(nil)
     window?.makeKeyAndOrderFront(nil)
-
-    if #available(macOS 14.0, *) {
-      NSApplication.shared.activate()
-    } else {
-      NSApplication.shared.activate(ignoringOtherApps: true)
-    }
   }
 }

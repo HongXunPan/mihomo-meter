@@ -3,6 +3,7 @@
 set -euo pipefail
 
 readonly repository_url="https://github.com/HongXunPan/mihomo-meter"
+readonly expected_minimum_system_version="14.0"
 
 usage() {
   cat <<'EOF'
@@ -131,6 +132,16 @@ generated_appcast_path="${work_directory}/appcast.xml"
   "${work_directory}"
 
 xmllint --noout "${generated_appcast_path}"
+minimum_system_version="$(
+  xmllint \
+    --xpath \
+    'string(/*[local-name()="rss"]/*[local-name()="channel"]/*[local-name()="item"][1]/*[local-name()="minimumSystemVersion"])' \
+    "${generated_appcast_path}"
+)"
+if [[ "${minimum_system_version}" != "${expected_minimum_system_version}" &&
+  "${minimum_system_version}" != "${expected_minimum_system_version}.0" ]]; then
+  fail "生成的 appcast 最低系统版本不是 macOS ${expected_minimum_system_version}。"
+fi
 grep -Fq "sparkle:edSignature=" "${generated_appcast_path}" ||
   fail "生成的 appcast 缺少 Ed25519 更新签名。"
 grep -Fq \

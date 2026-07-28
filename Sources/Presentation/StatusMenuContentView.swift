@@ -1,24 +1,22 @@
 import AppKit
-import Combine
 import SwiftUI
 
-enum TrafficPopoverLayout {
+enum StatusMenuLayout {
   static let contentSize = NSSize(width: 400, height: 620)
 }
 
-struct TrafficPopoverView: View {
+struct StatusMenuContentView: View {
   @ObservedObject var monitor: TrafficMonitor
   @ObservedObject var statisticsController: TrafficStatisticsController
   @ObservedObject var quotaController: RuntimeQuotaTrackingController
   @ObservedObject var profileQuotaController: ProfileQuotaTrackingController
   @ObservedObject var updateModel: AppUpdateModel
+  let checkForUpdates: () -> Void
+  let startStatistics: () -> Void
   let showAllStatistics: () -> Void
   let showQuotaStatistics: () -> Void
-  let dismiss: () -> Void
 
   @State private var showsRuntimeDetails = false
-  @State private var showsControllerConfiguration = false
-  @State private var synchronizedConnectionState: MonitorConnectionState?
 
   var body: some View {
     VStack(spacing: 0) {
@@ -30,23 +28,11 @@ struct TrafficPopoverView: View {
 
       ScrollView {
         VStack(alignment: .leading, spacing: 0) {
-          if prioritizesControllerConfiguration {
-            controllerConfiguration
-            sectionDivider
-            trafficOverview
-            sectionDivider
-            trafficStatistics
-            sectionDivider
-            subscriptionQuota
-          } else {
-            trafficOverview
-            sectionDivider
-            trafficStatistics
-            sectionDivider
-            subscriptionQuota
-            sectionDivider
-            controllerConfiguration
-          }
+          trafficOverview
+          sectionDivider
+          trafficStatistics
+          sectionDivider
+          subscriptionQuota
         }
         .padding(16)
       }
@@ -54,16 +40,10 @@ struct TrafficPopoverView: View {
       footer
     }
     .frame(
-      width: TrafficPopoverLayout.contentSize.width,
-      height: TrafficPopoverLayout.contentSize.height
+      width: StatusMenuLayout.contentSize.width,
+      height: StatusMenuLayout.contentSize.height
     )
-    .disclosureGroupStyle(PopoverDisclosureGroupStyle())
-    .onReceive(
-      monitor.connectionStatePublisher
-    ) { state in
-      synchronizeControllerVisibility(for: state)
-    }
-    .onExitCommand(perform: dismiss)
+    .disclosureGroupStyle(StatusMenuDisclosureGroupStyle())
   }
 
   private var header: some View {
@@ -111,17 +91,11 @@ struct TrafficPopoverView: View {
     )
   }
 
-  private var controllerConfiguration: some View {
-    ControllerConfigurationView(
-      monitor: monitor,
-      isExpanded: $showsControllerConfiguration
-    )
-  }
-
   private var trafficStatistics: some View {
     TrafficStatisticsSummaryView(
       controller: statisticsController,
       isMonitoringAvailable: allowsTrafficStatistics,
+      startStatistics: startStatistics,
       showAllStatistics: showAllStatistics
     )
   }
@@ -143,33 +117,19 @@ struct TrafficPopoverView: View {
     VStack(spacing: 0) {
       Divider()
 
-      HStack(alignment: .center) {
-        VStack(alignment: .leading, spacing: 3) {
-          Text("只读监控，不修改 Mihomo 或系统代理。")
-            .font(.caption2)
-            .foregroundStyle(.secondary)
+      VStack(alignment: .leading, spacing: 3) {
+        Text("只读监控，不修改 Mihomo 或系统代理。")
+          .font(.caption2)
+          .foregroundStyle(.secondary)
 
-          AppUpdateView(model: updateModel)
-        }
-
-        Spacer()
-
-        Button("退出") {
-          NSApplication.shared.terminate(nil)
-        }
-        .controlSize(.small)
+        AppUpdateView(
+          model: updateModel,
+          checkForUpdates: checkForUpdates
+        )
       }
+      .frame(maxWidth: .infinity, alignment: .leading)
       .padding(.horizontal, 16)
       .padding(.vertical, 10)
-    }
-  }
-
-  private var prioritizesControllerConfiguration: Bool {
-    switch monitor.connectionState {
-    case .disconnected, .connecting, .authenticationFailed, .unsupported:
-      true
-    case .connected, .stale, .reconnecting:
-      false
     }
   }
 
@@ -209,19 +169,4 @@ struct TrafficPopoverView: View {
     }
   }
 
-  private func synchronizeControllerVisibility(
-    for state: MonitorConnectionState
-  ) {
-    guard synchronizedConnectionState != state else {
-      return
-    }
-    synchronizedConnectionState = state
-
-    switch state {
-    case .disconnected, .authenticationFailed, .unsupported:
-      showsControllerConfiguration = true
-    case .connecting, .connected, .stale, .reconnecting:
-      break
-    }
-  }
 }

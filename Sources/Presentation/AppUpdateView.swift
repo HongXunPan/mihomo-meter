@@ -2,6 +2,7 @@ import SwiftUI
 
 struct AppUpdateView: View {
   @ObservedObject var model: AppUpdateModel
+  let checkForUpdates: () -> Void
 
   var body: some View {
     HStack(spacing: 5) {
@@ -11,7 +12,7 @@ struct AppUpdateView: View {
         .foregroundStyle(.tertiary)
 
       Button("检查更新") {
-        model.checkForUpdates()
+        checkForUpdates()
       }
       .buttonStyle(.link)
       .controlSize(.mini)

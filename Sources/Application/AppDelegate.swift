@@ -31,7 +31,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   private var profileDirectoryController: ClashProfileDirectoryController?
   private var subscriptionQuotaDataController: SubscriptionQuotaDataController?
   private var updateModel: AppUpdateModel?
-  private var menuBarController: MenuBarController?
+  private var presentationCoordinator: AppPresentationCoordinator?
   private var isTerminationPending = false
 
   func applicationDidFinishLaunching(_ notification: Notification) {
@@ -39,7 +39,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       return
     }
 
-    NSApplication.shared.setActivationPolicy(.accessory)
     let statisticsController = TrafficStatisticsController(
       ledger: SQLiteTrafficLedger(
         databaseURL: TrafficLedgerLocation.defaultDatabaseURL()
@@ -92,15 +91,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     self.profileDirectoryController = profileDirectoryController
     self.subscriptionQuotaDataController = subscriptionQuotaDataController
     self.updateModel = updateModel
-    menuBarController = MenuBarController(
-      monitor: monitor,
-      statisticsController: statisticsController,
-      quotaController: quotaController,
-      profileQuotaController: profileQuotaController,
-      profileController: profileDirectoryController,
-      subscriptionQuotaDataController: subscriptionQuotaDataController,
-      updateModel: updateModel
+    let presentationCoordinator = AppPresentationCoordinator(
+      dependencies: AppPresentationCoordinator.Dependencies(
+        monitor: monitor,
+        statisticsController: statisticsController,
+        quotaController: quotaController,
+        profileQuotaController: profileQuotaController,
+        profileController: profileDirectoryController,
+        subscriptionQuotaDataController: subscriptionQuotaDataController,
+        updateModel: updateModel
+      )
     )
+    self.presentationCoordinator = presentationCoordinator
     updateModel.start()
 
     Task {
@@ -113,6 +115,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       await profileDirectoryController.prepare()
       monitor.start()
     }
+  }
+
+  func applicationShouldHandleReopen(
+    _: NSApplication,
+    hasVisibleWindows _: Bool
+  ) -> Bool {
+    presentationCoordinator?.showCurrentStatisticsWindow()
+    return true
+  }
+
+  func applicationShouldTerminateAfterLastWindowClosed(_: NSApplication) -> Bool {
+    false
   }
 
   func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {

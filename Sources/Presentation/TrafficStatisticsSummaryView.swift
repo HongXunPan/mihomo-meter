@@ -3,9 +3,8 @@ import SwiftUI
 struct TrafficStatisticsSummaryView: View {
   @ObservedObject var controller: TrafficStatisticsController
   let isMonitoringAvailable: Bool
+  let startStatistics: () -> Void
   let showAllStatistics: () -> Void
-
-  @State private var isCreatingInterval = false
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
@@ -19,15 +18,8 @@ struct TrafficStatisticsSummaryView: View {
         lifetimeBytes: controller.snapshot.lifetime.proxy.total
       )
 
-      if isCreatingInterval {
-        startEditor
-      }
-
       activeIntervals
       showAllAction
-    }
-    .onDisappear {
-      isCreatingInterval = false
     }
   }
 
@@ -39,27 +31,12 @@ struct TrafficStatisticsSummaryView: View {
       Spacer()
 
       Button("开始统计") {
-        isCreatingInterval = true
+        startStatistics()
       }
       .buttonStyle(.borderedProminent)
       .controlSize(.small)
-      .disabled(!canStartInterval || isCreatingInterval)
+      .disabled(!canStartInterval)
     }
-  }
-
-  private var startEditor: some View {
-    TrafficIntervalNameEditor(
-      title: "新建统计任务",
-      initialName: suggestedName,
-      actionTitle: "开始",
-      cancel: {
-        isCreatingInterval = false
-      },
-      submit: { name in
-        await controller.startInterval(name: name)
-        return controller.operationMessage == nil
-      }
-    )
   }
 
   @ViewBuilder
@@ -109,7 +86,6 @@ struct TrafficStatisticsSummaryView: View {
       Divider()
 
       Button {
-        isCreatingInterval = false
         showAllStatistics()
       } label: {
         HStack(spacing: 8) {
@@ -132,9 +108,5 @@ struct TrafficStatisticsSummaryView: View {
 
   private var canStartInterval: Bool {
     controller.availability.isAvailable && isMonitoringAvailable
-  }
-
-  private var suggestedName: String {
-    "统计任务 \(controller.snapshot.intervals.count + 1)"
   }
 }

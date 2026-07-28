@@ -155,7 +155,7 @@ struct SubscriptionQuotaStatisticsView: View {
           .foregroundStyle(.secondary)
         Text("尚无订阅余额记录")
           .font(.headline)
-        Text("可在状态栏弹窗启用轻量追踪，或管理需要精确识别的 Profile。")
+        Text("可在状态栏快速菜单启用轻量追踪，或管理需要精确识别的 Profile。")
           .font(.caption)
           .foregroundStyle(.secondary)
 

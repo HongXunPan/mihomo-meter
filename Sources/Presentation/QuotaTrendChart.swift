@@ -247,12 +247,9 @@ struct QuotaTrendChart: View {
     proxy: ChartProxy,
     geometry: GeometryProxy
   ) -> CGRect? {
-    if #available(macOS 14.0, *) {
-      guard let anchor = proxy.plotFrame else {
-        return nil
-      }
-      return geometry[anchor]
+    guard let anchor = proxy.plotFrame else {
+      return nil
     }
-    return geometry[proxy.plotAreaFrame]
+    return geometry[anchor]
   }
 }
