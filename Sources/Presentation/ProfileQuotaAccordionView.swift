@@ -79,7 +79,7 @@ private struct ProfileQuotaAccordionRow: View {
         if let quota = item.latestQuota {
           SubscriptionQuotaMetricsView(
             quota: quota,
-            trend: item.trends.week,
+            trend: item.trends.day,
             isCompact: true
           )
           .padding(.top, 10)

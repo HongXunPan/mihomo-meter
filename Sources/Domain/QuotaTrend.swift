@@ -4,6 +4,7 @@ enum QuotaTrendWindow: String, CaseIterable, Equatable, Sendable {
   case day
   case week
   case month
+  case year
 
   var duration: TimeInterval {
     switch self {
@@ -13,6 +14,28 @@ enum QuotaTrendWindow: String, CaseIterable, Equatable, Sendable {
       7 * 24 * 60 * 60
     case .month:
       30 * 24 * 60 * 60
+    case .year:
+      365 * 24 * 60 * 60
+    }
+  }
+
+  func startDate(endingAt date: Date, calendar: Calendar = .current) -> Date {
+    if self == .year,
+      let yearStart = calendar.date(byAdding: .month, value: -12, to: date)
+    {
+      return yearStart
+    }
+    return date.addingTimeInterval(-duration)
+  }
+
+  var defaultUsageAggregation: QuotaUsageAggregation {
+    switch self {
+    case .day:
+      .hour
+    case .week, .month:
+      .day
+    case .year:
+      .month
     }
   }
 }
@@ -48,6 +71,7 @@ struct RuntimeQuotaTrends: Equatable, Sendable {
   var day = QuotaTrend.empty(window: .day)
   var week = QuotaTrend.empty(window: .week)
   var month = QuotaTrend.empty(window: .month)
+  var year = QuotaTrend.empty(window: .year)
 
   func trend(for window: QuotaTrendWindow) -> QuotaTrend {
     switch window {
@@ -57,6 +81,8 @@ struct RuntimeQuotaTrends: Equatable, Sendable {
       week
     case .month:
       month
+    case .year:
+      year
     }
   }
 }
@@ -64,6 +90,7 @@ struct RuntimeQuotaTrends: Equatable, Sendable {
 struct QuotaTrend: Equatable, Sendable {
   let window: QuotaTrendWindow
   let points: [QuotaTrendPoint]
+  let usageByAggregation: [QuotaUsageAggregation: QuotaUsageSeries]
   let consumedBytes: UInt64?
   let dailyConsumptionBytes: Double?
   let depletionForecast: QuotaDepletionForecast
@@ -75,10 +102,15 @@ struct QuotaTrend: Equatable, Sendable {
     return date
   }
 
+  func usageSeries(for aggregation: QuotaUsageAggregation) -> QuotaUsageSeries {
+    usageByAggregation[aggregation] ?? .empty(aggregation: aggregation)
+  }
+
   static func empty(window: QuotaTrendWindow) -> QuotaTrend {
     QuotaTrend(
       window: window,
       points: [],
+      usageByAggregation: [:],
       consumedBytes: nil,
       dailyConsumptionBytes: nil,
       depletionForecast: .unavailable(.insufficientSamples)

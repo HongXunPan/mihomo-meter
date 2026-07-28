@@ -7,13 +7,20 @@ enum QuotaTrendEngine {
     snapshots: [SubscriptionQuotaSnapshot],
     window: QuotaTrendWindow,
     now: Date,
-    context: QuotaTrendContext
+    context: QuotaTrendContext,
+    calendar: Calendar = .current
   ) -> QuotaTrend {
     guard let latestSnapshot = context.latestSnapshot else {
       return .empty(window: window)
     }
 
-    let windowStart = now.addingTimeInterval(-window.duration)
+    let windowStart = window.startDate(endingAt: now, calendar: calendar)
+    let usageByAggregation = QuotaUsageTrendEngine.calculate(
+      snapshots: snapshots,
+      windowStart: windowStart,
+      windowEnd: now,
+      calendar: calendar
+    )
     let points =
       snapshots
       .filter { snapshot in
@@ -35,6 +42,7 @@ enum QuotaTrendEngine {
       return QuotaTrend(
         window: window,
         points: points,
+        usageByAggregation: usageByAggregation,
         consumedBytes: nil,
         dailyConsumptionBytes: nil,
         depletionForecast: unavailableForecast(
@@ -50,6 +58,7 @@ enum QuotaTrendEngine {
       return QuotaTrend(
         window: window,
         points: points,
+        usageByAggregation: usageByAggregation,
         consumedBytes: nil,
         dailyConsumptionBytes: nil,
         depletionForecast: unavailableForecast(
@@ -64,6 +73,7 @@ enum QuotaTrendEngine {
       return QuotaTrend(
         window: window,
         points: points,
+        usageByAggregation: usageByAggregation,
         consumedBytes: nil,
         dailyConsumptionBytes: nil,
         depletionForecast: .unavailable(.unconfirmedCycle)
@@ -83,6 +93,7 @@ enum QuotaTrendEngine {
     return QuotaTrend(
       window: window,
       points: points,
+      usageByAggregation: usageByAggregation,
       consumedBytes: consumedBytes,
       dailyConsumptionBytes: dailyConsumptionBytes,
       depletionForecast: depletionForecast

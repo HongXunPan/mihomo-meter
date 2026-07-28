@@ -129,6 +129,11 @@ actor SQLiteQuotaLedger: QuotaLedgerStoring {
     }
     let latestQuota = try persistence.snapshots.latest(for: subscriptionID)
     let currentCycle = try persistence.cycles.open(for: subscriptionID)
+    let snapshots = try persistence.snapshots.load(
+      for: subscriptionID,
+      from: QuotaTrendWindow.year.startDate(endingAt: date),
+      through: date
+    )
     return try SubscriptionQuotaAnalysis(
       latestQuota: latestQuota,
       trends: RuntimeQuotaTrends(
@@ -138,7 +143,7 @@ actor SQLiteQuotaLedger: QuotaLedgerStoring {
           now: date,
           latestQuota: latestQuota,
           currentCycle: currentCycle,
-          persistence: persistence
+          snapshots: snapshots
         ),
         week: trend(
           for: subscription,
@@ -146,7 +151,7 @@ actor SQLiteQuotaLedger: QuotaLedgerStoring {
           now: date,
           latestQuota: latestQuota,
           currentCycle: currentCycle,
-          persistence: persistence
+          snapshots: snapshots
         ),
         month: trend(
           for: subscription,
@@ -154,7 +159,15 @@ actor SQLiteQuotaLedger: QuotaLedgerStoring {
           now: date,
           latestQuota: latestQuota,
           currentCycle: currentCycle,
-          persistence: persistence
+          snapshots: snapshots
+        ),
+        year: trend(
+          for: subscription,
+          window: .year,
+          now: date,
+          latestQuota: latestQuota,
+          currentCycle: currentCycle,
+          snapshots: snapshots
         )
       ),
       currentCycle: currentCycle,
@@ -177,7 +190,11 @@ actor SQLiteQuotaLedger: QuotaLedgerStoring {
       now: now,
       latestQuota: persistence.snapshots.latest(for: subscriptionID),
       currentCycle: persistence.cycles.open(for: subscriptionID),
-      persistence: persistence
+      snapshots: persistence.snapshots.load(
+        for: subscriptionID,
+        from: window.startDate(endingAt: now),
+        through: now
+      )
     )
   }
 
@@ -234,13 +251,8 @@ actor SQLiteQuotaLedger: QuotaLedgerStoring {
     now: Date,
     latestQuota: SubscriptionQuotaSnapshot?,
     currentCycle: QuotaCycle?,
-    persistence: QuotaLedgerPersistence
+    snapshots: [SubscriptionQuotaSnapshot]
   ) throws -> QuotaTrend {
-    let snapshots = try persistence.snapshots.load(
-      for: subscription.id,
-      from: now.addingTimeInterval(-window.duration),
-      through: now
-    )
     return QuotaTrendEngine.calculate(
       snapshots: snapshots,
       window: window,

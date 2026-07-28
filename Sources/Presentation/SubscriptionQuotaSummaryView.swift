@@ -18,7 +18,7 @@ struct SubscriptionQuotaSummaryView: View {
         if let quota = controller.snapshot.latestQuota {
           SubscriptionQuotaMetricsView(
             quota: quota,
-            trend: controller.snapshot.trends.week,
+            trend: controller.snapshot.trends.day,
             isCompact: true
           )
 

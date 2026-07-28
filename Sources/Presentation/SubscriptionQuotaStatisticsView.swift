@@ -1,6 +1,20 @@
 import AppKit
 import SwiftUI
 
+private enum QuotaTrendDetailTarget: Identifiable {
+  case runtime
+  case profile(UUID)
+
+  var id: String {
+    switch self {
+    case .runtime:
+      "runtime"
+    case .profile(let id):
+      "profile-\(id.uuidString)"
+    }
+  }
+}
+
 struct SubscriptionQuotaStatisticsView: View {
   @ObservedObject var controller: RuntimeQuotaTrackingController
   @ObservedObject var profileQuotaController: ProfileQuotaTrackingController
@@ -10,6 +24,7 @@ struct SubscriptionQuotaStatisticsView: View {
   @State private var window = QuotaTrendWindow.week
   @State private var showsProfileManager = false
   @State private var showsClearConfirmation = false
+  @State private var trendDetailTarget: QuotaTrendDetailTarget?
 
   var body: some View {
     VStack(spacing: 0) {
@@ -33,6 +48,9 @@ struct SubscriptionQuotaStatisticsView: View {
     .sheet(isPresented: $showsProfileManager) {
       ProfileTrackingManagementView(controller: profileController)
     }
+    .sheet(item: $trendDetailTarget) { target in
+      trendDetail(for: target)
+    }
     .confirmationDialog(
       "清空全部订阅余额数据？",
       isPresented: $showsClearConfirmation
@@ -49,55 +67,50 @@ struct SubscriptionQuotaStatisticsView: View {
   }
 
   private var header: some View {
-    HStack(alignment: .center, spacing: 16) {
-      VStack(alignment: .leading, spacing: 3) {
-        Text("订阅余额")
-          .font(.title2.weight(.semibold))
-        Text("按订阅 Profile 观察机场剩余流量；不与本机 Proxy 流量对账。")
-          .font(.caption)
-          .foregroundStyle(.secondary)
-      }
+    VStack(alignment: .leading, spacing: 12) {
+      HStack(alignment: .center, spacing: 12) {
+        VStack(alignment: .leading, spacing: 3) {
+          Text("订阅余额")
+            .font(.title2.weight(.semibold))
+          Text("按订阅 Profile 观察机场剩余流量；不与本机 Proxy 流量对账。")
+            .font(.caption)
+            .foregroundStyle(.secondary)
+        }
 
-      Spacer()
+        Spacer()
 
-      Picker("趋势窗口", selection: $window) {
-        Text("24 小时").tag(QuotaTrendWindow.day)
-        Text("7 天").tag(QuotaTrendWindow.week)
-        Text("30 天").tag(QuotaTrendWindow.month)
-      }
-      .pickerStyle(.segmented)
-      .labelsHidden()
-      .frame(width: 260)
-
-      if !profileQuotaController.snapshot.profiles.isEmpty {
-        Button {
-          Task {
-            await profileQuotaController.refreshAll()
+        if !profileQuotaController.snapshot.profiles.isEmpty {
+          Button {
+            Task {
+              await profileQuotaController.refreshAll()
+            }
+          } label: {
+            Label(
+              profileQuotaController.snapshot.isRefreshingAll ? "正在查询" : "全部查询",
+              systemImage: "arrow.clockwise"
+            )
           }
+          .disabled(!canRefreshAnyProfile)
+        }
+
+        Button("管理 Profile") {
+          showsProfileManager = true
+        }
+
+        Menu {
+          Button("清空订阅余额数据", role: .destructive) {
+            showsClearConfirmation = true
+          }
+          .disabled(dataController.isClearing || !hasContent)
         } label: {
-          Label(
-            profileQuotaController.snapshot.isRefreshingAll ? "正在查询" : "全部查询",
-            systemImage: "arrow.clockwise"
-          )
+          Image(systemName: "ellipsis.circle")
         }
-        .disabled(!canRefreshAnyProfile)
+        .menuStyle(.borderlessButton)
+        .menuIndicator(.hidden)
+        .accessibilityLabel("更多订阅余额操作")
       }
 
-      Button("管理 Profile") {
-        showsProfileManager = true
-      }
-
-      Menu {
-        Button("清空订阅余额数据", role: .destructive) {
-          showsClearConfirmation = true
-        }
-        .disabled(dataController.isClearing || !hasContent)
-      } label: {
-        Image(systemName: "ellipsis.circle")
-      }
-      .menuStyle(.borderlessButton)
-      .menuIndicator(.hidden)
-      .accessibilityLabel("更多订阅余额操作")
+      QuotaTrendRangeControl(window: $window)
     }
   }
 
@@ -105,7 +118,7 @@ struct SubscriptionQuotaStatisticsView: View {
   private var content: some View {
     if hasContent {
       LazyVGrid(
-        columns: [GridItem(.adaptive(minimum: 300, maximum: 420), spacing: 16)],
+        columns: [GridItem(.adaptive(minimum: 480, maximum: 640), spacing: 16)],
         alignment: .leading,
         spacing: 16
       ) {
@@ -113,35 +126,14 @@ struct SubscriptionQuotaStatisticsView: View {
           let subscription = controller.snapshot.subscription,
           let quota = controller.snapshot.latestQuota
         {
-          VStack(alignment: .leading, spacing: 14) {
-            HStack {
-              VStack(alignment: .leading, spacing: 2) {
-                Text(subscription.name)
-                  .font(.headline)
-                Text("当前运行订阅 · 未绑定 Profile UID")
-                  .font(.caption2)
-                  .foregroundStyle(.secondary)
-              }
-              Spacer()
-              Image(systemName: "dot.radiowaves.left.and.right")
-                .foregroundStyle(.cyan)
+          RuntimeQuotaCardView(
+            controller: controller,
+            subscription: subscription,
+            quota: quota,
+            window: window,
+            onExpand: {
+              trendDetailTarget = .runtime
             }
-
-            Divider()
-
-            SubscriptionQuotaMetricsView(
-              quota: quota,
-              trend: controller.snapshot.trends.trend(for: window)
-            )
-
-            QuotaEventSummaryView(analysis: controller.snapshot.analysis) {
-              await controller.confirmCurrentCycle()
-            }
-          }
-          .padding(16)
-          .background(
-            Color(nsColor: .controlBackgroundColor),
-            in: RoundedRectangle(cornerRadius: 12)
           )
         }
 
@@ -149,7 +141,10 @@ struct SubscriptionQuotaStatisticsView: View {
           ProfileQuotaCardView(
             controller: profileQuotaController,
             item: item,
-            window: window
+            window: window,
+            onExpand: {
+              trendDetailTarget = .profile(item.id)
+            }
           )
         }
       }
@@ -186,5 +181,27 @@ struct SubscriptionQuotaStatisticsView: View {
   private var canRefreshAnyProfile: Bool {
     !profileQuotaController.snapshot.isRefreshingAll
       && profileQuotaController.snapshot.profiles.contains(where: \.canRefresh)
+  }
+
+  @ViewBuilder
+  private func trendDetail(for target: QuotaTrendDetailTarget) -> some View {
+    switch target {
+    case .runtime:
+      if let subscription = controller.snapshot.subscription {
+        QuotaTrendDetailView(
+          title: subscription.name,
+          trends: controller.snapshot.trends,
+          initialWindow: window
+        )
+      }
+    case .profile(let id):
+      if let item = profileQuotaController.snapshot.profiles.first(where: { $0.id == id }) {
+        QuotaTrendDetailView(
+          title: item.subscription.name,
+          trends: item.trends,
+          initialWindow: window
+        )
+      }
+    }
   }
 }

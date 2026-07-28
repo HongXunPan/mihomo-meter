@@ -34,11 +34,73 @@ enum SubscriptionQuotaFormatter {
     return "每 \(minutes / 60) 小时查询"
   }
 
-  static func consumption(_ trend: QuotaTrend) -> String {
-    guard let consumedBytes = trend.consumedBytes else {
-      return "样本积累中"
+  static func usageSummary(_ series: QuotaUsageSeries) -> String {
+    guard !series.bars.isEmpty else {
+      return series.unresolvedIntervals.isEmpty ? "样本积累中" : "存在无法拆分区间"
     }
-    return "窗口内已用 \(bytes(consumedBytes))"
+    let total = series.totalDownloadBytes + series.totalUploadBytes
+    let prefix = series.unresolvedIntervals.isEmpty ? "已记录新增" : "可比较新增"
+    guard let coverageDuration = series.coverageDuration else {
+      return "\(prefix) \(bytes(total))"
+    }
+    return "\(prefix) \(bytes(total)) · 覆盖 \(duration(coverageDuration))"
+  }
+
+  static func unresolvedInterval(
+    _ interval: QuotaUsageInterval,
+    additionalCount: Int
+  ) -> String {
+    let formatter = DateIntervalFormatter()
+    formatter.locale = .autoupdatingCurrent
+    formatter.timeZone = .autoupdatingCurrent
+    formatter.dateStyle = .short
+    formatter.timeStyle = .short
+    let range = formatter.string(from: interval.startAt, to: interval.endAt)
+    let suffix = additionalCount > 0 ? "，另有 \(additionalCount) 段" : ""
+    return "\(range) · \(duration(interval.duration))合计 ↓"
+      + "\(bytes(interval.downloadBytes)) ↑\(bytes(interval.uploadBytes))\(suffix)"
+  }
+
+  static func usageTick(
+    _ date: Date,
+    aggregation: QuotaUsageAggregation
+  ) -> String {
+    let formatter = DateFormatter()
+    formatter.locale = .autoupdatingCurrent
+    formatter.timeZone = .autoupdatingCurrent
+    switch aggregation {
+    case .automatic, .hour, .threeHour, .sixHour, .twelveHour:
+      formatter.setLocalizedDateFormatFromTemplate("MdHH")
+    case .day, .week:
+      formatter.setLocalizedDateFormatFromTemplate("Md")
+    case .month:
+      formatter.setLocalizedDateFormatFromTemplate("yyyyM")
+    }
+    return formatter.string(from: date)
+  }
+
+  static func usageBucket(
+    _ interval: DateInterval,
+    aggregation: QuotaUsageAggregation
+  ) -> String {
+    switch aggregation {
+    case .automatic, .hour, .threeHour, .sixHour, .twelveHour:
+      let date = usageDate(interval.start, template: "Md")
+      let start = usageDate(interval.start, template: "HHmm")
+      let end = usageDate(interval.end, template: "HHmm")
+      return "\(date) \(start)–\(end)"
+    case .day:
+      return usageDate(interval.start, template: "yyyyMd")
+    case .week:
+      let formatter = DateIntervalFormatter()
+      formatter.locale = .autoupdatingCurrent
+      formatter.timeZone = .autoupdatingCurrent
+      formatter.dateStyle = .short
+      formatter.timeStyle = .none
+      return formatter.string(from: interval.start, to: interval.end.addingTimeInterval(-0.001))
+    case .month:
+      return usageDate(interval.start, template: "yyyyM")
+    }
   }
 
   static func depletion(_ trend: QuotaTrend) -> String {
@@ -79,6 +141,45 @@ enum SubscriptionQuotaFormatter {
       "检测到总额度减少"
     case .expirationChanged:
       "检测到到期时间变化"
+    }
+  }
+
+  private static func duration(_ interval: TimeInterval) -> String {
+    let hours = max(Int((interval / 3_600).rounded()), 1)
+    if hours.isMultiple(of: 24) {
+      return "\(hours / 24) 天"
+    }
+    return "\(hours) 小时"
+  }
+
+  private static func usageDate(_ date: Date, template: String) -> String {
+    let formatter = DateFormatter()
+    formatter.locale = .autoupdatingCurrent
+    formatter.timeZone = .autoupdatingCurrent
+    formatter.setLocalizedDateFormatFromTemplate(template)
+    return formatter.string(from: date)
+  }
+}
+
+extension QuotaUsageAggregation {
+  var title: String {
+    switch self {
+    case .automatic:
+      "自动"
+    case .hour:
+      "小时"
+    case .threeHour:
+      "3 小时"
+    case .sixHour:
+      "6 小时"
+    case .twelveHour:
+      "12 小时"
+    case .day:
+      "天"
+    case .week:
+      "周"
+    case .month:
+      "月"
     }
   }
 }

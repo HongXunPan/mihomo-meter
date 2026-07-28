@@ -4,6 +4,7 @@ struct ProfileQuotaCardView: View {
   @ObservedObject var controller: ProfileQuotaTrackingController
   let item: ProfileQuotaTrackingItem
   let window: QuotaTrendWindow
+  let onExpand: () -> Void
 
   private var status: ProfileQuotaStatusPresentation {
     ProfileQuotaStatusPresentation(item: item)
@@ -23,7 +24,8 @@ struct ProfileQuotaCardView: View {
       if let quota = item.latestQuota {
         SubscriptionQuotaMetricsView(
           quota: quota,
-          trend: item.trends.trend(for: window)
+          trend: item.trends.trend(for: window),
+          aggregation: window.defaultUsageAggregation
         )
 
         QuotaEventSummaryView(analysis: item.analysis) {
@@ -72,6 +74,13 @@ struct ProfileQuotaCardView: View {
       }
 
       Spacer()
+
+      Button(action: onExpand) {
+        Image(systemName: "arrow.up.left.and.arrow.down.right")
+      }
+      .buttonStyle(.borderless)
+      .disabled(item.latestQuota == nil)
+      .help("放大查看并切换统计粒度")
 
       Button {
         Task {
