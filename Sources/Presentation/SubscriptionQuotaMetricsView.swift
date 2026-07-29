@@ -28,7 +28,7 @@ struct SubscriptionQuotaMetricsView: View {
       ProgressView(value: remainingFraction)
         .tint(
           quota.traffic.isOverQuota
-            ? MihomoColorToken.statusDanger : MihomoColorToken.interactiveAccent
+            ? MihomoColorToken.statusDanger : Color.accentColor
         )
         .accessibilityLabel("剩余流量比例")
         .accessibilityValue(

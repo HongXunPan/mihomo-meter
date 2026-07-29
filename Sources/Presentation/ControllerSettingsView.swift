@@ -126,7 +126,7 @@ struct ControllerSettingsView: View {
     case .connected:
       MihomoColorToken.statusSuccess
     case .connecting, .reconnecting:
-      MihomoColorToken.statusInfo
+      MihomoColorToken.brandPrimary
     case .stale:
       MihomoColorToken.statusWarning
     case .authenticationFailed, .unsupported:

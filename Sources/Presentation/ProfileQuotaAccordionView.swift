@@ -133,7 +133,7 @@ private struct ProfileQuotaAccordionRow: View {
             if item.isCurrent {
               Text("当前")
                 .font(.caption2.weight(.semibold))
-                .foregroundStyle(MihomoColorToken.statusInfo)
+                .foregroundStyle(MihomoColorToken.brandPrimary)
             }
           }
 

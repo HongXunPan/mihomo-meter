@@ -54,7 +54,7 @@ struct QuotaCumulativeTrendHoverView: View {
       .foregroundStyle(MihomoColorToken.trafficUpload)
       + Text(" · ").foregroundStyle(.secondary)
       + Text("总消耗 \(SubscriptionQuotaFormatter.bytes(traffic.usedBytes))")
-      .foregroundStyle(MihomoColorToken.trafficTotal)
+      .foregroundStyle(.primary)
   }
 
   private var comparisonSummary: Text {
@@ -81,7 +81,7 @@ struct QuotaCumulativeTrendHoverView: View {
       .foregroundStyle(MihomoColorToken.trafficUpload)
       + Text(" · ").foregroundStyle(.secondary)
       + Text("合计 \(SubscriptionQuotaFormatter.bytes(delta.totalBytes))")
-      .foregroundStyle(MihomoColorToken.trafficTotal)
+      .foregroundStyle(.primary)
   }
 }
 

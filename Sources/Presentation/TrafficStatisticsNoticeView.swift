@@ -10,7 +10,7 @@ struct TrafficStatisticsNoticeView: View {
     case .loading:
       Label("正在读取本地统计…", systemImage: "clock")
         .font(.caption)
-        .foregroundStyle(MihomoColorToken.statusInfo)
+        .foregroundStyle(MihomoColorToken.brandPrimary)
     case .available:
       if let message = controller.operationMessage {
         messageRow(message, color: MihomoColorToken.statusWarning)

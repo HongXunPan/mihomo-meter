@@ -47,17 +47,26 @@ struct TrafficStatisticsTable: View {
         .width(90)
 
         TableColumn(Text("下载").foregroundStyle(MihomoColorToken.trafficDownload)) { interval in
-          byteValue(interval.proxyUsage.download)
+          byteValue(
+            interval.proxyUsage.download,
+            color: MihomoColorToken.trafficDownload
+          )
         }
         .width(80)
 
         TableColumn(Text("上传").foregroundStyle(MihomoColorToken.trafficUpload)) { interval in
-          byteValue(interval.proxyUsage.upload)
+          byteValue(
+            interval.proxyUsage.upload,
+            color: MihomoColorToken.trafficUpload
+          )
         }
         .width(80)
 
-        TableColumn(Text("合计").foregroundStyle(MihomoColorToken.trafficTotal)) { interval in
-          byteValue(interval.proxyUsage.total)
+        TableColumn(Text("合计").foregroundStyle(MihomoColorToken.trafficProxy)) { interval in
+          byteValue(
+            interval.proxyUsage.total,
+            color: MihomoColorToken.trafficProxy
+          )
         }
         .width(80)
 
@@ -78,9 +87,10 @@ struct TrafficStatisticsTable: View {
     .foregroundStyle(statusColor(for: interval))
   }
 
-  private func byteValue(_ bytes: UInt64) -> some View {
+  private func byteValue(_ bytes: UInt64, color: Color) -> some View {
     Text(TrafficStatisticsFormatter.bytes(bytes))
       .font(.body.monospacedDigit())
+      .foregroundStyle(color)
       .frame(maxWidth: .infinity, alignment: .trailing)
   }
 
@@ -143,7 +153,7 @@ struct TrafficStatisticsTable: View {
     switch interval.status {
     case .active:
       return isStatisticsAvailable
-        ? MihomoColorToken.statusInfo : MihomoColorToken.statusWarning
+        ? MihomoColorToken.brandPrimary : MihomoColorToken.statusWarning
     case .completed:
       return MihomoColorToken.statusSuccess
     case .interrupted:

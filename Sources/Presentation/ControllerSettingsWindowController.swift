@@ -13,7 +13,6 @@ final class ControllerSettingsWindowController: NSWindowController {
         monitor: monitor,
         updateModel: updateModel
       )
-      .mihomoTheme()
     )
     let window = NSWindow(
       contentRect: NSRect(origin: .zero, size: Self.initialSize),

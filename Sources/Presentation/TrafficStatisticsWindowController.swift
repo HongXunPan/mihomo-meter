@@ -27,7 +27,6 @@ final class TrafficStatisticsWindowController: NSWindowController {
         subscriptionQuotaDataController: subscriptionQuotaDataController,
         monitor: monitor
       )
-      .mihomoTheme()
     )
     let window = NSWindow(
       contentRect: NSRect(origin: .zero, size: Self.initialSize),

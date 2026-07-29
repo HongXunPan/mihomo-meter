@@ -27,7 +27,7 @@ struct RuntimeQuotaCardView: View {
         .help("放大查看累计用量走势")
 
         Image(systemName: "dot.radiowaves.left.and.right")
-          .foregroundStyle(MihomoColorToken.statusInfo)
+          .foregroundStyle(MihomoColorToken.brandPrimary)
       }
 
       Divider()

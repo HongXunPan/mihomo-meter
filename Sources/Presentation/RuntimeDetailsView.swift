@@ -5,7 +5,7 @@ struct RuntimeDetailsView: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 6) {
-      detailRow(title: "原始 1 秒 Proxy", value: rawProxyRateSummary)
+      rawProxyRateRow
       detailRow(
         title: "TUN Stack",
         value: monitor.runtimeConfiguration?.tun?.stack ?? "—"
@@ -42,6 +42,35 @@ struct RuntimeDetailsView: View {
       "↓ \(TrafficRateFormatter.string(from: monitor.rawRates.proxy.downloadBytesPerSecond))",
       "↑ \(TrafficRateFormatter.string(from: monitor.rawRates.proxy.uploadBytesPerSecond))",
     ].joined(separator: "  ")
+  }
+
+  private var rawProxyRateRow: some View {
+    HStack(alignment: .firstTextBaseline, spacing: 10) {
+      Text("原始 1 秒 Proxy")
+        .foregroundStyle(.secondary)
+
+      Spacer(minLength: 8)
+
+      if monitor.connectionState == .connected {
+        HStack(spacing: 10) {
+          Text(
+            "↓ \(TrafficRateFormatter.string(from: monitor.rawRates.proxy.downloadBytesPerSecond))"
+          )
+          .foregroundStyle(MihomoColorToken.trafficDownload)
+          Text(
+            "↑ \(TrafficRateFormatter.string(from: monitor.rawRates.proxy.uploadBytesPerSecond))"
+          )
+          .foregroundStyle(MihomoColorToken.trafficUpload)
+        }
+        .monospacedDigit()
+        .lineLimit(1)
+        .help(rawProxyRateSummary)
+      } else {
+        Text("—")
+      }
+    }
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel("原始 1 秒 Proxy，\(rawProxyRateSummary)")
   }
 
   private var mixedPortSummary: String {

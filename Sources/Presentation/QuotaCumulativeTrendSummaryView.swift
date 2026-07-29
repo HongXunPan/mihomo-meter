@@ -73,7 +73,7 @@ struct QuotaCumulativeTrendSummaryView: View {
         title: "合计增量",
         value: usage.traffic.total,
         systemImage: "chart.line.uptrend.xyaxis",
-        color: MihomoColorToken.trafficTotal
+        color: .primary
       )
     }
     .accessibilityElement(children: .combine)

@@ -10,14 +10,16 @@ struct TrafficStatisticsTotalsView: View {
       metric(
         title: "今日 Proxy",
         value: TrafficStatisticsFormatter.bytes(todayBytes),
-        titleColor: MihomoColorToken.trafficTotal
+        titleColor: MihomoColorToken.trafficProxy,
+        valueColor: MihomoColorToken.trafficProxy
       )
       Divider()
         .frame(height: 32)
       metric(
         title: "本机累计 Proxy",
         value: TrafficStatisticsFormatter.bytes(lifetimeBytes),
-        titleColor: MihomoColorToken.trafficTotal
+        titleColor: MihomoColorToken.trafficProxy,
+        valueColor: MihomoColorToken.trafficProxy
       )
 
       if let activeCount {
@@ -32,7 +34,8 @@ struct TrafficStatisticsTotalsView: View {
   private func metric(
     title: String,
     value: String,
-    titleColor: Color = MihomoColorToken.statusNeutral
+    titleColor: Color = MihomoColorToken.statusNeutral,
+    valueColor: Color = .primary
   ) -> some View {
     VStack(alignment: .center, spacing: 3) {
       Text(title)
@@ -40,6 +43,7 @@ struct TrafficStatisticsTotalsView: View {
         .foregroundStyle(titleColor)
       Text(value)
         .font(.subheadline.monospacedDigit().weight(.semibold))
+        .foregroundStyle(valueColor)
         .lineLimit(1)
     }
     .frame(maxWidth: .infinity, alignment: .center)

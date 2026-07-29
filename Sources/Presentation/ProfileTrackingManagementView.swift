@@ -179,7 +179,7 @@ private struct ProfileTrackingSelectionRow: View {
           if profile.isCurrent {
             Text("当前")
               .font(.caption2.weight(.semibold))
-              .foregroundStyle(MihomoColorToken.statusInfo)
+              .foregroundStyle(MihomoColorToken.brandPrimary)
           }
           availabilityBadge
         }

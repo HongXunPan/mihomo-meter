@@ -71,7 +71,7 @@ struct SubscriptionQuotaObservationNoticeView: View {
       controller.snapshot.isPaused
         ? MihomoColorToken.statusWarning : MihomoColorToken.statusSuccess
     case .loading, .checking, .controllerUnavailable:
-      MihomoColorToken.statusInfo
+      MihomoColorToken.brandPrimary
     case .noCandidate, .multipleCandidates, .failed:
       MihomoColorToken.statusWarning
     case .unavailable:

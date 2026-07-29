@@ -16,18 +16,30 @@ struct TrafficClassificationView: View {
             .foregroundStyle(.secondary)
             .frame(maxWidth: .infinity, alignment: .leading)
           Label("下载", systemImage: "arrow.down")
-            .foregroundStyle(MihomoColorToken.trafficDownload)
+            .foregroundStyle(.secondary)
             .frame(maxWidth: .infinity, alignment: .trailing)
           Label("上传", systemImage: "arrow.up")
-            .foregroundStyle(MihomoColorToken.trafficUpload)
+            .foregroundStyle(.secondary)
             .frame(maxWidth: .infinity, alignment: .trailing)
         }
         .font(.caption2)
 
         VStack(spacing: 8) {
-          categoryRow(title: "DIRECT", rate: monitor.rates.direct)
-          categoryRow(title: "REJECT", rate: monitor.rates.reject)
-          categoryRow(title: "未知", rate: monitor.rates.unknown)
+          categoryRow(
+            title: "DIRECT",
+            rate: monitor.rates.direct,
+            color: MihomoColorToken.trafficDirect
+          )
+          categoryRow(
+            title: "REJECT",
+            rate: monitor.rates.reject,
+            color: MihomoColorToken.statusNeutral
+          )
+          categoryRow(
+            title: "未知",
+            rate: monitor.rates.unknown,
+            color: MihomoColorToken.trafficUnknown
+          )
         }
       }
       .padding(.top, 8)
@@ -99,16 +111,20 @@ struct TrafficClassificationView: View {
 
   private func categoryRow(
     title: String,
-    rate: TrafficRate
+    rate: TrafficRate,
+    color: Color
   ) -> some View {
     HStack(spacing: Layout.columnSpacing) {
       Text(title)
+        .foregroundStyle(color)
         .frame(maxWidth: .infinity, alignment: .leading)
       Text(TrafficRateFormatter.string(from: rate.downloadBytesPerSecond))
         .monospacedDigit()
+        .foregroundStyle(color)
         .frame(maxWidth: .infinity, alignment: .trailing)
       Text(TrafficRateFormatter.string(from: rate.uploadBytesPerSecond))
         .monospacedDigit()
+        .foregroundStyle(color)
         .frame(maxWidth: .infinity, alignment: .trailing)
     }
     .font(.caption)

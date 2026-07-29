@@ -22,7 +22,7 @@ struct QuotaUsageHoverSummaryView: View {
             Text("上传 \(SubscriptionQuotaFormatter.bytes(bar.uploadBytes))")
               .foregroundStyle(MihomoColorToken.trafficUpload)
             Text("合计 \(SubscriptionQuotaFormatter.bytes(bar.totalBytes))")
-              .foregroundStyle(MihomoColorToken.trafficTotal)
+              .foregroundStyle(.primary)
             if bar.isBoundaryApproximation {
               Text("边界近似")
                 .foregroundStyle(MihomoColorToken.statusWarning)

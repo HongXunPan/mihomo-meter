@@ -62,6 +62,7 @@ struct TrafficOverviewView: View {
       Text(TrafficRateFormatter.string(from: value))
         .font(.system(.title3, design: .rounded).weight(.semibold))
         .monospacedDigit()
+        .foregroundStyle(color)
     }
     .frame(maxWidth: .infinity, alignment: .center)
   }

@@ -14,7 +14,7 @@ enum ProfileQuotaStatusTone {
     case .positive:
       MihomoColorToken.statusSuccess
     case .waiting:
-      MihomoColorToken.statusInfo
+      MihomoColorToken.brandPrimary
     case .warning:
       MihomoColorToken.statusWarning
     case .negative:

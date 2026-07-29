@@ -64,7 +64,7 @@ struct QuotaTotalLineMark: ChartContent {
       y: .value("总消耗", Double(displayPoint.point.traffic.usedBytes)),
       series: .value("总消耗周期", "total-\(seriesID)")
     )
-    .foregroundStyle(MihomoColorToken.trafficTotal)
+    .foregroundStyle(.primary)
     .lineStyle(StrokeStyle(lineWidth: 2))
     .interpolationMethod(.linear)
   }
@@ -78,7 +78,7 @@ struct QuotaCycleStartMark: ChartContent {
       x: .value("周期起点", displayPoint.point.date),
       y: .value("总消耗", Double(displayPoint.point.traffic.usedBytes))
     )
-    .foregroundStyle(MihomoColorToken.trafficTotal)
+    .foregroundStyle(.primary)
     .symbolSize(38)
 
     PointMark(
@@ -98,7 +98,7 @@ struct QuotaLatestPointMark: ChartContent {
       x: .value("最新快照", displayPoint.point.date),
       y: .value("总消耗", Double(displayPoint.point.traffic.usedBytes))
     )
-    .foregroundStyle(MihomoColorToken.trafficTotal)
+    .foregroundStyle(.primary)
     .symbolSize(38)
   }
 }
@@ -115,7 +115,7 @@ struct QuotaCumulativeHoverMarks: ChartContent {
       x: .value("选中时间", displayPoint.point.date),
       y: .value("总消耗", Double(displayPoint.point.traffic.usedBytes))
     )
-    .foregroundStyle(MihomoColorToken.trafficTotal)
+    .foregroundStyle(.primary)
     .symbolSize(48)
   }
 }
