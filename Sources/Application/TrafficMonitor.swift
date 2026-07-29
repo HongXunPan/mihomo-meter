@@ -53,6 +53,10 @@ final class TrafficMonitor: ObservableObject {
     state.message
   }
 
+  var hasValidatedControllerConfiguration: Bool {
+    configurationStore.hasValidatedConfiguration
+  }
+
   var connectionStatePublisher: AnyPublisher<MonitorConnectionState, Never> {
     $state
       .map(\.connectionState)

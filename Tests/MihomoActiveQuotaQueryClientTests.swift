@@ -55,6 +55,46 @@ final class MihomoActiveQuotaQueryClientTests: XCTestCase {
     XCTAssertNil(MihomoActiveQuotaQueryClient().subscriptionUserInfoHeader(in: response))
   }
 
+  func testNormalizesNSErrorTimeoutWithoutRawErrorText() {
+    let client = MihomoActiveQuotaQueryClient(timeout: 15)
+    let error = NSError(
+      domain: NSURLErrorDomain,
+      code: URLError.Code.timedOut.rawValue,
+      userInfo: [NSLocalizedDescriptionKey: "包含敏感地址的原始错误"]
+    )
+
+    XCTAssertEqual(
+      client.normalizedTransportError(error),
+      .timedOut(timeoutSeconds: 15)
+    )
+  }
+
+  func testNormalizesWrappedNetworkError() {
+    let underlyingError = NSError(
+      domain: NSURLErrorDomain,
+      code: URLError.Code.cannotConnectToHost.rawValue
+    )
+    let wrappedError = NSError(
+      domain: "MihomoMeterTests",
+      code: 1,
+      userInfo: [NSUnderlyingErrorKey: underlyingError]
+    )
+
+    XCTAssertEqual(
+      MihomoActiveQuotaQueryClient().normalizedTransportError(wrappedError),
+      .network(.cannotConnectToHost)
+    )
+  }
+
+  func testKeepsUnknownTransportErrorGeneric() {
+    let error = NSError(domain: "MihomoMeterTests", code: 2)
+
+    XCTAssertEqual(
+      MihomoActiveQuotaQueryClient().normalizedTransportError(error),
+      .transport
+    )
+  }
+
   private func response(headers: [String: String]) throws -> HTTPURLResponse {
     try XCTUnwrap(
       HTTPURLResponse(

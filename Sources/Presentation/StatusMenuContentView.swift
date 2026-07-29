@@ -20,6 +20,7 @@ struct StatusMenuContentView: View {
   @ObservedObject var statisticsController: TrafficStatisticsController
   @ObservedObject var quotaController: RuntimeQuotaTrackingController
   @ObservedObject var profileQuotaController: ProfileQuotaTrackingController
+  let showControllerSettings: () -> Void
   let showAllStatistics: () -> Void
   let showQuotaStatistics: () -> Void
 
@@ -36,11 +37,15 @@ struct StatusMenuContentView: View {
       ScrollViewReader { proxy in
         ScrollView {
           VStack(alignment: .leading, spacing: 0) {
-            trafficOverview
-            sectionDivider
-            trafficStatistics
-            sectionDivider
-            subscriptionQuota
+            if monitor.hasValidatedControllerConfiguration {
+              trafficOverview
+              sectionDivider
+              trafficStatistics
+              sectionDivider
+              subscriptionQuota
+            } else {
+              FirstConnectionGuideView(showControllerSettings: showControllerSettings)
+            }
           }
           .id(StatusMenuScrollAnchor.top)
           .padding(16)

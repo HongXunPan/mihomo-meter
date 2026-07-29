@@ -8,5 +8,13 @@ struct MihomoMeterApp: App {
     Settings {
       EmptyView()
     }
+    .commands {
+      CommandGroup(replacing: .appSettings) {
+        Button("Mihomo 连接设置…") {
+          appDelegate.showControllerSettings()
+        }
+        .keyboardShortcut(",", modifiers: .command)
+      }
+    }
   }
 }

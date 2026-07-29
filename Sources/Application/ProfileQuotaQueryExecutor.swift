@@ -192,6 +192,8 @@ struct ProfileQuotaQueryExecutor {
       return .missingSubscriptionInfo(statusCode: statusCode)
     case .invalidSubscriptionUserInfo:
       return .invalidSubscriptionInfo
+    case .timedOut(let timeoutSeconds):
+      return .timedOut(timeoutSeconds: timeoutSeconds)
     case .network(let code):
       return .network(code)
     case .transport:

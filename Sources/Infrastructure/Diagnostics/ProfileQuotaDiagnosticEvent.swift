@@ -70,6 +70,7 @@ enum ProfileQuotaDiagnosticOutcome: Equatable, Sendable {
   case httpStatus(Int)
   case missingSubscriptionInfo(statusCode: Int)
   case invalidSubscriptionInfo
+  case timedOut(timeoutSeconds: Int)
   case network(URLError.Code)
   case transport
   case storageUnavailable
@@ -94,12 +95,37 @@ enum ProfileQuotaDiagnosticOutcome: Equatable, Sendable {
       "result=missing_subscription_info http_status=\(statusCode)"
     case .invalidSubscriptionInfo:
       "result=invalid_subscription_info"
+    case .timedOut(let timeoutSeconds):
+      "result=network_error network_code=\(URLError.Code.timedOut.rawValue) "
+        + "network_reason=timed_out timeout_seconds=\(max(timeoutSeconds, 0))"
     case .network(let code):
-      "result=network_error network_code=\(code.rawValue)"
+      "result=network_error network_code=\(code.rawValue) "
+        + "network_reason=\(Self.networkReason(for: code))"
     case .transport:
       "result=transport_error"
     case .storageUnavailable:
       "result=storage_unavailable"
+    }
+  }
+
+  private static func networkReason(for code: URLError.Code) -> String {
+    switch code {
+    case .timedOut:
+      "timed_out"
+    case .cannotFindHost, .dnsLookupFailed:
+      "dns_failed"
+    case .cannotConnectToHost:
+      "cannot_connect"
+    case .networkConnectionLost:
+      "connection_lost"
+    case .notConnectedToInternet:
+      "offline"
+    case .secureConnectionFailed:
+      "tls_failed"
+    case .cancelled:
+      "cancelled"
+    default:
+      "other"
     }
   }
 }

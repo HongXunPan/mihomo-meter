@@ -1,4 +1,5 @@
 import CFNetwork
+import Darwin
 import Foundation
 
 protocol ActiveQuotaQuerying: Sendable {
@@ -63,13 +64,31 @@ struct MihomoActiveQuotaQueryClient: ActiveQuotaQuerying {
       return try SubscriptionUserInfoParser().parse(headerValue)
     } catch let error as ActiveQuotaQueryError {
       throw error
-    } catch let error as URLError {
-      throw ActiveQuotaQueryError.network(error.code)
     } catch is CancellationError {
       throw CancellationError()
     } catch {
-      throw ActiveQuotaQueryError.transport
+      throw normalizedTransportError(error)
     }
+  }
+
+  func normalizedTransportError(_ error: any Error) -> ActiveQuotaQueryError {
+    var currentError = error as NSError
+    for _ in 0..<4 {
+      if let code = networkCode(for: currentError) {
+        if code == .timedOut {
+          return .timedOut(timeoutSeconds: max(Int(timeout.rounded(.up)), 0))
+        }
+        return .network(code)
+      }
+      guard
+        let underlyingError = currentError.userInfo[NSUnderlyingErrorKey] as? NSError,
+        underlyingError !== currentError
+      else {
+        break
+      }
+      currentError = underlyingError
+    }
+    return .transport
   }
 
   func makeRequest(subscriptionURL: URL, userAgent: String) -> URLRequest {
@@ -101,6 +120,18 @@ struct MihomoActiveQuotaQueryClient: ActiveQuotaQuerying {
       .sorted { $0.name < $1.name }
       .first?.value
   }
+
+  private func networkCode(for error: NSError) -> URLError.Code? {
+    if error.domain == NSURLErrorDomain
+      || error.domain == kCFErrorDomainCFNetwork as String
+    {
+      return URLError.Code(rawValue: error.code)
+    }
+    if error.domain == NSPOSIXErrorDomain, error.code == Int(ETIMEDOUT) {
+      return .timedOut
+    }
+    return nil
+  }
 }
 
 enum ActiveQuotaQueryError: Error, Equatable, LocalizedError, Sendable {
@@ -111,6 +142,7 @@ enum ActiveQuotaQueryError: Error, Equatable, LocalizedError, Sendable {
   case httpStatus(Int)
   case missingSubscriptionUserInfo(statusCode: Int)
   case invalidSubscriptionUserInfo
+  case timedOut(timeoutSeconds: Int)
   case network(URLError.Code)
   case transport
 
@@ -130,6 +162,8 @@ enum ActiveQuotaQueryError: Error, Equatable, LocalizedError, Sendable {
       "机场响应未包含有效配额信息。"
     case .invalidSubscriptionUserInfo:
       "机场返回的配额格式暂不受支持。"
+    case .timedOut(let timeoutSeconds):
+      "通过 Mihomo 查询机场配额超时（\(timeoutSeconds) 秒）。"
     case .network:
       "通过 Mihomo 查询机场配额失败。"
     case .transport:

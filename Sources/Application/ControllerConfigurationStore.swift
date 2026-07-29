@@ -24,6 +24,10 @@ final class ControllerConfigurationStore {
     userDefaults.string(forKey: Self.addressDefaultsKey) ?? ""
   }
 
+  var hasValidatedConfiguration: Bool {
+    !storedAddress.isEmpty
+  }
+
   func loadStartupConfiguration() async throws -> StartupConfiguration {
     StartupConfiguration(
       address: storedAddress,

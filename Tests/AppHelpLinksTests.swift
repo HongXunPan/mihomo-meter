@@ -5,8 +5,8 @@ import XCTest
 final class AppHelpLinksTests: XCTestCase {
   func testMihomoGuidanceLinksRemainHighestPriority() {
     XCTAssertEqual(
-      Array(AppHelpLink.allCases.prefix(2)),
-      [.prepareMihomo, .mihomoControllerConfiguration]
+      Array(AppHelpLink.allCases.prefix(3)),
+      [.prepareMihomo, .subscriptionConfiguration, .mihomoControllerConfiguration]
     )
   }
 
@@ -24,6 +24,17 @@ final class AppHelpLinksTests: XCTestCase {
     XCTAssertEqual(
       AppHelpLink.prepareMihomo.destination.path,
       "/HongXunPan/mihomo-meter/wiki/准备-Mihomo"
+    )
+  }
+
+  func testPrepareMihomoLinkUsesBeginnerFacingTitle() {
+    XCTAssertEqual(AppHelpLink.prepareMihomo.title, "第一次使用：从零开始")
+  }
+
+  func testSubscriptionConfigurationLinkTargetsDedicatedWikiPage() {
+    XCTAssertEqual(
+      AppHelpLink.subscriptionConfiguration.destination.path,
+      "/HongXunPan/mihomo-meter/wiki/配置订阅地址"
     )
   }
 }

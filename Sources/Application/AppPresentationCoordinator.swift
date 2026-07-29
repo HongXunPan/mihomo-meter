@@ -56,13 +56,13 @@ final class AppPresentationCoordinator {
     statisticsWindowController.showCurrentModule()
   }
 
+  func showControllerSettings() {
+    menuBarController.dismissStatusMenuForWindowPresentation()
+    controllerSettingsWindowController.show()
+  }
+
   private func showStatisticsWindow(module: StatisticsModule) {
     menuBarController.dismissStatusMenuForWindowPresentation()
     statisticsWindowController.show(module: module)
-  }
-
-  private func showControllerSettings() {
-    menuBarController.dismissStatusMenuForWindowPresentation()
-    controllerSettingsWindowController.show()
   }
 }

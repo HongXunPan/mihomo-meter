@@ -5,6 +5,7 @@ struct AppHelpLinksMenu: View {
   var body: some View {
     Menu {
       navigationLink(.prepareMihomo)
+      navigationLink(.subscriptionConfiguration)
       navigationLink(.mihomoControllerConfiguration)
 
       Divider()
@@ -18,15 +19,12 @@ struct AppHelpLinksMenu: View {
 
       navigationLink(.issueReport)
     } label: {
-      Image(systemName: "questionmark.circle")
-        .frame(width: 24, height: 20)
-        .contentShape(Rectangle())
+      Label("帮助与文档", systemImage: "questionmark.circle")
     }
     .menuStyle(.borderlessButton)
-    .menuIndicator(.hidden)
     .controlSize(.small)
     .fixedSize()
-    .help("帮助与文档")
+    .help("打开帮助与文档")
     .accessibilityLabel("帮助与文档")
   }
 
@@ -43,6 +41,7 @@ struct AppHelpLinksMenu: View {
 
 enum AppHelpLink: CaseIterable {
   case prepareMihomo
+  case subscriptionConfiguration
   case mihomoControllerConfiguration
   case userGuide
   case releases
@@ -51,9 +50,11 @@ enum AppHelpLink: CaseIterable {
   var title: String {
     switch self {
     case .prepareMihomo:
-      "准备 Mihomo"
+      "第一次使用：从零开始"
+    case .subscriptionConfiguration:
+      "配置订阅地址与余额追踪"
     case .mihomoControllerConfiguration:
-      "Mihomo 服务配置"
+      "Mihomo 官方 Controller 配置"
     case .userGuide:
       "Mihomo Meter 使用指南"
     case .releases:
@@ -67,6 +68,8 @@ enum AppHelpLink: CaseIterable {
     switch self {
     case .prepareMihomo:
       "server.rack"
+    case .subscriptionConfiguration:
+      "link"
     case .mihomoControllerConfiguration:
       "network"
     case .userGuide:
@@ -89,6 +92,8 @@ enum AppHelpLink: CaseIterable {
     switch self {
     case .prepareMihomo:
       "https://github.com/HongXunPan/mihomo-meter/wiki/%E5%87%86%E5%A4%87-Mihomo"
+    case .subscriptionConfiguration:
+      "https://github.com/HongXunPan/mihomo-meter/wiki/%E9%85%8D%E7%BD%AE%E8%AE%A2%E9%98%85%E5%9C%B0%E5%9D%80"
     case .mihomoControllerConfiguration:
       "https://wiki.metacubex.one/config/general/"
     case .userGuide:
