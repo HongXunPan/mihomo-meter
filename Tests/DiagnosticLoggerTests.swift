@@ -209,6 +209,17 @@ final class DiagnosticLoggerTests: XCTestCase {
     )
   }
 
+  func testClassifiesProfileQuotaTimeoutWithoutRawErrorText() {
+    XCTAssertEqual(
+      ProfileQuotaDiagnosticOutcome.timedOut(timeoutSeconds: 15).logFields,
+      "result=network_error network_code=-1001 network_reason=timed_out timeout_seconds=15"
+    )
+    XCTAssertEqual(
+      ProfileQuotaDiagnosticOutcome.network(.cannotConnectToHost).logFields,
+      "result=network_error network_code=-1004 network_reason=cannot_connect"
+    )
+  }
+
   private func makeTemporaryDirectoryURL() -> URL {
     FileManager.default.temporaryDirectory
       .appendingPathComponent("MihomoMeter-DiagnosticLoggerTests-\(UUID().uuidString)")
