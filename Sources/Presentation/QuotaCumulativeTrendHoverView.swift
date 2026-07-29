@@ -1,11 +1,24 @@
 import SwiftUI
 
 struct QuotaCumulativeTrendHoverView: View {
-  static let cardWidth: CGFloat = 270
+  static let preferredCardWidth: CGFloat = 320
 
   let displayPoint: QuotaCumulativeTrendDisplayPoint
   let breakReason: QuotaCumulativeTrendDisplaySegment.BreakReason?
-  var isCompact = false
+  let isCompact: Bool
+  let cardWidth: CGFloat
+
+  init(
+    displayPoint: QuotaCumulativeTrendDisplayPoint,
+    breakReason: QuotaCumulativeTrendDisplaySegment.BreakReason?,
+    isCompact: Bool = false,
+    cardWidth: CGFloat = QuotaCumulativeTrendHoverView.preferredCardWidth
+  ) {
+    self.displayPoint = displayPoint
+    self.breakReason = breakReason
+    self.isCompact = isCompact
+    self.cardWidth = cardWidth
+  }
 
   var body: some View {
     Group {
@@ -13,7 +26,7 @@ struct QuotaCumulativeTrendHoverView: View {
         content
       } else {
         content
-          .frame(width: Self.cardWidth - 18, alignment: .leading)
+          .frame(width: max(cardWidth - 18, 1), alignment: .leading)
           .padding(9)
           .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
           .overlay {
@@ -21,67 +34,136 @@ struct QuotaCumulativeTrendHoverView: View {
               .stroke(Color(nsColor: .separatorColor).opacity(0.7), lineWidth: 0.5)
           }
           .shadow(color: .black.opacity(0.12), radius: 5, y: 2)
-          .fixedSize(horizontal: true, vertical: true)
       }
     }
     .accessibilityElement(children: .combine)
   }
 
   private var content: some View {
-    VStack(alignment: .leading, spacing: isCompact ? 2 : 5) {
-      Text(SubscriptionQuotaFormatter.trendTimestamp(displayPoint.point.date))
-        .font(.caption2.weight(.medium))
-        .foregroundStyle(.secondary)
+    VStack(alignment: .leading, spacing: isCompact ? 5 : 7) {
+      header
 
-      cumulativeSummary
-        .font(.caption.monospacedDigit())
-        .lineLimit(1)
+      if !isCompact {
+        Divider()
+      }
 
-      comparisonSummary
-        .font(.caption2)
-        .fixedSize(horizontal: false, vertical: true)
+      metricHeader
+      metricRow(
+        title: "累计",
+        download: displayPoint.point.traffic.downloadBytes,
+        upload: displayPoint.point.traffic.uploadBytes,
+        total: displayPoint.point.traffic.usedBytes
+      )
+      metricRow(
+        title: "较上点",
+        download: displayPoint.delta?.downloadBytes,
+        upload: displayPoint.delta?.uploadBytes,
+        total: displayPoint.delta?.totalBytes
+      )
     }
     .frame(maxWidth: isCompact ? .infinity : nil, alignment: .leading)
   }
 
-  private var cumulativeSummary: Text {
-    let traffic = displayPoint.point.traffic
-    return Text("累计 ").foregroundStyle(.secondary)
-      + Text("↓\(SubscriptionQuotaFormatter.bytes(traffic.downloadBytes))")
-      .foregroundStyle(MihomoColorToken.trafficDownload)
-      + Text(" ").foregroundStyle(.secondary)
-      + Text("↑\(SubscriptionQuotaFormatter.bytes(traffic.uploadBytes))")
-      .foregroundStyle(MihomoColorToken.trafficUpload)
-      + Text(" · ").foregroundStyle(.secondary)
-      + Text("总消耗 \(SubscriptionQuotaFormatter.bytes(traffic.usedBytes))")
-      .foregroundStyle(.primary)
+  private var header: some View {
+    HStack(alignment: .firstTextBaseline, spacing: 8) {
+      Text(SubscriptionQuotaFormatter.trendInspectorTimestamp(displayPoint.point.date))
+        .font(.caption.weight(.semibold))
+        .foregroundStyle(.primary)
+
+      Spacer(minLength: 8)
+
+      Text(comparisonContext)
+        .font(.caption2.monospacedDigit())
+        .foregroundStyle(comparisonContextColor)
+        .lineLimit(1)
+        .minimumScaleFactor(0.8)
+    }
   }
 
-  private var comparisonSummary: Text {
-    guard let previousPoint = displayPoint.previousPoint,
-      let delta = displayPoint.delta
-    else {
-      if breakReason == .counterRegression {
-        return Text("累计值回退后的首个点，无可比较增量")
-          .foregroundStyle(MihomoColorToken.statusWarning)
-      }
-      return Text("本周期首个展示点，无可比较增量")
-        .foregroundStyle(.secondary)
+  private var metricHeader: some View {
+    HStack(spacing: columnSpacing) {
+      Color.clear
+        .frame(width: rowTitleWidth, height: 1)
+      metricHeaderCell(
+        title: "下载",
+        systemImage: "arrow.down",
+        color: MihomoColorToken.trafficDownload
+      )
+      metricHeaderCell(
+        title: "上传",
+        systemImage: "arrow.up",
+        color: MihomoColorToken.trafficUpload
+      )
+      metricHeaderCell(
+        title: "总计",
+        systemImage: "chart.line.uptrend.xyaxis",
+        color: .primary
+      )
     }
+  }
 
-    let interval =
-      "\(SubscriptionQuotaFormatter.trendTimestamp(previousPoint.date))–"
-      + "\(SubscriptionQuotaFormatter.trendTimestamp(displayPoint.point.date)) · "
-      + "\(SubscriptionQuotaFormatter.preciseDuration(delta.duration)) "
-    return Text(interval).foregroundStyle(.secondary)
-      + Text("↓\(SubscriptionQuotaFormatter.bytes(delta.downloadBytes))")
-      .foregroundStyle(MihomoColorToken.trafficDownload)
-      + Text(" ").foregroundStyle(.secondary)
-      + Text("↑\(SubscriptionQuotaFormatter.bytes(delta.uploadBytes))")
-      .foregroundStyle(MihomoColorToken.trafficUpload)
-      + Text(" · ").foregroundStyle(.secondary)
-      + Text("合计 \(SubscriptionQuotaFormatter.bytes(delta.totalBytes))")
+  private func metricHeaderCell(
+    title: String,
+    systemImage: String,
+    color: Color
+  ) -> some View {
+    Label(title, systemImage: systemImage)
+      .font(.caption2.weight(.medium))
+      .foregroundStyle(color)
+      .lineLimit(1)
+      .frame(maxWidth: .infinity, alignment: .leading)
+  }
+
+  private func metricRow(
+    title: String,
+    download: UInt64?,
+    upload: UInt64?,
+    total: UInt64?
+  ) -> some View {
+    HStack(spacing: columnSpacing) {
+      Text(title)
+        .font(.caption2)
+        .foregroundStyle(.secondary)
+        .lineLimit(1)
+        .frame(width: rowTitleWidth, alignment: .leading)
+      metricValue(download)
+      metricValue(upload)
+      metricValue(total)
+    }
+  }
+
+  private func metricValue(_ value: UInt64?) -> some View {
+    Text(value.map(SubscriptionQuotaFormatter.bytes) ?? "—")
+      .font(.caption.monospacedDigit().weight(.semibold))
       .foregroundStyle(.primary)
+      .lineLimit(1)
+      .minimumScaleFactor(0.75)
+      .frame(maxWidth: .infinity, alignment: .leading)
+  }
+
+  private var comparisonContext: String {
+    guard let previousPoint = displayPoint.previousPoint else {
+      if breakReason == .counterRegression {
+        return "累计回退后首点 · 无比较增量"
+      }
+      return "本周期首点 · 无比较增量"
+    }
+    return SubscriptionQuotaFormatter.trendComparison(
+      from: previousPoint.date,
+      to: displayPoint.point.date
+    )
+  }
+
+  private var comparisonContextColor: Color {
+    breakReason == .counterRegression ? MihomoColorToken.statusWarning : .secondary
+  }
+
+  private var rowTitleWidth: CGFloat {
+    isCompact ? 44 : 48
+  }
+
+  private var columnSpacing: CGFloat {
+    isCompact ? 8 : 10
   }
 }
 
@@ -94,7 +176,8 @@ struct QuotaCumulativeTrendHoverOverlay: View {
   var body: some View {
     QuotaCumulativeTrendHoverView(
       displayPoint: displayPoint,
-      breakReason: breakReason
+      breakReason: breakReason,
+      cardWidth: cardWidth
     )
     .offset(x: horizontalOffset, y: plotFrame.minY + 8)
     .allowsHitTesting(false)
@@ -105,9 +188,16 @@ struct QuotaCumulativeTrendHoverOverlay: View {
     if selectedX <= plotFrame.midX {
       return max(
         plotFrame.minX + inset,
-        plotFrame.maxX - QuotaCumulativeTrendHoverView.cardWidth - inset
+        plotFrame.maxX - cardWidth - inset
       )
     }
     return plotFrame.minX + inset
+  }
+
+  private var cardWidth: CGFloat {
+    min(
+      QuotaCumulativeTrendHoverView.preferredCardWidth,
+      max(plotFrame.width - 16, 1)
+    )
   }
 }

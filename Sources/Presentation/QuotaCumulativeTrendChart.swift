@@ -276,7 +276,7 @@ struct QuotaCumulativeTrendChart: View {
 
   private var chartHeight: CGFloat {
     if isCompact {
-      return 165
+      return 182
     }
     return isExpanded ? 270 : 215
   }

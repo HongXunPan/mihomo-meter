@@ -111,6 +111,27 @@ enum SubscriptionQuotaFormatter {
     usageDate(date, template: "yyyyMdHHmm")
   }
 
+  static func trendInspectorTimestamp(_ date: Date) -> String {
+    usageDate(date, template: "MdHHmm")
+  }
+
+  static func trendComparison(from previousDate: Date, to currentDate: Date) -> String {
+    let calendar = Calendar.autoupdatingCurrent
+    let previousTemplate: String
+    if calendar.isDate(previousDate, inSameDayAs: currentDate) {
+      previousTemplate = "HHmm"
+    } else if calendar.component(.year, from: previousDate)
+      == calendar.component(.year, from: currentDate)
+    {
+      previousTemplate = "MdHHmm"
+    } else {
+      previousTemplate = "yyyyMdHHmm"
+    }
+
+    return "较 \(usageDate(previousDate, template: previousTemplate)) · "
+      + preciseDuration(currentDate.timeIntervalSince(previousDate))
+  }
+
   static func trendTick(_ date: Date, window: QuotaTrendWindow) -> String {
     switch window {
     case .day, .week:

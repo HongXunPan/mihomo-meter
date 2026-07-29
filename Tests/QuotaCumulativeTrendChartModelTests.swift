@@ -230,6 +230,50 @@ final class QuotaCumulativeTrendChartModelTests: XCTestCase {
     XCTAssertFalse(text.contains("in"))
   }
 
+  func testTrendComparisonOmitsRepeatedCurrentTimestamp() {
+    let previousDate = baseDate
+    let currentDate = baseDate.addingTimeInterval(2 * 3_600)
+
+    let text = SubscriptionQuotaFormatter.trendComparison(
+      from: previousDate,
+      to: currentDate
+    )
+
+    XCTAssertTrue(text.hasPrefix("较 "))
+    XCTAssertTrue(text.contains(" · "))
+    XCTAssertFalse(
+      text.contains(SubscriptionQuotaFormatter.trendInspectorTimestamp(currentDate))
+    )
+  }
+
+  func testTrendComparisonIncludesDateWhenCrossingDay() {
+    let calendar = Calendar.autoupdatingCurrent
+    let startOfDay = calendar.startOfDay(for: baseDate)
+    let sameDayPreviousDate = startOfDay.addingTimeInterval(10 * 3_600)
+    let previousDate = startOfDay.addingTimeInterval(23 * 3_600)
+    let currentDate = startOfDay.addingTimeInterval(25 * 3_600)
+
+    let sameDayText = SubscriptionQuotaFormatter.trendComparison(
+      from: sameDayPreviousDate,
+      to: startOfDay.addingTimeInterval(12 * 3_600)
+    )
+    let crossDayText = SubscriptionQuotaFormatter.trendComparison(
+      from: previousDate,
+      to: currentDate
+    )
+
+    XCTAssertFalse(
+      sameDayText.contains(
+        SubscriptionQuotaFormatter.trendInspectorTimestamp(sameDayPreviousDate)
+      )
+    )
+    XCTAssertTrue(
+      crossDayText.contains(
+        SubscriptionQuotaFormatter.trendInspectorTimestamp(previousDate)
+      )
+    )
+  }
+
   private func segment(
     offsets: [TimeInterval],
     uploadBase: UInt64,
