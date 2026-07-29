@@ -108,16 +108,19 @@ private struct ProfileQuotaAccordionRow: View {
 
           Spacer()
 
-          Button {
-            Task {
-              await controller.refresh(subscriptionID: item.id)
+          TimelineView(.periodic(from: .now, by: 1)) { context in
+            let canRefresh = item.canRefresh(at: context.date)
+            Button {
+              Task {
+                await controller.refresh(subscriptionID: item.id)
+              }
+            } label: {
+              Label("立即查询", systemImage: "arrow.clockwise")
             }
-          } label: {
-            Label("立即查询", systemImage: "arrow.clockwise")
+            .controlSize(.small)
+            .disabled(!canRefresh)
+            .help(refreshHelp(at: context.date))
           }
-          .controlSize(.small)
-          .disabled(!item.canRefresh)
-          .help(refreshHelp)
         }
         .padding(.top, 8)
       }
@@ -160,12 +163,15 @@ private struct ProfileQuotaAccordionRow: View {
     return "剩余 \(SubscriptionQuotaFormatter.bytes(quota.traffic.remainingBytes)) · \(status.title)"
   }
 
-  private var refreshHelp: String {
-    if item.canRefresh {
+  private func refreshHelp(at date: Date) -> String {
+    if item.canRefresh(at: date) {
       return "立即通过 Mihomo 本地代理查询这个 Profile"
     }
-    if let availableAt = item.manualRefreshAvailableAt {
-      return "手动查询可用时间：\(SubscriptionQuotaFormatter.updatedAt(availableAt))"
+    if item.isManualRefreshEligible,
+      let availableAt = item.manualRefreshAvailableAt,
+      availableAt > date
+    {
+      return "\(SubscriptionQuotaFormatter.relativeDate(availableAt, relativeTo: date))可再次手动查询"
     }
     return status.message
   }

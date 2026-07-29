@@ -80,17 +80,19 @@ struct SubscriptionQuotaStatisticsView: View {
         Spacer()
 
         if !profileQuotaController.snapshot.profiles.isEmpty {
-          Button {
-            Task {
-              await profileQuotaController.refreshAll()
+          TimelineView(.periodic(from: .now, by: 1)) { context in
+            Button {
+              Task {
+                await profileQuotaController.refreshAll()
+              }
+            } label: {
+              Label(
+                profileQuotaController.snapshot.isRefreshingAll ? "正在查询" : "全部查询",
+                systemImage: "arrow.clockwise"
+              )
             }
-          } label: {
-            Label(
-              profileQuotaController.snapshot.isRefreshingAll ? "正在查询" : "全部查询",
-              systemImage: "arrow.clockwise"
-            )
+            .disabled(!canRefreshAnyProfile(at: context.date))
           }
-          .disabled(!canRefreshAnyProfile)
         }
 
         Link(destination: AppHelpLink.subscriptionConfiguration.destination) {
@@ -182,9 +184,9 @@ struct SubscriptionQuotaStatisticsView: View {
       || !profileQuotaController.snapshot.profiles.isEmpty
   }
 
-  private var canRefreshAnyProfile: Bool {
+  private func canRefreshAnyProfile(at date: Date) -> Bool {
     !profileQuotaController.snapshot.isRefreshingAll
-      && profileQuotaController.snapshot.profiles.contains(where: \.canRefresh)
+      && profileQuotaController.snapshot.profiles.contains { $0.canRefresh(at: date) }
   }
 
   @ViewBuilder
