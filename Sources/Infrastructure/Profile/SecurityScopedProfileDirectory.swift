@@ -6,7 +6,7 @@ final class SystemProfileDirectoryAuthorizer: ProfileDirectoryAuthorizing {
   func chooseDirectory() -> URL? {
     let panel = NSOpenPanel()
     panel.title = "选择 Clash Verge 数据目录"
-    panel.message = "Mihomo Meter 只读取该目录中的 profiles.yaml，不会修改配置。"
+    panel.message = "请选择包含 profiles.yaml 的文件夹，不要选择文件本身。Mihomo Meter 只读识别订阅，不会修改配置。"
     panel.prompt = "授权目录"
     panel.canChooseFiles = false
     panel.canChooseDirectories = true

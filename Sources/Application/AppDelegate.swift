@@ -125,6 +125,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     return true
   }
 
+  func showControllerSettings() {
+    presentationCoordinator?.showControllerSettings()
+  }
+
   func applicationShouldTerminateAfterLastWindowClosed(_: NSApplication) -> Bool {
     false
   }

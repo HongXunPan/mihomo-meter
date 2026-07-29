@@ -60,6 +60,12 @@ struct SubscriptionQuotaSummaryView: View {
       Label("订阅余额", systemImage: "chart.line.downtrend.xyaxis")
         .font(.headline)
 
+      Link(destination: AppHelpLink.subscriptionConfiguration.destination) {
+        Label("配置指引", systemImage: "questionmark.circle")
+      }
+      .font(.caption)
+      .accessibilityHint("了解订阅地址来源和两种余额追踪方式")
+
       Spacer()
 
       if hasTrackedProfiles {

@@ -30,6 +30,8 @@ struct ProfileTrackingManagementView: View {
         Text("只读解析 Clash Verge 的 Profile 身份；不会读取缓存配额或修改配置。")
           .font(.caption)
           .foregroundStyle(.secondary)
+        Link("订阅地址与目录选择指引", destination: AppHelpLink.subscriptionConfiguration.destination)
+          .font(.caption)
       }
 
       Spacer()
@@ -50,13 +52,15 @@ struct ProfileTrackingManagementView: View {
     case .notAuthorized:
       authorizationState(
         title: "尚未授权 Profile 目录",
-        message: "需要精确识别或追踪多个 Profile 时，只需通过系统选择器授权一次。",
+        message:
+          "常见路径：~/Library/Application Support/io.github.clash-verge-rev.clash-verge-rev。"
+          + "请选择根部包含 profiles.yaml、且 Profile 名称与当前 Clash Verge 一致的文件夹，不要选择文件本身。",
         actionTitle: "选择 Clash Verge 数据目录"
       )
     case .needsReauthorization:
       authorizationState(
         title: "需要重新授权目录",
-        message: "保存的只读权限已失效或目录不可用，请重新选择 Clash Verge 数据目录。",
+        message: "保存的只读权限已失效或目录不可用，请重新选择包含 profiles.yaml 的 Clash Verge 数据目录。",
         actionTitle: "重新授权目录"
       )
     case .available:
@@ -93,6 +97,13 @@ struct ProfileTrackingManagementView: View {
           Text("仅显示带订阅地址的 remote Profile。")
             .font(.caption)
             .foregroundStyle(.secondary)
+          Text("如果这里为空，请先在 Clash Verge 中导入远程 HTTPS 订阅；单节点链接和本地配置不会显示。")
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .multilineTextAlignment(.center)
+            .frame(maxWidth: 420)
+          Link("查看订阅导入与排查方法", destination: AppHelpLink.subscriptionConfiguration.destination)
+            .font(.caption)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
       } else {
@@ -147,6 +158,8 @@ struct ProfileTrackingManagementView: View {
         Task { await controller.authorizeDirectory() }
       }
       .buttonStyle(.borderedProminent)
+      Link("如何找到并确认数据目录", destination: AppHelpLink.subscriptionConfiguration.destination)
+        .font(.caption)
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
   }

@@ -80,6 +80,11 @@ final class MenuBarController: NSObject {
         statisticsController: statisticsController,
         quotaController: quotaController,
         profileQuotaController: profileQuotaController,
+        showControllerSettings: { [weak self] in
+          self?.performMenuAction {
+            self?.actions.showControllerSettings()
+          }
+        },
         showAllStatistics: { [weak self] in
           self?.performMenuAction {
             self?.actions.showStatistics(.proxyTraffic)

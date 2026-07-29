@@ -93,6 +93,10 @@ struct SubscriptionQuotaStatisticsView: View {
           .disabled(!canRefreshAnyProfile)
         }
 
+        Link(destination: AppHelpLink.subscriptionConfiguration.destination) {
+          Label("配置指引", systemImage: "questionmark.circle")
+        }
+
         Button("管理 Profile") {
           showsProfileManager = true
         }

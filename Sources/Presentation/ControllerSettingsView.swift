@@ -13,7 +13,15 @@ struct ControllerSettingsView: View {
       Divider()
 
       Form {
-        Section("Controller") {
+        Section("连接信息") {
+          Text("服务地址和访问密钥来自代理客户端的“外部控制器”，不是订阅链接、机场密码或节点密码。")
+            .font(.callout)
+            .fixedSize(horizontal: false, vertical: true)
+
+          Link(destination: AppHelpLink.prepareMihomo.destination) {
+            Label("不知道 Mihomo 是什么？查看零基础教程", systemImage: "book.closed")
+          }
+
           TextField("服务地址", text: $monitor.address, prompt: Text("127.0.0.1:9090"))
           SecureField("访问密钥（Secret）", text: $monitor.secret)
         }

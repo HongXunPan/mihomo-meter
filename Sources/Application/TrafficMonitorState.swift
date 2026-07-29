@@ -10,7 +10,7 @@ struct TrafficMonitorState: Equatable, Sendable {
   var runtimeConfiguration: MihomoRuntimeConfiguration?
   var mihomoVersion: String?
   var lastObservedAt: Date?
-  var message = "请输入本机 Mihomo 服务地址和访问密钥。"
+  var message = "首次使用请先准备并连接 Mihomo；不知道它是什么也没关系。"
 
   mutating func resetLiveData() {
     rates = .zero

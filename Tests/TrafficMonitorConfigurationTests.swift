@@ -48,8 +48,10 @@ final class TrafficMonitorConfigurationTests: TrafficMonitorTestCase {
       secretStore: secretStore,
       userDefaults: userDefaults
     )
+    XCTAssertFalse(monitor.hasValidatedControllerConfiguration)
     monitor.address = "127.0.0.1:9090"
     monitor.secret = "synthetic-secret"
+    XCTAssertFalse(monitor.hasValidatedControllerConfiguration)
 
     monitor.connect()
     try await waitUntil { monitor.connectionState == .connected }
@@ -57,6 +59,7 @@ final class TrafficMonitorConfigurationTests: TrafficMonitorTestCase {
     let savedSecret = await secretStore.loadSecret(reason: .applicationStartup)
     let saveCount = await secretStore.saveCount
     XCTAssertEqual(monitor.mihomoVersion, "v-test")
+    XCTAssertTrue(monitor.hasValidatedControllerConfiguration)
     XCTAssertEqual(savedSecret, "synthetic-secret")
     XCTAssertEqual(saveCount, 1)
     XCTAssertEqual(
@@ -86,11 +89,13 @@ final class TrafficMonitorConfigurationTests: TrafficMonitorTestCase {
       secretStore: secretStore,
       userDefaults: userDefaults
     )
+    XCTAssertTrue(monitor.hasValidatedControllerConfiguration)
 
     monitor.start()
     try await waitUntil {
       monitor.connectionState == .connected
     }
+    XCTAssertTrue(monitor.hasValidatedControllerConfiguration)
 
     let saveCount = await secretStore.saveCount
     XCTAssertEqual(saveCount, 0)
