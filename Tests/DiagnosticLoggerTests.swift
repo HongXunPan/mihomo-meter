@@ -11,7 +11,7 @@ final class DiagnosticLoggerTests: XCTestCase {
       try? FileManager.default.removeItem(at: directoryURL)
     }
 
-    let logger = DebugDiagnosticLogger(
+    let logger = AppDiagnosticLogger(
       directoryURL: directoryURL,
       maxFileSizeBytes: 4_096
     )
@@ -69,6 +69,24 @@ final class DiagnosticLoggerTests: XCTestCase {
         reason: .controllerHTTP(500)
       )
     )
+    let quotaContext = ProfileQuotaDiagnosticContext(
+      requestID: UUID(uuidString: "00000000-0000-0000-0000-000000000002")!,
+      subscriptionID: UUID(uuidString: "00000000-0000-0000-0000-000000000003")!,
+      urlFingerprint: "abcdef0123456789abcdef0123456789",
+      trigger: .automatic,
+      isCurrentProfile: false,
+      proxyKind: .mixed,
+      userAgentSource: .mihomoConfiguration
+    )
+    await logger.record(.profileQuotaQueryStarted(quotaContext))
+    await logger.record(
+      .profileQuotaQueryFinished(
+        quotaContext,
+        outcome: .missingSubscriptionInfo(statusCode: 200),
+        elapsedMilliseconds: 48,
+        retryAfterSeconds: 300
+      )
+    )
 
     let contents = try String(
       contentsOf: directoryURL.appendingPathComponent("diagnostics.log"),
@@ -91,6 +109,14 @@ final class DiagnosticLoggerTests: XCTestCase {
     XCTAssertTrue(contents.contains("delay_seconds=4"))
     XCTAssertTrue(contents.contains("event=runtime_configuration.unavailable"))
     XCTAssertTrue(contents.contains("reason=controller_http code=500"))
+    XCTAssertTrue(contents.contains("event=profile_quota.query.started"))
+    XCTAssertTrue(contents.contains("subscription_id=00000000-0000-0000-0000-000000000003"))
+    XCTAssertTrue(contents.contains("url_fingerprint=abcdef012345"))
+    XCTAssertTrue(contents.contains("proxy_kind=mixed"))
+    XCTAssertTrue(contents.contains("result=missing_subscription_info http_status=200"))
+    XCTAssertTrue(contents.contains("user_agent_source=mihomo_config"))
+    XCTAssertTrue(contents.contains("retry_after_seconds=300"))
+    XCTAssertFalse(contents.contains("abcdef0123456789abcdef0123456789"))
     XCTAssertFalse(contents.contains(NSHomeDirectory()))
     XCTAssertFalse(contents.contains("synthetic-secret"))
   }
@@ -102,7 +128,7 @@ final class DiagnosticLoggerTests: XCTestCase {
     }
 
     let sizeBudget: UInt64 = 320
-    let logger = DebugDiagnosticLogger(
+    let logger = AppDiagnosticLogger(
       directoryURL: directoryURL,
       maxFileSizeBytes: sizeBudget
     )
@@ -147,7 +173,7 @@ final class DiagnosticLoggerTests: XCTestCase {
       ofItemAtPath: archivedURL.path
     )
 
-    let logger = DebugDiagnosticLogger(directoryURL: directoryURL)
+    let logger = AppDiagnosticLogger(directoryURL: directoryURL)
     await logger.record(
       .connectionAttemptStarted(
         trigger: .applicationStartup,

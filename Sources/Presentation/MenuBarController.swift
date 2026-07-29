@@ -2,6 +2,11 @@ import AppKit
 import Combine
 import SwiftUI
 
+struct MenuBarPresentationActions {
+  let showStatistics: (StatisticsModule) -> Void
+  let showControllerSettings: () -> Void
+}
+
 @MainActor
 final class MenuBarController: NSObject {
   private static let statusItemLength: CGFloat = 58
@@ -9,35 +14,42 @@ final class MenuBarController: NSObject {
 
   private let statusItem: NSStatusItem
   private let statusContentView: ProxyStatusItemView
-  private let popover: NSPopover
   private let monitor: TrafficMonitor
   private let statisticsController: TrafficStatisticsController
-  private let statisticsWindowController: TrafficStatisticsWindowController
+  private let quotaController: RuntimeQuotaTrackingController
+  private let profileQuotaController: ProfileQuotaTrackingController
   private let updateModel: AppUpdateModel
+  private let actions: MenuBarPresentationActions
+  private let statusMenuPresentationState = StatusMenuPresentationState()
+  private var updateMenuItem: NSMenuItem?
   private var cancellables: Set<AnyCancellable> = []
+
+  private lazy var statusMenuController = makeStatusMenuController()
 
   init(
     monitor: TrafficMonitor,
     statisticsController: TrafficStatisticsController,
-    updateModel: AppUpdateModel
+    quotaController: RuntimeQuotaTrackingController,
+    profileQuotaController: ProfileQuotaTrackingController,
+    updateModel: AppUpdateModel,
+    actions: MenuBarPresentationActions
   ) {
     statusItem = NSStatusBar.system.statusItem(
       withLength: MenuBarController.statusItemLength
     )
     statusContentView = ProxyStatusItemView()
-    popover = NSPopover()
     self.monitor = monitor
     self.statisticsController = statisticsController
-    statisticsWindowController = TrafficStatisticsWindowController(
-      controller: statisticsController,
-      monitor: monitor
-    )
+    self.quotaController = quotaController
+    self.profileQuotaController = profileQuotaController
     self.updateModel = updateModel
+    self.actions = actions
     super.init()
 
     configureStatusItem()
-    configurePopover()
+    statusItem.menu = statusMenuController.menu
     observeMonitor()
+    observeUpdateAvailability()
   }
 
   private func configureStatusItem() {
@@ -47,9 +59,6 @@ final class MenuBarController: NSObject {
 
     button.title = ""
     button.setAccessibilityLabel("Mihomo Meter")
-    button.target = self
-    button.action = #selector(togglePopover)
-    button.sendAction(on: [.leftMouseUp])
 
     statusContentView.translatesAutoresizingMaskIntoConstraints = false
     button.addSubview(statusContentView)
@@ -63,26 +72,72 @@ final class MenuBarController: NSObject {
     updateStatusItemButton(button, rate: .zero, state: monitor.connectionState)
   }
 
-  private func configurePopover() {
-    popover.behavior = .transient
+  private func makeStatusMenuController() -> StatusMenuController {
     let hostingController = NSHostingController(
-      rootView: TrafficPopoverView(
+      rootView: StatusMenuContentView(
+        presentationState: statusMenuPresentationState,
         monitor: monitor,
         statisticsController: statisticsController,
-        updateModel: updateModel,
+        quotaController: quotaController,
+        profileQuotaController: profileQuotaController,
         showAllStatistics: { [weak self] in
-          self?.showStatisticsWindow()
+          self?.performMenuAction {
+            self?.actions.showStatistics(.proxyTraffic)
+          }
         },
-        dismiss: { [weak self] in
-          self?.popover.performClose(nil)
+        showQuotaStatistics: { [weak self] in
+          self?.performMenuAction {
+            self?.actions.showStatistics(.subscriptionQuota)
+          }
         }
       )
     )
     hostingController.sizingOptions = []
-    hostingController.preferredContentSize = TrafficPopoverLayout.contentSize
+    hostingController.preferredContentSize = StatusMenuLayout.contentSize
 
-    popover.contentViewController = hostingController
-    popover.contentSize = TrafficPopoverLayout.contentSize
+    let controller = StatusMenuController(
+      contentViewController: hostingController,
+      contentSize: StatusMenuLayout.contentSize,
+      prepareForPresentation: { [weak self] in
+        self?.statusMenuPresentationState.prepareForPresentation()
+      }
+    )
+    appendNativeActions(to: controller.menu)
+    return controller
+  }
+
+  private func appendNativeActions(to menu: NSMenu) {
+    menu.addItem(.separator())
+
+    let settingsItem = NSMenuItem(
+      title: "Mihomo 连接设置…",
+      action: #selector(showControllerSettings),
+      keyEquivalent: ","
+    )
+    settingsItem.target = self
+    settingsItem.keyEquivalentModifierMask = [.command]
+    menu.addItem(settingsItem)
+
+    let updateItem = NSMenuItem(
+      title: "检查更新…",
+      action: #selector(checkForUpdates),
+      keyEquivalent: ""
+    )
+    updateItem.target = self
+    updateItem.isEnabled = updateModel.canCheckForUpdates
+    updateMenuItem = updateItem
+    menu.addItem(updateItem)
+
+    menu.addItem(.separator())
+
+    let quitItem = NSMenuItem(
+      title: "退出 Mihomo Meter",
+      action: #selector(terminateApplication),
+      keyEquivalent: "q"
+    )
+    quitItem.target = self
+    quitItem.keyEquivalentModifierMask = [.command]
+    menu.addItem(quitItem)
   }
 
   private func observeMonitor() {
@@ -97,6 +152,15 @@ final class MenuBarController: NSObject {
           rate: snapshot.rate,
           state: snapshot.connectionState
         )
+      }
+      .store(in: &cancellables)
+  }
+
+  private func observeUpdateAvailability() {
+    updateModel.$canCheckForUpdates
+      .removeDuplicates()
+      .sink { [weak self] canCheckForUpdates in
+        self?.updateMenuItem?.isEnabled = canCheckForUpdates
       }
       .store(in: &cancellables)
   }
@@ -121,29 +185,32 @@ final class MenuBarController: NSObject {
     button.setAccessibilityValue("\(state.title)，\(summary)")
   }
 
-  @objc
-  private func togglePopover() {
-    if popover.isShown {
-      popover.performClose(nil)
-      return
-    }
-
-    guard let button = statusItem.button else {
-      return
-    }
-
-    popover.show(
-      relativeTo: button.bounds,
-      of: button,
-      preferredEdge: .minY
-    )
-
-    // 在首帧绘制前清除自动焦点，后续仍可使用 Tab 键导航。
-    _ = popover.contentViewController?.view.window?.makeFirstResponder(nil)
+  private func performMenuAction(_ action: () -> Void) {
+    statusMenuController.close()
+    action()
   }
 
-  private func showStatisticsWindow() {
-    popover.performClose(nil)
-    statisticsWindowController.show()
+  @objc
+  private func showControllerSettings() {
+    performMenuAction {
+      actions.showControllerSettings()
+    }
+  }
+
+  @objc
+  private func checkForUpdates() {
+    performMenuAction {
+      NSApplication.shared.activate()
+      updateModel.checkForUpdates()
+    }
+  }
+
+  @objc
+  private func terminateApplication() {
+    NSApplication.shared.terminate(nil)
+  }
+
+  func dismissStatusMenuForWindowPresentation() {
+    statusMenuController.close()
   }
 }

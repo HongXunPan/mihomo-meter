@@ -34,6 +34,9 @@ final class MihomoControllerModelsTests: XCTestCase {
         "allow-lan": false,
         "ipv6": true,
         "mixed-port": 7890,
+        "port": 7891,
+        "socks-port": 7892,
+        "global-ua": "mihomo-test-agent",
         "tun": {
           "enable": true,
           "stack": "system",
@@ -53,9 +56,30 @@ final class MihomoControllerModelsTests: XCTestCase {
     XCTAssertEqual(configuration.allowsLAN, false)
     XCTAssertEqual(configuration.isIPv6Enabled, true)
     XCTAssertEqual(configuration.mixedPort, 7_890)
+    XCTAssertEqual(configuration.httpPort, 7_891)
+    XCTAssertEqual(configuration.socksPort, 7_892)
+    XCTAssertEqual(configuration.globalUserAgent, "mihomo-test-agent")
+    XCTAssertEqual(configuration.externalResourceUserAgent.value, "mihomo-test-agent")
+    XCTAssertEqual(
+      configuration.externalResourceUserAgent.source,
+      .mihomoConfiguration
+    )
     XCTAssertEqual(configuration.tun?.isEnabled, true)
     XCTAssertEqual(configuration.tun?.stack, "system")
     XCTAssertEqual(configuration.tun?.automaticallyRoutesTraffic, true)
+  }
+
+  func testUsesMihomoDefaultUserAgentWhenConfigurationValueIsUnsafe() {
+    let configuration = MihomoRuntimeConfiguration(
+      mode: nil,
+      tun: nil,
+      isIPv6Enabled: nil,
+      allowsLAN: nil,
+      mixedPort: 7_890,
+      globalUserAgent: "unsafe\r\nvalue"
+    )
+
+    XCTAssertEqual(configuration.externalResourceUserAgent, .mihomoDefault)
   }
 
   func testDecodesConnectionFixturesWithLeafFirstChains() throws {

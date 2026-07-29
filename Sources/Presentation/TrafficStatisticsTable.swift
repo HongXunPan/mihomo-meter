@@ -46,18 +46,27 @@ struct TrafficStatisticsTable: View {
         }
         .width(90)
 
-        TableColumn("下载") { interval in
-          byteValue(interval.proxyUsage.download)
+        TableColumn(Text("下载").foregroundStyle(MihomoColorToken.trafficDownload)) { interval in
+          byteValue(
+            interval.proxyUsage.download,
+            color: MihomoColorToken.trafficDownload
+          )
         }
         .width(80)
 
-        TableColumn("上传") { interval in
-          byteValue(interval.proxyUsage.upload)
+        TableColumn(Text("上传").foregroundStyle(MihomoColorToken.trafficUpload)) { interval in
+          byteValue(
+            interval.proxyUsage.upload,
+            color: MihomoColorToken.trafficUpload
+          )
         }
         .width(80)
 
-        TableColumn("合计") { interval in
-          byteValue(interval.proxyUsage.total)
+        TableColumn(Text("合计").foregroundStyle(MihomoColorToken.trafficProxy)) { interval in
+          byteValue(
+            interval.proxyUsage.total,
+            color: MihomoColorToken.trafficProxy
+          )
         }
         .width(80)
 
@@ -78,9 +87,10 @@ struct TrafficStatisticsTable: View {
     .foregroundStyle(statusColor(for: interval))
   }
 
-  private func byteValue(_ bytes: UInt64) -> some View {
+  private func byteValue(_ bytes: UInt64, color: Color) -> some View {
     Text(TrafficStatisticsFormatter.bytes(bytes))
       .font(.body.monospacedDigit())
+      .foregroundStyle(color)
       .frame(maxWidth: .infinity, alignment: .trailing)
   }
 
@@ -142,11 +152,12 @@ struct TrafficStatisticsTable: View {
   private func statusColor(for interval: TrafficInterval) -> Color {
     switch interval.status {
     case .active:
-      return isStatisticsAvailable ? .blue : .orange
+      return isStatisticsAvailable
+        ? MihomoColorToken.brandPrimary : MihomoColorToken.statusWarning
     case .completed:
-      return .green
+      return MihomoColorToken.statusSuccess
     case .interrupted:
-      return .orange
+      return MihomoColorToken.statusWarning
     }
   }
 }

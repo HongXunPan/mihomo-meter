@@ -162,4 +162,26 @@ final class KeychainSecretStoreTests: XCTestCase {
     XCTAssertEqual(propertyList["com.apple.security.app-sandbox"] as? Bool, true)
     XCTAssertEqual(propertyList["com.apple.security.network.client"] as? Bool, true)
   }
+
+  func testProfileDirectoryEntitlementIsReadOnlyInAllAppProfiles() throws {
+    let repositoryRoot = URL(fileURLWithPath: #filePath)
+      .deletingLastPathComponent()
+      .deletingLastPathComponent()
+
+    for fileName in [
+      "MihomoMeter.entitlements",
+      "MihomoMeterSelfSignedRelease.entitlements",
+    ] {
+      let data = try Data(contentsOf: repositoryRoot.appendingPathComponent(fileName))
+      let propertyList = try XCTUnwrap(
+        PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any]
+      )
+
+      XCTAssertEqual(
+        propertyList["com.apple.security.files.user-selected.read-only"] as? Bool,
+        true
+      )
+      XCTAssertNil(propertyList["com.apple.security.files.user-selected.read-write"])
+    }
+  }
 }

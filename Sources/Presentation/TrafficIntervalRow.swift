@@ -18,10 +18,11 @@ struct TrafficIntervalRow: View {
           if isStatisticsAvailable {
             Text(TrafficStatisticsFormatter.bytes(interval.proxyUsage.total))
               .font(.caption.monospacedDigit().weight(.medium))
+              .foregroundStyle(MihomoColorToken.trafficProxy)
           } else {
             Label("不可用", systemImage: "exclamationmark.triangle.fill")
               .font(.caption2)
-              .foregroundStyle(.orange)
+              .foregroundStyle(MihomoColorToken.statusWarning)
           }
 
           Button("停止", action: stop)

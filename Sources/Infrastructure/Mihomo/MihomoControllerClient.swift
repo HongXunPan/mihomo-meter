@@ -17,7 +17,14 @@ protocol MihomoControllerServing: Sendable {
   ) async throws -> MihomoRuntimeConfiguration
 }
 
-actor MihomoControllerClient: MihomoControllerServing {
+protocol MihomoQuotaProviderServing: Sendable {
+  func fetchProxyProviders(
+    endpoint: ControllerEndpoint,
+    secret: String
+  ) async throws -> MihomoProxyProvidersResponse
+}
+
+actor MihomoControllerClient: MihomoControllerServing, MihomoQuotaProviderServing {
   private let session: URLSession
   private let decoder: JSONDecoder
 
@@ -58,6 +65,17 @@ actor MihomoControllerClient: MihomoControllerServing {
       secret: secret
     )
     return response.runtimeConfiguration
+  }
+
+  func fetchProxyProviders(
+    endpoint: ControllerEndpoint,
+    secret: String
+  ) async throws -> MihomoProxyProvidersResponse {
+    try await get(
+      MihomoProxyProvidersResponse.self,
+      url: endpoint.httpURL(path: "/providers/proxies"),
+      secret: secret
+    )
   }
 
   private func get<Response: Decodable>(

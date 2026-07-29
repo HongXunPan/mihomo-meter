@@ -136,6 +136,13 @@ enum AppDiagnosticEvent: Equatable, Sendable {
     delaySeconds: UInt64
   )
   case connectionStopped(reason: ConnectionDiagnosticReason)
+  case profileQuotaQueryStarted(ProfileQuotaDiagnosticContext)
+  case profileQuotaQueryFinished(
+    ProfileQuotaDiagnosticContext,
+    outcome: ProfileQuotaDiagnosticOutcome,
+    elapsedMilliseconds: Int,
+    retryAfterSeconds: Int?
+  )
 
   var logMessage: String {
     switch self {
@@ -204,6 +211,24 @@ enum AppDiagnosticEvent: Equatable, Sendable {
         "event=connection.stopped",
         reason.logFields,
       ].joined(separator: " ")
+    case .profileQuotaQueryStarted(let context):
+      return "event=profile_quota.query.started \(context.logFields)"
+    case .profileQuotaQueryFinished(
+      let context,
+      let outcome,
+      let elapsedMilliseconds,
+      let retryAfterSeconds
+    ):
+      var fields = [
+        "event=profile_quota.query.finished",
+        context.logFields,
+        outcome.logFields,
+        "elapsed_ms=\(max(elapsedMilliseconds, 0))",
+      ]
+      if let retryAfterSeconds {
+        fields.append("retry_after_seconds=\(max(retryAfterSeconds, 0))")
+      }
+      return fields.joined(separator: " ")
     }
   }
 }

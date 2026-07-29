@@ -5,7 +5,7 @@ struct TrafficStatisticsSummaryView: View {
   let isMonitoringAvailable: Bool
   let showAllStatistics: () -> Void
 
-  @State private var isCreatingInterval = false
+  @State private var isStartingInterval = false
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
@@ -19,15 +19,8 @@ struct TrafficStatisticsSummaryView: View {
         lifetimeBytes: controller.snapshot.lifetime.proxy.total
       )
 
-      if isCreatingInterval {
-        startEditor
-      }
-
       activeIntervals
       showAllAction
-    }
-    .onDisappear {
-      isCreatingInterval = false
     }
   }
 
@@ -38,28 +31,21 @@ struct TrafficStatisticsSummaryView: View {
 
       Spacer()
 
-      Button("开始统计") {
-        isCreatingInterval = true
+      Button {
+        startInterval()
+      } label: {
+        HStack(spacing: 5) {
+          if isStartingInterval {
+            ProgressView()
+              .controlSize(.small)
+          }
+          Text(isStartingInterval ? "正在开始…" : "开始统计")
+        }
       }
       .buttonStyle(.borderedProminent)
       .controlSize(.small)
-      .disabled(!canStartInterval || isCreatingInterval)
+      .disabled(!canStartInterval || isStartingInterval)
     }
-  }
-
-  private var startEditor: some View {
-    TrafficIntervalNameEditor(
-      title: "新建统计任务",
-      initialName: suggestedName,
-      actionTitle: "开始",
-      cancel: {
-        isCreatingInterval = false
-      },
-      submit: { name in
-        await controller.startInterval(name: name)
-        return controller.operationMessage == nil
-      }
-    )
   }
 
   @ViewBuilder
@@ -109,7 +95,6 @@ struct TrafficStatisticsSummaryView: View {
       Divider()
 
       Button {
-        isCreatingInterval = false
         showAllStatistics()
       } label: {
         HStack(spacing: 8) {
@@ -134,7 +119,18 @@ struct TrafficStatisticsSummaryView: View {
     controller.availability.isAvailable && isMonitoringAvailable
   }
 
-  private var suggestedName: String {
-    "统计任务 \(controller.snapshot.intervals.count + 1)"
+  private func startInterval() {
+    guard canStartInterval, !isStartingInterval else {
+      return
+    }
+
+    let name = TrafficStatisticsPresentation.suggestedIntervalName(
+      from: controller.snapshot.intervals
+    )
+    isStartingInterval = true
+    Task { @MainActor in
+      await controller.startInterval(name: name)
+      isStartingInterval = false
+    }
   }
 }

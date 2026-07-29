@@ -10,17 +10,17 @@ struct TrafficStatisticsNoticeView: View {
     case .loading:
       Label("正在读取本地统计…", systemImage: "clock")
         .font(.caption)
-        .foregroundStyle(.secondary)
+        .foregroundStyle(MihomoColorToken.brandPrimary)
     case .available:
       if let message = controller.operationMessage {
-        messageRow(message, color: .orange)
+        messageRow(message, color: MihomoColorToken.statusWarning)
       } else if !isMonitoringAvailable {
         Label("连接 Mihomo 后可开始新的统计任务。", systemImage: "pause.circle")
           .font(.caption)
           .foregroundStyle(.secondary)
       }
     case .unavailable(let message):
-      messageRow(message, color: .red)
+      messageRow(message, color: MihomoColorToken.statusDanger)
     }
   }
 

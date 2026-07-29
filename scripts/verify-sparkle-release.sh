@@ -3,6 +3,7 @@
 set -euo pipefail
 
 readonly expected_feed_url="https://github.com/HongXunPan/mihomo-meter/releases/latest/download/appcast.xml"
+readonly expected_minimum_system_version="14.0"
 readonly expected_public_key="xPuZ+Pa87B1FNsb40KCxhMYd1qJtvUkEWBqwfqrtoWU="
 
 usage() {
@@ -13,7 +14,7 @@ usage() {
     --bundle-identifier com.HongXunPan.MihomoMeter
 
 说明：
-  校验 Release 应用中的 Sparkle 框架、沙盒通信权限、更新源、公钥与交互策略。
+  校验 Release 应用的最低系统版本，以及 Sparkle 框架、沙盒通信权限、更新源、公钥与交互策略。
 EOF
 }
 
@@ -95,6 +96,9 @@ fi
   fail "Release 应用必须要求用户确认后才能安装更新。"
 [[ "$(read_plist_value SUVerifyUpdateBeforeExtraction "${info_plist}")" == "true" ]] ||
   fail "Release 应用没有启用解压前更新验签。"
+[[ "$(read_plist_value LSMinimumSystemVersion "${info_plist}")" == \
+  "${expected_minimum_system_version}" ]] ||
+  fail "Release 应用最低系统版本不是 macOS ${expected_minimum_system_version}。"
 [[ "$(read_plist_value SUFeedURL "${info_plist}")" == "${expected_feed_url}" ]] ||
   fail "Release 应用的 Sparkle 更新源不匹配。"
 [[ "$(read_plist_value SUPublicEDKey "${info_plist}")" == "${expected_public_key}" ]] ||

@@ -3,6 +3,18 @@ import XCTest
 @testable import MihomoMeter
 
 final class TrafficStatisticsPresentationTests: XCTestCase {
+  func testSuggestedIntervalNameUsesNextSnapshotPosition() {
+    let intervals = [
+      makeInterval(name: "已有任务", status: .completed),
+      makeInterval(name: "进行中", status: .active),
+    ]
+
+    XCTAssertEqual(
+      TrafficStatisticsPresentation.suggestedIntervalName(from: intervals),
+      "统计任务 3"
+    )
+  }
+
   func testQuickPreviewKeepsOnlyFirstThreeActiveIntervals() {
     let intervals = [
       makeInterval(name: "活动一", status: .active),

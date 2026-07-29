@@ -34,7 +34,7 @@ struct TrafficStatisticsView: View {
       }
       .padding(20)
     }
-    .frame(minWidth: 820, minHeight: 520)
+    .frame(minWidth: 680, minHeight: 520)
     .confirmationDialog(
       "清空本地统计？",
       isPresented: $showsClearConfirmation
@@ -132,7 +132,7 @@ struct TrafficStatisticsView: View {
     if let interval = intervalPendingDeletion {
       HStack(spacing: 10) {
         Image(systemName: "trash")
-          .foregroundStyle(.red)
+          .foregroundStyle(MihomoColorToken.statusDanger)
         Text("确认删除“\(interval.name)”？只删除该任务，不影响底层累计。")
           .font(.callout)
           .lineLimit(2)
@@ -152,7 +152,10 @@ struct TrafficStatisticsView: View {
         }
       }
       .padding(10)
-      .background(.red.opacity(0.08), in: RoundedRectangle(cornerRadius: 9))
+      .background(
+        MihomoColorToken.statusDangerBackground,
+        in: RoundedRectangle(cornerRadius: 9)
+      )
     }
   }
 
@@ -202,7 +205,7 @@ struct TrafficStatisticsView: View {
   }
 
   private var suggestedName: String {
-    "统计任务 \(controller.snapshot.intervals.count + 1)"
+    TrafficStatisticsPresentation.suggestedIntervalName(from: controller.snapshot.intervals)
   }
 
   private var emptyMessage: String {

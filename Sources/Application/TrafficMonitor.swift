@@ -10,6 +10,8 @@ final class TrafficMonitor: ObservableObject {
   private let configurationStore: ControllerConfigurationStore
   private let coordinator: TrafficMonitoringCoordinator
   private let statisticsRecorder: any TrafficStatisticsRecording
+  private let runtimeQuotaLifecycle: any RuntimeQuotaTrackingLifecycle
+  private let profileQuotaLifecycle: any ProfileQuotaTrackingLifecycle
 
   var connectionState: MonitorConnectionState {
     state.connectionState
@@ -77,6 +79,10 @@ final class TrafficMonitor: ObservableObject {
     diagnosticLogger: any AppDiagnosticLogging = NoOpAppDiagnosticLogger.shared,
     livenessPolicy: ConnectionLivenessWatchdog.Policy = .production,
     statisticsRecorder: any TrafficStatisticsRecording = NoOpTrafficStatisticsRecorder.shared,
+    runtimeQuotaLifecycle: any RuntimeQuotaTrackingLifecycle =
+      NoOpRuntimeQuotaTrackingLifecycle.shared,
+    profileQuotaLifecycle: any ProfileQuotaTrackingLifecycle =
+      NoOpProfileQuotaTrackingLifecycle.shared,
     userDefaults: UserDefaults = .standard
   ) {
     let configurationStore = ControllerConfigurationStore(
@@ -85,6 +91,8 @@ final class TrafficMonitor: ObservableObject {
     )
     self.configurationStore = configurationStore
     self.statisticsRecorder = statisticsRecorder
+    self.runtimeQuotaLifecycle = runtimeQuotaLifecycle
+    self.profileQuotaLifecycle = profileQuotaLifecycle
     address = configurationStore.storedAddress
     secret = ""
     coordinator = TrafficMonitoringCoordinator(
@@ -163,6 +171,34 @@ final class TrafficMonitor: ObservableObject {
     if case .validated(let address, _, _) = event {
       self.address = address
     }
+    updateQuotaLifecycles(for: event)
     state = TrafficMonitorReducer.reduce(state, event: event)
+  }
+
+  private func updateQuotaLifecycles(
+    for event: TrafficMonitoringCoordinator.Event
+  ) {
+    switch event {
+    case .validated(let address, _, let runtimeConfiguration):
+      guard let endpoint = try? ControllerEndpoint(address: address) else {
+        runtimeQuotaLifecycle.controllerUnavailable()
+        profileQuotaLifecycle.controllerUnavailable()
+        return
+      }
+      runtimeQuotaLifecycle.controllerValidated(endpoint: endpoint, secret: secret)
+      if let runtimeConfiguration {
+        profileQuotaLifecycle.controllerValidated(
+          endpoint: endpoint,
+          runtimeConfiguration: runtimeConfiguration
+        )
+      } else {
+        profileQuotaLifecycle.controllerUnavailable()
+      }
+    case .validating, .retrying, .reconnectRequired, .reconnectScheduled, .terminal, .stopped:
+      runtimeQuotaLifecycle.controllerUnavailable()
+      profileQuotaLifecycle.controllerUnavailable()
+    case .measurement, .dataStale:
+      break
+    }
   }
 }
