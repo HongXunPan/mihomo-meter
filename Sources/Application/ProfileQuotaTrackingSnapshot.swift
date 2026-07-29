@@ -6,8 +6,24 @@ enum ProfileQuotaQueryStatus: Equatable, Sendable {
   case scheduled(Date)
   case querying
   case available
-  case failed(message: String, retryAt: Date?)
+  case failed(
+    message: String,
+    retryAt: Date?,
+    manualRetryPolicy: ProfileQuotaManualRetryPolicy
+  )
   case storageUnavailable(String)
+
+  var allowsImmediateManualRetry: Bool {
+    guard case .failed(_, _, .immediate) = self else {
+      return false
+    }
+    return true
+  }
+}
+
+enum ProfileQuotaManualRetryPolicy: Equatable, Sendable {
+  case cooldown
+  case immediate
 }
 
 struct ProfileQuotaTrackingItem: Identifiable, Equatable, Sendable {
@@ -17,7 +33,7 @@ struct ProfileQuotaTrackingItem: Identifiable, Equatable, Sendable {
   let availability: ClashProfileAvailability
   let analysis: SubscriptionQuotaAnalysis
   let queryStatus: ProfileQuotaQueryStatus
-  let canRefresh: Bool
+  let isManualRefreshEligible: Bool
   let manualRefreshAvailableAt: Date?
 
   var id: UUID {
@@ -30,6 +46,16 @@ struct ProfileQuotaTrackingItem: Identifiable, Equatable, Sendable {
 
   var trends: RuntimeQuotaTrends {
     analysis.trends
+  }
+
+  func canRefresh(at date: Date) -> Bool {
+    guard isManualRefreshEligible else {
+      return false
+    }
+    if queryStatus.allowsImmediateManualRetry {
+      return true
+    }
+    return manualRefreshAvailableAt.map { $0 <= date } ?? true
   }
 }
 

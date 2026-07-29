@@ -81,16 +81,19 @@ struct ProfileQuotaCardView: View {
       .disabled(item.latestQuota == nil)
       .help("放大查看累计用量走势")
 
-      Button {
-        Task {
-          await controller.refresh(subscriptionID: item.id)
+      TimelineView(.periodic(from: .now, by: 1)) { context in
+        let canRefresh = item.canRefresh(at: context.date)
+        Button {
+          Task {
+            await controller.refresh(subscriptionID: item.id)
+          }
+        } label: {
+          Image(systemName: "arrow.clockwise")
         }
-      } label: {
-        Image(systemName: "arrow.clockwise")
+        .buttonStyle(.borderless)
+        .disabled(!canRefresh)
+        .help(canRefresh ? "立即查询这个 Profile" : status.message)
       }
-      .buttonStyle(.borderless)
-      .disabled(!item.canRefresh)
-      .help(item.canRefresh ? "立即查询这个 Profile" : status.message)
     }
   }
 }

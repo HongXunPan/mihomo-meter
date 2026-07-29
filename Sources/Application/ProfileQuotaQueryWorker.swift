@@ -300,6 +300,9 @@ final class ProfileQuotaQueryWorker {
   }
 
   private func canRefresh(_ target: ProfileQuotaTarget) async -> Bool {
+    if statuses[target.subscription.id]?.allowsImmediateManualRetry == true {
+      return true
+    }
     guard let state = try? await ledgerService.queryState(for: target.subscription.id) else {
       return true
     }

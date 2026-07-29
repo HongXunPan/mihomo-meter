@@ -124,7 +124,8 @@ struct ProfileQuotaQueryExecutor {
       return (
         .failed(
           message: error.localizedDescription,
-          retryAt: failedState.nextAttemptAt
+          retryAt: failedState.nextAttemptAt,
+          manualRetryPolicy: manualRetryPolicy(for: error)
         ),
         failedState.nextAttemptAt
       )
@@ -198,6 +199,20 @@ struct ProfileQuotaQueryExecutor {
       return .network(code)
     case .transport:
       return .transport
+    }
+  }
+
+  private func manualRetryPolicy(
+    for error: any Error
+  ) -> ProfileQuotaManualRetryPolicy {
+    guard let queryError = error as? ActiveQuotaQueryError else {
+      return .cooldown
+    }
+    switch queryError {
+    case .timedOut, .network, .transport:
+      return .immediate
+    default:
+      return .cooldown
     }
   }
 

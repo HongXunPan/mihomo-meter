@@ -75,14 +75,10 @@ struct ProfileQuotaStatusPresentation {
         symbolName: "checkmark.circle.fill",
         tone: .positive
       )
-    case .failed(let message, let retryAt):
-      let retryMessage =
-        retryAt.map {
-          "；\(SubscriptionQuotaFormatter.relativeDate($0, relativeTo: date))自动重试"
-        } ?? "；等待下一个常规查询周期"
+    case .failed(let message, let retryAt, _):
       self.init(
         title: "本次查询失败",
-        message: "\(message)\(retryMessage)",
+        message: Self.failureMessage(message, retryAt: retryAt, relativeTo: date),
         symbolName: "exclamationmark.triangle.fill",
         tone: .warning
       )
@@ -94,6 +90,29 @@ struct ProfileQuotaStatusPresentation {
         tone: .negative
       )
     }
+  }
+
+  static func failureMessage(
+    _ message: String,
+    retryAt: Date?,
+    relativeTo date: Date
+  ) -> String {
+    let trimmedMessage = message.trimmingCharacters(in: .whitespacesAndNewlines)
+    let failureSentence: String
+    if let lastCharacter = trimmedMessage.last,
+      "。！？".contains(lastCharacter)
+    {
+      failureSentence = trimmedMessage
+    } else if trimmedMessage.isEmpty {
+      failureSentence = "机场配额查询失败。"
+    } else {
+      failureSentence = "\(trimmedMessage)。"
+    }
+    let retrySentence =
+      retryAt.map {
+        "\(SubscriptionQuotaFormatter.relativeDate($0, relativeTo: date))自动重试。"
+      } ?? "等待下一个常规查询周期。"
+    return "\(failureSentence)\(retrySentence)"
   }
 
   private static func unavailableProfile(

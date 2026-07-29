@@ -18,7 +18,8 @@ final class ProfileQuotaTrackingControllerTests: SQLiteQuotaLedgerTestCase {
     let item = try XCTUnwrap(context.controller.snapshot.profiles.first)
     XCTAssertEqual(item.latestQuota?.traffic.remainingBytes, 700)
     XCTAssertEqual(item.queryStatus, .available)
-    XCTAssertFalse(item.canRefresh)
+    XCTAssertFalse(item.canRefresh(at: context.now))
+    XCTAssertTrue(item.canRefresh(at: context.now.addingTimeInterval(61)))
     let metrics = await context.queryClient.metrics()
     XCTAssertEqual(metrics.userAgents, ["mihomo-test-agent"])
     let state = try await context.ledger.profileQueryState(for: context.subscription.id)
@@ -140,6 +141,41 @@ final class ProfileQuotaTrackingControllerTests: SQLiteQuotaLedgerTestCase {
     XCTAssertFalse(joinedMessages.contains(context.target.profileUID))
     XCTAssertFalse(joinedMessages.contains("https://example.com/first"))
     XCTAssertFalse(joinedMessages.contains(context.subscription.urlFingerprint ?? ""))
+
+    let item = try XCTUnwrap(context.controller.snapshot.profiles.first)
+    XCTAssertFalse(item.canRefresh(at: context.now))
+    XCTAssertTrue(item.canRefresh(at: context.now.addingTimeInterval(61)))
+    let presentation = ProfileQuotaStatusPresentation(item: item, relativeTo: context.now)
+    XCTAssertFalse(presentation.message.contains("。；"))
+    XCTAssertTrue(presentation.message.hasSuffix("自动重试。"))
+  }
+
+  func testAllowsImmediateManualRetryAfterNetworkFailure() async throws {
+    let context = try await makeContext(
+      queryResponses: [
+        .failure(.network(.secureConnectionFailed)),
+        .success(try quotaResult()),
+      ]
+    )
+    defer { context.stop() }
+
+    context.controller.updateTargets([context.target])
+    context.connectProxy()
+    try await waitUntil {
+      guard let item = context.controller.snapshot.profiles.first,
+        case .failed = item.queryStatus
+      else {
+        return false
+      }
+      return item.canRefresh(at: context.now)
+    }
+
+    await context.controller.refresh(subscriptionID: context.subscription.id)
+    try await waitUntil {
+      context.controller.snapshot.profiles.first?.queryStatus == .available
+    }
+    let metrics = await context.queryClient.metrics()
+    XCTAssertEqual(metrics.queryCount, 2)
   }
 
   private func makeContext(
@@ -151,10 +187,7 @@ final class ProfileQuotaTrackingControllerTests: SQLiteQuotaLedgerTestCase {
     let now = Date(timeIntervalSince1970: 1_700_800_000)
     let subscription = try profileSubscription(at: now)
     _ = try await ledger.upsertSubscription(subscription)
-    let result = ActiveQuotaQueryResult(
-      traffic: try QuotaTraffic(uploadBytes: 100, downloadBytes: 200, totalBytes: 1_000),
-      expireAt: nil
-    )
+    let result = try quotaResult()
     let queryClient = TestActiveQuotaQueryClient(
       responses: queryResponses ?? Array(repeating: .success(result), count: responseCount)
     )
@@ -177,6 +210,13 @@ final class ProfileQuotaTrackingControllerTests: SQLiteQuotaLedgerTestCase {
       target: target(subscription: subscription, url: "https://example.com/first"),
       now: now,
       removeDatabase: removeDatabase
+    )
+  }
+
+  private func quotaResult() throws -> ActiveQuotaQueryResult {
+    ActiveQuotaQueryResult(
+      traffic: try QuotaTraffic(uploadBytes: 100, downloadBytes: 200, totalBytes: 1_000),
+      expireAt: nil
     )
   }
 

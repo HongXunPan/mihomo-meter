@@ -18,6 +18,13 @@ struct ProfileQuotaSnapshotBuilder {
         at: date
       )
       let availableAt = schedulePolicy.manualRefreshAvailableAt(state: state)
+      let status = queryStatus(
+        for: target,
+        state: state,
+        isProxyAvailable: isProxyAvailable,
+        workerState: workerState,
+        at: date
+      )
       items.append(
         ProfileQuotaTrackingItem(
           subscription: target.subscription,
@@ -25,19 +32,11 @@ struct ProfileQuotaSnapshotBuilder {
           isCurrent: target.isCurrent,
           availability: target.availability,
           analysis: analysis,
-          queryStatus: queryStatus(
-            for: target,
-            state: state,
-            isProxyAvailable: isProxyAvailable,
-            workerState: workerState,
-            at: date
-          ),
-          canRefresh: canRefresh(
+          queryStatus: status,
+          isManualRefreshEligible: isManualRefreshEligible(
             target,
-            availableAt: availableAt,
             isProxyAvailable: isProxyAvailable,
-            workerState: workerState,
-            at: date
+            workerState: workerState
           ),
           manualRefreshAvailableAt: availableAt
         )
@@ -74,12 +73,10 @@ struct ProfileQuotaSnapshotBuilder {
     )
   }
 
-  private func canRefresh(
+  private func isManualRefreshEligible(
     _ target: ProfileQuotaTarget,
-    availableAt: Date?,
     isProxyAvailable: Bool,
-    workerState: ProfileQuotaWorkerState,
-    at date: Date
+    workerState: ProfileQuotaWorkerState
   ) -> Bool {
     guard
       isProxyAvailable,
@@ -88,6 +85,6 @@ struct ProfileQuotaSnapshotBuilder {
     else {
       return false
     }
-    return availableAt.map { $0 <= date } ?? true
+    return true
   }
 }
