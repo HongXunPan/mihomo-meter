@@ -15,6 +15,52 @@ final class ConnectionAnalyticsPresentationTests: XCTestCase {
     XCTAssertEqual(result.map(\.id), ["first", "second"])
   }
 
+  func testTopConnectionSlotsAlwaysReserveFivePositions() {
+    let connections = [
+      connection(id: "zero", hostname: "zero.example", upload: 0, download: 0),
+      connection(id: "second", hostname: "b.example", upload: 10, download: 20),
+      connection(id: "first", hostname: "a.example", upload: 20, download: 30),
+    ]
+
+    let slots = ConnectionAnalyticsPresentation.topConnectionSlots(from: connections)
+
+    XCTAssertEqual(slots.count, 5)
+    XCTAssertEqual(slots.compactMap(\.self).map(\.id), ["first", "second"])
+    XCTAssertEqual(
+      ConnectionAnalyticsPresentation.activeConnectionCount(from: connections),
+      2
+    )
+    XCTAssertEqual(
+      ConnectionAnalyticsPresentation.activeConnectionSummary(from: connections),
+      "2 条活跃"
+    )
+    XCTAssertEqual(
+      ConnectionAnalyticsPresentation.activeConnectionSummary(from: []),
+      "暂无传输"
+    )
+  }
+
+  func testTrendTargetsInheritTheOppositeDimensionFilter() {
+    let applicationTarget = ConnectionAnalyticsPresentation.applicationTrendTarget(
+      applicationName: "Codex",
+      selectedHostname: "example.com"
+    )
+    let hostnameTarget = ConnectionAnalyticsPresentation.hostnameTrendTarget(
+      hostname: ConnectionAttributionLabel.unknownHostname,
+      selectedApplication: ConnectionAttributionLabel.unknownApplication
+    )
+
+    XCTAssertEqual(applicationTarget.query.applicationName, "Codex")
+    XCTAssertEqual(applicationTarget.query.hostname, "example.com")
+    XCTAssertEqual(applicationTarget.inheritedFilterDescription, "域名：example.com")
+    XCTAssertEqual(hostnameTarget.query.hostname, ConnectionAttributionLabel.unknownHostname)
+    XCTAssertEqual(
+      hostnameTarget.query.applicationName,
+      ConnectionAttributionLabel.unknownApplication
+    )
+    XCTAssertEqual(hostnameTarget.inheritedFilterDescription, "应用：未知应用")
+  }
+
   func testRankingsApplyApplicationAndHostnameCrossFilter() {
     let records = [
       record(application: "Browser", hostname: "a.example", total: 10),

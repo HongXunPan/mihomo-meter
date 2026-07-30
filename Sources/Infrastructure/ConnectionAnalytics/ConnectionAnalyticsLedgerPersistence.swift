@@ -161,6 +161,52 @@ final class ConnectionAnalyticsLedgerPersistence {
     return records
   }
 
+  func trend(
+    query: ConnectionAnalyticsTrendQuery,
+    since cutoffLocalDay: String
+  ) throws -> [ConnectionAnalyticsTrendPoint] {
+    var conditions = ["local_day >= ?"]
+    if query.applicationName != nil {
+      conditions.append("application_name = ?")
+    }
+    if query.hostname != nil {
+      conditions.append("hostname = ?")
+    }
+    let statement = try connection.prepare(
+      """
+      SELECT local_day, SUM(upload_bytes), SUM(download_bytes)
+      FROM connection_daily_attribution
+      WHERE \(conditions.joined(separator: " AND "))
+      GROUP BY local_day
+      ORDER BY local_day ASC
+      """
+    )
+    var bindingIndex: Int32 = 1
+    try statement.bind(cutoffLocalDay, at: bindingIndex)
+    bindingIndex += 1
+    if let applicationName = query.applicationName {
+      try statement.bind(applicationName, at: bindingIndex)
+      bindingIndex += 1
+    }
+    if let hostname = query.hostname {
+      try statement.bind(hostname, at: bindingIndex)
+    }
+
+    var points: [ConnectionAnalyticsTrendPoint] = []
+    while try statement.step() == SQLITE_ROW {
+      guard let localDay = statement.text(at: 0) else {
+        throw ConnectionAnalyticsError.database("连接归因趋势日期无效")
+      }
+      points.append(
+        ConnectionAnalyticsTrendPoint(
+          localDay: localDay,
+          bytes: bytes(from: statement, uploadIndex: 1, downloadIndex: 2)
+        )
+      )
+    }
+    return points
+  }
+
   func prune(before cutoffLocalDay: String) throws {
     let statement = try connection.prepare(
       "DELETE FROM connection_daily_attribution WHERE local_day < ?"

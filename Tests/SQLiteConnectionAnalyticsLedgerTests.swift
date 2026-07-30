@@ -125,6 +125,67 @@ final class SQLiteConnectionAnalyticsLedgerTests: XCTestCase {
     XCTAssertEqual(snapshot.recentDays.last?.coverage.fullyAttributedRate, 0.6)
   }
 
+  func testTrendSupportsSingleAndCrossFiltersAndFillsThirtyDays() async throws {
+    let context = try makeContext()
+    defer { context.cleanup() }
+    let ledger = SQLiteConnectionAnalyticsLedger(databaseURL: context.databaseURL)
+    let yesterdayDate = try XCTUnwrap(
+      context.calendar.date(byAdding: .day, value: -1, to: context.now)
+    )
+    let yesterday = ConnectionAnalyticsCalendar.localDay(
+      for: yesterdayDate,
+      calendar: context.calendar
+    )
+    _ = try await ledger.setHistoryEnabled(true, calendar: context.calendar, now: context.now)
+    _ = try await ledger.record(
+      [
+        aggregate(day: yesterday, application: "App", hostname: "a.example", total: 10),
+        aggregate(day: yesterday, application: "App", hostname: "b.example", total: 20),
+        aggregate(day: yesterday, application: "Other", hostname: "a.example", total: 5),
+        aggregate(day: context.today, application: "App", hostname: "a.example", total: 40),
+        aggregate(
+          day: context.today,
+          application: ConnectionAttributionLabel.unknownApplication,
+          hostname: "a.example",
+          total: 7
+        ),
+      ],
+      maximumPairCountPerDay: 5_000,
+      calendar: context.calendar,
+      now: context.now
+    )
+
+    let applicationTrend = try await ledger.trend(
+      query: ConnectionAnalyticsTrendQuery(applicationName: "App"),
+      calendar: context.calendar,
+      now: context.now
+    )
+    let hostnameTrend = try await ledger.trend(
+      query: ConnectionAnalyticsTrendQuery(hostname: "a.example"),
+      calendar: context.calendar,
+      now: context.now
+    )
+    let crossTrend = try await ledger.trend(
+      query: ConnectionAnalyticsTrendQuery(applicationName: "App", hostname: "a.example"),
+      calendar: context.calendar,
+      now: context.now
+    )
+    let unknownTrend = try await ledger.trend(
+      query: ConnectionAnalyticsTrendQuery(
+        applicationName: ConnectionAttributionLabel.unknownApplication
+      ),
+      calendar: context.calendar,
+      now: context.now
+    )
+
+    XCTAssertEqual(applicationTrend.points.count, 30)
+    XCTAssertEqual(applicationTrend.points.suffix(2).map(\.bytes.total), [30, 40])
+    XCTAssertEqual(hostnameTrend.points.suffix(2).map(\.bytes.total), [15, 47])
+    XCTAssertEqual(crossTrend.points.suffix(2).map(\.bytes.total), [10, 40])
+    XCTAssertEqual(unknownTrend.points.last?.bytes.total, 7)
+    XCTAssertEqual(applicationTrend.points.dropLast(2).reduce(0) { $0 + $1.bytes.total }, 0)
+  }
+
   private func aggregate(
     day: String,
     application: String,

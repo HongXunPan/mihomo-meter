@@ -117,6 +117,17 @@ final class ConnectionAnalyticsController: ObservableObject, ConnectionAnalytics
     await reloadSelectedRecords()
   }
 
+  func trend(query: ConnectionAnalyticsTrendQuery) async throws -> ConnectionAnalyticsTrend {
+    guard availability.isAvailable else {
+      throw ConnectionAnalyticsError.database("连接归因账本不可用")
+    }
+    try await flushPendingForTrend()
+    guard availability.isAvailable else {
+      throw ConnectionAnalyticsError.database("刷新连接归因待写数据失败")
+    }
+    return try await ledger.trend(query: query, calendar: calendar, now: now())
+  }
+
   func flushPending() async {
     cancelScheduledFlush()
     guard availability.isAvailable, !pendingBytesByKey.isEmpty else {
@@ -139,6 +150,38 @@ final class ConnectionAnalyticsController: ObservableObject, ConnectionAnalytics
     } catch {
       setUnavailable(error)
     }
+  }
+
+  private func flushPendingForTrend() async throws {
+    cancelScheduledFlush()
+    guard availability.isAvailable, !pendingBytesByKey.isEmpty else {
+      return
+    }
+    let pendingSnapshot = pendingBytesByKey
+    let aggregates = pendingSnapshot.map {
+      ConnectionAttributionAggregate(key: $0.key, bytes: $0.value)
+    }
+    pendingBytesByKey = [:]
+
+    do {
+      snapshot = try await ledger.record(
+        aggregates,
+        maximumPairCountPerDay: maximumPairCountPerDay,
+        calendar: calendar,
+        now: now()
+      )
+      operationMessage = nil
+    } catch {
+      restorePending(pendingSnapshot)
+      scheduleFlushIfNeeded()
+      throw error
+    }
+
+    guard let selectedLocalDay else {
+      selectedRecords = []
+      return
+    }
+    selectedRecords = try await ledger.records(localDay: selectedLocalDay)
   }
 
   @discardableResult
@@ -202,6 +245,14 @@ final class ConnectionAnalyticsController: ObservableObject, ConnectionAnalytics
   private func cancelScheduledFlush() {
     flushTask?.cancel()
     flushTask = nil
+  }
+
+  private func restorePending(
+    _ pendingSnapshot: [ConnectionAttributionStorageKey: TrafficBytes]
+  ) {
+    for (key, bytes) in pendingSnapshot {
+      pendingBytesByKey[key] = (pendingBytesByKey[key] ?? .zero) + bytes
+    }
   }
 
   private func setUnavailable(_ error: any Error) {

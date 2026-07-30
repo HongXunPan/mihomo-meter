@@ -2,6 +2,8 @@ import SwiftUI
 
 struct ConnectionHistoryAnalyticsView: View {
   @ObservedObject var controller: ConnectionAnalyticsController
+  let showTrend: (ConnectionAnalyticsTrendTarget) -> Void
+
   @State private var selectedApplication = ""
   @State private var selectedHostname = ""
 
@@ -12,8 +14,26 @@ struct ConnectionHistoryAnalyticsView: View {
       filters
 
       HStack(alignment: .top, spacing: 14) {
-        rankingPanel(title: "应用榜", items: applicationRanking)
-        rankingPanel(title: "域名榜", items: hostnameRanking)
+        rankingPanel(
+          title: "应用榜",
+          items: applicationRanking,
+          target: { item in
+            ConnectionAnalyticsPresentation.applicationTrendTarget(
+              applicationName: item.name,
+              selectedHostname: selection(selectedHostname)
+            )
+          }
+        )
+        rankingPanel(
+          title: "域名榜",
+          items: hostnameRanking,
+          target: { item in
+            ConnectionAnalyticsPresentation.hostnameTrendTarget(
+              hostname: item.name,
+              selectedApplication: selection(selectedApplication)
+            )
+          }
+        )
       }
     }
     .onChange(of: controller.selectedRecords) { _, records in
@@ -88,7 +108,8 @@ struct ConnectionHistoryAnalyticsView: View {
 
   private func rankingPanel(
     title: String,
-    items: [ConnectionAnalyticsRankingItem]
+    items: [ConnectionAnalyticsRankingItem],
+    target: @escaping (ConnectionAnalyticsRankingItem) -> ConnectionAnalyticsTrendTarget
   ) -> some View {
     VStack(alignment: .leading, spacing: 8) {
       Text(title)
@@ -101,23 +122,10 @@ struct ConnectionHistoryAnalyticsView: View {
           .frame(maxWidth: .infinity, maxHeight: .infinity)
       } else {
         List(items) { item in
-          HStack(spacing: 10) {
-            Text(item.name)
-              .lineLimit(1)
-              .truncationMode(.middle)
-            Spacer()
-            VStack(alignment: .trailing, spacing: 2) {
-              Text(TrafficStatisticsFormatter.bytes(item.bytes.total))
-                .font(.callout.weight(.medium))
-                .monospacedDigit()
-              Text(
-                "↓ \(TrafficStatisticsFormatter.bytes(item.bytes.download))  "
-                  + "↑ \(TrafficStatisticsFormatter.bytes(item.bytes.upload))"
-              )
-              .font(.caption2)
-              .foregroundStyle(.secondary)
-            }
+          ConnectionAnalyticsRankingButton(item: item) {
+            showTrend(target(item))
           }
+          .help(item.name)
         }
         .listStyle(.inset)
       }
@@ -188,5 +196,48 @@ struct ConnectionHistoryAnalyticsView: View {
 
   private func selection(_ value: String) -> String? {
     value.isEmpty ? nil : value
+  }
+}
+
+private struct ConnectionAnalyticsRankingButton: View {
+  let item: ConnectionAnalyticsRankingItem
+  let action: () -> Void
+
+  @State private var isHovering = false
+
+  var body: some View {
+    Button(action: action) {
+      HStack(spacing: 10) {
+        Text(item.name)
+          .lineLimit(1)
+          .truncationMode(.middle)
+        Spacer()
+        VStack(alignment: .trailing, spacing: 2) {
+          Text(TrafficStatisticsFormatter.bytes(item.bytes.total))
+            .font(.callout.weight(.medium))
+            .monospacedDigit()
+          Text(
+            "↓ \(TrafficStatisticsFormatter.bytes(item.bytes.download))  "
+              + "↑ \(TrafficStatisticsFormatter.bytes(item.bytes.upload))"
+          )
+          .font(.caption2)
+          .foregroundStyle(.secondary)
+        }
+        Image(systemName: "chart.bar.xaxis")
+          .font(.caption)
+          .foregroundStyle(isHovering ? MihomoColorToken.brandPrimary : .secondary)
+      }
+      .contentShape(Rectangle())
+      .padding(.horizontal, 6)
+      .padding(.vertical, 5)
+      .background(
+        isHovering ? Color.primary.opacity(0.06) : .clear,
+        in: RoundedRectangle(cornerRadius: 6)
+      )
+    }
+    .buttonStyle(.plain)
+    .onHover { isHovering = $0 }
+    .accessibilityLabel("\(item.name)，合计 \(TrafficStatisticsFormatter.bytes(item.bytes.total))")
+    .accessibilityHint("打开最近三十天趋势")
   }
 }

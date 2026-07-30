@@ -6,13 +6,13 @@ struct TrafficIntervalNameEditor: View {
   let cancel: () -> Void
   let submit: (String) async -> Bool
 
-  @State private var name: String
+  @Binding private var name: String
   @State private var isSubmitting = false
   @FocusState private var isNameFocused: Bool
 
   init(
     title: String,
-    initialName: String,
+    name: Binding<String>,
     actionTitle: String,
     cancel: @escaping () -> Void,
     submit: @escaping (String) async -> Bool
@@ -21,7 +21,7 @@ struct TrafficIntervalNameEditor: View {
     self.actionTitle = actionTitle
     self.cancel = cancel
     self.submit = submit
-    _name = State(initialValue: initialName)
+    _name = name
   }
 
   var body: some View {

@@ -8,6 +8,7 @@ final class TrafficStatisticsWindowController: NSWindowController {
   private static let frameAutosaveName = "TrafficStatisticsWindow"
 
   private let workspaceModel = StatisticsWorkspaceModel()
+  private let connectionTrendWindowController: ConnectionAnalyticsTrendWindowController
 
   init(
     controller: TrafficStatisticsController,
@@ -18,6 +19,10 @@ final class TrafficStatisticsWindowController: NSWindowController {
     subscriptionQuotaDataController: SubscriptionQuotaDataController,
     monitor: TrafficMonitor
   ) {
+    let connectionTrendWindowController = ConnectionAnalyticsTrendWindowController(
+      controller: connectionAnalyticsController
+    )
+    self.connectionTrendWindowController = connectionTrendWindowController
     let hostingController = NSHostingController(
       rootView: StatisticsWorkspaceView(
         model: workspaceModel,
@@ -27,7 +32,10 @@ final class TrafficStatisticsWindowController: NSWindowController {
         profileQuotaController: profileQuotaController,
         profileController: profileController,
         subscriptionQuotaDataController: subscriptionQuotaDataController,
-        monitor: monitor
+        monitor: monitor,
+        showConnectionTrend: { [weak connectionTrendWindowController] target in
+          connectionTrendWindowController?.show(target: target)
+        }
       )
     )
     let window = NSWindow(

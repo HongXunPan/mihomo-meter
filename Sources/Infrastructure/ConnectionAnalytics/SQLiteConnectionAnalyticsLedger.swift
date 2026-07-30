@@ -53,6 +53,27 @@ actor SQLiteConnectionAnalyticsLedger: ConnectionAnalyticsLedgerStoring {
     try requirePersistence().records(localDay: localDay)
   }
 
+  func trend(
+    query: ConnectionAnalyticsTrendQuery,
+    calendar: Calendar,
+    now: Date
+  ) async throws -> ConnectionAnalyticsTrend {
+    let days = try recentLocalDays(calendar: calendar, now: now)
+    let storedPoints = try requirePersistence().trend(
+      query: query,
+      since: days.first ?? ""
+    )
+    let storedByDay = Dictionary(
+      uniqueKeysWithValues: storedPoints.map { ($0.localDay, $0) }
+    )
+    return ConnectionAnalyticsTrend(
+      points: days.map { localDay in
+        storedByDay[localDay]
+          ?? ConnectionAnalyticsTrendPoint(localDay: localDay, bytes: .zero)
+      }
+    )
+  }
+
   func clearHistory(
     calendar: Calendar,
     now: Date

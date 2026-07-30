@@ -62,6 +62,56 @@ final class ConnectionAnalyticsControllerTests: XCTestCase {
     XCTAssertEqual(controller.selectedRecords.first?.bytes.total, 30)
   }
 
+  func testTrendFlushesPendingDataBeforeQuery() async throws {
+    let context = try makeContext()
+    defer { context.cleanup() }
+    let ledger = SQLiteConnectionAnalyticsLedger(databaseURL: context.databaseURL)
+    let controller = makeController(context: context, ledger: ledger)
+    await controller.prepare()
+    await controller.setHistoryEnabled(true)
+    await controller.record([delta(total: 42)], at: context.now)
+
+    let trend = try await controller.trend(
+      query: ConnectionAnalyticsTrendQuery(applicationName: "Example")
+    )
+
+    XCTAssertEqual(trend.points.last?.bytes.total, 42)
+    XCTAssertEqual(controller.availability, .available)
+  }
+
+  func testTrendQueryFailureDoesNotDisableConnectionAnalytics() async throws {
+    let ledger = FailingConnectionAnalyticsLedger(failure: .trend)
+    let controller = ConnectionAnalyticsController(ledger: ledger)
+    await controller.prepare()
+
+    do {
+      _ = try await controller.trend(
+        query: ConnectionAnalyticsTrendQuery(hostname: "example.com")
+      )
+      XCTFail("趋势查询应失败")
+    } catch {
+      XCTAssertEqual(controller.availability, .available)
+      XCTAssertNil(controller.operationMessage)
+    }
+  }
+
+  func testTrendPendingFlushFailureDoesNotDisableConnectionAnalytics() async throws {
+    let ledger = FailingConnectionAnalyticsLedger(failure: .record)
+    let controller = ConnectionAnalyticsController(ledger: ledger)
+    await controller.prepare()
+    await controller.record([delta(total: 12)], at: Date())
+
+    do {
+      _ = try await controller.trend(
+        query: ConnectionAnalyticsTrendQuery(applicationName: "Example")
+      )
+      XCTFail("待写数据刷新应失败")
+    } catch {
+      XCTAssertEqual(controller.availability, .available)
+      XCTAssertNil(controller.operationMessage)
+    }
+  }
+
   private func makeController(
     context: ControllerTestContext,
     ledger: SQLiteConnectionAnalyticsLedger
@@ -93,6 +143,81 @@ final class ConnectionAnalyticsControllerTests: XCTestCase {
       cleanup: {
         try? FileManager.default.removeItem(at: directory)
       }
+    )
+  }
+}
+
+private actor FailingConnectionAnalyticsLedger: ConnectionAnalyticsLedgerStoring {
+  enum Failure: Equatable {
+    case record
+    case trend
+  }
+
+  private let failure: Failure
+
+  init(failure: Failure) {
+    self.failure = failure
+  }
+
+  func prepare(calendar: Calendar, now: Date) async throws -> ConnectionAnalyticsLedgerSnapshot {
+    snapshot(calendar: calendar, now: now)
+  }
+
+  func setHistoryEnabled(
+    _ isEnabled: Bool,
+    calendar: Calendar,
+    now: Date
+  ) async throws -> ConnectionAnalyticsLedgerSnapshot {
+    snapshot(calendar: calendar, now: now)
+  }
+
+  func record(
+    _ aggregates: [ConnectionAttributionAggregate],
+    maximumPairCountPerDay: Int,
+    calendar: Calendar,
+    now: Date
+  ) async throws -> ConnectionAnalyticsLedgerSnapshot {
+    if failure == .record {
+      throw ConnectionAnalyticsError.database("待写数据刷新失败")
+    }
+    return snapshot(calendar: calendar, now: now)
+  }
+
+  func records(localDay: String) async throws -> [ConnectionAttributionRecord] {
+    []
+  }
+
+  func trend(
+    query: ConnectionAnalyticsTrendQuery,
+    calendar: Calendar,
+    now: Date
+  ) async throws -> ConnectionAnalyticsTrend {
+    if failure == .trend {
+      throw ConnectionAnalyticsError.database("趋势查询失败")
+    }
+    return ConnectionAnalyticsTrend(points: [])
+  }
+
+  func clearHistory(
+    calendar: Calendar,
+    now: Date
+  ) async throws -> ConnectionAnalyticsLedgerSnapshot {
+    snapshot(calendar: calendar, now: now)
+  }
+
+  private func snapshot(
+    calendar: Calendar,
+    now: Date
+  ) -> ConnectionAnalyticsLedgerSnapshot {
+    ConnectionAnalyticsLedgerSnapshot(
+      isHistoryEnabled: true,
+      recentDays: [
+        ConnectionAnalyticsDay(
+          localDay: ConnectionAnalyticsCalendar.localDay(for: now, calendar: calendar),
+          bytes: .zero,
+          coverage: .empty
+        )
+      ]
     )
   }
 }

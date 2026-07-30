@@ -2,9 +2,8 @@ import SwiftUI
 
 struct ConnectionAnalyticsView: View {
   @ObservedObject var controller: ConnectionAnalyticsController
-  @ObservedObject var monitor: TrafficMonitor
+  let showTrend: (ConnectionAnalyticsTrendTarget) -> Void
 
-  @State private var selectedSection = ConnectionAnalyticsSection.live
   @State private var showsClearConfirmation = false
 
   var body: some View {
@@ -17,14 +16,10 @@ struct ConnectionAnalyticsView: View {
 
       VStack(alignment: .leading, spacing: 14) {
         availabilityNotice
-        sectionPicker
-
-        switch selectedSection {
-        case .live:
-          LiveConnectionAnalyticsView(monitor: monitor)
-        case .history:
-          ConnectionHistoryAnalyticsView(controller: controller)
-        }
+        ConnectionHistoryAnalyticsView(
+          controller: controller,
+          showTrend: showTrend
+        )
       }
       .padding(20)
     }
@@ -49,26 +44,24 @@ struct ConnectionAnalyticsView: View {
       VStack(alignment: .leading, spacing: 3) {
         Text("连接分析")
           .font(.title2.weight(.semibold))
-        Text("仅分析 Proxy 连接；不提供或保存 URL、IP、端口、连接 ID 与进程路径。")
+        Text("查看可选保存的 Proxy 应用与域名日聚合；不保存连接明细。")
           .font(.caption)
           .foregroundStyle(.secondary)
       }
 
       Spacer()
 
-      if selectedSection == .history {
-        Menu {
-          Button("清空归因历史", role: .destructive) {
-            showsClearConfirmation = true
-          }
-        } label: {
-          Image(systemName: "ellipsis.circle")
+      Menu {
+        Button("清空归因历史", role: .destructive) {
+          showsClearConfirmation = true
         }
-        .menuStyle(.borderlessButton)
-        .menuIndicator(.hidden)
-        .disabled(!controller.availability.isAvailable)
-        .accessibilityLabel("更多连接归因操作")
+      } label: {
+        Image(systemName: "ellipsis.circle")
       }
+      .menuStyle(.borderlessButton)
+      .menuIndicator(.hidden)
+      .disabled(!controller.availability.isAvailable)
+      .accessibilityLabel("更多连接归因操作")
     }
   }
 
@@ -96,17 +89,6 @@ struct ConnectionAnalyticsView: View {
     }
   }
 
-  private var sectionPicker: some View {
-    Picker("连接分析范围", selection: $selectedSection) {
-      ForEach(ConnectionAnalyticsSection.allCases) { section in
-        Text(section.title).tag(section)
-      }
-    }
-    .pickerStyle(.segmented)
-    .labelsHidden()
-    .frame(maxWidth: 360)
-  }
-
   private func notice(_ message: String, color: Color) -> some View {
     HStack(spacing: 8) {
       Image(systemName: "info.circle")
@@ -117,23 +99,5 @@ struct ConnectionAnalyticsView: View {
     .foregroundStyle(color)
     .padding(10)
     .background(color.opacity(0.08), in: RoundedRectangle(cornerRadius: 9))
-  }
-}
-
-private enum ConnectionAnalyticsSection: String, CaseIterable, Identifiable {
-  case live
-  case history
-
-  var id: String {
-    rawValue
-  }
-
-  var title: String {
-    switch self {
-    case .live:
-      "实时连接"
-    case .history:
-      "历史统计"
-    }
   }
 }

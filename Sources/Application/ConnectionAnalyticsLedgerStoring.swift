@@ -18,6 +18,12 @@ protocol ConnectionAnalyticsLedgerStoring: Sendable {
 
   func records(localDay: String) async throws -> [ConnectionAttributionRecord]
 
+  func trend(
+    query: ConnectionAnalyticsTrendQuery,
+    calendar: Calendar,
+    now: Date
+  ) async throws -> ConnectionAnalyticsTrend
+
   func clearHistory(
     calendar: Calendar,
     now: Date

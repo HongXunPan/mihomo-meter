@@ -8,9 +8,11 @@ struct ConnectionAnalyticsRankingItem: Equatable, Identifiable {
 }
 
 enum ConnectionAnalyticsPresentation {
+  static let maximumTopConnectionCount = 5
+
   static func topConnections(
     from connections: [LiveProxyConnection],
-    limit: Int = 5
+    limit: Int = maximumTopConnectionCount
   ) -> [LiveProxyConnection] {
     guard limit > 0 else {
       return []
@@ -24,6 +26,24 @@ enum ConnectionAnalyticsPresentation {
       return ($0.metadata.hostname ?? "") < ($1.metadata.hostname ?? "")
     }
     return Array(sortedConnections.prefix(limit))
+  }
+
+  static func topConnectionSlots(
+    from connections: [LiveProxyConnection]
+  ) -> [LiveProxyConnection?] {
+    let topConnections = topConnections(from: connections)
+    return (0..<maximumTopConnectionCount).map { index in
+      topConnections.indices.contains(index) ? topConnections[index] : nil
+    }
+  }
+
+  static func activeConnectionCount(from connections: [LiveProxyConnection]) -> Int {
+    connections.count { $0.totalBytesPerSecond > 0 }
+  }
+
+  static func activeConnectionSummary(from connections: [LiveProxyConnection]) -> String {
+    let count = activeConnectionCount(from: connections)
+    return count == 0 ? "暂无传输" : "\(count) 条活跃"
   }
 
   static func applicationNames(
@@ -57,6 +77,36 @@ enum ConnectionAnalyticsPresentation {
     ranking(
       records: filtered(records, application: application, hostname: hostname),
       name: \.hostname
+    )
+  }
+
+  static func applicationTrendTarget(
+    applicationName: String,
+    selectedHostname: String?
+  ) -> ConnectionAnalyticsTrendTarget {
+    ConnectionAnalyticsTrendTarget(
+      dimension: .application,
+      name: applicationName,
+      query: ConnectionAnalyticsTrendQuery(
+        applicationName: applicationName,
+        hostname: selectedHostname
+      ),
+      inheritedFilterDescription: selectedHostname.map { "域名：\($0)" }
+    )
+  }
+
+  static func hostnameTrendTarget(
+    hostname: String,
+    selectedApplication: String?
+  ) -> ConnectionAnalyticsTrendTarget {
+    ConnectionAnalyticsTrendTarget(
+      dimension: .hostname,
+      name: hostname,
+      query: ConnectionAnalyticsTrendQuery(
+        applicationName: selectedApplication,
+        hostname: hostname
+      ),
+      inheritedFilterDescription: selectedApplication.map { "应用：\($0)" }
     )
   }
 

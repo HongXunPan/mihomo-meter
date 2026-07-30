@@ -46,6 +46,7 @@ struct StatisticsWorkspaceView: View {
   @ObservedObject var profileController: ClashProfileDirectoryController
   @ObservedObject var subscriptionQuotaDataController: SubscriptionQuotaDataController
   @ObservedObject var monitor: TrafficMonitor
+  let showConnectionTrend: (ConnectionAnalyticsTrendTarget) -> Void
 
   var body: some View {
     NavigationSplitView {
@@ -65,7 +66,7 @@ struct StatisticsWorkspaceView: View {
       case .connectionAnalytics:
         ConnectionAnalyticsView(
           controller: connectionAnalyticsController,
-          monitor: monitor
+          showTrend: showConnectionTrend
         )
       case .subscriptionQuota:
         SubscriptionQuotaStatisticsView(
