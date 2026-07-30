@@ -70,6 +70,7 @@
 		D33D00000000000000000201 /* ConnectionAnalyticsRecordingCoverageLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = D33D00000000000000000101 /* ConnectionAnalyticsRecordingCoverageLoader.swift */; };
 		D33E00000000000000000201 /* ProxyDailyTrafficProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D33E00000000000000000101 /* ProxyDailyTrafficProviderTests.swift */; };
 		D33F00000000000000000201 /* ConnectionAnalyticsRecordingCoverageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D33F00000000000000000101 /* ConnectionAnalyticsRecordingCoverageTests.swift */; };
+		D34000000000000000000201 /* StatusMenuControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D34000000000000000000101 /* StatusMenuControllerTests.swift */; };
 		A30000000000000000000204 /* TrafficRateAggregator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000104 /* TrafficRateAggregator.swift */; };
 		A30000000000000000000205 /* ProxyClassifierTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000105 /* ProxyClassifierTests.swift */; };
 		A30000000000000000000206 /* ConnectionDeltaTrackerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000106 /* ConnectionDeltaTrackerTests.swift */; };
@@ -322,6 +323,7 @@
 		D33D00000000000000000101 /* ConnectionAnalyticsRecordingCoverageLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionAnalyticsRecordingCoverageLoader.swift; sourceTree = "<group>"; };
 		D33E00000000000000000101 /* ProxyDailyTrafficProviderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProxyDailyTrafficProviderTests.swift; sourceTree = "<group>"; };
 		D33F00000000000000000101 /* ConnectionAnalyticsRecordingCoverageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionAnalyticsRecordingCoverageTests.swift; sourceTree = "<group>"; };
+		D34000000000000000000101 /* StatusMenuControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusMenuControllerTests.swift; sourceTree = "<group>"; };
 		A30000000000000000000104 /* TrafficRateAggregator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficRateAggregator.swift; sourceTree = "<group>"; };
 		A30000000000000000000105 /* ProxyClassifierTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProxyClassifierTests.swift; sourceTree = "<group>"; };
 		A30000000000000000000106 /* ConnectionDeltaTrackerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionDeltaTrackerTests.swift; sourceTree = "<group>"; };
@@ -722,6 +724,7 @@
 				D32F00000000000000000101 /* ConnectionAnalyticsControllerTests.swift */,
 				D33100000000000000000101 /* ConnectionAnalyticsPresentationTests.swift */,
 				D33F00000000000000000101 /* ConnectionAnalyticsRecordingCoverageTests.swift */,
+				D34000000000000000000101 /* StatusMenuControllerTests.swift */,
 				D33800000000000000000101 /* ConnectionAnalyticsTrendTests.swift */,
 				D33900000000000000000101 /* ConnectionAnalyticsTrendWindowModelTests.swift */,
 				D33B00000000000000000101 /* LiveConnectionAnalyticsPresentationTests.swift */,
@@ -1209,6 +1212,7 @@
 				D32F00000000000000000201 /* ConnectionAnalyticsControllerTests.swift in Sources */,
 				D33100000000000000000201 /* ConnectionAnalyticsPresentationTests.swift in Sources */,
 				D33F00000000000000000201 /* ConnectionAnalyticsRecordingCoverageTests.swift in Sources */,
+				D34000000000000000000201 /* StatusMenuControllerTests.swift in Sources */,
 				D33800000000000000000201 /* ConnectionAnalyticsTrendTests.swift in Sources */,
 				D33900000000000000000201 /* ConnectionAnalyticsTrendWindowModelTests.swift in Sources */,
 				D33B00000000000000000201 /* LiveConnectionAnalyticsPresentationTests.swift in Sources */,

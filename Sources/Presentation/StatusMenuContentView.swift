@@ -2,7 +2,13 @@ import AppKit
 import SwiftUI
 
 enum StatusMenuLayout {
-  static let contentSize = NSSize(width: 400, height: 560)
+  static let contentWidth: CGFloat = 400
+  static let configuredPrimaryContentSize = NSSize(width: contentWidth, height: 166)
+  static let unconfiguredPrimaryContentSize = NSSize(width: contentWidth, height: 560)
+  static let summaryContentSize = NSSize(width: contentWidth, height: 360)
+  static let connectionSubmenuSize = NSSize(width: 360, height: 214)
+  static let classificationSubmenuSize = NSSize(width: 360, height: 176)
+  static let routingSubmenuSize = NSSize(width: 360, height: 278)
 }
 
 @MainActor
@@ -14,60 +20,106 @@ final class StatusMenuPresentationState: ObservableObject {
   }
 }
 
-struct StatusMenuContentView: View {
-  @ObservedObject var presentationState: StatusMenuPresentationState
+struct StatusMenuPrimaryContentView: View {
   @ObservedObject var monitor: TrafficMonitor
-  @ObservedObject var statisticsController: TrafficStatisticsController
-  @ObservedObject var quotaController: RuntimeQuotaTrackingController
-  @ObservedObject var profileQuotaController: ProfileQuotaTrackingController
   let showControllerSettings: () -> Void
-  let showAllStatistics: () -> Void
-  let showQuotaStatistics: () -> Void
-
-  @State private var showsRuntimeDetails = false
 
   var body: some View {
     VStack(spacing: 0) {
-      header
+      StatusMenuHeaderView(monitor: monitor)
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
 
       Divider()
 
-      ScrollViewReader { proxy in
-        ScrollView {
-          VStack(alignment: .leading, spacing: 0) {
-            if monitor.hasValidatedControllerConfiguration {
-              trafficOverview
-              sectionDivider
-              trafficStatistics
-              sectionDivider
-              subscriptionQuota
-            } else {
-              FirstConnectionGuideView(showControllerSettings: showControllerSettings)
-            }
-          }
-          .id(StatusMenuScrollAnchor.top)
+      if monitor.hasValidatedControllerConfiguration {
+        TrafficOverviewView(monitor: monitor)
           .padding(16)
-        }
-        .onAppear {
-          proxy.scrollTo(StatusMenuScrollAnchor.top, anchor: .top)
-        }
-        .onChange(of: presentationState.presentationID) { _, _ in
-          Task { @MainActor in
-            proxy.scrollTo(StatusMenuScrollAnchor.top, anchor: .top)
-          }
+      } else {
+        ScrollView {
+          FirstConnectionGuideView(showControllerSettings: showControllerSettings)
+            .padding(16)
         }
       }
     }
     .frame(
-      width: StatusMenuLayout.contentSize.width,
-      height: StatusMenuLayout.contentSize.height
+      width: StatusMenuLayout.contentWidth,
+      height: primaryContentHeight
+    )
+  }
+
+  private var primaryContentHeight: CGFloat {
+    monitor.hasValidatedControllerConfiguration
+      ? StatusMenuLayout.configuredPrimaryContentSize.height
+      : StatusMenuLayout.unconfiguredPrimaryContentSize.height
+  }
+}
+
+struct StatusMenuSummaryContentView: View {
+  @ObservedObject var presentationState: StatusMenuPresentationState
+  @ObservedObject var monitor: TrafficMonitor
+  @ObservedObject var statisticsController: TrafficStatisticsController
+  @ObservedObject var quotaController: RuntimeQuotaTrackingController
+  @ObservedObject var profileQuotaController: ProfileQuotaTrackingController
+  let showAllStatistics: () -> Void
+  let showQuotaStatistics: () -> Void
+
+  var body: some View {
+    ScrollViewReader { proxy in
+      ScrollView {
+        VStack(alignment: .leading, spacing: 0) {
+          TrafficStatisticsSummaryView(
+            controller: statisticsController,
+            isMonitoringAvailable: allowsTrafficStatistics,
+            showAllStatistics: showAllStatistics
+          )
+
+          sectionDivider
+
+          SubscriptionQuotaSummaryView(
+            controller: quotaController,
+            profileQuotaController: profileQuotaController,
+            showAllStatistics: showQuotaStatistics
+          )
+        }
+        .id(StatusMenuScrollAnchor.top)
+        .padding(16)
+      }
+      .onAppear {
+        proxy.scrollTo(StatusMenuScrollAnchor.top, anchor: .top)
+      }
+      .onChange(of: presentationState.presentationID) { _, _ in
+        Task { @MainActor in
+          proxy.scrollTo(StatusMenuScrollAnchor.top, anchor: .top)
+        }
+      }
+    }
+    .frame(
+      width: StatusMenuLayout.summaryContentSize.width,
+      height: StatusMenuLayout.summaryContentSize.height
     )
     .disclosureGroupStyle(StatusMenuDisclosureGroupStyle())
   }
 
-  private var header: some View {
+  private var sectionDivider: some View {
+    Divider()
+      .padding(.vertical, 8)
+  }
+
+  private var allowsTrafficStatistics: Bool {
+    switch monitor.connectionState {
+    case .connected, .stale, .reconnecting:
+      true
+    case .disconnected, .connecting, .authenticationFailed, .unsupported:
+      false
+    }
+  }
+}
+
+private struct StatusMenuHeaderView: View {
+  @ObservedObject var monitor: TrafficMonitor
+
+  var body: some View {
     VStack(alignment: .leading, spacing: 5) {
       HStack {
         Text("Mihomo Meter")
@@ -105,34 +157,6 @@ struct StatusMenuContentView: View {
     }
   }
 
-  private var trafficOverview: some View {
-    TrafficOverviewView(
-      monitor: monitor,
-      showsRuntimeDetails: $showsRuntimeDetails
-    )
-  }
-
-  private var trafficStatistics: some View {
-    TrafficStatisticsSummaryView(
-      controller: statisticsController,
-      isMonitoringAvailable: allowsTrafficStatistics,
-      showAllStatistics: showAllStatistics
-    )
-  }
-
-  private var subscriptionQuota: some View {
-    SubscriptionQuotaSummaryView(
-      controller: quotaController,
-      profileQuotaController: profileQuotaController,
-      showAllStatistics: showQuotaStatistics
-    )
-  }
-
-  private var sectionDivider: some View {
-    Divider()
-      .padding(.vertical, 8)
-  }
-
   private var statusDescription: String {
     if monitor.connectionState == .connected {
       guard monitor.lastObservedAt != nil else {
@@ -145,15 +169,6 @@ struct StatusMenuContentView: View {
 
   private var allowsImmediateReconnect: Bool {
     monitor.connectionState == .stale || monitor.connectionState == .reconnecting
-  }
-
-  private var allowsTrafficStatistics: Bool {
-    switch monitor.connectionState {
-    case .connected, .stale, .reconnecting:
-      true
-    case .disconnected, .connecting, .authenticationFailed, .unsupported:
-      false
-    }
   }
 
   private var stateColor: Color {

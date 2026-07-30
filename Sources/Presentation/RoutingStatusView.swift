@@ -1,107 +1,47 @@
 import SwiftUI
 
-struct RoutingStatusView: View {
-  @ObservedObject var monitor: TrafficMonitor
-  @Binding var showsRuntimeDetails: Bool
+struct RoutingStatusPresentation {
+  let proxySummary: String
+  let proxyDetails: String
+  let ruleSummary: String
+  let ruleDetails: String
+  let runtimeSummary: String
 
-  var body: some View {
-    DisclosureGroup(isExpanded: $showsRuntimeDetails) {
-      VStack(alignment: .leading, spacing: 8) {
-        statusRow(
-          title: "实际出口",
-          value: proxySummary,
-          help: proxyDetails
-        )
-        statusRow(
-          title: "运行方式",
-          value: runtimeSummary
-        )
-        statusRow(
-          title: "命中规则",
-          value: ruleSummary,
-          help: ruleDetails
-        )
-
-        Divider()
-
-        Text("运行详情")
-          .font(.caption.weight(.semibold))
-
-        RuntimeDetailsView(monitor: monitor)
-      }
-      .padding(.top, 8)
-      .padding(.leading, 14)
-    } label: {
-      HStack(spacing: 8) {
-        Text("路由状态")
-          .font(.subheadline.weight(.semibold))
-          .fixedSize(horizontal: true, vertical: false)
-
-        Text(statusSummary)
-          .font(.caption)
-          .foregroundStyle(.secondary)
-          .lineLimit(1)
-          .truncationMode(.middle)
-          .frame(maxWidth: .infinity, alignment: .trailing)
-          .help(statusSummaryHelp)
-      }
-    }
-    .accessibilityValue(showsRuntimeDetails ? "已展开" : "已折叠")
-    .accessibilityHint("显示实际出口、运行方式、命中规则和 Mihomo 运行详情")
-  }
-
-  private var proxySummary: String {
-    compactSummary(
-      monitor.activeProxyLeaves,
+  init(
+    activeProxyLeaves: [String],
+    activeRuleTypes: [String],
+    runtimeConfiguration: MihomoRuntimeConfiguration?
+  ) {
+    proxySummary = Self.compactSummary(
+      activeProxyLeaves,
       emptyValue: "未检测到可确认出口",
       unit: "个出口"
     )
-  }
-
-  private var proxyDetails: String {
-    monitor.activeProxyLeaves.isEmpty
+    proxyDetails =
+      activeProxyLeaves.isEmpty
       ? proxySummary
-      : monitor.activeProxyLeaves.joined(separator: "、")
-  }
-
-  private var ruleSummary: String {
-    compactSummary(
-      monitor.activeRuleTypes,
+      : activeProxyLeaves.joined(separator: "、")
+    ruleSummary = Self.compactSummary(
+      activeRuleTypes,
       emptyValue: "暂无活动规则",
       unit: "类规则"
     )
-  }
-
-  private var ruleDetails: String {
-    monitor.activeRuleTypes.isEmpty
+    ruleDetails =
+      activeRuleTypes.isEmpty
       ? ruleSummary
-      : monitor.activeRuleTypes.joined(separator: "、")
+      : activeRuleTypes.joined(separator: "、")
+    runtimeSummary = Self.runtimeSummary(runtimeConfiguration)
   }
 
-  private var runtimeSummary: String {
-    guard let configuration = monitor.runtimeConfiguration else {
-      return "—"
-    }
-
-    var components: [String] = []
-    if let mode = configuration.mode {
-      components.append(modeTitle(mode))
-    }
-    if let isTunEnabled = configuration.tun?.isEnabled {
-      components.append(isTunEnabled ? "TUN" : "TUN 关闭")
-    }
-    return components.isEmpty ? "—" : components.joined(separator: " · ")
-  }
-
-  private var statusSummary: String {
+  var statusSummary: String {
     [proxySummary, runtimeSummary].joined(separator: " · ")
   }
 
-  private var statusSummaryHelp: String {
+  var statusSummaryHelp: String {
     [proxyDetails, runtimeSummary].joined(separator: " · ")
   }
 
-  private func compactSummary(
+  private static func compactSummary(
     _ values: [String],
     emptyValue: String,
     unit: String
@@ -115,7 +55,24 @@ struct RoutingStatusView: View {
     return "\(first) 等 \(values.count)\(unit)"
   }
 
-  private func modeTitle(_ mode: String) -> String {
+  private static func runtimeSummary(
+    _ configuration: MihomoRuntimeConfiguration?
+  ) -> String {
+    guard let configuration else {
+      return "—"
+    }
+
+    var components: [String] = []
+    if let mode = configuration.mode {
+      components.append(modeTitle(mode))
+    }
+    if let isTunEnabled = configuration.tun?.isEnabled {
+      components.append(isTunEnabled ? "TUN" : "TUN 关闭")
+    }
+    return components.isEmpty ? "—" : components.joined(separator: " · ")
+  }
+
+  private static func modeTitle(_ mode: String) -> String {
     switch mode.lowercased() {
     case "rule":
       "Rule"
@@ -126,6 +83,47 @@ struct RoutingStatusView: View {
     default:
       mode
     }
+  }
+}
+
+struct RoutingStatusView: View {
+  @ObservedObject var monitor: TrafficMonitor
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 8) {
+      statusRow(
+        title: "实际出口",
+        value: presentation.proxySummary,
+        help: presentation.proxyDetails
+      )
+      statusRow(
+        title: "运行方式",
+        value: presentation.runtimeSummary
+      )
+      statusRow(
+        title: "命中规则",
+        value: presentation.ruleSummary,
+        help: presentation.ruleDetails
+      )
+
+      Divider()
+
+      Text("运行详情")
+        .font(.caption.weight(.semibold))
+
+      RuntimeDetailsView(monitor: monitor)
+    }
+    .padding(12)
+    .accessibilityElement(children: .contain)
+    .accessibilityLabel("路由状态")
+  }
+
+  private var presentation: RoutingStatusPresentation {
+    RoutingStatusPresentation(
+      activeProxyLeaves: monitor.activeProxyLeaves,
+      activeRuleTypes: monitor.activeRuleTypes,
+      runtimeConfiguration: monitor.runtimeConfiguration
+    )
   }
 
   private func statusRow(

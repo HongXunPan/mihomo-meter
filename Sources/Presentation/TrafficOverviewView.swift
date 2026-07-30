@@ -2,23 +2,9 @@ import SwiftUI
 
 struct TrafficOverviewView: View {
   @ObservedObject var monitor: TrafficMonitor
-  @Binding var showsRuntimeDetails: Bool
-  @State private var showsActiveProxyConnections = true
-  @State private var showsActiveDirectConnections = false
-  @State private var showsClassificationDetails = false
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 14) {
-      proxyRateSection
-      TrafficClassificationView(
-        monitor: monitor,
-        isExpanded: $showsClassificationDetails
-      )
-      RoutingStatusView(
-        monitor: monitor,
-        showsRuntimeDetails: $showsRuntimeDetails
-      )
-    }
+    proxyRateSection
   }
 
   private var proxyRateSection: some View {
@@ -48,20 +34,6 @@ struct TrafficOverviewView: View {
           color: MihomoColorToken.trafficUpload
         )
       }
-
-      Divider()
-
-      ProxyConnectionTopListView(
-        connections: monitor.liveProxyConnections,
-        isExpanded: $showsActiveProxyConnections
-      )
-
-      Divider()
-
-      DirectConnectionTopListView(
-        connections: monitor.liveDirectConnections,
-        isExpanded: $showsActiveDirectConnections
-      )
     }
   }
 

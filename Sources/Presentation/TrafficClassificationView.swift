@@ -6,56 +6,57 @@ struct TrafficClassificationView: View {
   }
 
   @ObservedObject var monitor: TrafficMonitor
-  @Binding var isExpanded: Bool
 
   var body: some View {
-    DisclosureGroup(isExpanded: $isExpanded) {
-      VStack(alignment: .leading, spacing: 8) {
-        HStack(spacing: Layout.columnSpacing) {
-          Text("分类")
-            .foregroundStyle(.secondary)
-            .frame(maxWidth: .infinity, alignment: .leading)
-          Label("下载", systemImage: "arrow.down")
-            .foregroundStyle(.secondary)
-            .frame(maxWidth: .infinity, alignment: .trailing)
-          Label("上传", systemImage: "arrow.up")
-            .foregroundStyle(.secondary)
-            .frame(maxWidth: .infinity, alignment: .trailing)
-        }
-        .font(.caption2)
-
-        VStack(spacing: 8) {
-          categoryRow(
-            title: "DIRECT",
-            rate: monitor.rates.direct,
-            color: MihomoColorToken.trafficDirect
-          )
-          categoryRow(
-            title: "REJECT",
-            rate: monitor.rates.reject,
-            color: MihomoColorToken.statusNeutral
-          )
-          categoryRow(
-            title: "未知",
-            rate: monitor.rates.unknown,
-            color: MihomoColorToken.trafficUnknown
-          )
-        }
-      }
-      .padding(.top, 8)
-      .padding(.leading, 14)
-    } label: {
+    VStack(alignment: .leading, spacing: 8) {
       HStack {
-        Text("分类状态")
-          .font(.subheadline.weight(.semibold))
-          .fixedSize(horizontal: true, vertical: false)
+        Text("分类覆盖率")
+          .font(.caption.weight(.semibold))
 
+        Spacer()
         coverageLabel
+      }
+
+      Text(coverageExplanation)
+        .font(.caption2)
+        .foregroundStyle(.secondary)
+
+      Divider()
+
+      HStack(spacing: Layout.columnSpacing) {
+        Text("分类")
+          .foregroundStyle(.secondary)
+          .frame(maxWidth: .infinity, alignment: .leading)
+        Label("下载", systemImage: "arrow.down")
+          .foregroundStyle(.secondary)
+          .frame(maxWidth: .infinity, alignment: .trailing)
+        Label("上传", systemImage: "arrow.up")
+          .foregroundStyle(.secondary)
           .frame(maxWidth: .infinity, alignment: .trailing)
       }
+      .font(.caption2)
+
+      VStack(spacing: 8) {
+        categoryRow(
+          title: "DIRECT",
+          rate: monitor.rates.direct,
+          color: MihomoColorToken.trafficDirect
+        )
+        categoryRow(
+          title: "REJECT",
+          rate: monitor.rates.reject,
+          color: MihomoColorToken.statusNeutral
+        )
+        categoryRow(
+          title: "未知",
+          rate: monitor.rates.unknown,
+          color: MihomoColorToken.trafficUnknown
+        )
+      }
     }
-    .accessibilityValue(isExpanded ? "已展开" : "已折叠")
-    .accessibilityHint("显示 DIRECT、REJECT 和未知流量的下载与上传速度")
+    .padding(12)
+    .accessibilityElement(children: .contain)
+    .accessibilityLabel("分类状态")
   }
 
   private var coverageLabel: some View {

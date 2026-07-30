@@ -73,18 +73,26 @@ final class MenuBarController: NSObject {
   }
 
   private func makeStatusMenuController() -> StatusMenuController {
-    let hostingController = NSHostingController(
-      rootView: StatusMenuContentView(
+    let primaryContentController = makeHostingController(
+      rootView: StatusMenuPrimaryContentView(
+        monitor: monitor,
+        showControllerSettings: { [weak self] in
+          self?.performMenuAction {
+            self?.actions.showControllerSettings()
+          }
+        }
+      ),
+      contentSize: monitor.hasValidatedControllerConfiguration
+        ? StatusMenuLayout.configuredPrimaryContentSize
+        : StatusMenuLayout.unconfiguredPrimaryContentSize
+    )
+    let summaryContentController = makeHostingController(
+      rootView: StatusMenuSummaryContentView(
         presentationState: statusMenuPresentationState,
         monitor: monitor,
         statisticsController: statisticsController,
         quotaController: quotaController,
         profileQuotaController: profileQuotaController,
-        showControllerSettings: { [weak self] in
-          self?.performMenuAction {
-            self?.actions.showControllerSettings()
-          }
-        },
         showAllStatistics: { [weak self] in
           self?.performMenuAction {
             self?.actions.showStatistics(.proxyTraffic)
@@ -95,19 +103,99 @@ final class MenuBarController: NSObject {
             self?.actions.showStatistics(.subscriptionQuota)
           }
         }
-      )
+      ),
+      contentSize: StatusMenuLayout.summaryContentSize
     )
-    hostingController.sizingOptions = []
-    hostingController.preferredContentSize = StatusMenuLayout.contentSize
 
     let controller = StatusMenuController(
-      contentViewController: hostingController,
-      contentSize: StatusMenuLayout.contentSize,
+      primaryContentViewController: primaryContentController,
+      configuredPrimaryContentSize: StatusMenuLayout.configuredPrimaryContentSize,
+      unconfiguredPrimaryContentSize: StatusMenuLayout.unconfiguredPrimaryContentSize,
+      summaryContentViewController: summaryContentController,
+      summaryContentSize: StatusMenuLayout.summaryContentSize,
+      submenuConfigurations: makeStatusSubmenuConfigurations(),
+      isConfigurationAvailable: { [weak self] in
+        self?.monitor.hasValidatedControllerConfiguration ?? false
+      },
       prepareForPresentation: { [weak self] in
         self?.statusMenuPresentationState.prepareForPresentation()
       }
     )
     appendNativeActions(to: controller.menu)
+    return controller
+  }
+
+  private func makeStatusSubmenuConfigurations() -> [StatusMenuSubmenuConfiguration] {
+    let proxyConnectionsController = makeHostingController(
+      rootView: ProxyConnectionTopListView(monitor: monitor),
+      contentSize: StatusMenuLayout.connectionSubmenuSize
+    )
+    let directConnectionsController = makeHostingController(
+      rootView: DirectConnectionTopListView(monitor: monitor),
+      contentSize: StatusMenuLayout.connectionSubmenuSize
+    )
+    let classificationController = makeHostingController(
+      rootView: TrafficClassificationView(monitor: monitor),
+      contentSize: StatusMenuLayout.classificationSubmenuSize
+    )
+    let routingController = makeHostingController(
+      rootView: RoutingStatusView(monitor: monitor),
+      contentSize: StatusMenuLayout.routingSubmenuSize
+    )
+
+    return [
+      StatusMenuSubmenuConfiguration(
+        title: "活动 Proxy Top 5",
+        summary: { [weak self] in
+          guard let self else {
+            return "暂无传输"
+          }
+          return ConnectionAnalyticsPresentation.activeConnectionSummary(
+            from: self.monitor.liveProxyConnections
+          )
+        },
+        contentViewController: proxyConnectionsController,
+        contentSize: StatusMenuLayout.connectionSubmenuSize
+      ),
+      StatusMenuSubmenuConfiguration(
+        title: "活动直连 Top 5",
+        summary: { [weak self] in
+          guard let self else {
+            return "暂无传输"
+          }
+          return ConnectionAnalyticsPresentation.activeConnectionSummary(
+            from: self.monitor.liveDirectConnections
+          )
+        },
+        contentViewController: directConnectionsController,
+        contentSize: StatusMenuLayout.connectionSubmenuSize
+      ),
+      StatusMenuSubmenuConfiguration(
+        title: "分类状态",
+        summary: { [weak self] in
+          TrafficRateFormatter.percentage(from: self?.monitor.coverage)
+        },
+        contentViewController: classificationController,
+        contentSize: StatusMenuLayout.classificationSubmenuSize
+      ),
+      StatusMenuSubmenuConfiguration(
+        title: "路由状态",
+        summary: { [weak self] in
+          self?.routingStatusPresentation.statusSummary ?? "—"
+        },
+        contentViewController: routingController,
+        contentSize: StatusMenuLayout.routingSubmenuSize
+      ),
+    ]
+  }
+
+  private func makeHostingController<Content: View>(
+    rootView: Content,
+    contentSize: NSSize
+  ) -> NSHostingController<Content> {
+    let controller = NSHostingController(rootView: rootView)
+    controller.sizingOptions = []
+    controller.preferredContentSize = contentSize
     return controller
   }
 
@@ -157,6 +245,15 @@ final class MenuBarController: NSObject {
           rate: snapshot.rate,
           state: snapshot.connectionState
         )
+      }
+      .store(in: &cancellables)
+
+    monitor.objectWillChange
+      .sink { [weak self] in
+        Task { @MainActor [weak self] in
+          await Task.yield()
+          self?.statusMenuController.refreshSummaries()
+        }
       }
       .store(in: &cancellables)
   }
@@ -217,5 +314,13 @@ final class MenuBarController: NSObject {
 
   func dismissStatusMenuForWindowPresentation() {
     statusMenuController.close()
+  }
+
+  private var routingStatusPresentation: RoutingStatusPresentation {
+    RoutingStatusPresentation(
+      activeProxyLeaves: monitor.activeProxyLeaves,
+      activeRuleTypes: monitor.activeRuleTypes,
+      runtimeConfiguration: monitor.runtimeConfiguration
+    )
   }
 }
