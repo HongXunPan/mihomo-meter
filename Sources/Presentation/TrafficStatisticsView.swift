@@ -18,9 +18,7 @@ struct TrafficStatisticsView: View {
 
       Divider()
 
-      VStack(alignment: .leading, spacing: 14) {
-        sectionPicker
-
+      Group {
         switch selectedSection {
         case .statistics:
           TrafficStatisticsTaskContentView(
@@ -58,36 +56,72 @@ struct TrafficStatisticsView: View {
   }
 
   private var header: some View {
+    ViewThatFits(in: .horizontal) {
+      wideHeader
+      compactHeader
+    }
+  }
+
+  private var wideHeader: some View {
     HStack(alignment: .center, spacing: 12) {
-      VStack(alignment: .leading, spacing: 3) {
-        Text("Proxy 流量")
-          .font(.title2.weight(.semibold))
-        Text(headerSubtitle)
-          .font(.caption)
-          .foregroundStyle(.secondary)
-      }
+      headerTitle
+        .fixedSize(horizontal: true, vertical: false)
 
       Spacer()
 
-      if selectedSection == .statistics {
-        Button("开始统计") {
-          intervalPendingDeletion = nil
-          editor = .create(initialName: suggestedName)
-        }
-        .buttonStyle(.borderedProminent)
-        .disabled(!canStartInterval)
+      headerControls
+    }
+  }
 
-        Menu {
-          Button("清空本地统计", role: .destructive) {
-            showsClearConfirmation = true
-          }
-        } label: {
-          Image(systemName: "ellipsis.circle")
-        }
-        .menuStyle(.borderlessButton)
-        .menuIndicator(.hidden)
-        .accessibilityLabel("更多统计操作")
+  private var compactHeader: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      headerTitle
+
+      HStack(spacing: 12) {
+        sectionPicker
+        Spacer()
+        statisticsActions
       }
+    }
+  }
+
+  private var headerTitle: some View {
+    VStack(alignment: .leading, spacing: 3) {
+      Text("Proxy 流量")
+        .font(.title2.weight(.semibold))
+      Text(headerSubtitle)
+        .font(.caption)
+        .foregroundStyle(.secondary)
+    }
+  }
+
+  private var headerControls: some View {
+    HStack(spacing: 12) {
+      sectionPicker
+      statisticsActions
+    }
+  }
+
+  @ViewBuilder
+  private var statisticsActions: some View {
+    if selectedSection == .statistics {
+      Button("开始统计") {
+        intervalPendingDeletion = nil
+        editor = .create(initialName: suggestedName)
+      }
+      .buttonStyle(.borderedProminent)
+      .disabled(!canStartInterval)
+
+      Menu {
+        Button("清空本地统计", role: .destructive) {
+          showsClearConfirmation = true
+        }
+      } label: {
+        Image(systemName: "ellipsis.circle")
+      }
+      .menuStyle(.borderlessButton)
+      .menuIndicator(.hidden)
+      .accessibilityLabel("更多统计操作")
     }
   }
 
@@ -99,7 +133,7 @@ struct TrafficStatisticsView: View {
     }
     .pickerStyle(.segmented)
     .labelsHidden()
-    .frame(maxWidth: 360)
+    .frame(width: 280)
   }
 
   private var headerSubtitle: String {

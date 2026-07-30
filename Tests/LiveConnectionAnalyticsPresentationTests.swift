@@ -106,7 +106,7 @@ final class LiveConnectionAnalyticsPresentationTests: XCTestCase {
     XCTAssertEqual(row.connectionCount, 2)
   }
 
-  func testProcessMatchingDiagnosticExplainsOffAndUnavailableModes() {
+  func testProcessMatchingDiagnosticOnlyExpandsOffAndUnavailableModes() {
     let coverage = ConnectionAttributionCoverage(
       proxyConnectionCount: 46,
       hostnameIdentifiedCount: 46,
@@ -114,14 +114,20 @@ final class LiveConnectionAnalyticsPresentationTests: XCTestCase {
       fullyIdentifiedCount: 38
     )
 
+    let always = ApplicationIdentificationDiagnostic(mode: .always, coverage: coverage)
+    let strict = ApplicationIdentificationDiagnostic(mode: .strict, coverage: coverage)
     let off = ApplicationIdentificationDiagnostic(mode: .off, coverage: coverage)
     let unavailable = ApplicationIdentificationDiagnostic(mode: nil, coverage: coverage)
 
+    XCTAssertFalse(always.shouldShowDetail)
+    XCTAssertFalse(strict.shouldShowDetail)
     XCTAssertEqual(off.title, "进程识别 off · 38/46")
     XCTAssertTrue(off.isWarning)
+    XCTAssertTrue(off.shouldShowDetail)
     XCTAssertTrue(off.detail.contains("已关闭"))
     XCTAssertEqual(unavailable.title, "进程识别不可确认 · 38/46")
     XCTAssertFalse(unavailable.isWarning)
+    XCTAssertTrue(unavailable.shouldShowDetail)
   }
 
   private func connection(

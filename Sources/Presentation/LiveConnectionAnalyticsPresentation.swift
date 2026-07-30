@@ -65,6 +65,7 @@ struct ApplicationIdentificationDiagnostic: Equatable {
   let title: String
   let detail: String
   let isWarning: Bool
+  let shouldShowDetail: Bool
 
   init(
     mode: MihomoProcessMatchingMode?,
@@ -76,18 +77,22 @@ struct ApplicationIdentificationDiagnostic: Equatable {
       title = "进程识别 always · \(count)"
       detail = "Mihomo 会为所有连接查找进程；系统权限和连接类型仍可能影响结果。"
       isWarning = false
+      shouldShowDetail = false
     case .strict:
       title = "进程识别 strict · \(count)"
       detail = "Mihomo 仅在来源可确认时匹配进程，部分连接可能无法识别。"
       isWarning = false
+      shouldShowDetail = false
     case .off:
       title = "进程识别 off · \(count)"
       detail = "Mihomo 已关闭进程匹配，应用识别率可能较低。"
       isWarning = true
+      shouldShowDetail = true
     case nil:
       title = "进程识别不可确认 · \(count)"
       detail = "Mihomo 未返回可识别的进程匹配模式。"
       isWarning = false
+      shouldShowDetail = true
     }
   }
 }
