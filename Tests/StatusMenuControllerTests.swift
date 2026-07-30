@@ -5,25 +5,44 @@ import XCTest
 
 @MainActor
 final class StatusMenuControllerTests: XCTestCase {
-  func testConfiguredMenuUsesNativeSubmenuAndRefreshesSummary() throws {
+  func testConfiguredMenuKeepsNativeSubmenusAndNavigationBesideTheirSections() throws {
     var summary = "1 条活跃"
     var prepareCallCount = 0
-    let contentSize = NSSize(width: 360, height: 214)
-    let statisticsItem = NSMenuItem(
-      title: "查看 Proxy 流量统计",
+    let submenuContentSize = NSSize(width: 360, height: 214)
+    let trafficController = makeViewController()
+    let quotaController = makeViewController()
+    let proxyTrafficItem = NSMenuItem(title: "查看 Proxy 流量统计", action: nil, keyEquivalent: "")
+    let subscriptionQuotaItem = NSMenuItem(
+      title: "查看订阅余额统计",
       action: nil,
       keyEquivalent: ""
     )
-    let controller = makeController(
+    let controller = StatusMenuController(
+      primaryContent: contentConfiguration(height: 166),
       submenuConfigurations: [
         StatusMenuSubmenuConfiguration(
           title: "活动 Proxy Top 5",
           summary: { summary },
           contentViewController: makeViewController(),
-          contentSize: contentSize
+          contentSize: submenuContentSize
         )
       ],
-      configuredActionItems: [statisticsItem],
+      sectionConfigurations: [
+        StatusMenuSectionConfiguration(
+          content: contentConfiguration(
+            viewController: trafficController,
+            height: 420
+          ),
+          navigationItem: proxyTrafficItem
+        ),
+        StatusMenuSectionConfiguration(
+          content: contentConfiguration(
+            viewController: quotaController,
+            height: 360
+          ),
+          navigationItem: subscriptionQuotaItem
+        ),
+      ],
       isConfigurationAvailable: { true },
       prepareForPresentation: { prepareCallCount += 1 }
     )
@@ -35,13 +54,23 @@ final class StatusMenuControllerTests: XCTestCase {
     )
     XCTAssertEqual(prepareCallCount, 1)
     XCTAssertNotNil(submenuItem.submenu)
-    XCTAssertEqual(submenuItem.submenu?.items.first?.view?.frame.size, contentSize)
+    XCTAssertEqual(submenuItem.submenu?.items.first?.view?.frame.size, submenuContentSize)
     XCTAssertEqual(submenuItem.badge?.stringValue, "1 条活跃")
     XCTAssertNil(submenuItem.toolTip)
+    XCTAssertNil(submenuItem.view)
     XCTAssertFalse(submenuItem.isHidden)
-    XCTAssertTrue(controller.menu.items.contains { $0 === statisticsItem })
-    XCTAssertNil(statisticsItem.view)
-    XCTAssertFalse(statisticsItem.isHidden)
+
+    let trafficIndex = try XCTUnwrap(controller.menu.items.firstIndex { $0 === proxyTrafficItem })
+    let quotaIndex = try XCTUnwrap(
+      controller.menu.items.firstIndex { $0 === subscriptionQuotaItem }
+    )
+    XCTAssertTrue(controller.menu.items[trafficIndex - 1].view === trafficController.view)
+    XCTAssertTrue(controller.menu.items[quotaIndex - 1].view === quotaController.view)
+    XCTAssertTrue(controller.menu.items[quotaIndex - 2].isSeparatorItem)
+    XCTAssertNil(proxyTrafficItem.view)
+    XCTAssertNil(subscriptionQuotaItem.view)
+    XCTAssertEqual(trafficController.view.frame.height, 420)
+    XCTAssertEqual(quotaController.view.frame.height, 360)
 
     summary = "暂无传输"
     controller.refreshSummaries()
@@ -49,13 +78,36 @@ final class StatusMenuControllerTests: XCTestCase {
     XCTAssertEqual(submenuItem.badge?.stringValue, "暂无传输")
   }
 
-  func testUnconfiguredMenuHidesConfiguredSections() throws {
-    let statisticsItem = NSMenuItem(
-      title: "查看 Proxy 流量统计",
-      action: nil,
-      keyEquivalent: ""
+  func testMenuRefreshesNaturalContentSizesWithoutApplyingViewportCap() {
+    var primaryHeight: CGFloat = 166
+    var sectionHeight: CGFloat = 720
+    let sectionController = makeViewController()
+    let controller = StatusMenuController(
+      primaryContent: contentConfiguration(height: { primaryHeight }),
+      submenuConfigurations: [],
+      sectionConfigurations: [
+        StatusMenuSectionConfiguration(
+          content: contentConfiguration(
+            viewController: sectionController,
+            height: { sectionHeight }
+          ),
+          navigationItem: NSMenuItem(title: "查看统计", action: nil, keyEquivalent: "")
+        )
+      ],
+      isConfigurationAvailable: { true }
     )
-    let controller = makeController(
+
+    primaryHeight = 220
+    sectionHeight = 840
+    controller.refreshContentSizes()
+
+    XCTAssertEqual(controller.menu.items[0].view?.frame.height, 220)
+    XCTAssertEqual(sectionController.view.frame.height, 840)
+  }
+
+  func testUnconfiguredMenuHidesAllConfiguredItems() {
+    let controller = StatusMenuController(
+      primaryContent: contentConfiguration(height: 420),
       submenuConfigurations: [
         StatusMenuSubmenuConfiguration(
           title: "分类状态",
@@ -64,42 +116,40 @@ final class StatusMenuControllerTests: XCTestCase {
           contentSize: NSSize(width: 360, height: 176)
         )
       ],
-      configuredActionItems: [statisticsItem],
+      sectionConfigurations: [
+        StatusMenuSectionConfiguration(
+          content: contentConfiguration(height: 300),
+          navigationItem: NSMenuItem(title: "查看统计", action: nil, keyEquivalent: "")
+        )
+      ],
       isConfigurationAvailable: { false }
     )
 
     controller.menuWillOpen(controller.menu)
 
-    let submenuItem = try XCTUnwrap(
-      controller.menu.items.first { $0.title == "分类状态" }
-    )
-    XCTAssertTrue(submenuItem.isHidden)
-    XCTAssertNil(submenuItem.badge)
-    XCTAssertEqual(
-      controller.menu.items.first?.view?.frame.size,
-      StatusMenuLayout.unconfiguredPrimaryContentSize
-    )
-    XCTAssertTrue(controller.menu.items[4].isHidden)
-    XCTAssertTrue(statisticsItem.isHidden)
+    XCTAssertFalse(controller.menu.items[0].isHidden)
+    XCTAssertEqual(controller.menu.items[0].view?.frame.height, 420)
+    XCTAssertTrue(controller.menu.items.dropFirst().allSatisfy(\.isHidden))
+    XCTAssertNil(controller.menu.items.first { $0.title == "分类状态" }?.badge)
   }
 
-  private func makeController(
-    submenuConfigurations: [StatusMenuSubmenuConfiguration],
-    configuredActionItems: [NSMenuItem] = [],
-    isConfigurationAvailable: @escaping () -> Bool,
-    prepareForPresentation: @escaping () -> Void = {}
-  ) -> StatusMenuController {
-    StatusMenuController(
-      primaryContentViewController: makeViewController(),
-      configuredPrimaryContentSize: StatusMenuLayout.configuredPrimaryContentSize,
-      unconfiguredPrimaryContentSize: StatusMenuLayout.unconfiguredPrimaryContentSize,
-      summaryContentViewController: makeViewController(),
-      summaryContentSize: StatusMenuLayout.summaryContentSize,
-      submenuConfigurations: submenuConfigurations,
-      configuredActionItems: configuredActionItems,
-      isConfigurationAvailable: isConfigurationAvailable,
-      prepareForPresentation: prepareForPresentation
+  private func contentConfiguration(
+    viewController: NSViewController? = nil,
+    height: @escaping () -> CGFloat
+  ) -> StatusMenuContentConfiguration {
+    StatusMenuContentConfiguration(
+      viewController: viewController ?? makeViewController(),
+      contentSize: {
+        NSSize(width: StatusMenuLayout.contentWidth, height: height())
+      }
     )
+  }
+
+  private func contentConfiguration(
+    viewController: NSViewController? = nil,
+    height: CGFloat
+  ) -> StatusMenuContentConfiguration {
+    contentConfiguration(viewController: viewController, height: { height })
   }
 
   private func makeViewController() -> NSViewController {

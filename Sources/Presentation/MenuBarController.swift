@@ -1,6 +1,5 @@
 import AppKit
 import Combine
-import SwiftUI
 
 struct MenuBarPresentationActions {
   let showStatistics: (StatisticsModule) -> Void
@@ -20,7 +19,6 @@ final class MenuBarController: NSObject {
   private let profileQuotaController: ProfileQuotaTrackingController
   private let updateModel: AppUpdateModel
   private let actions: MenuBarPresentationActions
-  private let statusMenuPresentationState = StatusMenuPresentationState()
   private var updateMenuItem: NSMenuItem?
   private var cancellables: Set<AnyCancellable> = []
 
@@ -73,138 +71,43 @@ final class MenuBarController: NSObject {
   }
 
   private func makeStatusMenuController() -> StatusMenuController {
-    let primaryContentController = makeHostingController(
-      rootView: StatusMenuPrimaryContentView(
-        monitor: monitor,
-        showControllerSettings: { [weak self] in
-          self?.performMenuAction {
-            self?.actions.showControllerSettings()
-          }
+    let factory = StatusMenuFactory(
+      monitor: monitor,
+      statisticsController: statisticsController,
+      quotaController: quotaController,
+      profileQuotaController: profileQuotaController
+    )
+    let controller = factory.makeController(
+      showControllerSettings: { [weak self] in
+        self?.performMenuAction {
+          self?.actions.showControllerSettings()
         }
-      ),
-      contentSize: monitor.hasValidatedControllerConfiguration
-        ? StatusMenuLayout.configuredPrimaryContentSize
-        : StatusMenuLayout.unconfiguredPrimaryContentSize
-    )
-    let summaryContentController = makeHostingController(
-      rootView: StatusMenuSummaryContentView(
-        presentationState: statusMenuPresentationState,
-        monitor: monitor,
-        statisticsController: statisticsController,
-        quotaController: quotaController,
-        profileQuotaController: profileQuotaController
-      ),
-      contentSize: StatusMenuLayout.summaryContentSize
-    )
-
-    let controller = StatusMenuController(
-      primaryContentViewController: primaryContentController,
-      configuredPrimaryContentSize: StatusMenuLayout.configuredPrimaryContentSize,
-      unconfiguredPrimaryContentSize: StatusMenuLayout.unconfiguredPrimaryContentSize,
-      summaryContentViewController: summaryContentController,
-      summaryContentSize: StatusMenuLayout.summaryContentSize,
-      submenuConfigurations: makeStatusSubmenuConfigurations(),
-      configuredActionItems: makeStatisticsNavigationItems(),
-      isConfigurationAvailable: { [weak self] in
-        self?.monitor.hasValidatedControllerConfiguration ?? false
       },
-      prepareForPresentation: { [weak self] in
-        self?.statusMenuPresentationState.prepareForPresentation()
-      }
+      proxyTrafficNavigationItem: makeProxyTrafficNavigationItem(),
+      subscriptionQuotaNavigationItem: makeSubscriptionQuotaNavigationItem()
     )
     appendNativeActions(to: controller.menu)
     return controller
   }
 
-  private func makeStatusSubmenuConfigurations() -> [StatusMenuSubmenuConfiguration] {
-    let proxyConnectionsController = makeHostingController(
-      rootView: ProxyConnectionTopListView(monitor: monitor),
-      contentSize: StatusMenuLayout.connectionSubmenuSize
-    )
-    let directConnectionsController = makeHostingController(
-      rootView: DirectConnectionTopListView(monitor: monitor),
-      contentSize: StatusMenuLayout.connectionSubmenuSize
-    )
-    let classificationController = makeHostingController(
-      rootView: TrafficClassificationView(monitor: monitor),
-      contentSize: StatusMenuLayout.classificationSubmenuSize
-    )
-    let routingController = makeHostingController(
-      rootView: RoutingStatusView(monitor: monitor),
-      contentSize: StatusMenuLayout.routingSubmenuSize
-    )
-
-    return [
-      StatusMenuSubmenuConfiguration(
-        title: "活动 Proxy Top 5",
-        summary: { [weak self] in
-          guard let self else {
-            return "暂无传输"
-          }
-          return ConnectionAnalyticsPresentation.activeConnectionSummary(
-            from: self.monitor.liveProxyConnections
-          )
-        },
-        contentViewController: proxyConnectionsController,
-        contentSize: StatusMenuLayout.connectionSubmenuSize
-      ),
-      StatusMenuSubmenuConfiguration(
-        title: "活动直连 Top 5",
-        summary: { [weak self] in
-          guard let self else {
-            return "暂无传输"
-          }
-          return ConnectionAnalyticsPresentation.activeConnectionSummary(
-            from: self.monitor.liveDirectConnections
-          )
-        },
-        contentViewController: directConnectionsController,
-        contentSize: StatusMenuLayout.connectionSubmenuSize
-      ),
-      StatusMenuSubmenuConfiguration(
-        title: "分类状态",
-        summary: { [weak self] in
-          TrafficRateFormatter.percentage(from: self?.monitor.coverage)
-        },
-        contentViewController: classificationController,
-        contentSize: StatusMenuLayout.classificationSubmenuSize
-      ),
-      StatusMenuSubmenuConfiguration(
-        title: "路由状态",
-        summary: { [weak self] in
-          self?.routingStatusPresentation.statusSummary ?? "—"
-        },
-        contentViewController: routingController,
-        contentSize: StatusMenuLayout.routingSubmenuSize
-      ),
-    ]
-  }
-
-  private func makeHostingController<Content: View>(
-    rootView: Content,
-    contentSize: NSSize
-  ) -> NSHostingController<Content> {
-    let controller = NSHostingController(rootView: rootView)
-    controller.sizingOptions = []
-    controller.preferredContentSize = contentSize
-    return controller
-  }
-
-  private func makeStatisticsNavigationItems() -> [NSMenuItem] {
-    let proxyTrafficItem = NSMenuItem(
+  private func makeProxyTrafficNavigationItem() -> NSMenuItem {
+    let item = NSMenuItem(
       title: "查看 Proxy 流量统计",
       action: #selector(showProxyTrafficStatistics),
       keyEquivalent: ""
     )
-    proxyTrafficItem.target = self
+    item.target = self
+    return item
+  }
 
-    let subscriptionQuotaItem = NSMenuItem(
+  private func makeSubscriptionQuotaNavigationItem() -> NSMenuItem {
+    let item = NSMenuItem(
       title: "查看订阅余额统计",
       action: #selector(showSubscriptionQuotaStatistics),
       keyEquivalent: ""
     )
-    subscriptionQuotaItem.target = self
-    return [proxyTrafficItem, subscriptionQuotaItem]
+    item.target = self
+    return item
   }
 
   private func appendNativeActions(to menu: NSMenu) {
@@ -336,13 +239,5 @@ final class MenuBarController: NSObject {
 
   func dismissStatusMenuForWindowPresentation() {
     statusMenuController.close()
-  }
-
-  private var routingStatusPresentation: RoutingStatusPresentation {
-    RoutingStatusPresentation(
-      activeProxyLeaves: monitor.activeProxyLeaves,
-      activeRuleTypes: monitor.activeRuleTypes,
-      runtimeConfiguration: monitor.runtimeConfiguration
-    )
   }
 }

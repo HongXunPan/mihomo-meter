@@ -1,23 +1,10 @@
-import AppKit
 import SwiftUI
 
 enum StatusMenuLayout {
   static let contentWidth: CGFloat = 400
-  static let configuredPrimaryContentSize = NSSize(width: contentWidth, height: 166)
-  static let unconfiguredPrimaryContentSize = NSSize(width: contentWidth, height: 560)
-  static let summaryContentSize = NSSize(width: contentWidth, height: 360)
-  static let connectionSubmenuSize = NSSize(width: 360, height: 214)
-  static let classificationSubmenuSize = NSSize(width: 360, height: 176)
-  static let routingSubmenuSize = NSSize(width: 360, height: 278)
-}
-
-@MainActor
-final class StatusMenuPresentationState: ObservableObject {
-  @Published private(set) var presentationID = UUID()
-
-  func prepareForPresentation() {
-    presentationID = UUID()
-  }
+  static let connectionSubmenuSize = CGSize(width: 360, height: 214)
+  static let classificationSubmenuSize = CGSize(width: 360, height: 176)
+  static let routingSubmenuSize = CGSize(width: 360, height: 278)
 }
 
 struct StatusMenuPrimaryContentView: View {
@@ -36,70 +23,27 @@ struct StatusMenuPrimaryContentView: View {
         TrafficOverviewView(monitor: monitor)
           .padding(16)
       } else {
-        ScrollView {
-          FirstConnectionGuideView(showControllerSettings: showControllerSettings)
-            .padding(16)
-        }
+        FirstConnectionGuideView(showControllerSettings: showControllerSettings)
+          .padding(16)
       }
     }
-    .frame(
-      width: StatusMenuLayout.contentWidth,
-      height: primaryContentHeight
-    )
-  }
-
-  private var primaryContentHeight: CGFloat {
-    monitor.hasValidatedControllerConfiguration
-      ? StatusMenuLayout.configuredPrimaryContentSize.height
-      : StatusMenuLayout.unconfiguredPrimaryContentSize.height
+    .frame(width: StatusMenuLayout.contentWidth)
+    .fixedSize(horizontal: false, vertical: true)
   }
 }
 
-struct StatusMenuSummaryContentView: View {
-  @ObservedObject var presentationState: StatusMenuPresentationState
+struct StatusMenuTrafficSummaryContentView: View {
   @ObservedObject var monitor: TrafficMonitor
-  @ObservedObject var statisticsController: TrafficStatisticsController
-  @ObservedObject var quotaController: RuntimeQuotaTrackingController
-  @ObservedObject var profileQuotaController: ProfileQuotaTrackingController
+  @ObservedObject var controller: TrafficStatisticsController
 
   var body: some View {
-    ScrollViewReader { proxy in
-      ScrollView {
-        VStack(alignment: .leading, spacing: 0) {
-          TrafficStatisticsSummaryView(
-            controller: statisticsController,
-            isMonitoringAvailable: allowsTrafficStatistics
-          )
-
-          sectionDivider
-
-          SubscriptionQuotaSummaryView(
-            controller: quotaController,
-            profileQuotaController: profileQuotaController
-          )
-        }
-        .id(StatusMenuScrollAnchor.top)
-        .padding(16)
-      }
-      .onAppear {
-        proxy.scrollTo(StatusMenuScrollAnchor.top, anchor: .top)
-      }
-      .onChange(of: presentationState.presentationID) { _, _ in
-        Task { @MainActor in
-          proxy.scrollTo(StatusMenuScrollAnchor.top, anchor: .top)
-        }
-      }
-    }
-    .frame(
-      width: StatusMenuLayout.summaryContentSize.width,
-      height: StatusMenuLayout.summaryContentSize.height
+    TrafficStatisticsSummaryView(
+      controller: controller,
+      isMonitoringAvailable: allowsTrafficStatistics
     )
-    .disclosureGroupStyle(StatusMenuDisclosureGroupStyle())
-  }
-
-  private var sectionDivider: some View {
-    Divider()
-      .padding(.vertical, 8)
+    .padding(16)
+    .frame(width: StatusMenuLayout.contentWidth)
+    .fixedSize(horizontal: false, vertical: true)
   }
 
   private var allowsTrafficStatistics: Bool {
@@ -109,6 +53,22 @@ struct StatusMenuSummaryContentView: View {
     case .disconnected, .connecting, .authenticationFailed, .unsupported:
       false
     }
+  }
+}
+
+struct StatusMenuQuotaSummaryContentView: View {
+  @ObservedObject var controller: RuntimeQuotaTrackingController
+  @ObservedObject var profileQuotaController: ProfileQuotaTrackingController
+
+  var body: some View {
+    SubscriptionQuotaSummaryView(
+      controller: controller,
+      profileQuotaController: profileQuotaController
+    )
+    .padding(16)
+    .frame(width: StatusMenuLayout.contentWidth)
+    .fixedSize(horizontal: false, vertical: true)
+    .disclosureGroupStyle(StatusMenuDisclosureGroupStyle())
   }
 }
 
@@ -181,8 +141,4 @@ private struct StatusMenuHeaderView: View {
       MihomoColorToken.statusNeutral
     }
   }
-}
-
-private enum StatusMenuScrollAnchor {
-  static let top = "status-menu-top"
 }

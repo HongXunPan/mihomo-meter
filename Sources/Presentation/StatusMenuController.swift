@@ -1,6 +1,12 @@
 import AppKit
 
 @MainActor
+struct StatusMenuContentConfiguration {
+  let viewController: NSViewController
+  let contentSize: () -> NSSize
+}
+
+@MainActor
 struct StatusMenuSubmenuConfiguration {
   let title: String
   let summary: () -> String
@@ -9,62 +15,41 @@ struct StatusMenuSubmenuConfiguration {
 }
 
 @MainActor
+struct StatusMenuSectionConfiguration {
+  let content: StatusMenuContentConfiguration
+  let navigationItem: NSMenuItem
+}
+
+@MainActor
 final class StatusMenuController: NSObject, NSMenuDelegate {
   let menu = NSMenu()
 
-  private let primaryContentViewController: NSViewController
-  private let primaryContentItem: NSMenuItem
-  private let configuredPrimaryContentSize: NSSize
-  private let unconfiguredPrimaryContentSize: NSSize
-  private let configuredSectionSeparator = NSMenuItem.separator()
-  private let summarySectionSeparator = NSMenuItem.separator()
-  private let summaryContentItem: NSMenuItem
-  private let configuredActionSeparator: NSMenuItem?
-  private let configuredActionItems: [NSMenuItem]
+  private let primaryContentEntry: StatusMenuContentEntry
+  private let configuredContentEntries: [StatusMenuContentEntry]
+  private let configuredItems: [NSMenuItem]
   private let submenuEntries: [StatusMenuSubmenuEntry]
   private let isConfigurationAvailable: () -> Bool
   private let prepareForPresentation: () -> Void
   private let retainedContentViewControllers: [NSViewController]
 
   init(
-    primaryContentViewController: NSViewController,
-    configuredPrimaryContentSize: NSSize,
-    unconfiguredPrimaryContentSize: NSSize,
-    summaryContentViewController: NSViewController,
-    summaryContentSize: NSSize,
+    primaryContent: StatusMenuContentConfiguration,
     submenuConfigurations: [StatusMenuSubmenuConfiguration],
-    configuredActionItems: [NSMenuItem] = [],
+    sectionConfigurations: [StatusMenuSectionConfiguration],
     isConfigurationAvailable: @escaping () -> Bool,
-    prepareForPresentation: @escaping () -> Void
+    prepareForPresentation: @escaping () -> Void = {}
   ) {
-    self.primaryContentViewController = primaryContentViewController
-    self.configuredPrimaryContentSize = configuredPrimaryContentSize
-    self.unconfiguredPrimaryContentSize = unconfiguredPrimaryContentSize
-    self.configuredActionItems = configuredActionItems
-    configuredActionSeparator =
-      configuredActionItems.isEmpty ? nil : NSMenuItem.separator()
+    primaryContentEntry = Self.contentEntry(configuration: primaryContent)
     self.isConfigurationAvailable = isConfigurationAvailable
     self.prepareForPresentation = prepareForPresentation
 
-    primaryContentItem = Self.contentItem(
-      viewController: primaryContentViewController,
-      size: configuredPrimaryContentSize
-    )
-    summaryContentItem = Self.contentItem(
-      viewController: summaryContentViewController,
-      size: summaryContentSize
-    )
-
-    var entries: [StatusMenuSubmenuEntry] = []
-    var contentViewControllers = [
-      primaryContentViewController,
-      summaryContentViewController,
-    ]
+    var submenuEntries: [StatusMenuSubmenuEntry] = []
+    var retainedContentViewControllers = [primaryContent.viewController]
     for configuration in submenuConfigurations {
       let submenu = NSMenu()
       submenu.autoenablesItems = false
       submenu.addItem(
-        Self.contentItem(
+        Self.fixedContentItem(
           viewController: configuration.contentViewController,
           size: configuration.contentSize
         )
@@ -76,34 +61,46 @@ final class StatusMenuController: NSObject, NSMenuDelegate {
         keyEquivalent: ""
       )
       item.submenu = submenu
-      entries.append(
+      submenuEntries.append(
         StatusMenuSubmenuEntry(
           item: item,
           summary: configuration.summary
         )
       )
-      contentViewControllers.append(configuration.contentViewController)
+      retainedContentViewControllers.append(configuration.contentViewController)
     }
-    submenuEntries = entries
-    retainedContentViewControllers = contentViewControllers
+    self.submenuEntries = submenuEntries
+
+    let sectionEntries = sectionConfigurations.map {
+      StatusMenuSectionEntry(
+        content: Self.contentEntry(configuration: $0.content),
+        navigationItem: $0.navigationItem
+      )
+    }
+    configuredContentEntries = sectionEntries.map(\.content)
+    retainedContentViewControllers.append(
+      contentsOf: sectionConfigurations.map(\.content.viewController)
+    )
+    self.retainedContentViewControllers = retainedContentViewControllers
+
+    var configuredItems: [NSMenuItem] = [.separator()]
+    configuredItems.append(contentsOf: submenuEntries.map(\.item))
+    configuredItems.append(.separator())
+    for (index, entry) in sectionEntries.enumerated() {
+      configuredItems.append(entry.content.item)
+      configuredItems.append(entry.navigationItem)
+      if index < sectionEntries.count - 1 {
+        configuredItems.append(.separator())
+      }
+    }
+    self.configuredItems = configuredItems
 
     super.init()
 
     menu.autoenablesItems = false
     menu.delegate = self
-    menu.addItem(primaryContentItem)
-    menu.addItem(configuredSectionSeparator)
-    for entry in submenuEntries {
-      menu.addItem(entry.item)
-    }
-    menu.addItem(summarySectionSeparator)
-    menu.addItem(summaryContentItem)
-    if let configuredActionSeparator {
-      menu.addItem(configuredActionSeparator)
-    }
-    for item in configuredActionItems {
-      menu.addItem(item)
-    }
+    menu.addItem(primaryContentEntry.item)
+    configuredItems.forEach(menu.addItem)
     refreshPresentation()
 
     NotificationCenter.default.addObserver(
@@ -137,27 +134,23 @@ final class StatusMenuController: NSObject, NSMenuDelegate {
     }
   }
 
+  func refreshContentSizes() {
+    Self.applyMeasuredSize(to: primaryContentEntry)
+    for entry in configuredContentEntries {
+      Self.applyMeasuredSize(to: entry)
+    }
+  }
+
   func close() {
     menu.cancelTracking()
   }
 
   private func refreshPresentation() {
     let isAvailable = isConfigurationAvailable()
-    let primarySize =
-      isAvailable
-      ? configuredPrimaryContentSize
-      : unconfiguredPrimaryContentSize
-    primaryContentItem.view?.frame.size = primarySize
-    configuredSectionSeparator.isHidden = !isAvailable
-    summarySectionSeparator.isHidden = !isAvailable
-    summaryContentItem.isHidden = !isAvailable
-    configuredActionSeparator?.isHidden = !isAvailable
-    for item in configuredActionItems {
+    for item in configuredItems {
       item.isHidden = !isAvailable
     }
-    for entry in submenuEntries {
-      entry.item.isHidden = !isAvailable
-    }
+    refreshContentSizes()
     refreshSummaries()
   }
 
@@ -165,11 +158,25 @@ final class StatusMenuController: NSObject, NSMenuDelegate {
   private func menuDidBeginTracking(_ notification: Notification) {
     Task { @MainActor [weak self] in
       await Task.yield()
-      self?.primaryContentViewController.view.window?.makeFirstResponder(nil)
+      self?.primaryContentEntry.viewController.view.window?.makeFirstResponder(nil)
     }
   }
 
-  private static func contentItem(
+  private static func contentEntry(
+    configuration: StatusMenuContentConfiguration
+  ) -> StatusMenuContentEntry {
+    let item = NSMenuItem()
+    item.view = configuration.viewController.view
+    let entry = StatusMenuContentEntry(
+      item: item,
+      viewController: configuration.viewController,
+      contentSize: configuration.contentSize
+    )
+    applyMeasuredSize(to: entry)
+    return entry
+  }
+
+  private static func fixedContentItem(
     viewController: NSViewController,
     size: NSSize
   ) -> NSMenuItem {
@@ -181,10 +188,35 @@ final class StatusMenuController: NSObject, NSMenuDelegate {
     item.view = contentView
     return item
   }
+
+  private static func applyMeasuredSize(to entry: StatusMenuContentEntry) {
+    let measuredSize = entry.contentSize()
+    guard measuredSize.width > 0, measuredSize.height > 0 else {
+      return
+    }
+    entry.viewController.view.frame.size = NSSize(
+      width: ceil(measuredSize.width),
+      height: ceil(measuredSize.height)
+    )
+    entry.viewController.view.autoresizingMask = [.width]
+  }
+}
+
+@MainActor
+private struct StatusMenuContentEntry {
+  let item: NSMenuItem
+  let viewController: NSViewController
+  let contentSize: () -> NSSize
 }
 
 @MainActor
 private struct StatusMenuSubmenuEntry {
   let item: NSMenuItem
   let summary: () -> String
+}
+
+@MainActor
+private struct StatusMenuSectionEntry {
+  let content: StatusMenuContentEntry
+  let navigationItem: NSMenuItem
 }

@@ -73,6 +73,7 @@
 		D34000000000000000000201 /* StatusMenuControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D34000000000000000000101 /* StatusMenuControllerTests.swift */; };
 		D34100000000000000000201 /* LiveConnectionAnalyticsContextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D34100000000000000000101 /* LiveConnectionAnalyticsContextView.swift */; };
 		D34200000000000000000201 /* LiveConnectionAnalyticsTableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D34200000000000000000101 /* LiveConnectionAnalyticsTableView.swift */; };
+		D34300000000000000000201 /* StatusMenuFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = D34300000000000000000101 /* StatusMenuFactory.swift */; };
 		A30000000000000000000204 /* TrafficRateAggregator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000104 /* TrafficRateAggregator.swift */; };
 		A30000000000000000000205 /* ProxyClassifierTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000105 /* ProxyClassifierTests.swift */; };
 		A30000000000000000000206 /* ConnectionDeltaTrackerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000106 /* ConnectionDeltaTrackerTests.swift */; };
@@ -328,6 +329,7 @@
 		D34000000000000000000101 /* StatusMenuControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusMenuControllerTests.swift; sourceTree = "<group>"; };
 		D34100000000000000000101 /* LiveConnectionAnalyticsContextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveConnectionAnalyticsContextView.swift; sourceTree = "<group>"; };
 		D34200000000000000000101 /* LiveConnectionAnalyticsTableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveConnectionAnalyticsTableView.swift; sourceTree = "<group>"; };
+		D34300000000000000000101 /* StatusMenuFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusMenuFactory.swift; sourceTree = "<group>"; };
 		A30000000000000000000104 /* TrafficRateAggregator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficRateAggregator.swift; sourceTree = "<group>"; };
 		A30000000000000000000105 /* ProxyClassifierTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProxyClassifierTests.swift; sourceTree = "<group>"; };
 		A30000000000000000000106 /* ConnectionDeltaTrackerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionDeltaTrackerTests.swift; sourceTree = "<group>"; };
@@ -694,6 +696,7 @@
 				AX0000000000000000000101 /* RoutingStatusView.swift */,
 				AY0000000000000000000101 /* RuntimeDetailsView.swift */,
 				C20000000000000000000101 /* StatusMenuController.swift */,
+				D34300000000000000000101 /* StatusMenuFactory.swift */,
 				BS0000000000000000000107 /* StatisticsWorkspaceView.swift */,
 				BS0000000000000000000101 /* SubscriptionQuotaFormatter.swift */,
 				BS0000000000000000000104 /* SubscriptionQuotaMetricsView.swift */,
@@ -1115,6 +1118,7 @@
 				AX0000000000000000000201 /* RoutingStatusView.swift in Sources */,
 				AY0000000000000000000201 /* RuntimeDetailsView.swift in Sources */,
 				C20000000000000000000201 /* StatusMenuController.swift in Sources */,
+				D34300000000000000000201 /* StatusMenuFactory.swift in Sources */,
 				AQ0000000000000000000201 /* SparkleAppUpdater.swift in Sources */,
 				A30000000000000000000201 /* TrafficMeasurement.swift in Sources */,
 				A40000000000000000000203 /* TrafficMonitor.swift in Sources */,
