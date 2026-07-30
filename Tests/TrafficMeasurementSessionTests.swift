@@ -42,6 +42,7 @@ final class TrafficMeasurementSessionTests: XCTestCase {
 
     XCTAssertEqual(initialResult?.activeProxyLeaves, ["Proxy Node"])
     XCTAssertEqual(initialResult?.activeRuleTypes, ["DOMAIN", "MATCH"])
+    XCTAssertEqual(initialResult?.attributionCoverage.proxyConnectionCount, 1)
     XCTAssertFalse(initialResult?.requiresCatalogRefresh ?? true)
     XCTAssertNil(initialResult?.rateWindow)
     XCTAssertEqual(
@@ -79,6 +80,19 @@ final class TrafficMeasurementSessionTests: XCTestCase {
         uploadBytesPerSecond: 10,
         downloadBytesPerSecond: 20
       )
+    )
+    XCTAssertEqual(
+      nextResult?.liveProxyConnections.first?.rate,
+      TrafficRate(uploadBytesPerSecond: 40, downloadBytesPerSecond: 80)
+    )
+    XCTAssertEqual(
+      nextResult?.connectionAttributionDeltas,
+      [
+        ConnectionAttributionDelta(
+          metadata: ConnectionMetadata(hostname: "example.com", applicationName: "Example"),
+          bytes: TrafficBytes(upload: 40, download: 80)
+        )
+      ]
     )
   }
 
@@ -127,6 +141,39 @@ final class TrafficMeasurementSessionTests: XCTestCase {
     XCTAssertNil(result?.rateWindow)
   }
 
+  func testResetBaselineClearsAttributionAndTrafficBaseline() {
+    let clock = ContinuousClock()
+    let startedAt = clock.now
+    var session = TrafficMeasurementSession()
+    session.configure(
+      catalog: ProxyCatalog(typesByName: ["Proxy Node": "VLESS"])
+    )
+    let initial = ConnectionTrafficSnapshot(
+      kernelTotal: .zero,
+      connections: [
+        ConnectionTrafficSample(
+          id: "first",
+          bytes: .zero,
+          chains: ["Proxy Node"],
+          metadata: ConnectionMetadata(hostname: "example.com", applicationName: "Example")
+        )
+      ]
+    )
+    _ = session.consume(initial, at: startedAt)
+
+    session.resetBaseline()
+    let result = session.consume(
+      ConnectionTrafficSnapshot(kernelTotal: .zero, connections: []),
+      at: startedAt.advanced(by: .milliseconds(500))
+    )
+
+    XCTAssertEqual(result?.attributionCoverage, .empty)
+    XCTAssertEqual(
+      result?.ledgerObservation.transition,
+      .baselineEstablished
+    )
+  }
+
   private func snapshot(
     kernelUpload: UInt64,
     kernelDownload: UInt64,
@@ -148,7 +195,8 @@ final class TrafficMeasurementSessionTests: XCTestCase {
             download: proxyDownload
           ),
           chains: ["Proxy Node"],
-          rule: "DOMAIN"
+          rule: "DOMAIN",
+          metadata: ConnectionMetadata(hostname: "example.com", applicationName: "Example")
         ),
         ConnectionTrafficSample(
           id: "direct-connection",

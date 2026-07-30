@@ -46,6 +46,10 @@ struct TrafficOverviewView: View {
           color: MihomoColorToken.trafficUpload
         )
       }
+
+      Divider()
+
+      ProxyConnectionTopListView(connections: monitor.liveProxyConnections)
     }
   }
 

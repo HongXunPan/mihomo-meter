@@ -27,6 +27,8 @@ enum TrafficMonitorReducer {
       state.message = "正在读取实时连接流量。"
       state.activeProxyLeaves = result.activeProxyLeaves
       state.activeRuleTypes = result.activeRuleTypes
+      state.attributionCoverage = result.attributionCoverage
+      state.liveProxyConnections = result.liveProxyConnections
       state.lastObservedAt = result.ledgerObservation.observedAt
       if let window = result.rateWindow {
         state.rawRates = window.raw

@@ -22,6 +22,7 @@ struct ConnectionDeltaTracker: Sendable {
     }
 
     var categories = CategorizedTrafficBytes.zero
+    var connectionDeltas: [ConnectionTrafficDelta] = []
 
     for connection in snapshot.connections {
       let delta: TrafficBytes
@@ -45,6 +46,16 @@ struct ConnectionDeltaTracker: Sendable {
       }
 
       categories = categories.adding(delta, to: classification.category)
+      connectionDeltas.append(
+        ConnectionTrafficDelta(
+          id: connection.id,
+          category: classification.category,
+          bytes: delta,
+          cumulativeBytes: connection.bytes,
+          metadata: connection.metadata,
+          startedAt: connection.startedAt
+        )
+      )
     }
 
     let unknown = TrafficBytes.residual(
@@ -54,7 +65,12 @@ struct ConnectionDeltaTracker: Sendable {
     categories = categories.adding(unknown, to: .unknown)
     establishBaseline(from: snapshot)
 
-    return .delta(TrafficDeltaReport(kernel: kernelDelta, categories: categories))
+    return .delta(
+      ConnectionDeltaBatch(
+        traffic: TrafficDeltaReport(kernel: kernelDelta, categories: categories),
+        connections: connectionDeltas
+      )
+    )
   }
 
   mutating func reset() {
@@ -72,6 +88,6 @@ struct ConnectionDeltaTracker: Sendable {
 
 enum ConnectionDeltaResult: Equatable, Sendable {
   case baselineEstablished
-  case delta(TrafficDeltaReport)
+  case delta(ConnectionDeltaBatch)
   case countersReset
 }

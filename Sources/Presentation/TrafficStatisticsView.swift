@@ -51,7 +51,7 @@ struct TrafficStatisticsView: View {
       }
       Button("取消", role: .cancel) {}
     } message: {
-      Text("账本和全部统计任务会被删除；服务地址与访问密钥（Secret）会保留。")
+      Text("核心流量账本、全部统计任务和连接归因历史会被删除；服务地址与访问密钥（Secret）会保留。")
     }
   }
 

@@ -36,14 +36,20 @@ final class ConnectionDeltaTrackerTests: XCTestCase {
       .baselineEstablished
     )
 
-    guard case .delta(let report) = tracker.consume(next, classifier: classifier) else {
+    guard case .delta(let batch) = tracker.consume(next, classifier: classifier) else {
       return XCTFail("第二份快照应产生增量")
     }
 
+    let report = batch.traffic
     XCTAssertEqual(report.categories.direct, TrafficBytes(upload: 80, download: 220))
     XCTAssertEqual(report.categories.proxy, TrafficBytes(upload: 220, download: 580))
     XCTAssertEqual(report.categories.unknown, TrafficBytes(upload: 100, download: 100))
     XCTAssertEqual(report.coverage, 1_100.0 / 1_300.0, accuracy: 0.000_001)
+    XCTAssertEqual(batch.connections.count, 2)
+    XCTAssertEqual(
+      batch.connections.first { $0.id == "proxy" }?.bytes,
+      TrafficBytes(upload: 220, download: 580)
+    )
   }
 
   func testCountsNewConnectionFromZeroAfterBaseline() {
@@ -64,9 +70,10 @@ final class ConnectionDeltaTrackerTests: XCTestCase {
       classifier: classifier
     )
 
-    guard case .delta(let report) = result else {
+    guard case .delta(let batch) = result else {
       return XCTFail("新连接应从零计算增量")
     }
+    let report = batch.traffic
     XCTAssertEqual(report.categories.proxy, TrafficBytes(upload: 30, download: 50))
     XCTAssertEqual(report.categories.unknown, .zero)
   }

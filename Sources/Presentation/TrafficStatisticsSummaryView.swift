@@ -19,6 +19,8 @@ struct TrafficStatisticsSummaryView: View {
         lifetimeBytes: controller.snapshot.lifetime.proxy.total
       )
 
+      ProxyDailyTrafficChart(days: controller.snapshot.recentProxyDays)
+
       activeIntervals
       showAllAction
     }

@@ -336,11 +336,29 @@ actor SQLiteTrafficLedger: TrafficLedgerStoring {
     let persistence = try requirePersistence()
     let lifetime = try persistence.totals()
     let localDay = TrafficLedgerPersistence.localDay(for: now, calendar: calendar)
+    let recentLocalDays = try recentLocalDays(calendar: calendar, now: now)
+    let storedDays = try persistence.dailyTotals(
+      category: .proxy,
+      since: recentLocalDays.first ?? localDay
+    )
+    let storedByDay = Dictionary(uniqueKeysWithValues: storedDays.map { ($0.localDay, $0) })
     return TrafficStatisticsSnapshot(
       today: try persistence.totals(localDay: localDay),
       lifetime: lifetime,
       intervals: try persistence.intervals.load(currentProxyTotal: lifetime.proxy),
+      recentProxyDays: recentLocalDays.map {
+        storedByDay[$0] ?? TrafficDailyTotal(localDay: $0, bytes: .zero)
+      },
       lastObservedAt: runtimeState.lastObservedAt
     )
+  }
+
+  private func recentLocalDays(calendar: Calendar, now: Date) throws -> [String] {
+    try (0..<30).reversed().map { offset in
+      guard let date = calendar.date(byAdding: .day, value: -offset, to: now) else {
+        throw TrafficStatisticsError.database("无法计算最近每日统计日期")
+      }
+      return TrafficLedgerPersistence.localDay(for: date, calendar: calendar)
+    }
   }
 }

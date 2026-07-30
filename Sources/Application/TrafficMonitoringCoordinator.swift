@@ -31,6 +31,7 @@ final class TrafficMonitoringCoordinator {
   private let diagnosticLogger: any AppDiagnosticLogging
   private let livenessPolicy: ConnectionLivenessWatchdog.Policy
   private let statisticsRecorder: any TrafficStatisticsRecording
+  private let connectionAnalyticsRecorder: any ConnectionAnalyticsRecording
 
   private var connectionTask: Task<Void, Never>?
   private var activeRun: TrafficMonitoringRun?
@@ -43,7 +44,8 @@ final class TrafficMonitoringCoordinator {
     configurationStore: ControllerConfigurationStore,
     diagnosticLogger: any AppDiagnosticLogging,
     livenessPolicy: ConnectionLivenessWatchdog.Policy,
-    statisticsRecorder: any TrafficStatisticsRecording
+    statisticsRecorder: any TrafficStatisticsRecording,
+    connectionAnalyticsRecorder: any ConnectionAnalyticsRecording
   ) {
     self.client = client
     self.collector = collector
@@ -51,6 +53,7 @@ final class TrafficMonitoringCoordinator {
     self.diagnosticLogger = diagnosticLogger
     self.livenessPolicy = livenessPolicy
     self.statisticsRecorder = statisticsRecorder
+    self.connectionAnalyticsRecorder = connectionAnalyticsRecorder
   }
 
   func start(
@@ -166,7 +169,8 @@ final class TrafficMonitoringCoordinator {
       configurationStore: configurationStore,
       diagnosticLogger: diagnosticLogger,
       livenessPolicy: livenessPolicy,
-      statisticsRecorder: statisticsRecorder
+      statisticsRecorder: statisticsRecorder,
+      connectionAnalyticsRecorder: connectionAnalyticsRecorder
     )
   }
 

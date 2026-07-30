@@ -15,6 +15,10 @@ enum MihomoColorToken {
     light: color(red: 0xB4, green: 0x53, blue: 0x09),
     dark: color(red: 0xF5, green: 0x9E, blue: 0x0B)
   )
+  static let statusWarningBackground = adaptive(
+    light: color(red: 0xB4, green: 0x53, blue: 0x09, alpha: 0.08),
+    dark: color(red: 0xF5, green: 0x9E, blue: 0x0B, alpha: 0.14)
+  )
   static let statusDanger = adaptive(
     light: color(red: 0xB9, green: 0x1C, blue: 0x1C),
     dark: color(red: 0xFB, green: 0x71, blue: 0x85)

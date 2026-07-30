@@ -11,6 +11,7 @@ final class TrafficStatisticsWindowController: NSWindowController {
 
   init(
     controller: TrafficStatisticsController,
+    connectionAnalyticsController: ConnectionAnalyticsController,
     quotaController: RuntimeQuotaTrackingController,
     profileQuotaController: ProfileQuotaTrackingController,
     profileController: ClashProfileDirectoryController,
@@ -21,6 +22,7 @@ final class TrafficStatisticsWindowController: NSWindowController {
       rootView: StatisticsWorkspaceView(
         model: workspaceModel,
         trafficController: controller,
+        connectionAnalyticsController: connectionAnalyticsController,
         quotaController: quotaController,
         profileQuotaController: profileQuotaController,
         profileController: profileController,

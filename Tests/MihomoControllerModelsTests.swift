@@ -101,4 +101,96 @@ final class MihomoControllerModelsTests: XCTestCase {
     XCTAssertGreaterThan(next.downloadTotal, initial.downloadTotal)
     XCTAssertGreaterThan(next.uploadTotal, initial.uploadTotal)
   }
+
+  func testMapsSanitizedMetadataAndConnectionStartTime() throws {
+    let response = try decoder.decode(
+      MihomoConnectionsSnapshot.self,
+      from: Data(
+        """
+        {"downloadTotal":0,"uploadTotal":0,"connections":[{
+          "id":"synthetic","upload":0,"download":0,"chains":["Synthetic Proxy"],
+          "start":"2026-07-30T08:00:00.123Z",
+          "metadata":{"host":"synthetic-host","processPath":"/Synthetic/App"}
+        }]}
+        """.utf8
+      )
+    )
+
+    XCTAssertEqual(
+      response.trafficSnapshot.connections.first?.metadata,
+      ConnectionMetadata(hostname: "synthetic-host", applicationName: "App")
+    )
+    XCTAssertNotNil(response.trafficSnapshot.connections.first?.startedAt)
+  }
+
+  func testRejectsEmptyAndOversizedMetadataValuesForCoverage() throws {
+    let oversized = String(repeating: "x", count: 2_049)
+    let data = Data(
+      """
+      {"downloadTotal":0,"uploadTotal":0,"connections":[{
+        "id":"synthetic","upload":0,"download":0,"chains":["Synthetic Proxy"],
+        "metadata":{"host":" ","sniffHost":"\(oversized)","process":"\\n","processPath":"/"}
+      }]}
+      """.utf8
+    )
+
+    let response = try decoder.decode(MihomoConnectionsSnapshot.self, from: data)
+
+    XCTAssertEqual(
+      response.trafficSnapshot.connections.first?.metadataAvailability,
+      .unavailable
+    )
+  }
+
+  func testMalformedOptionalMetadataDoesNotBreakTrafficDecoding() throws {
+    let data = Data(
+      """
+      {"downloadTotal":1,"uploadTotal":2,"connections":[{
+        "id":"synthetic","upload":2,"download":1,"chains":["Synthetic Proxy"],
+        "metadata":{"host":42,"processPath":["unexpected"]}
+      }]}
+      """.utf8
+    )
+
+    let response = try decoder.decode(MihomoConnectionsSnapshot.self, from: data)
+
+    XCTAssertEqual(response.trafficSnapshot.kernelTotal, TrafficBytes(upload: 2, download: 1))
+    XCTAssertEqual(
+      response.trafficSnapshot.connections.first?.metadataAvailability,
+      .unavailable
+    )
+  }
+
+  func testDoesNotUseIPAddressAsHostnameFallback() throws {
+    let data = Data(
+      """
+      {"downloadTotal":0,"uploadTotal":0,"connections":[{
+        "id":"synthetic","upload":0,"download":0,"chains":["Synthetic Proxy"],
+        "metadata":{"host":"203.0.113.1","destinationIP":"203.0.113.1"}
+      }]}
+      """.utf8
+    )
+
+    let response = try decoder.decode(MihomoConnectionsSnapshot.self, from: data)
+
+    XCTAssertNil(response.trafficSnapshot.connections.first?.metadata.hostname)
+  }
+
+  func testNeverPassesFullProcessPathIntoDomainMetadata() throws {
+    let data = Data(
+      """
+      {"downloadTotal":0,"uploadTotal":0,"connections":[{
+        "id":"synthetic","upload":0,"download":0,"chains":["Synthetic Proxy"],
+        "metadata":{"process":"/Applications/Synthetic.app/Contents/MacOS/Synthetic"}
+      }]}
+      """.utf8
+    )
+
+    let response = try decoder.decode(MihomoConnectionsSnapshot.self, from: data)
+
+    XCTAssertEqual(
+      response.trafficSnapshot.connections.first?.metadata.applicationName,
+      "Synthetic"
+    )
+  }
 }

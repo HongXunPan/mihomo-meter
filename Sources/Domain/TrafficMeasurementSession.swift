@@ -3,6 +3,9 @@ import Foundation
 struct TrafficMeasurementResult: Equatable, Sendable {
   let activeProxyLeaves: [String]
   let activeRuleTypes: [String]
+  let attributionCoverage: ConnectionAttributionCoverage
+  let liveProxyConnections: [LiveProxyConnection]
+  let connectionAttributionDeltas: [ConnectionAttributionDelta]
   let requiresCatalogRefresh: Bool
   let ledgerObservation: TrafficLedgerObservation
   let rateWindow: TrafficRateWindow?
@@ -11,7 +14,9 @@ struct TrafficMeasurementResult: Equatable, Sendable {
 struct TrafficMeasurementSession: Sendable {
   private var classifier: ProxyClassifier?
   private var deltaTracker = ConnectionDeltaTracker()
+  private var attributionCoverageTracker = ConnectionAttributionCoverageTracker()
   private var rateAggregator = TrafficRateAggregator()
+  private var connectionRateAggregator = ProxyConnectionRateAggregator()
   private var lastSnapshotInstant: ContinuousClock.Instant?
 
   mutating func configure(catalog: ProxyCatalog) {
@@ -45,6 +50,10 @@ struct TrafficMeasurementSession: Sendable {
       return item.connection.chains.first
     }
     let activeProxyLeaves = Array(Set(proxyLeaves)).sorted()
+    let proxyConnections = classifications.compactMap { item in
+      item.classification.category == .proxy ? item.connection : nil
+    }
+    var attributionCoverage = attributionCoverageTracker.consume(proxyConnections)
     let activeRuleTypes = Array(
       Set(
         snapshot.connections.compactMap { connection in
@@ -64,23 +73,50 @@ struct TrafficMeasurementSession: Sendable {
 
     let transition: TrafficLedgerTransition
     let rateWindow: TrafficRateWindow?
+    let liveProxyConnections: [LiveProxyConnection]
+    let connectionAttributionDeltas: [ConnectionAttributionDelta]
     switch deltaTracker.consume(snapshot, classifier: classifier) {
     case .baselineEstablished:
       transition = .baselineEstablished
       rateWindow = nil
-    case .delta(let report):
-      transition = .delta(report)
+      connectionRateAggregator.establishBaseline(proxyConnections)
+      liveProxyConnections = connectionRateAggregator.liveConnections
+      connectionAttributionDeltas = []
+    case .delta(let batch):
+      transition = .delta(batch.traffic)
       rateWindow = elapsedSeconds.flatMap {
-        rateAggregator.consume(report, elapsedSeconds: $0)
+        rateAggregator.consume(batch.traffic, elapsedSeconds: $0)
+      }
+      liveProxyConnections = connectionRateAggregator.consume(
+        activeConnections: proxyConnections,
+        deltas: batch.connections.filter { $0.category == .proxy },
+        elapsedSeconds: elapsedSeconds
+      )
+      connectionAttributionDeltas = batch.connections.compactMap { connection in
+        guard connection.category == .proxy, connection.bytes.total > 0 else {
+          return nil
+        }
+        return ConnectionAttributionDelta(
+          metadata: connection.metadata,
+          bytes: connection.bytes
+        )
       }
     case .countersReset:
       transition = .countersReset
       rateWindow = nil
+      attributionCoverageTracker.reset()
+      attributionCoverage = .empty
+      connectionRateAggregator.reset()
+      liveProxyConnections = []
+      connectionAttributionDeltas = []
     }
 
     return TrafficMeasurementResult(
       activeProxyLeaves: activeProxyLeaves,
       activeRuleTypes: activeRuleTypes,
+      attributionCoverage: attributionCoverage,
+      liveProxyConnections: liveProxyConnections,
+      connectionAttributionDeltas: connectionAttributionDeltas,
       requiresCatalogRefresh: requiresCatalogRefresh,
       ledgerObservation: TrafficLedgerObservation(
         observedAt: observedAt,
@@ -93,7 +129,9 @@ struct TrafficMeasurementSession: Sendable {
 
   mutating func resetBaseline() {
     deltaTracker.reset()
+    attributionCoverageTracker.reset()
     rateAggregator.reset()
+    connectionRateAggregator.reset()
     lastSnapshotInstant = nil
   }
 

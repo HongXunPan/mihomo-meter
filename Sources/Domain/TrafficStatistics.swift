@@ -25,16 +25,23 @@ struct TrafficInterval: Identifiable, Equatable, Sendable {
   let proxyUsage: TrafficBytes
 }
 
+struct TrafficDailyTotal: Equatable, Sendable {
+  let localDay: String
+  let bytes: TrafficBytes
+}
+
 struct TrafficStatisticsSnapshot: Equatable, Sendable {
   let today: CategorizedTrafficBytes
   let lifetime: CategorizedTrafficBytes
   let intervals: [TrafficInterval]
+  let recentProxyDays: [TrafficDailyTotal]
   let lastObservedAt: Date?
 
   static let empty = TrafficStatisticsSnapshot(
     today: .zero,
     lifetime: .zero,
     intervals: [],
+    recentProxyDays: [],
     lastObservedAt: nil
   )
 }

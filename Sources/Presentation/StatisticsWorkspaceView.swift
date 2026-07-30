@@ -2,6 +2,7 @@ import SwiftUI
 
 enum StatisticsModule: String, CaseIterable, Identifiable, Hashable {
   case proxyTraffic
+  case connectionAnalytics
   case subscriptionQuota
 
   var id: String {
@@ -12,6 +13,8 @@ enum StatisticsModule: String, CaseIterable, Identifiable, Hashable {
     switch self {
     case .proxyTraffic:
       "Proxy 流量"
+    case .connectionAnalytics:
+      "连接分析"
     case .subscriptionQuota:
       "订阅余额"
     }
@@ -21,6 +24,8 @@ enum StatisticsModule: String, CaseIterable, Identifiable, Hashable {
     switch self {
     case .proxyTraffic:
       "chart.bar.xaxis"
+    case .connectionAnalytics:
+      "point.3.connected.trianglepath.dotted"
     case .subscriptionQuota:
       "chart.line.downtrend.xyaxis"
     }
@@ -35,6 +40,7 @@ final class StatisticsWorkspaceModel: ObservableObject {
 struct StatisticsWorkspaceView: View {
   @ObservedObject var model: StatisticsWorkspaceModel
   @ObservedObject var trafficController: TrafficStatisticsController
+  @ObservedObject var connectionAnalyticsController: ConnectionAnalyticsController
   @ObservedObject var quotaController: RuntimeQuotaTrackingController
   @ObservedObject var profileQuotaController: ProfileQuotaTrackingController
   @ObservedObject var profileController: ClashProfileDirectoryController
@@ -54,6 +60,11 @@ struct StatisticsWorkspaceView: View {
       case .proxyTraffic:
         TrafficStatisticsView(
           controller: trafficController,
+          monitor: monitor
+        )
+      case .connectionAnalytics:
+        ConnectionAnalyticsView(
+          controller: connectionAnalyticsController,
           monitor: monitor
         )
       case .subscriptionQuota:
