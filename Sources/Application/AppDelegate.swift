@@ -40,15 +40,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       return
     }
 
+    let trafficLedger = SQLiteTrafficLedger(
+      databaseURL: TrafficLedgerLocation.defaultDatabaseURL()
+    )
     let connectionAnalyticsController = ConnectionAnalyticsController(
       ledger: SQLiteConnectionAnalyticsLedger(
         databaseURL: ConnectionAnalyticsLedgerLocation.defaultDatabaseURL()
-      )
+      ),
+      proxyDailyTraffic: trafficLedger
     )
     let statisticsController = TrafficStatisticsController(
-      ledger: SQLiteTrafficLedger(
-        databaseURL: TrafficLedgerLocation.defaultDatabaseURL()
-      ),
+      ledger: trafficLedger,
       connectionAnalyticsHistory: connectionAnalyticsController
     )
     let mihomoClient = MihomoControllerClient()

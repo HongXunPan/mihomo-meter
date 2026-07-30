@@ -1,6 +1,6 @@
 import Foundation
 
-actor SQLiteTrafficLedger: TrafficLedgerStoring {
+actor SQLiteTrafficLedger: TrafficLedgerStoring, ProxyDailyTrafficProviding {
   private let databaseURL: URL
   private var persistence: TrafficLedgerPersistence?
   private var runtimeState = TrafficLedgerRuntimeState()
@@ -190,6 +190,15 @@ actor SQLiteTrafficLedger: TrafficLedgerStoring {
     isPrepared = true
     lastPrunedLocalDay = nil
     return try snapshot(calendar: calendar, now: now)
+  }
+
+  func proxyTraffic(
+    localDay: String,
+    calendar: Calendar,
+    now: Date
+  ) async throws -> TrafficBytes {
+    let persistence = try preparedPersistence(calendar: calendar, now: now)
+    return try persistence.totals(localDay: localDay).proxy
   }
 
   private func requirePersistence() throws -> TrafficLedgerPersistence {

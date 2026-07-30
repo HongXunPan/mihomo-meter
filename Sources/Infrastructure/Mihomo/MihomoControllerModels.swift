@@ -25,6 +25,7 @@ struct MihomoRuntimeConfigurationResponse: Decodable, Equatable, Sendable {
   let port: Int?
   let socksPort: Int?
   let globalUserAgent: String?
+  let findProcessMode: String?
   let tun: MihomoTunConfigurationResponse?
 
   private enum CodingKeys: String, CodingKey {
@@ -35,6 +36,7 @@ struct MihomoRuntimeConfigurationResponse: Decodable, Equatable, Sendable {
     case port
     case socksPort = "socks-port"
     case globalUserAgent = "global-ua"
+    case findProcessMode = "find-process-mode"
     case tun
   }
 
@@ -47,7 +49,10 @@ struct MihomoRuntimeConfigurationResponse: Decodable, Equatable, Sendable {
       mixedPort: mixedPort,
       httpPort: port,
       socksPort: socksPort,
-      globalUserAgent: globalUserAgent
+      globalUserAgent: globalUserAgent,
+      processMatchingMode: MihomoProcessMatchingMode(
+        configurationValue: findProcessMode
+      )
     )
   }
 }
@@ -167,7 +172,10 @@ private struct MihomoConnectionMetadataResponse: Decodable {
     let processPath = try? container.decode(String.self, forKey: .processPath)
     metadata = ConnectionMetadata(
       hostname: Self.normalizedHostname(host) ?? Self.normalizedHostname(sniffHost),
-      applicationName: Self.applicationName(process) ?? Self.fileName(from: processPath)
+      applicationName: ConnectionApplicationNameNormalizer.applicationName(
+        process: process,
+        processPath: processPath
+      )
     )
   }
 
@@ -180,25 +188,6 @@ private struct MihomoConnectionMetadataResponse: Decodable {
       return nil
     }
     return normalized
-  }
-
-  private static func fileName(from path: String?) -> String? {
-    guard let normalizedPath = normalized(path) else {
-      return nil
-    }
-    return normalizedPath.split(whereSeparator: { $0 == "/" || $0 == "\\" }).last.flatMap {
-      normalized(String($0))
-    }
-  }
-
-  private static func applicationName(_ value: String?) -> String? {
-    guard let normalizedValue = normalized(value) else {
-      return nil
-    }
-    if normalizedValue.contains("/") || normalizedValue.contains("\\") {
-      return fileName(from: normalizedValue)
-    }
-    return normalizedValue
   }
 
   private static func normalizedHostname(_ value: String?) -> String? {

@@ -18,10 +18,12 @@ final class ConnectionAnalyticsController: ObservableObject, ConnectionAnalytics
   @Published private(set) var snapshot = ConnectionAnalyticsLedgerSnapshot.empty
   @Published private(set) var selectedRecords: [ConnectionAttributionRecord] = []
   @Published private(set) var selectedLocalDay: String?
+  @Published private(set) var recordingCoverage: ConnectionAnalyticsRecordingCoverage?
   @Published private(set) var availability = ConnectionAnalyticsAvailability.loading
   @Published private(set) var operationMessage: String?
 
   private let ledger: any ConnectionAnalyticsLedgerStoring
+  private let recordingCoverageLoader: ConnectionAnalyticsRecordingCoverageLoader
   private let calendarOverride: Calendar?
   private let now: @MainActor () -> Date
   private let flushIntervalNanoseconds: UInt64
@@ -31,6 +33,7 @@ final class ConnectionAnalyticsController: ObservableObject, ConnectionAnalytics
 
   init(
     ledger: any ConnectionAnalyticsLedgerStoring,
+    proxyDailyTraffic: (any ProxyDailyTrafficProviding)? = nil,
     calendar: Calendar? = nil,
     flushIntervalNanoseconds: UInt64 = 10_000_000_000,
     maximumPairCountPerDay: Int = 5_000,
@@ -38,6 +41,9 @@ final class ConnectionAnalyticsController: ObservableObject, ConnectionAnalytics
   ) {
     precondition(maximumPairCountPerDay > 0)
     self.ledger = ledger
+    recordingCoverageLoader = ConnectionAnalyticsRecordingCoverageLoader(
+      source: proxyDailyTraffic
+    )
     calendarOverride = calendar
     self.flushIntervalNanoseconds = flushIntervalNanoseconds
     self.maximumPairCountPerDay = maximumPairCountPerDay
@@ -55,6 +61,7 @@ final class ConnectionAnalyticsController: ObservableObject, ConnectionAnalytics
       operationMessage = nil
       selectedLocalDay = snapshot.recentDays.last?.localDay
       await reloadSelectedRecords()
+      await refreshRecordingCoverage()
     } catch {
       setUnavailable(error)
     }
@@ -115,6 +122,7 @@ final class ConnectionAnalyticsController: ObservableObject, ConnectionAnalytics
     }
     selectedLocalDay = localDay
     await reloadSelectedRecords()
+    await refreshRecordingCoverage()
   }
 
   func trend(query: ConnectionAnalyticsTrendQuery) async throws -> ConnectionAnalyticsTrend {
@@ -147,6 +155,7 @@ final class ConnectionAnalyticsController: ObservableObject, ConnectionAnalytics
       )
       operationMessage = nil
       await reloadSelectedRecords()
+      await refreshRecordingCoverage()
     } catch {
       setUnavailable(error)
     }
@@ -182,6 +191,7 @@ final class ConnectionAnalyticsController: ObservableObject, ConnectionAnalytics
       return
     }
     selectedRecords = try await ledger.records(localDay: selectedLocalDay)
+    await refreshRecordingCoverage()
   }
 
   @discardableResult
@@ -197,6 +207,7 @@ final class ConnectionAnalyticsController: ObservableObject, ConnectionAnalytics
       selectedLocalDay = snapshot.recentDays.last?.localDay
       selectedRecords = []
       operationMessage = nil
+      await refreshRecordingCoverage()
       return true
     } catch {
       setUnavailable(error)
@@ -222,6 +233,23 @@ final class ConnectionAnalyticsController: ObservableObject, ConnectionAnalytics
     } catch {
       setUnavailable(error)
     }
+  }
+
+  private func refreshRecordingCoverage() async {
+    guard
+      availability.isAvailable,
+      let selectedLocalDay,
+      let attributed = snapshot.recentDays.first(where: { $0.localDay == selectedLocalDay })?.bytes
+    else {
+      recordingCoverage = nil
+      return
+    }
+    recordingCoverage = await recordingCoverageLoader.load(
+      localDay: selectedLocalDay,
+      attributed: attributed,
+      calendar: calendar,
+      now: now()
+    )
   }
 
   private func scheduleFlushIfNeeded() {
@@ -258,6 +286,7 @@ final class ConnectionAnalyticsController: ObservableObject, ConnectionAnalytics
   private func setUnavailable(_ error: any Error) {
     cancelScheduledFlush()
     pendingBytesByKey = [:]
+    recordingCoverage = nil
     let message = error.localizedDescription
     availability = .unavailable(message: message)
     operationMessage = message

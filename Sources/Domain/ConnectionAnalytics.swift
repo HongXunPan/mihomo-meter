@@ -57,6 +57,18 @@ struct ConnectionAnalyticsCoverage: Equatable, Sendable {
   }
 }
 
+struct ConnectionAnalyticsRecordingCoverage: Equatable, Sendable {
+  let attributed: TrafficBytes
+  let coreProxy: TrafficBytes
+
+  var rate: Double? {
+    guard coreProxy.total > 0 else {
+      return nil
+    }
+    return min(Double(attributed.total) / Double(coreProxy.total), 1)
+  }
+}
+
 struct ConnectionAnalyticsDay: Equatable, Sendable {
   let localDay: String
   let bytes: TrafficBytes

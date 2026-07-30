@@ -68,16 +68,49 @@ struct ConnectionHistoryAnalyticsView: View {
   }
 
   private var coverageSummary: some View {
-    HStack(spacing: 24) {
-      coverageMetric("主机名流量覆盖", rate: selectedDay?.coverage.hostnameRate)
-      coverageMetric("应用流量覆盖", rate: selectedDay?.coverage.applicationRate)
-      coverageMetric("完整流量归因", rate: selectedDay?.coverage.fullyAttributedRate)
-      Spacer()
-      Text("当日 Proxy：\(TrafficStatisticsFormatter.bytes(selectedDay?.bytes.total ?? 0))")
+    VStack(alignment: .leading, spacing: 10) {
+      HStack(spacing: 24) {
+        coverageMetric("归因记录覆盖", rate: controller.recordingCoverage?.rate)
+        if let recordingCoverage = controller.recordingCoverage {
+          recordingCoverageBytes(recordingCoverage)
+        } else {
+          Text("核心 Proxy 总账暂不可用，应用与域名榜仍可使用。")
+            .font(.caption)
+            .foregroundStyle(.secondary)
+        }
+        Spacer()
+        Text("按流量字节计算 · 不代表记录时长")
+          .font(.caption)
+          .foregroundStyle(.secondary)
+      }
+
+      Divider()
+
+      HStack(spacing: 24) {
+        coverageMetric("主机名流量覆盖", rate: selectedDay?.coverage.hostnameRate)
+        coverageMetric("应用流量覆盖", rate: selectedDay?.coverage.applicationRate)
+        coverageMetric("完整流量归因", rate: selectedDay?.coverage.fullyAttributedRate)
+        Spacer()
+        Text(
+          "已记录归因：\(TrafficStatisticsFormatter.bytes(selectedDay?.bytes.total ?? 0))"
+        )
         .font(.callout.weight(.medium))
+      }
     }
     .padding(12)
     .background(.quaternary.opacity(0.55), in: RoundedRectangle(cornerRadius: 10))
+  }
+
+  private func recordingCoverageBytes(
+    _ coverage: ConnectionAnalyticsRecordingCoverage
+  ) -> some View {
+    HStack(spacing: 16) {
+      Text("已归因 \(TrafficStatisticsFormatter.bytes(coverage.attributed.total))")
+      Text("核心 Proxy \(TrafficStatisticsFormatter.bytes(coverage.coreProxy.total))")
+    }
+    .font(.caption)
+    .foregroundStyle(.secondary)
+    .monospacedDigit()
   }
 
   private var filters: some View {

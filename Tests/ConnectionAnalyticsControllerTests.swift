@@ -112,6 +112,46 @@ final class ConnectionAnalyticsControllerTests: XCTestCase {
     }
   }
 
+  func testRecordingCoverageComparesAttributionWithCoreProxyTraffic() async throws {
+    let context = try makeContext()
+    defer { context.cleanup() }
+    let ledger = SQLiteConnectionAnalyticsLedger(databaseURL: context.databaseURL)
+    let controller = ConnectionAnalyticsController(
+      ledger: ledger,
+      proxyDailyTraffic: StubProxyDailyTrafficProvider(
+        bytes: TrafficBytes(upload: 80, download: 20)
+      ),
+      calendar: context.calendar,
+      now: { context.now }
+    )
+    await controller.prepare()
+    await controller.setHistoryEnabled(true)
+    await controller.record([delta(total: 25)], at: context.now)
+    await controller.flushPending()
+
+    XCTAssertEqual(controller.recordingCoverage?.attributed.total, 25)
+    XCTAssertEqual(controller.recordingCoverage?.coreProxy.total, 100)
+    XCTAssertEqual(controller.recordingCoverage?.rate, 0.25)
+  }
+
+  func testCoreProxyQueryFailureDoesNotDisableAttribution() async throws {
+    let context = try makeContext()
+    defer { context.cleanup() }
+    let ledger = SQLiteConnectionAnalyticsLedger(databaseURL: context.databaseURL)
+    let controller = ConnectionAnalyticsController(
+      ledger: ledger,
+      proxyDailyTraffic: FailingProxyDailyTrafficProvider(),
+      calendar: context.calendar,
+      now: { context.now }
+    )
+
+    await controller.prepare()
+
+    XCTAssertEqual(controller.availability, .available)
+    XCTAssertNil(controller.recordingCoverage)
+    XCTAssertNil(controller.operationMessage)
+  }
+
   private func makeController(
     context: ControllerTestContext,
     ledger: SQLiteConnectionAnalyticsLedger
@@ -227,4 +267,26 @@ private struct ControllerTestContext {
   let calendar: Calendar
   let now: Date
   let cleanup: () -> Void
+}
+
+private struct StubProxyDailyTrafficProvider: ProxyDailyTrafficProviding {
+  let bytes: TrafficBytes
+
+  func proxyTraffic(
+    localDay: String,
+    calendar: Calendar,
+    now: Date
+  ) async throws -> TrafficBytes {
+    bytes
+  }
+}
+
+private struct FailingProxyDailyTrafficProvider: ProxyDailyTrafficProviding {
+  func proxyTraffic(
+    localDay: String,
+    calendar: Calendar,
+    now: Date
+  ) async throws -> TrafficBytes {
+    throw TrafficStatisticsError.database("测试查询失败")
+  }
 }

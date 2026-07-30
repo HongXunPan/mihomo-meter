@@ -64,6 +64,12 @@
 		D33700000000000000000201 /* ConnectionAnalyticsTrendWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D33700000000000000000101 /* ConnectionAnalyticsTrendWindowController.swift */; };
 		D33800000000000000000201 /* ConnectionAnalyticsTrendTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D33800000000000000000101 /* ConnectionAnalyticsTrendTests.swift */; };
 		D33900000000000000000201 /* ConnectionAnalyticsTrendWindowModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D33900000000000000000101 /* ConnectionAnalyticsTrendWindowModelTests.swift */; };
+		D33A00000000000000000201 /* LiveConnectionAnalyticsPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = D33A00000000000000000101 /* LiveConnectionAnalyticsPresentation.swift */; };
+		D33B00000000000000000201 /* LiveConnectionAnalyticsPresentationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D33B00000000000000000101 /* LiveConnectionAnalyticsPresentationTests.swift */; };
+		D33C00000000000000000201 /* ConnectionApplicationNameNormalizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D33C00000000000000000101 /* ConnectionApplicationNameNormalizer.swift */; };
+		D33D00000000000000000201 /* ConnectionAnalyticsRecordingCoverageLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = D33D00000000000000000101 /* ConnectionAnalyticsRecordingCoverageLoader.swift */; };
+		D33E00000000000000000201 /* ProxyDailyTrafficProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D33E00000000000000000101 /* ProxyDailyTrafficProviderTests.swift */; };
+		D33F00000000000000000201 /* ConnectionAnalyticsRecordingCoverageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D33F00000000000000000101 /* ConnectionAnalyticsRecordingCoverageTests.swift */; };
 		A30000000000000000000204 /* TrafficRateAggregator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000104 /* TrafficRateAggregator.swift */; };
 		A30000000000000000000205 /* ProxyClassifierTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000105 /* ProxyClassifierTests.swift */; };
 		A30000000000000000000206 /* ConnectionDeltaTrackerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000106 /* ConnectionDeltaTrackerTests.swift */; };
@@ -310,6 +316,12 @@
 		D33700000000000000000101 /* ConnectionAnalyticsTrendWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionAnalyticsTrendWindowController.swift; sourceTree = "<group>"; };
 		D33800000000000000000101 /* ConnectionAnalyticsTrendTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionAnalyticsTrendTests.swift; sourceTree = "<group>"; };
 		D33900000000000000000101 /* ConnectionAnalyticsTrendWindowModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionAnalyticsTrendWindowModelTests.swift; sourceTree = "<group>"; };
+		D33A00000000000000000101 /* LiveConnectionAnalyticsPresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveConnectionAnalyticsPresentation.swift; sourceTree = "<group>"; };
+		D33B00000000000000000101 /* LiveConnectionAnalyticsPresentationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveConnectionAnalyticsPresentationTests.swift; sourceTree = "<group>"; };
+		D33C00000000000000000101 /* ConnectionApplicationNameNormalizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionApplicationNameNormalizer.swift; sourceTree = "<group>"; };
+		D33D00000000000000000101 /* ConnectionAnalyticsRecordingCoverageLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionAnalyticsRecordingCoverageLoader.swift; sourceTree = "<group>"; };
+		D33E00000000000000000101 /* ProxyDailyTrafficProviderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProxyDailyTrafficProviderTests.swift; sourceTree = "<group>"; };
+		D33F00000000000000000101 /* ConnectionAnalyticsRecordingCoverageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionAnalyticsRecordingCoverageTests.swift; sourceTree = "<group>"; };
 		A30000000000000000000104 /* TrafficRateAggregator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficRateAggregator.swift; sourceTree = "<group>"; };
 		A30000000000000000000105 /* ProxyClassifierTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProxyClassifierTests.swift; sourceTree = "<group>"; };
 		A30000000000000000000106 /* ConnectionDeltaTrackerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionDeltaTrackerTests.swift; sourceTree = "<group>"; };
@@ -550,6 +562,7 @@
 				AP0000000000000000000101 /* AppUpdateModel.swift */,
 				D32300000000000000000101 /* ConnectionAnalyticsController.swift */,
 				D32100000000000000000101 /* ConnectionAnalyticsLedgerStoring.swift */,
+				D33D00000000000000000101 /* ConnectionAnalyticsRecordingCoverageLoader.swift */,
 				D32200000000000000000101 /* ConnectionAnalyticsRecording.swift */,
 				AB0000000000000000000101 /* ConnectionLivenessWatchdog.swift */,
 				AE0000000000000000000101 /* ControllerConfigurationStore.swift */,
@@ -647,6 +660,7 @@
 				C30000000000000000000101 /* ControllerSettingsWindowController.swift */,
 				CE0000000000000000000101 /* FirstConnectionGuideView.swift */,
 				CD0000000000000000000101 /* MihomoColorToken.swift */,
+				D33A00000000000000000101 /* LiveConnectionAnalyticsPresentation.swift */,
 				D32900000000000000000101 /* LiveConnectionAnalyticsView.swift */,
 				A10000000000000000000105 /* MenuBarController.swift */,
 				BF0000000000000000000101 /* StatusMenuDisclosureGroupStyle.swift */,
@@ -707,8 +721,10 @@
 				BV0000000000000000000112 /* ClashProfileTrackingServiceTests.swift */,
 				D32F00000000000000000101 /* ConnectionAnalyticsControllerTests.swift */,
 				D33100000000000000000101 /* ConnectionAnalyticsPresentationTests.swift */,
+				D33F00000000000000000101 /* ConnectionAnalyticsRecordingCoverageTests.swift */,
 				D33800000000000000000101 /* ConnectionAnalyticsTrendTests.swift */,
 				D33900000000000000000101 /* ConnectionAnalyticsTrendWindowModelTests.swift */,
+				D33B00000000000000000101 /* LiveConnectionAnalyticsPresentationTests.swift */,
 				D30000000000000000000103 /* ConnectionAttributionCoverageTests.swift */,
 				A30000000000000000000106 /* ConnectionDeltaTrackerTests.swift */,
 				AB0000000000000000000102 /* ConnectionLivenessWatchdogTests.swift */,
@@ -722,6 +738,7 @@
 				AD0000000000000000000102 /* MihomoMonitoringSessionTests.swift */,
 				A30000000000000000000105 /* ProxyClassifierTests.swift */,
 				D31000000000000000000102 /* ProxyConnectionRateAggregatorTests.swift */,
+				D33E00000000000000000101 /* ProxyDailyTrafficProviderTests.swift */,
 				D32E00000000000000000101 /* SQLiteConnectionAnalyticsLedgerTests.swift */,
 				CV0000000000000000000106 /* QuotaCumulativeTrendChartModelTests.swift */,
 				BQ0000000000000000000112 /* QuotaDomainTests.swift */,
@@ -794,6 +811,7 @@
 		A20000000000000000000002 /* Mihomo */ = {
 			isa = PBXGroup;
 			children = (
+				D33C00000000000000000101 /* ConnectionApplicationNameNormalizer.swift */,
 				A40000000000000000000104 /* ConnectionSnapshotDecoder.swift */,
 				A40000000000000000000105 /* ConnectionStreamCollector.swift */,
 				A20000000000000000000103 /* MihomoControllerClient.swift */,
@@ -1017,6 +1035,7 @@
 				D32400000000000000000201 /* ConnectionAnalyticsLedgerLocation.swift in Sources */,
 				D32600000000000000000201 /* ConnectionAnalyticsLedgerPersistence.swift in Sources */,
 				D32200000000000000000201 /* ConnectionAnalyticsRecording.swift in Sources */,
+				D33D00000000000000000201 /* ConnectionAnalyticsRecordingCoverageLoader.swift in Sources */,
 				D32500000000000000000201 /* ConnectionAnalyticsLedgerSchema.swift in Sources */,
 				D32B00000000000000000201 /* ConnectionAnalyticsPresentation.swift in Sources */,
 				D33500000000000000000201 /* ConnectionAnalyticsTrendChart.swift in Sources */,
@@ -1061,10 +1080,12 @@
 				CA0000000000000000000201 /* ProfileQuotaStatusPresentation.swift in Sources */,
 				CA0000000000000000000202 /* ProfileQuotaAccordionView.swift in Sources */,
 				CA0000000000000000000203 /* ProfileQuotaCardView.swift in Sources */,
+				D33C00000000000000000201 /* ConnectionApplicationNameNormalizer.swift in Sources */,
 				A20000000000000000000202 /* MihomoControllerModels.swift in Sources */,
 				AD0000000000000000000201 /* MihomoMonitoringSession.swift in Sources */,
 				A10000000000000000000201 /* MihomoMeterApp.swift in Sources */,
 				CD0000000000000000000201 /* MihomoColorToken.swift in Sources */,
+				D33A00000000000000000201 /* LiveConnectionAnalyticsPresentation.swift in Sources */,
 				D32900000000000000000201 /* LiveConnectionAnalyticsView.swift in Sources */,
 				A90000000000000000000201 /* ControllerSettingsView.swift in Sources */,
 				CE0000000000000000000201 /* FirstConnectionGuideView.swift in Sources */,
@@ -1187,8 +1208,10 @@
 				BV0000000000000000000202 /* ClashProfileTrackingServiceTests.swift in Sources */,
 				D32F00000000000000000201 /* ConnectionAnalyticsControllerTests.swift in Sources */,
 				D33100000000000000000201 /* ConnectionAnalyticsPresentationTests.swift in Sources */,
+				D33F00000000000000000201 /* ConnectionAnalyticsRecordingCoverageTests.swift in Sources */,
 				D33800000000000000000201 /* ConnectionAnalyticsTrendTests.swift in Sources */,
 				D33900000000000000000201 /* ConnectionAnalyticsTrendWindowModelTests.swift in Sources */,
+				D33B00000000000000000201 /* LiveConnectionAnalyticsPresentationTests.swift in Sources */,
 				D30000000000000000000203 /* ConnectionAttributionCoverageTests.swift in Sources */,
 				A30000000000000000000206 /* ConnectionDeltaTrackerTests.swift in Sources */,
 				AB0000000000000000000202 /* ConnectionLivenessWatchdogTests.swift in Sources */,
@@ -1202,6 +1225,7 @@
 				AD0000000000000000000202 /* MihomoMonitoringSessionTests.swift in Sources */,
 				A30000000000000000000205 /* ProxyClassifierTests.swift in Sources */,
 				D31000000000000000000202 /* ProxyConnectionRateAggregatorTests.swift in Sources */,
+				D33E00000000000000000201 /* ProxyDailyTrafficProviderTests.swift in Sources */,
 				D32E00000000000000000201 /* SQLiteConnectionAnalyticsLedgerTests.swift in Sources */,
 				CV0000000000000000000206 /* QuotaCumulativeTrendChartModelTests.swift in Sources */,
 				BQ0000000000000000000212 /* QuotaDomainTests.swift in Sources */,

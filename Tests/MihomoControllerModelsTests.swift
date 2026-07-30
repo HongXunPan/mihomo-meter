@@ -37,6 +37,7 @@ final class MihomoControllerModelsTests: XCTestCase {
         "port": 7891,
         "socks-port": 7892,
         "global-ua": "mihomo-test-agent",
+        "find-process-mode": "strict",
         "tun": {
           "enable": true,
           "stack": "system",
@@ -59,6 +60,7 @@ final class MihomoControllerModelsTests: XCTestCase {
     XCTAssertEqual(configuration.httpPort, 7_891)
     XCTAssertEqual(configuration.socksPort, 7_892)
     XCTAssertEqual(configuration.globalUserAgent, "mihomo-test-agent")
+    XCTAssertEqual(configuration.processMatchingMode, .strict)
     XCTAssertEqual(configuration.externalResourceUserAgent.value, "mihomo-test-agent")
     XCTAssertEqual(
       configuration.externalResourceUserAgent.source,
@@ -67,6 +69,15 @@ final class MihomoControllerModelsTests: XCTestCase {
     XCTAssertEqual(configuration.tun?.isEnabled, true)
     XCTAssertEqual(configuration.tun?.stack, "system")
     XCTAssertEqual(configuration.tun?.automaticallyRoutesTraffic, true)
+  }
+
+  func testUnknownProcessMatchingModeRemainsUnavailable() throws {
+    let response = try decoder.decode(
+      MihomoRuntimeConfigurationResponse.self,
+      from: Data("{\"find-process-mode\":\"future-mode\"}".utf8)
+    )
+
+    XCTAssertNil(response.runtimeConfiguration.processMatchingMode)
   }
 
   func testUsesMihomoDefaultUserAgentWhenConfigurationValueIsUnsafe() {
@@ -182,6 +193,47 @@ final class MihomoControllerModelsTests: XCTestCase {
       {"downloadTotal":0,"uploadTotal":0,"connections":[{
         "id":"synthetic","upload":0,"download":0,"chains":["Synthetic Proxy"],
         "metadata":{"process":"/Applications/Synthetic.app/Contents/MacOS/Synthetic"}
+      }]}
+      """.utf8
+    )
+
+    let response = try decoder.decode(MihomoConnectionsSnapshot.self, from: data)
+
+    XCTAssertEqual(
+      response.trafficSnapshot.connections.first?.metadata.applicationName,
+      "Synthetic"
+    )
+  }
+
+  func testUsesOutermostApplicationBundleFromProcessPath() throws {
+    let data = Data(
+      """
+      {"downloadTotal":0,"uploadTotal":0,"connections":[{
+        "id":"synthetic","upload":0,"download":0,"chains":["Synthetic Proxy"],
+        "metadata":{
+          "process":"Google Chrome Helper",
+          "processPath":"/Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Helper.app/Contents/MacOS/Google Chrome Helper"
+        }
+      }]}
+      """.utf8
+    )
+
+    let response = try decoder.decode(MihomoConnectionsSnapshot.self, from: data)
+    let applicationName = response.trafficSnapshot.connections.first?.metadata.applicationName
+
+    XCTAssertEqual(applicationName, "Google Chrome")
+    XCTAssertFalse(try XCTUnwrap(applicationName).contains("/"))
+  }
+
+  func testUsesApplicationBundleFromWindowsStyleProcessPath() throws {
+    let data = Data(
+      """
+      {"downloadTotal":0,"uploadTotal":0,"connections":[{
+        "id":"synthetic","upload":0,"download":0,"chains":["Synthetic Proxy"],
+        "metadata":{
+          "process":"com.synthetic.backend",
+          "processPath":"C:\\\\Apps\\\\Synthetic.app\\\\Contents\\\\com.synthetic.backend"
+        }
       }]}
       """.utf8
     )
