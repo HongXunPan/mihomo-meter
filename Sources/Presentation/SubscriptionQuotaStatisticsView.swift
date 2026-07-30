@@ -124,7 +124,7 @@ struct SubscriptionQuotaStatisticsView: View {
   private var content: some View {
     if hasContent {
       LazyVGrid(
-        columns: [GridItem(.adaptive(minimum: 480, maximum: 640), spacing: 16)],
+        columns: cardColumns,
         alignment: .leading,
         spacing: 16
       ) {
@@ -182,6 +182,21 @@ struct SubscriptionQuotaStatisticsView: View {
   private var hasContent: Bool {
     controller.snapshot.latestQuota != nil
       || !profileQuotaController.snapshot.profiles.isEmpty
+  }
+
+  private var cardColumns: [GridItem] {
+    if displayedCardCount == 1 {
+      return [GridItem(.flexible(minimum: 480), spacing: 16)]
+    }
+    return [GridItem(.adaptive(minimum: 480), spacing: 16)]
+  }
+
+  private var displayedCardCount: Int {
+    let profileCount = profileQuotaController.snapshot.profiles.count
+    if profileCount > 0 {
+      return profileCount
+    }
+    return controller.snapshot.latestQuota == nil ? 0 : 1
   }
 
   private func canRefreshAnyProfile(at date: Date) -> Bool {
