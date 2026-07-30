@@ -19,6 +19,8 @@ final class StatusMenuController: NSObject, NSMenuDelegate {
   private let configuredSectionSeparator = NSMenuItem.separator()
   private let summarySectionSeparator = NSMenuItem.separator()
   private let summaryContentItem: NSMenuItem
+  private let configuredActionSeparator: NSMenuItem?
+  private let configuredActionItems: [NSMenuItem]
   private let submenuEntries: [StatusMenuSubmenuEntry]
   private let isConfigurationAvailable: () -> Bool
   private let prepareForPresentation: () -> Void
@@ -31,12 +33,16 @@ final class StatusMenuController: NSObject, NSMenuDelegate {
     summaryContentViewController: NSViewController,
     summaryContentSize: NSSize,
     submenuConfigurations: [StatusMenuSubmenuConfiguration],
+    configuredActionItems: [NSMenuItem] = [],
     isConfigurationAvailable: @escaping () -> Bool,
     prepareForPresentation: @escaping () -> Void
   ) {
     self.primaryContentViewController = primaryContentViewController
     self.configuredPrimaryContentSize = configuredPrimaryContentSize
     self.unconfiguredPrimaryContentSize = unconfiguredPrimaryContentSize
+    self.configuredActionItems = configuredActionItems
+    configuredActionSeparator =
+      configuredActionItems.isEmpty ? nil : NSMenuItem.separator()
     self.isConfigurationAvailable = isConfigurationAvailable
     self.prepareForPresentation = prepareForPresentation
 
@@ -92,6 +98,12 @@ final class StatusMenuController: NSObject, NSMenuDelegate {
     }
     menu.addItem(summarySectionSeparator)
     menu.addItem(summaryContentItem)
+    if let configuredActionSeparator {
+      menu.addItem(configuredActionSeparator)
+    }
+    for item in configuredActionItems {
+      menu.addItem(item)
+    }
     refreshPresentation()
 
     NotificationCenter.default.addObserver(
@@ -139,6 +151,10 @@ final class StatusMenuController: NSObject, NSMenuDelegate {
     configuredSectionSeparator.isHidden = !isAvailable
     summarySectionSeparator.isHidden = !isAvailable
     summaryContentItem.isHidden = !isAvailable
+    configuredActionSeparator?.isHidden = !isAvailable
+    for item in configuredActionItems {
+      item.isHidden = !isAvailable
+    }
     for entry in submenuEntries {
       entry.item.isHidden = !isAvailable
     }

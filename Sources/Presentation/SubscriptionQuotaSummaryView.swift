@@ -3,7 +3,6 @@ import SwiftUI
 struct SubscriptionQuotaSummaryView: View {
   @ObservedObject var controller: RuntimeQuotaTrackingController
   @ObservedObject var profileQuotaController: ProfileQuotaTrackingController
-  let showAllStatistics: () -> Void
 
   @State private var showsConfirmation = false
 
@@ -33,8 +32,6 @@ struct SubscriptionQuotaSummaryView: View {
 
         confirmationAction
       }
-
-      showAllAction
     }
     .confirmationDialog(
       confirmationTitle,
@@ -101,26 +98,6 @@ struct SubscriptionQuotaSummaryView: View {
       .buttonStyle(.borderedProminent)
       .controlSize(.small)
       .frame(maxWidth: .infinity, alignment: .trailing)
-    }
-  }
-
-  private var showAllAction: some View {
-    VStack(spacing: 8) {
-      Divider()
-
-      Button(action: showAllStatistics) {
-        HStack(spacing: 8) {
-          Image(systemName: "rectangle.grid.2x2")
-          Text("查看订阅余额统计")
-          Spacer()
-          Image(systemName: "chevron.right")
-            .font(.caption.weight(.semibold))
-            .foregroundStyle(.tertiary)
-        }
-        .contentShape(Rectangle())
-      }
-      .buttonStyle(.borderless)
-      .accessibilityHint("打开统一统计窗口的订阅余额模块")
     }
   }
 

@@ -61,8 +61,6 @@ struct StatusMenuSummaryContentView: View {
   @ObservedObject var statisticsController: TrafficStatisticsController
   @ObservedObject var quotaController: RuntimeQuotaTrackingController
   @ObservedObject var profileQuotaController: ProfileQuotaTrackingController
-  let showAllStatistics: () -> Void
-  let showQuotaStatistics: () -> Void
 
   var body: some View {
     ScrollViewReader { proxy in
@@ -70,16 +68,14 @@ struct StatusMenuSummaryContentView: View {
         VStack(alignment: .leading, spacing: 0) {
           TrafficStatisticsSummaryView(
             controller: statisticsController,
-            isMonitoringAvailable: allowsTrafficStatistics,
-            showAllStatistics: showAllStatistics
+            isMonitoringAvailable: allowsTrafficStatistics
           )
 
           sectionDivider
 
           SubscriptionQuotaSummaryView(
             controller: quotaController,
-            profileQuotaController: profileQuotaController,
-            showAllStatistics: showQuotaStatistics
+            profileQuotaController: profileQuotaController
           )
         }
         .id(StatusMenuScrollAnchor.top)

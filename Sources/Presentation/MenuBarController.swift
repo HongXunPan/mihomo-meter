@@ -92,17 +92,7 @@ final class MenuBarController: NSObject {
         monitor: monitor,
         statisticsController: statisticsController,
         quotaController: quotaController,
-        profileQuotaController: profileQuotaController,
-        showAllStatistics: { [weak self] in
-          self?.performMenuAction {
-            self?.actions.showStatistics(.proxyTraffic)
-          }
-        },
-        showQuotaStatistics: { [weak self] in
-          self?.performMenuAction {
-            self?.actions.showStatistics(.subscriptionQuota)
-          }
-        }
+        profileQuotaController: profileQuotaController
       ),
       contentSize: StatusMenuLayout.summaryContentSize
     )
@@ -114,6 +104,7 @@ final class MenuBarController: NSObject {
       summaryContentViewController: summaryContentController,
       summaryContentSize: StatusMenuLayout.summaryContentSize,
       submenuConfigurations: makeStatusSubmenuConfigurations(),
+      configuredActionItems: makeStatisticsNavigationItems(),
       isConfigurationAvailable: { [weak self] in
         self?.monitor.hasValidatedControllerConfiguration ?? false
       },
@@ -197,6 +188,23 @@ final class MenuBarController: NSObject {
     controller.sizingOptions = []
     controller.preferredContentSize = contentSize
     return controller
+  }
+
+  private func makeStatisticsNavigationItems() -> [NSMenuItem] {
+    let proxyTrafficItem = NSMenuItem(
+      title: "查看 Proxy 流量统计",
+      action: #selector(showProxyTrafficStatistics),
+      keyEquivalent: ""
+    )
+    proxyTrafficItem.target = self
+
+    let subscriptionQuotaItem = NSMenuItem(
+      title: "查看订阅余额统计",
+      action: #selector(showSubscriptionQuotaStatistics),
+      keyEquivalent: ""
+    )
+    subscriptionQuotaItem.target = self
+    return [proxyTrafficItem, subscriptionQuotaItem]
   }
 
   private func appendNativeActions(to menu: NSMenu) {
@@ -296,6 +304,20 @@ final class MenuBarController: NSObject {
   private func showControllerSettings() {
     performMenuAction {
       actions.showControllerSettings()
+    }
+  }
+
+  @objc
+  private func showProxyTrafficStatistics() {
+    performMenuAction {
+      actions.showStatistics(.proxyTraffic)
+    }
+  }
+
+  @objc
+  private func showSubscriptionQuotaStatistics() {
+    performMenuAction {
+      actions.showStatistics(.subscriptionQuota)
     }
   }
 

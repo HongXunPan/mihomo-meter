@@ -9,6 +9,11 @@ final class StatusMenuControllerTests: XCTestCase {
     var summary = "1 条活跃"
     var prepareCallCount = 0
     let contentSize = NSSize(width: 360, height: 214)
+    let statisticsItem = NSMenuItem(
+      title: "查看 Proxy 流量统计",
+      action: nil,
+      keyEquivalent: ""
+    )
     let controller = makeController(
       submenuConfigurations: [
         StatusMenuSubmenuConfiguration(
@@ -18,6 +23,7 @@ final class StatusMenuControllerTests: XCTestCase {
           contentSize: contentSize
         )
       ],
+      configuredActionItems: [statisticsItem],
       isConfigurationAvailable: { true },
       prepareForPresentation: { prepareCallCount += 1 }
     )
@@ -33,6 +39,9 @@ final class StatusMenuControllerTests: XCTestCase {
     XCTAssertEqual(submenuItem.badge?.stringValue, "1 条活跃")
     XCTAssertNil(submenuItem.toolTip)
     XCTAssertFalse(submenuItem.isHidden)
+    XCTAssertTrue(controller.menu.items.contains { $0 === statisticsItem })
+    XCTAssertNil(statisticsItem.view)
+    XCTAssertFalse(statisticsItem.isHidden)
 
     summary = "暂无传输"
     controller.refreshSummaries()
@@ -41,6 +50,11 @@ final class StatusMenuControllerTests: XCTestCase {
   }
 
   func testUnconfiguredMenuHidesConfiguredSections() throws {
+    let statisticsItem = NSMenuItem(
+      title: "查看 Proxy 流量统计",
+      action: nil,
+      keyEquivalent: ""
+    )
     let controller = makeController(
       submenuConfigurations: [
         StatusMenuSubmenuConfiguration(
@@ -50,6 +64,7 @@ final class StatusMenuControllerTests: XCTestCase {
           contentSize: NSSize(width: 360, height: 176)
         )
       ],
+      configuredActionItems: [statisticsItem],
       isConfigurationAvailable: { false }
     )
 
@@ -65,10 +80,12 @@ final class StatusMenuControllerTests: XCTestCase {
       StatusMenuLayout.unconfiguredPrimaryContentSize
     )
     XCTAssertTrue(controller.menu.items[4].isHidden)
+    XCTAssertTrue(statisticsItem.isHidden)
   }
 
   private func makeController(
     submenuConfigurations: [StatusMenuSubmenuConfiguration],
+    configuredActionItems: [NSMenuItem] = [],
     isConfigurationAvailable: @escaping () -> Bool,
     prepareForPresentation: @escaping () -> Void = {}
   ) -> StatusMenuController {
@@ -79,6 +96,7 @@ final class StatusMenuControllerTests: XCTestCase {
       summaryContentViewController: makeViewController(),
       summaryContentSize: StatusMenuLayout.summaryContentSize,
       submenuConfigurations: submenuConfigurations,
+      configuredActionItems: configuredActionItems,
       isConfigurationAvailable: isConfigurationAvailable,
       prepareForPresentation: prepareForPresentation
     )

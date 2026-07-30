@@ -3,7 +3,6 @@ import SwiftUI
 struct TrafficStatisticsSummaryView: View {
   @ObservedObject var controller: TrafficStatisticsController
   let isMonitoringAvailable: Bool
-  let showAllStatistics: () -> Void
 
   @State private var isStartingInterval = false
 
@@ -22,7 +21,6 @@ struct TrafficStatisticsSummaryView: View {
       ProxyDailyTrafficChart(days: controller.snapshot.recentProxyDays)
 
       activeIntervals
-      showAllAction
     }
   }
 
@@ -89,31 +87,6 @@ struct TrafficStatisticsSummaryView: View {
           .font(.caption2)
           .foregroundStyle(.secondary)
       }
-    }
-  }
-
-  private var showAllAction: some View {
-    VStack(spacing: 8) {
-      Divider()
-
-      Button {
-        showAllStatistics()
-      } label: {
-        HStack(spacing: 8) {
-          Image(systemName: "chart.bar.xaxis")
-          Text("查看全部统计")
-
-          Spacer()
-
-          Image(systemName: "chevron.right")
-            .font(.caption.weight(.semibold))
-            .foregroundStyle(.tertiary)
-        }
-        .contentShape(Rectangle())
-      }
-      .buttonStyle(.borderless)
-      .accessibilityLabel("查看全部统计")
-      .accessibilityHint("打开可缩放的完整统计窗口")
     }
   }
 
