@@ -1,5 +1,23 @@
 import Foundation
 
+enum LiveConnectionRoute: String, CaseIterable, Identifiable {
+  case proxy
+  case direct
+
+  var id: Self {
+    self
+  }
+
+  var title: String {
+    switch self {
+    case .proxy:
+      "Proxy"
+    case .direct:
+      "直连"
+    }
+  }
+}
+
 enum LiveConnectionViewMode: String, CaseIterable, Identifiable {
   case connection
   case application
@@ -75,10 +93,23 @@ struct ApplicationIdentificationDiagnostic: Equatable {
 }
 
 enum LiveConnectionAnalyticsPresentation {
+  static func sourceConnections(
+    for route: LiveConnectionRoute,
+    proxyConnections: [LiveTrafficConnection],
+    directConnections: [LiveTrafficConnection]
+  ) -> [LiveTrafficConnection] {
+    switch route {
+    case .proxy:
+      proxyConnections
+    case .direct:
+      directConnections
+    }
+  }
+
   static func connections(
-    from connections: [LiveProxyConnection],
+    from connections: [LiveTrafficConnection],
     searchText: String
-  ) -> [LiveProxyConnection] {
+  ) -> [LiveTrafficConnection] {
     filtered(connections, searchText: searchText).sorted {
       if $0.totalBytesPerSecond != $1.totalBytesPerSecond {
         return $0.totalBytesPerSecond > $1.totalBytesPerSecond
@@ -93,7 +124,7 @@ enum LiveConnectionAnalyticsPresentation {
   }
 
   static func groups(
-    from connections: [LiveProxyConnection],
+    from connections: [LiveTrafficConnection],
     mode: LiveConnectionViewMode,
     searchText: String
   ) -> [LiveConnectionGroupRow] {
@@ -133,9 +164,9 @@ enum LiveConnectionAnalyticsPresentation {
   }
 
   private static func filtered(
-    _ connections: [LiveProxyConnection],
+    _ connections: [LiveTrafficConnection],
     searchText: String
-  ) -> [LiveProxyConnection] {
+  ) -> [LiveTrafficConnection] {
     let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
     guard !query.isEmpty else {
       return connections
@@ -146,11 +177,11 @@ enum LiveConnectionAnalyticsPresentation {
     }
   }
 
-  private static func applicationName(of connection: LiveProxyConnection) -> String {
+  private static func applicationName(of connection: LiveTrafficConnection) -> String {
     connection.metadata.applicationName ?? ConnectionAttributionLabel.unknownApplication
   }
 
-  private static func hostname(of connection: LiveProxyConnection) -> String {
+  private static func hostname(of connection: LiveTrafficConnection) -> String {
     connection.metadata.hostname ?? ConnectionAttributionLabel.unknownHostname
   }
 

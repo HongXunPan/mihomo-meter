@@ -2,9 +2,9 @@ import XCTest
 
 @testable import MihomoMeter
 
-final class ProxyConnectionRateAggregatorTests: XCTestCase {
+final class ConnectionRateAggregatorTests: XCTestCase {
   func testUsesOneSecondWindowAndTwoWindowSmoothing() {
-    var aggregator = ProxyConnectionRateAggregator()
+    var aggregator = ConnectionRateAggregator()
     aggregator.establishBaseline([connection(id: "first", upload: 100, download: 200)])
 
     let firstWindow = aggregator.consume(
@@ -29,7 +29,7 @@ final class ProxyConnectionRateAggregatorTests: XCTestCase {
   }
 
   func testRemovesMissingConnectionImmediately() {
-    var aggregator = ProxyConnectionRateAggregator()
+    var aggregator = ConnectionRateAggregator()
     aggregator.establishBaseline([connection(id: "first", upload: 100, download: 200)])
 
     let current = aggregator.consume(
@@ -42,7 +42,7 @@ final class ProxyConnectionRateAggregatorTests: XCTestCase {
   }
 
   func testResetClearsLiveConnectionsAndSmoothingState() {
-    var aggregator = ProxyConnectionRateAggregator()
+    var aggregator = ConnectionRateAggregator()
     aggregator.establishBaseline([connection(id: "first", upload: 100, download: 200)])
     _ = aggregator.consume(
       activeConnections: [connection(id: "first", upload: 200, download: 400)],

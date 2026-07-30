@@ -3,13 +3,14 @@ import SwiftUI
 struct LiveConnectionAnalyticsView: View {
   @ObservedObject var monitor: TrafficMonitor
 
+  @State private var selectedRoute = LiveConnectionRoute.proxy
   @State private var selectedMode = LiveConnectionViewMode.connection
   @State private var searchText = ""
 
   var body: some View {
     VStack(alignment: .leading, spacing: 14) {
-      coverageSummary
-      applicationIdentificationDiagnostic
+      routeControls
+      routeContext
       viewControls
 
       if displayedItemCount == 0 {
@@ -24,6 +25,35 @@ struct LiveConnectionAnalyticsView: View {
       } else {
         tableContent
       }
+    }
+  }
+
+  private var routeControls: some View {
+    HStack(spacing: 12) {
+      Picker("连接路由", selection: $selectedRoute) {
+        ForEach(LiveConnectionRoute.allCases) { route in
+          Text(route.title).tag(route)
+        }
+      }
+      .pickerStyle(.segmented)
+      .frame(width: 220)
+
+      Spacer()
+
+      Text("仅展示当前活动连接")
+        .font(.caption)
+        .foregroundStyle(.secondary)
+    }
+  }
+
+  @ViewBuilder
+  private var routeContext: some View {
+    switch selectedRoute {
+    case .proxy:
+      coverageSummary
+      applicationIdentificationDiagnostic
+    case .direct:
+      directConnectionNotice
     }
   }
 
@@ -42,7 +72,7 @@ struct LiveConnectionAnalyticsView: View {
       TextField("搜索应用或主机名", text: $searchText)
         .textFieldStyle(.roundedBorder)
         .frame(width: 280)
-        .accessibilityHint("同时匹配当前 Proxy 连接的应用名称和主机名")
+        .accessibilityHint("同时匹配当前 \(selectedRoute.title) 连接的应用名称和主机名")
     }
   }
 
@@ -124,18 +154,26 @@ struct LiveConnectionAnalyticsView: View {
     }
   }
 
-  private var filteredConnections: [LiveProxyConnection] {
+  private var filteredConnections: [LiveTrafficConnection] {
     LiveConnectionAnalyticsPresentation.connections(
-      from: monitor.liveProxyConnections,
+      from: selectedConnections,
       searchText: searchText
     )
   }
 
   private var groupRows: [LiveConnectionGroupRow] {
     LiveConnectionAnalyticsPresentation.groups(
-      from: monitor.liveProxyConnections,
+      from: selectedConnections,
       mode: selectedMode,
       searchText: searchText
+    )
+  }
+
+  private var selectedConnections: [LiveTrafficConnection] {
+    LiveConnectionAnalyticsPresentation.sourceConnections(
+      for: selectedRoute,
+      proxyConnections: monitor.liveProxyConnections,
+      directConnections: monitor.liveDirectConnections
     )
   }
 
@@ -145,7 +183,7 @@ struct LiveConnectionAnalyticsView: View {
 
   private var emptyTitle: String {
     searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-      ? "暂无 Proxy 连接"
+      ? "暂无 \(selectedRoute.title) 连接"
       : "没有匹配的实时连接"
   }
 
@@ -165,6 +203,25 @@ struct LiveConnectionAnalyticsView: View {
         .font(.caption)
         .foregroundStyle(.secondary)
     }
+  }
+
+  private var directConnectionNotice: some View {
+    HStack(alignment: .top, spacing: 10) {
+      Image(systemName: "arrow.triangle.branch")
+        .foregroundStyle(MihomoColorToken.statusNeutral)
+      VStack(alignment: .leading, spacing: 2) {
+        Text("DIRECT 实时诊断")
+          .font(.callout.weight(.medium))
+        Text("仅实时展示，不保存连接明细，也不计入 Proxy 统计与历史归因；主机名和应用是否可识别取决于 Mihomo 元数据。")
+          .font(.caption)
+          .foregroundStyle(.secondary)
+      }
+      Spacer()
+    }
+    .padding(.horizontal, 10)
+    .padding(.vertical, 8)
+    .background(Color.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 8))
+    .accessibilityElement(children: .combine)
   }
 
   private var applicationIdentificationDiagnostic: some View {
@@ -212,7 +269,7 @@ struct LiveConnectionAnalyticsView: View {
       .foregroundStyle(color)
   }
 
-  private func duration(_ connection: LiveProxyConnection) -> String {
+  private func duration(_ connection: LiveTrafficConnection) -> String {
     guard let startedAt = connection.startedAt else {
       return "—"
     }

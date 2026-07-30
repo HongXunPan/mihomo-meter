@@ -3,6 +3,32 @@ import XCTest
 @testable import MihomoMeter
 
 final class LiveConnectionAnalyticsPresentationTests: XCTestCase {
+  func testRouteSelectionKeepsProxyAndDirectConnectionsSeparated() {
+    let proxyConnections = [
+      connection(id: "proxy", application: "Browser", hostname: "proxy.example")
+    ]
+    let directConnections = [
+      connection(id: "direct", application: "Updater", hostname: "direct.example")
+    ]
+
+    XCTAssertEqual(
+      LiveConnectionAnalyticsPresentation.sourceConnections(
+        for: .proxy,
+        proxyConnections: proxyConnections,
+        directConnections: directConnections
+      ).map(\.id),
+      ["proxy"]
+    )
+    XCTAssertEqual(
+      LiveConnectionAnalyticsPresentation.sourceConnections(
+        for: .direct,
+        proxyConnections: proxyConnections,
+        directConnections: directConnections
+      ).map(\.id),
+      ["direct"]
+    )
+  }
+
   func testSearchMatchesApplicationAndHostnameCaseInsensitively() {
     let connections = [
       connection(id: "browser", application: "Browser", hostname: "docs.example"),
@@ -105,8 +131,8 @@ final class LiveConnectionAnalyticsPresentationTests: XCTestCase {
     upload: UInt64 = 0,
     download: UInt64 = 0,
     cumulative: UInt64 = 0
-  ) -> LiveProxyConnection {
-    LiveProxyConnection(
+  ) -> LiveTrafficConnection {
+    LiveTrafficConnection(
       id: id,
       metadata: ConnectionMetadata(hostname: hostname, applicationName: application),
       rate: TrafficRate(

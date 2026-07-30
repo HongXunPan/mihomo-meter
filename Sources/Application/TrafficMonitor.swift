@@ -34,8 +34,12 @@ final class TrafficMonitor: ObservableObject {
     state.attributionCoverage
   }
 
-  var liveProxyConnections: [LiveProxyConnection] {
+  var liveProxyConnections: [LiveTrafficConnection] {
     state.liveProxyConnections
+  }
+
+  var liveDirectConnections: [LiveTrafficConnection] {
+    state.liveDirectConnections
   }
 
   var activeProxyLeaves: [String] {

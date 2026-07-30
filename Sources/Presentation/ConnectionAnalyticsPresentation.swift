@@ -11,9 +11,9 @@ enum ConnectionAnalyticsPresentation {
   static let maximumTopConnectionCount = 5
 
   static func topConnections(
-    from connections: [LiveProxyConnection],
+    from connections: [LiveTrafficConnection],
     limit: Int = maximumTopConnectionCount
-  ) -> [LiveProxyConnection] {
+  ) -> [LiveTrafficConnection] {
     guard limit > 0 else {
       return []
     }
@@ -29,19 +29,19 @@ enum ConnectionAnalyticsPresentation {
   }
 
   static func topConnectionSlots(
-    from connections: [LiveProxyConnection]
-  ) -> [LiveProxyConnection?] {
+    from connections: [LiveTrafficConnection]
+  ) -> [LiveTrafficConnection?] {
     let topConnections = topConnections(from: connections)
     return (0..<maximumTopConnectionCount).map { index in
       topConnections.indices.contains(index) ? topConnections[index] : nil
     }
   }
 
-  static func activeConnectionCount(from connections: [LiveProxyConnection]) -> Int {
+  static func activeConnectionCount(from connections: [LiveTrafficConnection]) -> Int {
     connections.count { $0.totalBytesPerSecond > 0 }
   }
 
-  static func activeConnectionSummary(from connections: [LiveProxyConnection]) -> String {
+  static func activeConnectionSummary(from connections: [LiveTrafficConnection]) -> String {
     let count = activeConnectionCount(from: connections)
     return count == 0 ? "暂无传输" : "\(count) 条活跃"
   }

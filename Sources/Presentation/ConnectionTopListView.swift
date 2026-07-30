@@ -1,8 +1,44 @@
 import SwiftUI
 
 struct ProxyConnectionTopListView: View {
-  let connections: [LiveProxyConnection]
+  let connections: [LiveTrafficConnection]
   @Binding var isExpanded: Bool
+
+  var body: some View {
+    ConnectionTopListView(
+      connections: connections,
+      isExpanded: $isExpanded,
+      title: "活动 Proxy Top 5",
+      emptyDescription: "暂无正在传输的 Proxy 连接。",
+      helpText: "仅显示当前速率大于零的 Proxy 连接，按上下行总速率排序",
+      accessibilityHintText: "显示当前传输中的 Proxy 连接"
+    )
+  }
+}
+
+struct DirectConnectionTopListView: View {
+  let connections: [LiveTrafficConnection]
+  @Binding var isExpanded: Bool
+
+  var body: some View {
+    ConnectionTopListView(
+      connections: connections,
+      isExpanded: $isExpanded,
+      title: "活动直连 Top 5",
+      emptyDescription: "暂无正在传输的 DIRECT 连接。",
+      helpText: "仅显示当前速率大于零的 DIRECT 连接，按上下行总速率排序",
+      accessibilityHintText: "显示当前传输中的 DIRECT 连接"
+    )
+  }
+}
+
+private struct ConnectionTopListView: View {
+  let connections: [LiveTrafficConnection]
+  @Binding var isExpanded: Bool
+  let title: String
+  let emptyDescription: String
+  let helpText: String
+  let accessibilityHintText: String
 
   var body: some View {
     DisclosureGroup(isExpanded: $isExpanded) {
@@ -18,7 +54,7 @@ struct ProxyConnectionTopListView: View {
         }
 
         if activeConnectionCount == 0 {
-          Text("暂无正在传输的 Proxy 连接。")
+          Text(emptyDescription)
             .font(.caption)
             .foregroundStyle(.secondary)
         }
@@ -27,7 +63,7 @@ struct ProxyConnectionTopListView: View {
       .padding(.leading, 14)
     } label: {
       HStack(spacing: 8) {
-        Text("活动连接 Top 5")
+        Text(title)
           .font(.subheadline.weight(.semibold))
           .fixedSize(horizontal: true, vertical: false)
 
@@ -39,12 +75,12 @@ struct ProxyConnectionTopListView: View {
           .monospacedDigit()
       }
     }
-    .help("仅显示当前速率大于零的 Proxy 连接，按上下行总速率排序")
+    .help(helpText)
     .accessibilityValue(isExpanded ? "已展开" : "已折叠")
-    .accessibilityHint("显示当前传输中的 Proxy 连接")
+    .accessibilityHint(accessibilityHintText)
   }
 
-  private var slots: [LiveProxyConnection?] {
+  private var slots: [LiveTrafficConnection?] {
     ConnectionAnalyticsPresentation.topConnectionSlots(from: connections)
   }
 
@@ -56,7 +92,7 @@ struct ProxyConnectionTopListView: View {
     ConnectionAnalyticsPresentation.activeConnectionSummary(from: connections)
   }
 
-  private func row(_ connection: LiveProxyConnection) -> some View {
+  private func row(_ connection: LiveTrafficConnection) -> some View {
     VStack(alignment: .leading, spacing: 3) {
       HStack(spacing: 6) {
         Text(connection.metadata.hostname ?? ConnectionAttributionLabel.unknownHostname)

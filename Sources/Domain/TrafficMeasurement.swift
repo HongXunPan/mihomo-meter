@@ -161,7 +161,7 @@ struct ConnectionDeltaBatch: Equatable, Sendable {
   let connections: [ConnectionTrafficDelta]
 }
 
-struct LiveProxyConnection: Equatable, Identifiable, Sendable {
+struct LiveTrafficConnection: Equatable, Identifiable, Sendable {
   let id: String
   let metadata: ConnectionMetadata
   let rate: TrafficRate

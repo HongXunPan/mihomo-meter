@@ -29,6 +29,7 @@ enum TrafficMonitorReducer {
       state.activeRuleTypes = result.activeRuleTypes
       state.attributionCoverage = result.attributionCoverage
       state.liveProxyConnections = result.liveProxyConnections
+      state.liveDirectConnections = result.liveDirectConnections
       state.lastObservedAt = result.ledgerObservation.observedAt
       if let window = result.rateWindow {
         state.rawRates = window.raw

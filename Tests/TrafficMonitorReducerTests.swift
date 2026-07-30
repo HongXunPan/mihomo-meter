@@ -49,11 +49,20 @@ final class TrafficMonitorReducerTests: XCTestCase {
         fullyIdentifiedCount: 1
       ),
       liveProxyConnections: [
-        LiveProxyConnection(
+        LiveTrafficConnection(
           id: "connection",
           metadata: ConnectionMetadata(hostname: "example.com", applicationName: "Example"),
           rate: TrafficRate(uploadBytesPerSecond: 100, downloadBytesPerSecond: 200),
           cumulativeBytes: TrafficBytes(upload: 300, download: 400),
+          startedAt: nil
+        )
+      ],
+      liveDirectConnections: [
+        LiveTrafficConnection(
+          id: "direct-connection",
+          metadata: ConnectionMetadata(hostname: "direct.example", applicationName: "Direct"),
+          rate: TrafficRate(uploadBytesPerSecond: 10, downloadBytesPerSecond: 20),
+          cumulativeBytes: TrafficBytes(upload: 30, download: 40),
           startedAt: nil
         )
       ],
@@ -84,6 +93,7 @@ final class TrafficMonitorReducerTests: XCTestCase {
     XCTAssertEqual(state.activeRuleTypes, ["DOMAIN", "RULE-SET"])
     XCTAssertEqual(state.attributionCoverage.proxyConnectionCount, 3)
     XCTAssertEqual(state.liveProxyConnections.count, 1)
+    XCTAssertEqual(state.liveDirectConnections.count, 1)
     XCTAssertEqual(state.lastObservedAt, observedAt)
   }
 
@@ -106,6 +116,7 @@ final class TrafficMonitorReducerTests: XCTestCase {
     XCTAssertEqual(state.activeProxyLeaves, [])
     XCTAssertEqual(state.activeRuleTypes, [])
     XCTAssertTrue(state.liveProxyConnections.isEmpty)
+    XCTAssertTrue(state.liveDirectConnections.isEmpty)
     XCTAssertNil(state.lastObservedAt)
     XCTAssertEqual(state.mihomoVersion, "v-test")
     XCTAssertEqual(state.runtimeConfiguration, makeRuntimeConfiguration())
@@ -122,11 +133,20 @@ final class TrafficMonitorReducerTests: XCTestCase {
       rawRates: makeRates(download: 800, upload: 300),
       coverage: 0.98,
       liveProxyConnections: [
-        LiveProxyConnection(
+        LiveTrafficConnection(
           id: "connection",
           metadata: ConnectionMetadata(hostname: "example.com", applicationName: "Example"),
           rate: TrafficRate(uploadBytesPerSecond: 100, downloadBytesPerSecond: 200),
           cumulativeBytes: TrafficBytes(upload: 300, download: 400),
+          startedAt: nil
+        )
+      ],
+      liveDirectConnections: [
+        LiveTrafficConnection(
+          id: "direct-connection",
+          metadata: ConnectionMetadata(hostname: "direct.example", applicationName: "Direct"),
+          rate: TrafficRate(uploadBytesPerSecond: 10, downloadBytesPerSecond: 20),
+          cumulativeBytes: TrafficBytes(upload: 30, download: 40),
           startedAt: nil
         )
       ],

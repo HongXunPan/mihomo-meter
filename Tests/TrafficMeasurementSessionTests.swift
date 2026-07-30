@@ -43,6 +43,9 @@ final class TrafficMeasurementSessionTests: XCTestCase {
     XCTAssertEqual(initialResult?.activeProxyLeaves, ["Proxy Node"])
     XCTAssertEqual(initialResult?.activeRuleTypes, ["DOMAIN", "MATCH"])
     XCTAssertEqual(initialResult?.attributionCoverage.proxyConnectionCount, 1)
+    XCTAssertEqual(initialResult?.liveProxyConnections.map(\.id), ["proxy-connection"])
+    XCTAssertEqual(initialResult?.liveDirectConnections.map(\.id), ["direct-connection"])
+    XCTAssertEqual(initialResult?.liveDirectConnections.first?.rate, TrafficRate.zero)
     XCTAssertFalse(initialResult?.requiresCatalogRefresh ?? true)
     XCTAssertNil(initialResult?.rateWindow)
     XCTAssertEqual(
@@ -85,6 +88,12 @@ final class TrafficMeasurementSessionTests: XCTestCase {
       nextResult?.liveProxyConnections.first?.rate,
       TrafficRate(uploadBytesPerSecond: 40, downloadBytesPerSecond: 80)
     )
+    XCTAssertEqual(
+      nextResult?.liveDirectConnections.first?.rate,
+      TrafficRate(uploadBytesPerSecond: 10, downloadBytesPerSecond: 20)
+    )
+    XCTAssertEqual(nextResult?.liveProxyConnections.map(\.id), ["proxy-connection"])
+    XCTAssertEqual(nextResult?.liveDirectConnections.map(\.id), ["direct-connection"])
     XCTAssertEqual(
       nextResult?.connectionAttributionDeltas,
       [
@@ -139,6 +148,8 @@ final class TrafficMeasurementSessionTests: XCTestCase {
 
     XCTAssertEqual(result?.ledgerObservation.transition, .countersReset)
     XCTAssertNil(result?.rateWindow)
+    XCTAssertTrue(result?.liveProxyConnections.isEmpty ?? false)
+    XCTAssertTrue(result?.liveDirectConnections.isEmpty ?? false)
   }
 
   func testResetBaselineClearsAttributionAndTrafficBaseline() {

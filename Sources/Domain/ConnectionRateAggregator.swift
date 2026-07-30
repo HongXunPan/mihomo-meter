@@ -1,4 +1,4 @@
-struct ProxyConnectionRateAggregator: Sendable {
+struct ConnectionRateAggregator: Sendable {
   private let windowDuration: Double
   private let smoothingWindowCount: Int
   private var accumulatedDuration = 0.0
@@ -14,9 +14,9 @@ struct ProxyConnectionRateAggregator: Sendable {
     self.smoothingWindowCount = smoothingWindowCount
   }
 
-  var liveConnections: [LiveProxyConnection] {
+  var liveConnections: [LiveTrafficConnection] {
     activeByID.values.map { connection in
-      LiveProxyConnection(
+      LiveTrafficConnection(
         id: connection.id,
         metadata: connection.metadata,
         rate: rateByID[connection.id] ?? .zero,
@@ -35,7 +35,7 @@ struct ProxyConnectionRateAggregator: Sendable {
     activeConnections: [ConnectionTrafficSample],
     deltas: [ConnectionTrafficDelta],
     elapsedSeconds: Double?
-  ) -> [LiveProxyConnection] {
+  ) -> [LiveTrafficConnection] {
     let activeIDs = Set(activeConnections.map(\.id))
     removeInactiveConnections(except: activeIDs)
     activeByID = keyedByID(activeConnections)

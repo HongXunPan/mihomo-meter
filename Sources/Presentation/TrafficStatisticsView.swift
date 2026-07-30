@@ -107,7 +107,7 @@ struct TrafficStatisticsView: View {
     case .statistics:
       "管理秒表式统计任务，并查看本机 Proxy 累计。"
     case .liveConnections:
-      "查看当前 Proxy 连接的识别覆盖率、速率与累计。"
+      "查看当前 Proxy 与 DIRECT 连接的速率、累计和识别信息。"
     }
   }
 

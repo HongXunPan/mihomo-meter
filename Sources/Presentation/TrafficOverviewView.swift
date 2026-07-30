@@ -3,7 +3,8 @@ import SwiftUI
 struct TrafficOverviewView: View {
   @ObservedObject var monitor: TrafficMonitor
   @Binding var showsRuntimeDetails: Bool
-  @State private var showsActiveConnections = true
+  @State private var showsActiveProxyConnections = true
+  @State private var showsActiveDirectConnections = false
   @State private var showsClassificationDetails = false
 
   var body: some View {
@@ -52,7 +53,14 @@ struct TrafficOverviewView: View {
 
       ProxyConnectionTopListView(
         connections: monitor.liveProxyConnections,
-        isExpanded: $showsActiveConnections
+        isExpanded: $showsActiveProxyConnections
+      )
+
+      Divider()
+
+      DirectConnectionTopListView(
+        connections: monitor.liveDirectConnections,
+        isExpanded: $showsActiveDirectConnections
       )
     }
   }

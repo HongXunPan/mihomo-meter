@@ -88,8 +88,8 @@ final class ConnectionAnalyticsPresentationTests: XCTestCase {
     hostname: String,
     upload: UInt64,
     download: UInt64
-  ) -> LiveProxyConnection {
-    LiveProxyConnection(
+  ) -> LiveTrafficConnection {
+    LiveTrafficConnection(
       id: id,
       metadata: ConnectionMetadata(hostname: hostname, applicationName: "Example"),
       rate: TrafficRate(
