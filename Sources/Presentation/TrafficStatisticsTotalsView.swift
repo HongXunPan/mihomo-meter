@@ -10,7 +10,6 @@ struct TrafficStatisticsTotalsView: View {
       metric(
         title: "今日 Proxy",
         value: TrafficStatisticsFormatter.bytes(todayBytes),
-        titleColor: MihomoColorToken.trafficProxy,
         valueColor: MihomoColorToken.trafficProxy
       )
       Divider()
@@ -18,7 +17,6 @@ struct TrafficStatisticsTotalsView: View {
       metric(
         title: "本机累计 Proxy",
         value: TrafficStatisticsFormatter.bytes(lifetimeBytes),
-        titleColor: MihomoColorToken.trafficProxy,
         valueColor: MihomoColorToken.trafficProxy
       )
 
