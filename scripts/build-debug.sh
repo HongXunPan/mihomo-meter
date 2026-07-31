@@ -10,7 +10,7 @@ usage() {
 
 说明：
   默认构建已签名的 Debug 应用。
-  使用 --run 时，构建完成后启动应用。
+  使用 --run 时，构建完成后以前台进程启动应用；应用退出后命令返回。
   构建失败时会提取真实错误上下文，并保留完整日志用于反馈。
 EOF
 }
@@ -123,6 +123,7 @@ fi
 
 derived_data_path="${MIHOMO_METER_DERIVED_DATA_PATH:-${project_root}/.build/LocalDerivedData}"
 app_path="${derived_data_path}/Build/Products/Debug/MihomoMeter.app"
+app_executable_path="${app_path}/Contents/MacOS/MihomoMeter"
 diagnostic_log_directory="${project_root}/.build/Diagnostics"
 build_log_path="${diagnostic_log_directory}/build-debug-$(date '+%Y%m%d-%H%M%S').log"
 
@@ -190,4 +191,11 @@ if pgrep -x MihomoMeter >/dev/null 2>&1; then
   exit 1
 fi
 
-open "${app_path}"
+if [[ ! -x "${app_executable_path}" ]]; then
+  echo "Debug 应用缺少可执行文件：${app_executable_path}" >&2
+  exit 1
+fi
+
+echo "以前台进程启动 Mihomo Meter Debug；应用退出后命令才返回。"
+echo "按 Ctrl-C 或关闭当前终端会终止本次 Debug 应用。"
+exec "${app_executable_path}"

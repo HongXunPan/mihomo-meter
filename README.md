@@ -169,14 +169,14 @@ Xcode 的 Debug 和 Release 配置会通过公共 `Config.xcconfig` 读取本机
 
 本地脱敏诊断日志及用户反馈入口说明见[数据与隐私](docs/数据与隐私.md#本地诊断日志)。
 
-退出 Xcode GUI 后也可以构建。脚本默认只构建已签名的 Debug 应用，传入 `--run` 时在构建成功后启动：
+退出 Xcode GUI 后也可以构建。脚本默认只构建已签名的 Debug 应用；传入 `--run` 时在构建成功后以前台进程启动，应用退出后命令才返回：
 
 ```bash
 scripts/build-debug.sh
 scripts/build-debug.sh --run
 ```
 
-脚本从已忽略的 `Config.local.xcconfig` 读取开发团队，并允许 Xcode 完成本机开发签名；构建完成后会检查沙盒、网络和钥匙串相关签名权限。首次使用前仍需在本机登录 Xcode 并完成自动签名和开发证书配置。使用 `--run` 前应先退出正在运行的 Mihomo Meter，避免继续使用旧进程。
+脚本从已忽略的 `Config.local.xcconfig` 读取开发团队，并允许 Xcode 完成本机开发签名；构建完成后会检查沙盒、网络和钥匙串相关签名权限。首次使用前仍需在本机登录 Xcode 并完成自动签名和开发证书配置。使用 `--run` 前应先退出正在运行的 Mihomo Meter，避免继续使用旧进程；该模式不会通过 `open` 脱离 Shell，按 `Ctrl-C` 或关闭当前终端会终止本次 Debug 应用。
 
 命令行验证：
 
