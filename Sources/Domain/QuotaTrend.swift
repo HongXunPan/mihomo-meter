@@ -77,10 +77,16 @@ struct QuotaTrendContext: Equatable, Sendable {
 }
 
 struct RuntimeQuotaTrends: Equatable, Sendable {
+  static let depletionForecastWindow = QuotaTrendWindow.week
+
   var day = QuotaTrend.empty(window: .day)
   var week = QuotaTrend.empty(window: .week)
   var month = QuotaTrend.empty(window: .month)
   var year = QuotaTrend.empty(window: .year)
+
+  var depletionForecast: QuotaDepletionForecast {
+    trend(for: Self.depletionForecastWindow).depletionForecast
+  }
 
   func trend(for window: QuotaTrendWindow) -> QuotaTrend {
     switch window {

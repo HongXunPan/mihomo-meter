@@ -1,6 +1,5 @@
 import AppKit
 import Combine
-import SwiftUI
 
 struct MenuBarPresentationActions {
   let showStatistics: (StatisticsModule) -> Void
@@ -20,7 +19,6 @@ final class MenuBarController: NSObject {
   private let profileQuotaController: ProfileQuotaTrackingController
   private let updateModel: AppUpdateModel
   private let actions: MenuBarPresentationActions
-  private let statusMenuPresentationState = StatusMenuPresentationState()
   private var updateMenuItem: NSMenuItem?
   private var cancellables: Set<AnyCancellable> = []
 
@@ -49,6 +47,7 @@ final class MenuBarController: NSObject {
     configureStatusItem()
     statusItem.menu = statusMenuController.menu
     observeMonitor()
+    observeStatistics()
     observeUpdateAvailability()
   }
 
@@ -73,42 +72,46 @@ final class MenuBarController: NSObject {
   }
 
   private func makeStatusMenuController() -> StatusMenuController {
-    let hostingController = NSHostingController(
-      rootView: StatusMenuContentView(
-        presentationState: statusMenuPresentationState,
-        monitor: monitor,
-        statisticsController: statisticsController,
-        quotaController: quotaController,
-        profileQuotaController: profileQuotaController,
-        showControllerSettings: { [weak self] in
-          self?.performMenuAction {
-            self?.actions.showControllerSettings()
-          }
-        },
-        showAllStatistics: { [weak self] in
-          self?.performMenuAction {
-            self?.actions.showStatistics(.proxyTraffic)
-          }
-        },
-        showQuotaStatistics: { [weak self] in
-          self?.performMenuAction {
-            self?.actions.showStatistics(.subscriptionQuota)
-          }
-        }
-      )
+    let factory = StatusMenuFactory(
+      monitor: monitor,
+      statisticsController: statisticsController,
+      quotaController: quotaController,
+      profileQuotaController: profileQuotaController
     )
-    hostingController.sizingOptions = []
-    hostingController.preferredContentSize = StatusMenuLayout.contentSize
-
-    let controller = StatusMenuController(
-      contentViewController: hostingController,
-      contentSize: StatusMenuLayout.contentSize,
-      prepareForPresentation: { [weak self] in
-        self?.statusMenuPresentationState.prepareForPresentation()
-      }
+    let controller = factory.makeController(
+      showControllerSettings: { [weak self] in
+        self?.performMenuAction {
+          self?.actions.showControllerSettings()
+        }
+      },
+      showTrafficStatistics: { [weak self] in
+        self?.showProxyTrafficStatistics()
+      },
+      proxyTrafficNavigationItem: makeProxyTrafficNavigationItem(),
+      subscriptionQuotaNavigationItem: makeSubscriptionQuotaNavigationItem()
     )
     appendNativeActions(to: controller.menu)
     return controller
+  }
+
+  private func makeProxyTrafficNavigationItem() -> NSMenuItem {
+    let item = NSMenuItem(
+      title: "查看 Proxy 流量统计",
+      action: #selector(showProxyTrafficStatistics),
+      keyEquivalent: ""
+    )
+    item.target = self
+    return item
+  }
+
+  private func makeSubscriptionQuotaNavigationItem() -> NSMenuItem {
+    let item = NSMenuItem(
+      title: "查看订阅余额统计",
+      action: #selector(showSubscriptionQuotaStatistics),
+      keyEquivalent: ""
+    )
+    item.target = self
+    return item
   }
 
   private func appendNativeActions(to menu: NSMenu) {
@@ -159,6 +162,15 @@ final class MenuBarController: NSObject {
         )
       }
       .store(in: &cancellables)
+
+    monitor.objectWillChange
+      .sink { [weak self] in
+        Task { @MainActor [weak self] in
+          await Task.yield()
+          self?.statusMenuController.refreshSummaries()
+        }
+      }
+      .store(in: &cancellables)
   }
 
   private func observeUpdateAvailability() {
@@ -166,6 +178,18 @@ final class MenuBarController: NSObject {
       .removeDuplicates()
       .sink { [weak self] canCheckForUpdates in
         self?.updateMenuItem?.isEnabled = canCheckForUpdates
+      }
+      .store(in: &cancellables)
+  }
+
+  private func observeStatistics() {
+    statisticsController.$snapshot
+      .map { snapshot in
+        snapshot.intervals.count { $0.status == .active }
+      }
+      .removeDuplicates()
+      .sink { [weak self] _ in
+        self?.statusMenuController.refreshSummaries()
       }
       .store(in: &cancellables)
   }
@@ -199,6 +223,20 @@ final class MenuBarController: NSObject {
   private func showControllerSettings() {
     performMenuAction {
       actions.showControllerSettings()
+    }
+  }
+
+  @objc
+  private func showProxyTrafficStatistics() {
+    performMenuAction {
+      actions.showStatistics(.proxyTraffic)
+    }
+  }
+
+  @objc
+  private func showSubscriptionQuotaStatistics() {
+    performMenuAction {
+      actions.showStatistics(.subscriptionQuota)
     }
   }
 

@@ -5,8 +5,18 @@ enum SubscriptionQuotaFormatter {
     TrafficStatisticsFormatter.bytes(value)
   }
 
-  static func updatedAt(_ date: Date) -> String {
-    relativeDate(date, relativeTo: Date())
+  static func updatedAt(_ date: Date, relativeTo referenceDate: Date = Date()) -> String {
+    guard abs(date.timeIntervalSince(referenceDate)) >= 60 else {
+      return "刚刚"
+    }
+    return relativeDate(date, relativeTo: referenceDate)
+  }
+
+  static func upcomingDate(_ date: Date, relativeTo referenceDate: Date) -> String {
+    guard date.timeIntervalSince(referenceDate) >= 60 else {
+      return "即将"
+    }
+    return relativeDate(date, relativeTo: referenceDate)
   }
 
   static func relativeDate(_ date: Date, relativeTo referenceDate: Date) -> String {
@@ -128,7 +138,7 @@ enum SubscriptionQuotaFormatter {
       previousTemplate = "yyyyMdHHmm"
     }
 
-    return "较 \(usageDate(previousDate, template: previousTemplate)) · "
+    return "较 \(usageDate(previousDate, template: previousTemplate)) · 间隔 "
       + preciseDuration(currentDate.timeIntervalSince(previousDate))
   }
 
@@ -165,11 +175,14 @@ enum SubscriptionQuotaFormatter {
     return formatter.string(from: interval) ?? duration(interval)
   }
 
-  static func depletion(_ trend: QuotaTrend) -> String {
-    switch trend.depletionForecast {
+  static func depletion(
+    _ forecast: QuotaDepletionForecast,
+    relativeTo referenceDate: Date = Date()
+  ) -> String {
+    switch forecast {
     case .available(let estimatedDepletionAt):
       let remainingDays = max(
-        Int((estimatedDepletionAt.timeIntervalSinceNow / 86_400).rounded(.up)),
+        Int((estimatedDepletionAt.timeIntervalSince(referenceDate) / 86_400).rounded(.up)),
         0
       )
       return remainingDays == 0 ? "可能即将耗尽" : "预计可用约 \(remainingDays) 天"

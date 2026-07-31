@@ -48,3 +48,11 @@ protocol TrafficLedgerStoring: Sendable {
 
   func clear(calendar: Calendar, now: Date) async throws -> TrafficStatisticsSnapshot
 }
+
+protocol ProxyDailyTrafficProviding: Sendable {
+  func proxyTraffic(
+    localDay: String,
+    calendar: Calendar,
+    now: Date
+  ) async throws -> TrafficBytes
+}

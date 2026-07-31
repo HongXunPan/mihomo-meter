@@ -34,7 +34,8 @@ struct RuntimeQuotaCardView: View {
 
       SubscriptionQuotaMetricsView(
         quota: quota,
-        trend: controller.snapshot.trends.trend(for: window)
+        trend: controller.snapshot.trends.trend(for: window),
+        depletionForecast: controller.snapshot.trends.depletionForecast
       )
 
       QuotaEventSummaryView(analysis: controller.snapshot.analysis) {

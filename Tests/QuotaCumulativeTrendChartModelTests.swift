@@ -240,7 +240,7 @@ final class QuotaCumulativeTrendChartModelTests: XCTestCase {
     )
 
     XCTAssertTrue(text.hasPrefix("较 "))
-    XCTAssertTrue(text.contains(" · "))
+    XCTAssertTrue(text.contains(" · 间隔 "))
     XCTAssertFalse(
       text.contains(SubscriptionQuotaFormatter.trendInspectorTimestamp(currentDate))
     )

@@ -3,6 +3,7 @@ import SwiftUI
 struct TrafficStatisticsView: View {
   @ObservedObject var controller: TrafficStatisticsController
   @ObservedObject var monitor: TrafficMonitor
+  @Binding var selectedSection: ProxyTrafficSection
 
   @State private var filter = TrafficStatisticsFilter.all
   @State private var editor: TrafficIntervalEditor?
@@ -17,24 +18,23 @@ struct TrafficStatisticsView: View {
 
       Divider()
 
-      VStack(alignment: .leading, spacing: 14) {
-        TrafficStatisticsNoticeView(
-          controller: controller,
-          isMonitoringAvailable: isMonitoringAvailable
-        )
-        TrafficStatisticsTotalsView(
-          todayBytes: controller.snapshot.today.proxy.total,
-          lifetimeBytes: controller.snapshot.lifetime.proxy.total,
-          activeCount: controller.activeIntervals.count
-        )
-        editorContent
-        deletionConfirmation
-        filterPicker
-        table
+      Group {
+        switch selectedSection {
+        case .statistics:
+          TrafficStatisticsTaskContentView(
+            controller: controller,
+            isMonitoringAvailable: isMonitoringAvailable,
+            filter: $filter,
+            editor: $editor,
+            intervalPendingDeletion: $intervalPendingDeletion
+          )
+        case .liveConnections:
+          LiveConnectionAnalyticsView(monitor: monitor)
+        }
       }
       .padding(20)
     }
-    .frame(minWidth: 680, minHeight: 520)
+    .frame(minWidth: 760, minHeight: 560)
     .confirmationDialog(
       "清空本地统计？",
       isPresented: $showsClearConfirmation
@@ -51,22 +51,60 @@ struct TrafficStatisticsView: View {
       }
       Button("取消", role: .cancel) {}
     } message: {
-      Text("账本和全部统计任务会被删除；服务地址与访问密钥（Secret）会保留。")
+      Text("核心流量账本、全部统计任务和连接归因历史会被删除；服务地址与访问密钥（Secret）会保留。")
     }
   }
 
   private var header: some View {
+    ViewThatFits(in: .horizontal) {
+      wideHeader
+      compactHeader
+    }
+  }
+
+  private var wideHeader: some View {
     HStack(alignment: .center, spacing: 12) {
-      VStack(alignment: .leading, spacing: 3) {
-        Text("Proxy 流量统计")
-          .font(.title2.weight(.semibold))
-        Text("管理秒表式统计任务，并查看本机 Proxy 累计。")
-          .font(.caption)
-          .foregroundStyle(.secondary)
-      }
+      headerTitle
+        .fixedSize(horizontal: true, vertical: false)
 
       Spacer()
 
+      headerControls
+    }
+  }
+
+  private var compactHeader: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      headerTitle
+
+      HStack(spacing: 12) {
+        sectionPicker
+        Spacer()
+        statisticsActions
+      }
+    }
+  }
+
+  private var headerTitle: some View {
+    VStack(alignment: .leading, spacing: 3) {
+      Text("Proxy 流量")
+        .font(.title2.weight(.semibold))
+      Text(headerSubtitle)
+        .font(.caption)
+        .foregroundStyle(.secondary)
+    }
+  }
+
+  private var headerControls: some View {
+    HStack(spacing: 12) {
+      sectionPicker
+      statisticsActions
+    }
+  }
+
+  @ViewBuilder
+  private var statisticsActions: some View {
+    if selectedSection == .statistics {
       Button("开始统计") {
         intervalPendingDeletion = nil
         editor = .create(initialName: suggestedName)
@@ -87,108 +125,24 @@ struct TrafficStatisticsView: View {
     }
   }
 
-  @ViewBuilder
-  private var editorContent: some View {
-    if let editor {
-      switch editor {
-      case .create(let initialName):
-        TrafficIntervalNameEditor(
-          title: "新建统计任务",
-          initialName: initialName,
-          actionTitle: "开始",
-          cancel: {
-            self.editor = nil
-          },
-          submit: { name in
-            await controller.startInterval(name: name)
-            let succeeded = controller.operationMessage == nil
-            if succeeded {
-              filter = .active
-            }
-            return succeeded
-          }
-        )
-        .id(editor.id)
-      case .rename(let interval):
-        TrafficIntervalNameEditor(
-          title: "重命名“\(interval.name)”",
-          initialName: interval.name,
-          actionTitle: "保存",
-          cancel: {
-            self.editor = nil
-          },
-          submit: { name in
-            await controller.renameInterval(id: interval.id, name: name)
-            return controller.operationMessage == nil
-          }
-        )
-        .id(editor.id)
-      }
-    }
-  }
-
-  @ViewBuilder
-  private var deletionConfirmation: some View {
-    if let interval = intervalPendingDeletion {
-      HStack(spacing: 10) {
-        Image(systemName: "trash")
-          .foregroundStyle(MihomoColorToken.statusDanger)
-        Text("确认删除“\(interval.name)”？只删除该任务，不影响底层累计。")
-          .font(.callout)
-          .lineLimit(2)
-
-        Spacer()
-
-        Button("取消") {
-          intervalPendingDeletion = nil
-        }
-        Button("删除", role: .destructive) {
-          Task {
-            await controller.deleteInterval(id: interval.id)
-            if controller.operationMessage == nil {
-              intervalPendingDeletion = nil
-            }
-          }
-        }
-      }
-      .padding(10)
-      .background(
-        MihomoColorToken.statusDangerBackground,
-        in: RoundedRectangle(cornerRadius: 9)
-      )
-    }
-  }
-
-  private var filterPicker: some View {
-    Picker("统计任务范围", selection: $filter) {
-      ForEach(TrafficStatisticsFilter.allCases) { filter in
-        Text(filter.title).tag(filter)
+  private var sectionPicker: some View {
+    Picker("Proxy 流量范围", selection: $selectedSection) {
+      ForEach(ProxyTrafficSection.allCases) { section in
+        Text(section.title).tag(section)
       }
     }
     .pickerStyle(.segmented)
     .labelsHidden()
-    .frame(maxWidth: 360)
+    .frame(width: 280)
   }
 
-  private var table: some View {
-    TrafficStatisticsTable(
-      intervals: filter.intervals(from: controller.snapshot.intervals),
-      isStatisticsAvailable: controller.availability.isAvailable,
-      emptyMessage: emptyMessage,
-      stop: { interval in
-        Task {
-          await controller.stopInterval(id: interval.id)
-        }
-      },
-      rename: { interval in
-        intervalPendingDeletion = nil
-        editor = .rename(interval)
-      },
-      delete: { interval in
-        editor = nil
-        intervalPendingDeletion = interval
-      }
-    )
+  private var headerSubtitle: String {
+    switch selectedSection {
+    case .statistics:
+      "管理秒表式统计任务，并查看本机 Proxy 累计。"
+    case .liveConnections:
+      "查看当前 Proxy 与 DIRECT 连接的速率、累计和识别信息。"
+    }
   }
 
   private var isMonitoringAvailable: Bool {
@@ -207,25 +161,45 @@ struct TrafficStatisticsView: View {
   private var suggestedName: String {
     TrafficStatisticsPresentation.suggestedIntervalName(from: controller.snapshot.intervals)
   }
+}
 
-  private var emptyMessage: String {
-    switch filter {
-    case .active:
-      return "当前没有进行中的任务。"
-    case .history:
-      return "尚无已完成或已中断的任务。"
-    case .all:
-      return "点击“开始统计”创建第一个任务。"
+enum ProxyTrafficSection: String, CaseIterable, Identifiable {
+  case statistics
+  case liveConnections
+
+  var id: Self {
+    self
+  }
+
+  var title: String {
+    switch self {
+    case .statistics:
+      "流量统计"
+    case .liveConnections:
+      "实时连接"
     }
   }
 }
 
-private enum TrafficIntervalEditor: Identifiable {
-  case create(initialName: String)
-  case rename(TrafficInterval)
+struct TrafficIntervalEditor: Identifiable {
+  enum Kind {
+    case create
+    case rename(TrafficInterval)
+  }
+
+  let kind: Kind
+  var draftName: String
+
+  static func create(initialName: String) -> TrafficIntervalEditor {
+    TrafficIntervalEditor(kind: .create, draftName: initialName)
+  }
+
+  static func rename(_ interval: TrafficInterval) -> TrafficIntervalEditor {
+    TrafficIntervalEditor(kind: .rename(interval), draftName: interval.name)
+  }
 
   var id: String {
-    switch self {
+    switch kind {
     case .create:
       return "create"
     case .rename(let interval):

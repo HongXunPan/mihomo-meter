@@ -10,6 +10,7 @@ final class TrafficMonitor: ObservableObject {
   private let configurationStore: ControllerConfigurationStore
   private let coordinator: TrafficMonitoringCoordinator
   private let statisticsRecorder: any TrafficStatisticsRecording
+  private let connectionAnalyticsRecorder: any ConnectionAnalyticsRecording
   private let runtimeQuotaLifecycle: any RuntimeQuotaTrackingLifecycle
   private let profileQuotaLifecycle: any ProfileQuotaTrackingLifecycle
 
@@ -27,6 +28,18 @@ final class TrafficMonitor: ObservableObject {
 
   var coverage: Double? {
     state.coverage
+  }
+
+  var attributionCoverage: ConnectionAttributionCoverage {
+    state.attributionCoverage
+  }
+
+  var liveProxyConnections: [LiveTrafficConnection] {
+    state.liveProxyConnections
+  }
+
+  var liveDirectConnections: [LiveTrafficConnection] {
+    state.liveDirectConnections
   }
 
   var activeProxyLeaves: [String] {
@@ -83,6 +96,8 @@ final class TrafficMonitor: ObservableObject {
     diagnosticLogger: any AppDiagnosticLogging = NoOpAppDiagnosticLogger.shared,
     livenessPolicy: ConnectionLivenessWatchdog.Policy = .production,
     statisticsRecorder: any TrafficStatisticsRecording = NoOpTrafficStatisticsRecorder.shared,
+    connectionAnalyticsRecorder: any ConnectionAnalyticsRecording =
+      NoOpConnectionAnalyticsRecorder.shared,
     runtimeQuotaLifecycle: any RuntimeQuotaTrackingLifecycle =
       NoOpRuntimeQuotaTrackingLifecycle.shared,
     profileQuotaLifecycle: any ProfileQuotaTrackingLifecycle =
@@ -95,6 +110,7 @@ final class TrafficMonitor: ObservableObject {
     )
     self.configurationStore = configurationStore
     self.statisticsRecorder = statisticsRecorder
+    self.connectionAnalyticsRecorder = connectionAnalyticsRecorder
     self.runtimeQuotaLifecycle = runtimeQuotaLifecycle
     self.profileQuotaLifecycle = profileQuotaLifecycle
     address = configurationStore.storedAddress
@@ -105,7 +121,8 @@ final class TrafficMonitor: ObservableObject {
       configurationStore: configurationStore,
       diagnosticLogger: diagnosticLogger,
       livenessPolicy: livenessPolicy,
-      statisticsRecorder: statisticsRecorder
+      statisticsRecorder: statisticsRecorder,
+      connectionAnalyticsRecorder: connectionAnalyticsRecorder
     )
   }
 
@@ -146,6 +163,7 @@ final class TrafficMonitor: ObservableObject {
     stopConnection(source: .userDisconnect)
     Task {
       await statisticsRecorder.interruptMonitoring(at: Date())
+      await connectionAnalyticsRecorder.flushPending()
     }
   }
 
@@ -153,6 +171,7 @@ final class TrafficMonitor: ObservableObject {
     await coordinator.stopAndWait(source: .applicationTermination) { [weak self] event in
       self?.apply(event)
     }
+    await connectionAnalyticsRecorder.flushPending()
   }
 
   private func startConnection(trigger: ConnectionAttemptTrigger) {

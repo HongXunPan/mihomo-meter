@@ -26,6 +26,7 @@ struct ApplicationRuntimeEnvironment: Sendable {
 final class AppDelegate: NSObject, NSApplicationDelegate {
   private var trafficMonitor: TrafficMonitor?
   private var statisticsController: TrafficStatisticsController?
+  private var connectionAnalyticsController: ConnectionAnalyticsController?
   private var quotaController: RuntimeQuotaTrackingController?
   private var profileQuotaController: ProfileQuotaTrackingController?
   private var profileDirectoryController: ClashProfileDirectoryController?
@@ -39,10 +40,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       return
     }
 
+    let trafficLedger = SQLiteTrafficLedger(
+      databaseURL: TrafficLedgerLocation.defaultDatabaseURL()
+    )
+    let connectionAnalyticsController = ConnectionAnalyticsController(
+      ledger: SQLiteConnectionAnalyticsLedger(
+        databaseURL: ConnectionAnalyticsLedgerLocation.defaultDatabaseURL()
+      ),
+      proxyDailyTraffic: trafficLedger
+    )
     let statisticsController = TrafficStatisticsController(
-      ledger: SQLiteTrafficLedger(
-        databaseURL: TrafficLedgerLocation.defaultDatabaseURL()
-      )
+      ledger: trafficLedger,
+      connectionAnalyticsHistory: connectionAnalyticsController
     )
     let mihomoClient = MihomoControllerClient()
     let quotaLedger = SQLiteQuotaLedger(
@@ -80,12 +89,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       client: mihomoClient,
       diagnosticLogger: AppDiagnosticLogger.shared,
       statisticsRecorder: statisticsController,
+      connectionAnalyticsRecorder: connectionAnalyticsController,
       runtimeQuotaLifecycle: quotaController,
       profileQuotaLifecycle: profileQuotaController
     )
     let updateModel = AppUpdateModel()
     trafficMonitor = monitor
     self.statisticsController = statisticsController
+    self.connectionAnalyticsController = connectionAnalyticsController
     self.quotaController = quotaController
     self.profileQuotaController = profileQuotaController
     self.profileDirectoryController = profileDirectoryController
@@ -95,6 +106,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       dependencies: AppPresentationCoordinator.Dependencies(
         monitor: monitor,
         statisticsController: statisticsController,
+        connectionAnalyticsController: connectionAnalyticsController,
         quotaController: quotaController,
         profileQuotaController: profileQuotaController,
         profileController: profileDirectoryController,
@@ -110,6 +122,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         .applicationLaunched(AppCodeSigningInspector.currentSummary())
       )
       await statisticsController.prepare()
+      await connectionAnalyticsController.prepare()
       await quotaController.prepare()
       await profileQuotaController.prepare()
       await profileDirectoryController.prepare()

@@ -140,6 +140,7 @@ final class MihomoMonitoringSession {
       guard livenessWatchdog.isCurrentStream(streamID) else {
         return
       }
+      measurementSession.resetBaseline()
       await eventHandler(
         .dataStale(
           staleTimeoutSeconds: livenessWatchdog.policy.staleTimeoutSeconds,

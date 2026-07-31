@@ -2,6 +2,7 @@ import SwiftUI
 
 enum StatisticsModule: String, CaseIterable, Identifiable, Hashable {
   case proxyTraffic
+  case connectionAnalytics
   case subscriptionQuota
 
   var id: String {
@@ -12,6 +13,8 @@ enum StatisticsModule: String, CaseIterable, Identifiable, Hashable {
     switch self {
     case .proxyTraffic:
       "Proxy 流量"
+    case .connectionAnalytics:
+      "连接分析"
     case .subscriptionQuota:
       "订阅余额"
     }
@@ -21,6 +24,8 @@ enum StatisticsModule: String, CaseIterable, Identifiable, Hashable {
     switch self {
     case .proxyTraffic:
       "chart.bar.xaxis"
+    case .connectionAnalytics:
+      "point.3.connected.trianglepath.dotted"
     case .subscriptionQuota:
       "chart.line.downtrend.xyaxis"
     }
@@ -30,16 +35,19 @@ enum StatisticsModule: String, CaseIterable, Identifiable, Hashable {
 @MainActor
 final class StatisticsWorkspaceModel: ObservableObject {
   @Published var selectedModule = StatisticsModule.proxyTraffic
+  @Published var selectedProxyTrafficSection = ProxyTrafficSection.statistics
 }
 
 struct StatisticsWorkspaceView: View {
   @ObservedObject var model: StatisticsWorkspaceModel
   @ObservedObject var trafficController: TrafficStatisticsController
+  @ObservedObject var connectionAnalyticsController: ConnectionAnalyticsController
   @ObservedObject var quotaController: RuntimeQuotaTrackingController
   @ObservedObject var profileQuotaController: ProfileQuotaTrackingController
   @ObservedObject var profileController: ClashProfileDirectoryController
   @ObservedObject var subscriptionQuotaDataController: SubscriptionQuotaDataController
   @ObservedObject var monitor: TrafficMonitor
+  let showConnectionTrend: (ConnectionAnalyticsTrendTarget) -> Void
 
   var body: some View {
     NavigationSplitView {
@@ -54,7 +62,13 @@ struct StatisticsWorkspaceView: View {
       case .proxyTraffic:
         TrafficStatisticsView(
           controller: trafficController,
-          monitor: monitor
+          monitor: monitor,
+          selectedSection: $model.selectedProxyTrafficSection
+        )
+      case .connectionAnalytics:
+        ConnectionAnalyticsView(
+          controller: connectionAnalyticsController,
+          showTrend: showConnectionTrend
         )
       case .subscriptionQuota:
         SubscriptionQuotaStatisticsView(

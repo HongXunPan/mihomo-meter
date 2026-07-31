@@ -140,6 +140,7 @@ struct QuotaCumulativeTrendChart: View {
     .accessibilityValue(accessibilityValue(model: model, dateDomain: dateDomain))
 
     chart
+      .allowsHitTesting(!isCompact)
       .chartXAxis {
         AxisMarks(values: .automatic(desiredCount: isCompact ? 3 : 4)) { value in
           AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5, dash: [3, 3]))
@@ -269,14 +270,14 @@ struct QuotaCumulativeTrendChart: View {
 
   private var plotHeight: CGFloat {
     if isCompact {
-      return 100
+      return 108
     }
     return isExpanded ? 245 : 190
   }
 
   private var chartHeight: CGFloat {
     if isCompact {
-      return 182
+      return 190
     }
     return isExpanded ? 270 : 215
   }

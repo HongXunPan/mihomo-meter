@@ -300,7 +300,12 @@ final class SQLiteTrafficLedgerTests: SQLiteTrafficLedgerTestCase {
     )
 
     let snapshot = try await ledger.clear(calendar: calendar, now: start.addingTimeInterval(2))
-    XCTAssertEqual(snapshot, .empty)
+    XCTAssertEqual(snapshot.today, .zero)
+    XCTAssertEqual(snapshot.lifetime, .zero)
+    XCTAssertTrue(snapshot.intervals.isEmpty)
+    XCTAssertEqual(snapshot.recentProxyDays.count, 30)
+    XCTAssertTrue(snapshot.recentProxyDays.allSatisfy { $0.bytes == .zero })
+    XCTAssertNil(snapshot.lastObservedAt)
 
     let afterFreshBaseline = try await ledger.record(
       delta(

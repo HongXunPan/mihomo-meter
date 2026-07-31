@@ -3,17 +3,17 @@ import SwiftUI
 struct SubscriptionQuotaMetricsView: View {
   let quota: SubscriptionQuotaSnapshot
   let trend: QuotaTrend
-  var isCompact = false
+  let depletionForecast: QuotaDepletionForecast
 
   var body: some View {
-    VStack(alignment: .leading, spacing: isCompact ? 9 : 13) {
+    VStack(alignment: .leading, spacing: 13) {
       HStack(alignment: .firstTextBaseline) {
         VStack(alignment: .leading, spacing: 2) {
           Text("剩余流量")
             .font(.caption)
             .foregroundStyle(.secondary)
           Text(SubscriptionQuotaFormatter.bytes(quota.traffic.remainingBytes))
-            .font(isCompact ? .title2 : .largeTitle)
+            .font(.largeTitle)
             .monospacedDigit()
             .fontWeight(.semibold)
         }
@@ -26,10 +26,7 @@ struct SubscriptionQuotaMetricsView: View {
       }
 
       ProgressView(value: remainingFraction)
-        .tint(
-          quota.traffic.isOverQuota
-            ? MihomoColorToken.statusDanger : Color.accentColor
-        )
+        .tint(progressColor)
         .accessibilityLabel("剩余流量比例")
         .accessibilityValue(
           quota.traffic.isOverQuota
@@ -59,20 +56,18 @@ struct SubscriptionQuotaMetricsView: View {
 
       cumulativeTrendSummary
 
-      QuotaCumulativeTrendChart(trend: trend, isCompact: isCompact)
+      QuotaCumulativeTrendChart(trend: trend)
 
       HStack {
         Spacer()
-        Text(SubscriptionQuotaFormatter.depletion(trend))
+        Text(SubscriptionQuotaFormatter.depletion(depletionForecast))
       }
       .font(.caption2)
       .foregroundStyle(.secondary)
 
-      if !isCompact {
-        Text(SubscriptionQuotaFormatter.expiration(quota.expireAt))
-          .font(.caption)
-          .foregroundStyle(.secondary)
-      }
+      Text(SubscriptionQuotaFormatter.expiration(quota.expireAt))
+        .font(.caption)
+        .foregroundStyle(.secondary)
     }
   }
 
@@ -81,6 +76,11 @@ struct SubscriptionQuotaMetricsView: View {
       Double(quota.traffic.remainingBytes) / Double(quota.traffic.totalBytes),
       1
     )
+  }
+
+  private var progressColor: Color {
+    quota.traffic.isOverQuota
+      ? MihomoColorToken.statusDanger : MihomoColorToken.brandPrimary
   }
 
   private var usageChartHeader: some View {

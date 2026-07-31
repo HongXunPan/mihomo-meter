@@ -42,6 +42,31 @@ final class TrafficMonitorReducerTests: XCTestCase {
     let result = TrafficMeasurementResult(
       activeProxyLeaves: ["Synthetic Proxy"],
       activeRuleTypes: ["DOMAIN", "RULE-SET"],
+      attributionCoverage: ConnectionAttributionCoverage(
+        proxyConnectionCount: 3,
+        hostnameIdentifiedCount: 2,
+        applicationIdentifiedCount: 1,
+        fullyIdentifiedCount: 1
+      ),
+      liveProxyConnections: [
+        LiveTrafficConnection(
+          id: "connection",
+          metadata: ConnectionMetadata(hostname: "example.com", applicationName: "Example"),
+          rate: TrafficRate(uploadBytesPerSecond: 100, downloadBytesPerSecond: 200),
+          cumulativeBytes: TrafficBytes(upload: 300, download: 400),
+          startedAt: nil
+        )
+      ],
+      liveDirectConnections: [
+        LiveTrafficConnection(
+          id: "direct-connection",
+          metadata: ConnectionMetadata(hostname: "direct.example", applicationName: "Direct"),
+          rate: TrafficRate(uploadBytesPerSecond: 10, downloadBytesPerSecond: 20),
+          cumulativeBytes: TrafficBytes(upload: 30, download: 40),
+          startedAt: nil
+        )
+      ],
+      connectionAttributionDeltas: [],
       requiresCatalogRefresh: false,
       ledgerObservation: TrafficLedgerObservation(
         observedAt: observedAt,
@@ -66,6 +91,9 @@ final class TrafficMonitorReducerTests: XCTestCase {
     XCTAssertEqual(state.coverage, 0.98)
     XCTAssertEqual(state.activeProxyLeaves, ["Synthetic Proxy"])
     XCTAssertEqual(state.activeRuleTypes, ["DOMAIN", "RULE-SET"])
+    XCTAssertEqual(state.attributionCoverage.proxyConnectionCount, 3)
+    XCTAssertEqual(state.liveProxyConnections.count, 1)
+    XCTAssertEqual(state.liveDirectConnections.count, 1)
     XCTAssertEqual(state.lastObservedAt, observedAt)
   }
 
@@ -87,6 +115,8 @@ final class TrafficMonitorReducerTests: XCTestCase {
     XCTAssertNil(state.coverage)
     XCTAssertEqual(state.activeProxyLeaves, [])
     XCTAssertEqual(state.activeRuleTypes, [])
+    XCTAssertTrue(state.liveProxyConnections.isEmpty)
+    XCTAssertTrue(state.liveDirectConnections.isEmpty)
     XCTAssertNil(state.lastObservedAt)
     XCTAssertEqual(state.mihomoVersion, "v-test")
     XCTAssertEqual(state.runtimeConfiguration, makeRuntimeConfiguration())
@@ -102,6 +132,24 @@ final class TrafficMonitorReducerTests: XCTestCase {
       rates: makeRates(download: 600, upload: 200),
       rawRates: makeRates(download: 800, upload: 300),
       coverage: 0.98,
+      liveProxyConnections: [
+        LiveTrafficConnection(
+          id: "connection",
+          metadata: ConnectionMetadata(hostname: "example.com", applicationName: "Example"),
+          rate: TrafficRate(uploadBytesPerSecond: 100, downloadBytesPerSecond: 200),
+          cumulativeBytes: TrafficBytes(upload: 300, download: 400),
+          startedAt: nil
+        )
+      ],
+      liveDirectConnections: [
+        LiveTrafficConnection(
+          id: "direct-connection",
+          metadata: ConnectionMetadata(hostname: "direct.example", applicationName: "Direct"),
+          rate: TrafficRate(uploadBytesPerSecond: 10, downloadBytesPerSecond: 20),
+          cumulativeBytes: TrafficBytes(upload: 30, download: 40),
+          startedAt: nil
+        )
+      ],
       activeProxyLeaves: ["Synthetic Proxy"],
       activeRuleTypes: ["DOMAIN"],
       runtimeConfiguration: makeRuntimeConfiguration(),

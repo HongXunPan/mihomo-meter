@@ -10,6 +10,7 @@ final class TrafficMonitoringRun {
   private let diagnosticLogger: any AppDiagnosticLogging
   private let livenessPolicy: ConnectionLivenessWatchdog.Policy
   private let statisticsRecorder: any TrafficStatisticsRecording
+  private let connectionAnalyticsRecorder: any ConnectionAnalyticsRecording
 
   private var activeSession: MihomoMonitoringSession?
   private var hasEstablishedCurrentSession = false
@@ -21,7 +22,8 @@ final class TrafficMonitoringRun {
     configurationStore: ControllerConfigurationStore,
     diagnosticLogger: any AppDiagnosticLogging,
     livenessPolicy: ConnectionLivenessWatchdog.Policy,
-    statisticsRecorder: any TrafficStatisticsRecording
+    statisticsRecorder: any TrafficStatisticsRecording,
+    connectionAnalyticsRecorder: any ConnectionAnalyticsRecording
   ) {
     self.client = client
     self.collector = collector
@@ -29,6 +31,7 @@ final class TrafficMonitoringRun {
     self.diagnosticLogger = diagnosticLogger
     self.livenessPolicy = livenessPolicy
     self.statisticsRecorder = statisticsRecorder
+    self.connectionAnalyticsRecorder = connectionAnalyticsRecorder
   }
 
   var currentSnapshotAgeMilliseconds: Int? {
@@ -180,6 +183,10 @@ final class TrafficMonitoringRun {
         await diagnosticLogger.record(.connectionEstablished)
       }
       await statisticsRecorder.record(result.ledgerObservation)
+      await connectionAnalyticsRecorder.record(
+        result.connectionAttributionDeltas,
+        at: result.ledgerObservation.observedAt
+      )
       eventHandler(.measurement(result))
     case .dataStale(
       let staleTimeoutSeconds,

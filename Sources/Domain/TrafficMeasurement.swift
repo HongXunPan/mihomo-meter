@@ -1,3 +1,5 @@
+import Foundation
+
 struct TrafficBytes: Equatable, Sendable {
   let upload: UInt64
   let download: UInt64
@@ -51,17 +53,27 @@ struct ConnectionTrafficSample: Equatable, Sendable {
   let bytes: TrafficBytes
   let chains: [String]
   let rule: String?
+  let metadata: ConnectionMetadata
+  let startedAt: Date?
+
+  var metadataAvailability: ConnectionMetadataAvailability {
+    metadata.availability
+  }
 
   init(
     id: String,
     bytes: TrafficBytes,
     chains: [String],
-    rule: String? = nil
+    rule: String? = nil,
+    metadata: ConnectionMetadata = .unavailable,
+    startedAt: Date? = nil
   ) {
     self.id = id
     self.bytes = bytes
     self.chains = chains
     self.rule = rule
+    self.metadata = metadata
+    self.startedAt = startedAt
   }
 }
 
@@ -133,6 +145,40 @@ struct TrafficDeltaReport: Equatable, Sendable {
 
     return min(Double(categories.classified.total) / Double(kernelTotal), 1)
   }
+}
+
+struct ConnectionTrafficDelta: Equatable, Sendable {
+  let id: String
+  let category: TrafficCategory
+  let bytes: TrafficBytes
+  let cumulativeBytes: TrafficBytes
+  let metadata: ConnectionMetadata
+  let startedAt: Date?
+}
+
+struct ConnectionDeltaBatch: Equatable, Sendable {
+  let traffic: TrafficDeltaReport
+  let connections: [ConnectionTrafficDelta]
+}
+
+struct LiveTrafficConnection: Equatable, Identifiable, Sendable {
+  let id: String
+  let metadata: ConnectionMetadata
+  let rate: TrafficRate
+  let cumulativeBytes: TrafficBytes
+  let startedAt: Date?
+
+  var totalBytesPerSecond: UInt64 {
+    let (total, overflowed) = rate.uploadBytesPerSecond.addingReportingOverflow(
+      rate.downloadBytesPerSecond
+    )
+    return overflowed ? UInt64.max : total
+  }
+}
+
+struct ConnectionAttributionDelta: Equatable, Sendable {
+  let metadata: ConnectionMetadata
+  let bytes: TrafficBytes
 }
 
 struct CategorizedTrafficRates: Equatable, Sendable {

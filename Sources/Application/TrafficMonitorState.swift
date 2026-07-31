@@ -5,6 +5,9 @@ struct TrafficMonitorState: Equatable, Sendable {
   var rates: CategorizedTrafficRates = .zero
   var rawRates: CategorizedTrafficRates = .zero
   var coverage: Double?
+  var attributionCoverage = ConnectionAttributionCoverage.empty
+  var liveProxyConnections: [LiveTrafficConnection] = []
+  var liveDirectConnections: [LiveTrafficConnection] = []
   var activeProxyLeaves: [String] = []
   var activeRuleTypes: [String] = []
   var runtimeConfiguration: MihomoRuntimeConfiguration?
@@ -16,6 +19,9 @@ struct TrafficMonitorState: Equatable, Sendable {
     rates = .zero
     rawRates = .zero
     coverage = nil
+    attributionCoverage = .empty
+    liveProxyConnections = []
+    liveDirectConnections = []
     activeProxyLeaves = []
     activeRuleTypes = []
     lastObservedAt = nil

@@ -19,14 +19,17 @@ final class TrafficStatisticsController: ObservableObject, TrafficStatisticsReco
 
   private let ledger: any TrafficLedgerStoring
   private let calendarOverride: Calendar?
+  private let connectionAnalyticsHistory: (any ConnectionAnalyticsHistoryClearing)?
   private let now: @MainActor () -> Date
 
   init(
     ledger: any TrafficLedgerStoring,
+    connectionAnalyticsHistory: (any ConnectionAnalyticsHistoryClearing)? = nil,
     calendar: Calendar? = nil,
     now: @escaping @MainActor () -> Date = Date.init
   ) {
     self.ledger = ledger
+    self.connectionAnalyticsHistory = connectionAnalyticsHistory
     calendarOverride = calendar
     self.now = now
   }
@@ -124,7 +127,11 @@ final class TrafficStatisticsController: ObservableObject, TrafficStatisticsReco
     do {
       snapshot = try await ledger.clear(calendar: calendar, now: now())
       availability = .available
-      operationMessage = nil
+      let didClearAnalytics = await connectionAnalyticsHistory?.clearHistory() ?? true
+      operationMessage =
+        didClearAnalytics
+        ? nil
+        : "核心流量统计已清空，但连接归因历史未能清空，请稍后在连接分析中重试。"
     } catch {
       setUnavailable(error)
     }

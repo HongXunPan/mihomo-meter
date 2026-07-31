@@ -1,5 +1,18 @@
 import Foundation
 
+enum MihomoProcessMatchingMode: String, Equatable, Sendable {
+  case always
+  case strict
+  case off
+
+  init?(configurationValue: String?) {
+    guard let value = configurationValue?.trimmingCharacters(in: .whitespacesAndNewlines) else {
+      return nil
+    }
+    self.init(rawValue: value.lowercased())
+  }
+}
+
 struct MihomoRuntimeConfiguration: Equatable, Sendable {
   struct ExternalResourceUserAgent: Equatable, Sendable {
     enum Source: Equatable, Sendable {
@@ -24,6 +37,7 @@ struct MihomoRuntimeConfiguration: Equatable, Sendable {
   let httpPort: Int?
   let socksPort: Int?
   let globalUserAgent: String?
+  let processMatchingMode: MihomoProcessMatchingMode?
 
   init(
     mode: String?,
@@ -33,7 +47,8 @@ struct MihomoRuntimeConfiguration: Equatable, Sendable {
     mixedPort: Int?,
     httpPort: Int? = nil,
     socksPort: Int? = nil,
-    globalUserAgent: String? = nil
+    globalUserAgent: String? = nil,
+    processMatchingMode: MihomoProcessMatchingMode? = nil
   ) {
     self.mode = mode
     self.tun = tun
@@ -43,6 +58,7 @@ struct MihomoRuntimeConfiguration: Equatable, Sendable {
     self.httpPort = httpPort
     self.socksPort = socksPort
     self.globalUserAgent = globalUserAgent
+    self.processMatchingMode = processMatchingMode
   }
 
   var externalResourceUserAgent: ExternalResourceUserAgent {

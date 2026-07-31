@@ -5,6 +5,7 @@ final class AppPresentationCoordinator {
   struct Dependencies {
     let monitor: TrafficMonitor
     let statisticsController: TrafficStatisticsController
+    let connectionAnalyticsController: ConnectionAnalyticsController
     let quotaController: RuntimeQuotaTrackingController
     let profileQuotaController: ProfileQuotaTrackingController
     let profileController: ClashProfileDirectoryController
@@ -36,6 +37,7 @@ final class AppPresentationCoordinator {
     self.dependencies = dependencies
     statisticsWindowController = TrafficStatisticsWindowController(
       controller: dependencies.statisticsController,
+      connectionAnalyticsController: dependencies.connectionAnalyticsController,
       quotaController: dependencies.quotaController,
       profileQuotaController: dependencies.profileQuotaController,
       profileController: dependencies.profileController,

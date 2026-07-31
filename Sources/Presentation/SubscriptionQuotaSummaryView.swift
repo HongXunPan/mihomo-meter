@@ -3,7 +3,6 @@ import SwiftUI
 struct SubscriptionQuotaSummaryView: View {
   @ObservedObject var controller: RuntimeQuotaTrackingController
   @ObservedObject var profileQuotaController: ProfileQuotaTrackingController
-  let showAllStatistics: () -> Void
 
   @State private var showsConfirmation = false
 
@@ -11,30 +10,27 @@ struct SubscriptionQuotaSummaryView: View {
     VStack(alignment: .leading, spacing: 12) {
       header
       if hasTrackedProfiles {
-        ProfileQuotaAccordionView(controller: profileQuotaController)
-      } else {
-        SubscriptionQuotaObservationNoticeView(controller: controller)
+        ProfileQuotaProgressListView(controller: profileQuotaController)
+      } else if let subscription = controller.snapshot.subscription {
+        SubscriptionQuotaProgressRow(
+          title: subscription.name,
+          isCurrent: true,
+          quota: controller.snapshot.latestQuota,
+          status: nil,
+          forecast: controller.snapshot.trends.depletionForecast
+        )
 
-        if let quota = controller.snapshot.latestQuota {
-          SubscriptionQuotaMetricsView(
-            quota: quota,
-            trend: controller.snapshot.trends.day,
-            isCompact: true
-          )
-
-          if controller.snapshot.analysis.pendingCycleConfirmation != nil {
-            QuotaCycleConfirmationView {
-              await controller.confirmCurrentCycle()
-            }
-          }
-        } else {
-          emptyState
+        if controller.snapshot.latestQuota == nil || controller.snapshot.isPaused {
+          SubscriptionQuotaObservationNoticeView(controller: controller)
         }
 
         confirmationAction
-      }
+      } else {
+        SubscriptionQuotaObservationNoticeView(controller: controller)
 
-      showAllAction
+        emptyState
+        confirmationAction
+      }
     }
     .confirmationDialog(
       confirmationTitle,
@@ -101,26 +97,6 @@ struct SubscriptionQuotaSummaryView: View {
       .buttonStyle(.borderedProminent)
       .controlSize(.small)
       .frame(maxWidth: .infinity, alignment: .trailing)
-    }
-  }
-
-  private var showAllAction: some View {
-    VStack(spacing: 8) {
-      Divider()
-
-      Button(action: showAllStatistics) {
-        HStack(spacing: 8) {
-          Image(systemName: "rectangle.grid.2x2")
-          Text("查看订阅余额统计")
-          Spacer()
-          Image(systemName: "chevron.right")
-            .font(.caption.weight(.semibold))
-            .foregroundStyle(.tertiary)
-        }
-        .contentShape(Rectangle())
-      }
-      .buttonStyle(.borderless)
-      .accessibilityHint("打开统一统计窗口的订阅余额模块")
     }
   }
 

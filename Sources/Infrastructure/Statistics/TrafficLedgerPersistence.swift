@@ -184,6 +184,38 @@ final class TrafficLedgerPersistence {
     return totals
   }
 
+  func dailyTotals(
+    category: TrafficCategory,
+    since cutoffLocalDay: String
+  ) throws -> [TrafficDailyTotal] {
+    let statement = try connection.prepare(
+      """
+      SELECT local_day, upload_bytes, download_bytes
+      FROM traffic_daily_totals
+      WHERE category = ? AND local_day >= ?
+      ORDER BY local_day ASC
+      """
+    )
+    try statement.bind(category.rawValue, at: 1)
+    try statement.bind(cutoffLocalDay, at: 2)
+    var totals: [TrafficDailyTotal] = []
+    while try statement.step() == SQLITE_ROW {
+      guard let localDay = statement.text(at: 0) else {
+        throw TrafficStatisticsError.database("每日统计日期无效")
+      }
+      totals.append(
+        TrafficDailyTotal(
+          localDay: localDay,
+          bytes: TrafficBytes(
+            upload: UInt64(statement.int64(at: 1)),
+            download: UInt64(statement.int64(at: 2))
+          )
+        )
+      )
+    }
+    return totals
+  }
+
   func transaction<Result>(_ body: () throws -> Result) throws -> Result {
     try connection.transaction(body)
   }
