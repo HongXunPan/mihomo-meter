@@ -76,6 +76,9 @@
 		D34400000000000000000201 /* StatusMenuQuotaTrendView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D34400000000000000000101 /* StatusMenuQuotaTrendView.swift */; };
 		D34500000000000000000201 /* StatusMenuQuotaMetricsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D34500000000000000000101 /* StatusMenuQuotaMetricsView.swift */; };
 		D34600000000000000000201 /* StatusMenuQuotaTrendMenuCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D34600000000000000000101 /* StatusMenuQuotaTrendMenuCoordinator.swift */; };
+		D34700000000000000000201 /* StatusMenuTrafficTasksMenuCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D34700000000000000000101 /* StatusMenuTrafficTasksMenuCoordinator.swift */; };
+		D34800000000000000000201 /* StatusMenuTrafficTaskRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D34800000000000000000101 /* StatusMenuTrafficTaskRowView.swift */; };
+		D34900000000000000000201 /* StatusMenuTrafficTasksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D34900000000000000000101 /* StatusMenuTrafficTasksView.swift */; };
 		A30000000000000000000204 /* TrafficRateAggregator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000104 /* TrafficRateAggregator.swift */; };
 		A30000000000000000000205 /* ProxyClassifierTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000105 /* ProxyClassifierTests.swift */; };
 		A30000000000000000000206 /* ConnectionDeltaTrackerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000106 /* ConnectionDeltaTrackerTests.swift */; };
@@ -336,6 +339,9 @@
 		D34400000000000000000101 /* StatusMenuQuotaTrendView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusMenuQuotaTrendView.swift; sourceTree = "<group>"; };
 		D34500000000000000000101 /* StatusMenuQuotaMetricsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusMenuQuotaMetricsView.swift; sourceTree = "<group>"; };
 		D34600000000000000000101 /* StatusMenuQuotaTrendMenuCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusMenuQuotaTrendMenuCoordinator.swift; sourceTree = "<group>"; };
+		D34700000000000000000101 /* StatusMenuTrafficTasksMenuCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusMenuTrafficTasksMenuCoordinator.swift; sourceTree = "<group>"; };
+		D34800000000000000000101 /* StatusMenuTrafficTaskRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusMenuTrafficTaskRowView.swift; sourceTree = "<group>"; };
+		D34900000000000000000101 /* StatusMenuTrafficTasksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusMenuTrafficTasksView.swift; sourceTree = "<group>"; };
 		A30000000000000000000104 /* TrafficRateAggregator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficRateAggregator.swift; sourceTree = "<group>"; };
 		A30000000000000000000105 /* ProxyClassifierTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProxyClassifierTests.swift; sourceTree = "<group>"; };
 		A30000000000000000000106 /* ConnectionDeltaTrackerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionDeltaTrackerTests.swift; sourceTree = "<group>"; };
@@ -708,6 +714,9 @@
 				D34500000000000000000101 /* StatusMenuQuotaMetricsView.swift */,
 				D34600000000000000000101 /* StatusMenuQuotaTrendMenuCoordinator.swift */,
 				D34400000000000000000101 /* StatusMenuQuotaTrendView.swift */,
+				D34800000000000000000101 /* StatusMenuTrafficTaskRowView.swift */,
+				D34700000000000000000101 /* StatusMenuTrafficTasksMenuCoordinator.swift */,
+				D34900000000000000000101 /* StatusMenuTrafficTasksView.swift */,
 				BS0000000000000000000107 /* StatisticsWorkspaceView.swift */,
 				BS0000000000000000000101 /* SubscriptionQuotaFormatter.swift */,
 				BS0000000000000000000104 /* SubscriptionQuotaMetricsView.swift */,
@@ -1134,6 +1143,9 @@
 				D34500000000000000000201 /* StatusMenuQuotaMetricsView.swift in Sources */,
 				D34600000000000000000201 /* StatusMenuQuotaTrendMenuCoordinator.swift in Sources */,
 				D34400000000000000000201 /* StatusMenuQuotaTrendView.swift in Sources */,
+				D34800000000000000000201 /* StatusMenuTrafficTaskRowView.swift in Sources */,
+				D34700000000000000000201 /* StatusMenuTrafficTasksMenuCoordinator.swift in Sources */,
+				D34900000000000000000201 /* StatusMenuTrafficTasksView.swift in Sources */,
 				AQ0000000000000000000201 /* SparkleAppUpdater.swift in Sources */,
 				A30000000000000000000201 /* TrafficMeasurement.swift in Sources */,
 				A40000000000000000000203 /* TrafficMonitor.swift in Sources */,

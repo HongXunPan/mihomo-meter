@@ -47,6 +47,7 @@ final class MenuBarController: NSObject {
     configureStatusItem()
     statusItem.menu = statusMenuController.menu
     observeMonitor()
+    observeStatistics()
     observeUpdateAvailability()
   }
 
@@ -82,6 +83,9 @@ final class MenuBarController: NSObject {
         self?.performMenuAction {
           self?.actions.showControllerSettings()
         }
+      },
+      showTrafficStatistics: { [weak self] in
+        self?.showProxyTrafficStatistics()
       },
       proxyTrafficNavigationItem: makeProxyTrafficNavigationItem(),
       subscriptionQuotaNavigationItem: makeSubscriptionQuotaNavigationItem()
@@ -174,6 +178,18 @@ final class MenuBarController: NSObject {
       .removeDuplicates()
       .sink { [weak self] canCheckForUpdates in
         self?.updateMenuItem?.isEnabled = canCheckForUpdates
+      }
+      .store(in: &cancellables)
+  }
+
+  private func observeStatistics() {
+    statisticsController.$snapshot
+      .map { snapshot in
+        snapshot.intervals.count { $0.status == .active }
+      }
+      .removeDuplicates()
+      .sink { [weak self] _ in
+        self?.statusMenuController.refreshSummaries()
       }
       .store(in: &cancellables)
   }

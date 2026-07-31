@@ -7,12 +7,16 @@ import XCTest
 final class StatusMenuControllerTests: XCTestCase {
   func testConfiguredMenuKeepsNativeSubmenusAndNavigationBesideTheirSections() throws {
     var summary = "1 条活跃"
+    var taskCount = 3
+    var taskSummary = "3 个进行中"
     var quotaSummary = "2 个 Profile"
     var prepareCallCount = 0
     var quotaPrepareCallCount = 0
     let submenuContentSize = NSSize(width: 360, height: 214)
+    let trafficTasksContentSize = NSSize(width: 420, height: 470)
     let quotaTrendContentSize = NSSize(width: 380, height: 460)
     let trafficController = makeViewController()
+    let trafficTasksController = makeViewController()
     let quotaController = makeViewController()
     let proxyTrafficItem = NSMenuItem(title: "查看 Proxy 流量统计", action: nil, keyEquivalent: "")
     let subscriptionQuotaItem = NSMenuItem(
@@ -36,6 +40,15 @@ final class StatusMenuControllerTests: XCTestCase {
             viewController: trafficController,
             height: 420
           ),
+          submenuConfigurations: [
+            StatusMenuSubmenuConfiguration(
+              title: "统计任务",
+              badge: { NSMenuItemBadge(count: taskCount) },
+              accessibilitySummary: { taskSummary },
+              contentViewController: trafficTasksController,
+              contentSize: trafficTasksContentSize
+            )
+          ],
           navigationItem: proxyTrafficItem
         ),
         StatusMenuSectionConfiguration(
@@ -73,6 +86,12 @@ final class StatusMenuControllerTests: XCTestCase {
     XCTAssertFalse(submenuItem.isHidden)
 
     let trafficIndex = try XCTUnwrap(controller.menu.items.firstIndex { $0 === proxyTrafficItem })
+    let trafficTaskItem = try XCTUnwrap(
+      controller.menu.items.first { $0.title == "统计任务" }
+    )
+    let trafficTaskIndex = try XCTUnwrap(
+      controller.menu.items.firstIndex { $0 === trafficTaskItem }
+    )
     let quotaIndex = try XCTUnwrap(
       controller.menu.items.firstIndex { $0 === subscriptionQuotaItem }
     )
@@ -82,7 +101,15 @@ final class StatusMenuControllerTests: XCTestCase {
     let quotaTrendIndex = try XCTUnwrap(
       controller.menu.items.firstIndex { $0 === quotaTrendItem }
     )
-    XCTAssertTrue(controller.menu.items[trafficIndex - 1].view === trafficController.view)
+    XCTAssertEqual(trafficTaskIndex, trafficIndex - 1)
+    XCTAssertTrue(controller.menu.items[trafficTaskIndex - 1].view === trafficController.view)
+    XCTAssertEqual(trafficTaskItem.submenu?.items.count, 1)
+    XCTAssertTrue(trafficTaskItem.submenu?.items.first?.view === trafficTasksController.view)
+    XCTAssertEqual(
+      trafficTaskItem.submenu?.items.first?.view?.frame.size,
+      trafficTasksContentSize
+    )
+    XCTAssertEqual(trafficTaskItem.badge?.itemCount, 3)
     XCTAssertEqual(quotaTrendIndex, quotaIndex - 1)
     XCTAssertTrue(controller.menu.items[quotaTrendIndex - 1].view === quotaController.view)
     XCTAssertTrue(controller.menu.items[quotaTrendIndex - 2].isSeparatorItem)
@@ -99,10 +126,13 @@ final class StatusMenuControllerTests: XCTestCase {
     XCTAssertEqual(quotaController.view.frame.height, 360)
 
     summary = "暂无传输"
+    taskCount = 0
+    taskSummary = "未开始"
     quotaSummary = "暂无数据"
     controller.refreshSummaries()
 
     XCTAssertEqual(submenuItem.badge?.stringValue, "暂无传输")
+    XCTAssertEqual(trafficTaskItem.badge?.itemCount, 0)
     XCTAssertEqual(quotaTrendItem.badge?.stringValue, "暂无数据")
     XCTAssertEqual(quotaPrepareCallCount, 2)
 

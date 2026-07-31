@@ -3,8 +3,8 @@ import SwiftUI
 struct TrafficStatisticsView: View {
   @ObservedObject var controller: TrafficStatisticsController
   @ObservedObject var monitor: TrafficMonitor
+  @Binding var selectedSection: ProxyTrafficSection
 
-  @State private var selectedSection = ProxyTrafficSection.statistics
   @State private var filter = TrafficStatisticsFilter.all
   @State private var editor: TrafficIntervalEditor?
   @State private var intervalPendingDeletion: TrafficInterval?
@@ -163,7 +163,7 @@ struct TrafficStatisticsView: View {
   }
 }
 
-private enum ProxyTrafficSection: String, CaseIterable, Identifiable {
+enum ProxyTrafficSection: String, CaseIterable, Identifiable {
   case statistics
   case liveConnections
 

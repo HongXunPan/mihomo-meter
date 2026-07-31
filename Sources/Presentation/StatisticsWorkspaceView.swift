@@ -35,6 +35,7 @@ enum StatisticsModule: String, CaseIterable, Identifiable, Hashable {
 @MainActor
 final class StatisticsWorkspaceModel: ObservableObject {
   @Published var selectedModule = StatisticsModule.proxyTraffic
+  @Published var selectedProxyTrafficSection = ProxyTrafficSection.statistics
 }
 
 struct StatisticsWorkspaceView: View {
@@ -61,7 +62,8 @@ struct StatisticsWorkspaceView: View {
       case .proxyTraffic:
         TrafficStatisticsView(
           controller: trafficController,
-          monitor: monitor
+          monitor: monitor,
+          selectedSection: $model.selectedProxyTrafficSection
         )
       case .connectionAnalytics:
         ConnectionAnalyticsView(

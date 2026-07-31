@@ -61,6 +61,9 @@ final class TrafficStatisticsWindowController: NSWindowController {
   }
 
   func show(module: StatisticsModule) {
+    if module == .proxyTraffic {
+      workspaceModel.selectedProxyTrafficSection = .statistics
+    }
     workspaceModel.selectedModule = module
     showCurrentModule()
   }

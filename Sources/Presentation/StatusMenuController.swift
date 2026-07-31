@@ -9,7 +9,8 @@ struct StatusMenuContentConfiguration {
 @MainActor
 struct StatusMenuSubmenuConfiguration {
   let title: String
-  let summary: () -> String
+  let badge: () -> NSMenuItemBadge?
+  let accessibilitySummary: () -> String
   let contentViewController: NSViewController
   let contentSize: NSSize
   let prepareForPresentation: () -> Void
@@ -22,7 +23,27 @@ struct StatusMenuSubmenuConfiguration {
     prepareForPresentation: @escaping () -> Void = {}
   ) {
     self.title = title
-    self.summary = summary
+    badge = {
+      let value = summary()
+      return value.isEmpty ? nil : NSMenuItemBadge(string: value)
+    }
+    accessibilitySummary = summary
+    self.contentViewController = contentViewController
+    self.contentSize = contentSize
+    self.prepareForPresentation = prepareForPresentation
+  }
+
+  init(
+    title: String,
+    badge: @escaping () -> NSMenuItemBadge?,
+    accessibilitySummary: @escaping () -> String,
+    contentViewController: NSViewController,
+    contentSize: NSSize,
+    prepareForPresentation: @escaping () -> Void = {}
+  ) {
+    self.title = title
+    self.badge = badge
+    self.accessibilitySummary = accessibilitySummary
     self.contentViewController = contentViewController
     self.contentSize = contentSize
     self.prepareForPresentation = prepareForPresentation
@@ -138,8 +159,8 @@ final class StatusMenuController: NSObject, NSMenuDelegate {
     }
 
     for entry in submenuEntries {
-      let summary = entry.summary()
-      entry.item.badge = summary.isEmpty ? nil : NSMenuItemBadge(string: summary)
+      entry.item.badge = entry.badge()
+      let summary = entry.accessibilitySummary()
       entry.item.setAccessibilityLabel(
         summary.isEmpty ? entry.item.title : "\(entry.item.title)，\(summary)"
       )
@@ -213,7 +234,8 @@ final class StatusMenuController: NSObject, NSMenuDelegate {
     item.submenu = submenu
     return StatusMenuSubmenuEntry(
       item: item,
-      summary: configuration.summary,
+      badge: configuration.badge,
+      accessibilitySummary: configuration.accessibilitySummary,
       prepareForPresentation: configuration.prepareForPresentation
     )
   }
@@ -254,7 +276,8 @@ private struct StatusMenuContentEntry {
 @MainActor
 private struct StatusMenuSubmenuEntry {
   let item: NSMenuItem
-  let summary: () -> String
+  let badge: () -> NSMenuItemBadge?
+  let accessibilitySummary: () -> String
   let prepareForPresentation: () -> Void
 }
 

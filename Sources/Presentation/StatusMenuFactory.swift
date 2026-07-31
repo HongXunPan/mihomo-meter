@@ -10,6 +10,7 @@ struct StatusMenuFactory {
 
   func makeController(
     showControllerSettings: @escaping () -> Void,
+    showTrafficStatistics: @escaping () -> Void,
     proxyTrafficNavigationItem: NSMenuItem,
     subscriptionQuotaNavigationItem: NSMenuItem
   ) -> StatusMenuController {
@@ -35,6 +36,11 @@ struct StatusMenuFactory {
       controller: quotaController,
       profileQuotaController: profileQuotaController
     )
+    let trafficTasksCoordinator = StatusMenuTrafficTasksMenuCoordinator(
+      controller: statisticsController,
+      isMonitoringAvailable: trafficStatisticsMonitoringAvailable,
+      showStatistics: showTrafficStatistics
+    )
 
     return StatusMenuController(
       primaryContent: primaryContent,
@@ -42,6 +48,15 @@ struct StatusMenuFactory {
       sectionConfigurations: [
         StatusMenuSectionConfiguration(
           content: trafficSummaryContent,
+          submenuConfigurations: [
+            StatusMenuSubmenuConfiguration(
+              title: "统计任务",
+              badge: trafficTaskBadge,
+              accessibilitySummary: trafficTaskSummary,
+              contentViewController: trafficTasksCoordinator.contentViewController,
+              contentSize: StatusMenuLayout.trafficTasksSubmenuSize
+            )
+          ],
           navigationItem: proxyTrafficNavigationItem
         ),
         StatusMenuSectionConfiguration(
@@ -189,6 +204,35 @@ struct StatusMenuFactory {
         return "\(profileCount) 个 Profile"
       }
       return quotaController.snapshot.latestQuota == nil ? "暂无数据" : "轻量追踪"
+    }
+  }
+
+  private var trafficTaskSummary: () -> String {
+    {
+      TrafficStatisticsPresentation.activeIntervalSummary(
+        from: statisticsController.snapshot.intervals
+      )
+    }
+  }
+
+  private var trafficTaskBadge: () -> NSMenuItemBadge? {
+    {
+      NSMenuItemBadge(
+        count: TrafficStatisticsPresentation.activeIntervalCount(
+          from: statisticsController.snapshot.intervals
+        )
+      )
+    }
+  }
+
+  private var trafficStatisticsMonitoringAvailable: () -> Bool {
+    {
+      switch monitor.connectionState {
+      case .connected, .stale, .reconnecting:
+        true
+      case .disconnected, .connecting, .authenticationFailed, .unsupported:
+        false
+      }
     }
   }
 }

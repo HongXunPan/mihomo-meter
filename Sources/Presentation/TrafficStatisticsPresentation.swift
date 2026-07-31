@@ -33,22 +33,55 @@ enum TrafficStatisticsFilter: String, CaseIterable, Identifiable {
 }
 
 enum TrafficStatisticsPresentation {
-  static let quickActiveLimit = 3
+  static let quickTaskSlotCount = 5
 
   static func suggestedIntervalName(from intervals: [TrafficInterval]) -> String {
     "统计任务 \(intervals.count + 1)"
   }
 
-  static func quickActiveIntervals(from intervals: [TrafficInterval]) -> [TrafficInterval] {
-    Array(
-      intervals
-        .lazy
-        .filter { $0.status == .active }
-        .prefix(quickActiveLimit)
-    )
+  static func activeIntervalSummary(from intervals: [TrafficInterval]) -> String {
+    let activeCount = activeIntervalCount(from: intervals)
+    return activeCount == 0 ? "未开始" : "\(activeCount) 个进行中"
   }
 
-  static func additionalActiveCount(from intervals: [TrafficInterval]) -> Int {
-    max(intervals.filter { $0.status == .active }.count - quickActiveLimit, 0)
+  static func activeIntervalCount(from intervals: [TrafficInterval]) -> Int {
+    intervals.count { $0.status == .active }
   }
+
+  static func quickTaskSnapshot(
+    from intervals: [TrafficInterval],
+    calendar: Calendar = .autoupdatingCurrent,
+    now: Date = Date()
+  ) -> TrafficStatisticsQuickTaskSnapshot {
+    let activeIntervals =
+      intervals
+      .filter { $0.status == .active }
+      .sorted { $0.startedAt > $1.startedAt }
+    let todayEndedIntervals =
+      intervals
+      .filter { interval in
+        guard interval.status != .active, let endedAt = interval.endedAt else {
+          return false
+        }
+        return calendar.isDate(endedAt, inSameDayAs: now)
+      }
+      .sorted { ($0.endedAt ?? .distantPast) > ($1.endedAt ?? .distantPast) }
+    let candidates = activeIntervals + todayEndedIntervals
+    let selectedIntervals = Array(candidates.prefix(quickTaskSlotCount))
+    let slots =
+      selectedIntervals.map(Optional.some)
+      + Array(
+        repeating: nil,
+        count: quickTaskSlotCount - selectedIntervals.count
+      )
+    return TrafficStatisticsQuickTaskSnapshot(
+      slots: slots,
+      additionalCount: max(candidates.count - quickTaskSlotCount, 0)
+    )
+  }
+}
+
+struct TrafficStatisticsQuickTaskSnapshot: Equatable {
+  let slots: [TrafficInterval?]
+  let additionalCount: Int
 }
