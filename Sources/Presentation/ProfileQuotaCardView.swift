@@ -24,7 +24,8 @@ struct ProfileQuotaCardView: View {
       if let quota = item.latestQuota {
         SubscriptionQuotaMetricsView(
           quota: quota,
-          trend: item.trends.trend(for: window)
+          trend: item.trends.trend(for: window),
+          depletionForecast: item.trends.depletionForecast
         )
 
         QuotaEventSummaryView(analysis: item.analysis) {

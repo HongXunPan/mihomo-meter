@@ -5,6 +5,7 @@ enum StatusMenuLayout {
   static let connectionSubmenuSize = CGSize(width: 360, height: 214)
   static let classificationSubmenuSize = CGSize(width: 360, height: 176)
   static let routingSubmenuSize = CGSize(width: 360, height: 278)
+  static let quotaTrendSubmenuSize = CGSize(width: 380, height: 460)
 }
 
 struct StatusMenuPrimaryContentView: View {
@@ -68,7 +69,6 @@ struct StatusMenuQuotaSummaryContentView: View {
     .padding(16)
     .frame(width: StatusMenuLayout.contentWidth)
     .fixedSize(horizontal: false, vertical: true)
-    .disclosureGroupStyle(StatusMenuDisclosureGroupStyle())
   }
 }
 

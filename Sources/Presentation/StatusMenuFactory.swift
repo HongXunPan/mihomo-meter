@@ -31,6 +31,10 @@ struct StatusMenuFactory {
         profileQuotaController: profileQuotaController
       )
     )
+    let quotaTrendCoordinator = StatusMenuQuotaTrendMenuCoordinator(
+      controller: quotaController,
+      profileQuotaController: profileQuotaController
+    )
 
     return StatusMenuController(
       primaryContent: primaryContent,
@@ -42,6 +46,15 @@ struct StatusMenuFactory {
         ),
         StatusMenuSectionConfiguration(
           content: quotaSummaryContent,
+          submenuConfigurations: [
+            StatusMenuSubmenuConfiguration(
+              title: "查看订阅走势",
+              summary: quotaTrendSummary,
+              contentViewController: quotaTrendCoordinator.contentViewController,
+              contentSize: StatusMenuLayout.quotaTrendSubmenuSize,
+              prepareForPresentation: quotaTrendCoordinator.prepareForPresentation
+            )
+          ],
           navigationItem: subscriptionQuotaNavigationItem
         ),
       ],
@@ -167,6 +180,16 @@ struct StatusMenuFactory {
       activeRuleTypes: monitor.activeRuleTypes,
       runtimeConfiguration: monitor.runtimeConfiguration
     )
+  }
+
+  private var quotaTrendSummary: () -> String {
+    {
+      let profileCount = profileQuotaController.snapshot.profiles.count
+      if profileCount > 0 {
+        return "\(profileCount) 个 Profile"
+      }
+      return quotaController.snapshot.latestQuota == nil ? "暂无数据" : "轻量追踪"
+    }
   }
 }
 

@@ -10,26 +10,25 @@ struct SubscriptionQuotaSummaryView: View {
     VStack(alignment: .leading, spacing: 12) {
       header
       if hasTrackedProfiles {
-        ProfileQuotaAccordionView(controller: profileQuotaController)
+        ProfileQuotaProgressListView(controller: profileQuotaController)
+      } else if let subscription = controller.snapshot.subscription {
+        SubscriptionQuotaProgressRow(
+          title: subscription.name,
+          isCurrent: true,
+          quota: controller.snapshot.latestQuota,
+          status: nil,
+          forecast: controller.snapshot.trends.depletionForecast
+        )
+
+        if controller.snapshot.latestQuota == nil || controller.snapshot.isPaused {
+          SubscriptionQuotaObservationNoticeView(controller: controller)
+        }
+
+        confirmationAction
       } else {
         SubscriptionQuotaObservationNoticeView(controller: controller)
 
-        if let quota = controller.snapshot.latestQuota {
-          SubscriptionQuotaMetricsView(
-            quota: quota,
-            trend: controller.snapshot.trends.day,
-            isCompact: true
-          )
-
-          if controller.snapshot.analysis.pendingCycleConfirmation != nil {
-            QuotaCycleConfirmationView {
-              await controller.confirmCurrentCycle()
-            }
-          }
-        } else {
-          emptyState
-        }
-
+        emptyState
         confirmationAction
       }
     }

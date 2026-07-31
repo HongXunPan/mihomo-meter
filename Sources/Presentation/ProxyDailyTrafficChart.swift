@@ -84,6 +84,7 @@ private struct ProxyDailyTrafficMarks: ChartContent {
     BarMark(
       x: .value("日期", Double(index)),
       y: .value("流量", Double(day.bytes.download)),
+      width: .fixed(6),
       stacking: .standard
     )
     .foregroundStyle(MihomoColorToken.trafficDownload)
@@ -91,6 +92,7 @@ private struct ProxyDailyTrafficMarks: ChartContent {
     BarMark(
       x: .value("日期", Double(index)),
       y: .value("流量", Double(day.bytes.upload)),
+      width: .fixed(6),
       stacking: .standard
     )
     .foregroundStyle(MihomoColorToken.trafficUpload)
