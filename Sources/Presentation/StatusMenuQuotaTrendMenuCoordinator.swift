@@ -50,6 +50,9 @@ final class StatusMenuQuotaTrendState: ObservableObject {
   @Published private(set) var window = QuotaTrendWindow.day
   @Published private(set) var referenceDate: Date
 
+  let hoverState = StatusMenuQuotaTrendHoverState()
+  private(set) var hoverContext: StatusMenuQuotaTrendHoverContext?
+
   private let now: @MainActor () -> Date
   private var lastDefaultTargetID: UUID?
 
@@ -63,6 +66,7 @@ final class StatusMenuQuotaTrendState: ObservableObject {
     defaultTargetID: UUID?
   ) {
     referenceDate = now()
+    defer { synchronizeHoverContext() }
 
     guard !targetIDs.isEmpty else {
       selectedTargetID = nil
@@ -95,6 +99,7 @@ final class StatusMenuQuotaTrendState: ObservableObject {
       return
     }
     self.window = window
+    synchronizeHoverContext()
   }
 
   private func selectAdjacentTarget(offset: Int, targetIDs: [UUID]) {
@@ -104,5 +109,70 @@ final class StatusMenuQuotaTrendState: ObservableObject {
     let currentIndex = selectedTargetID.flatMap(targetIDs.firstIndex(of:)) ?? 0
     let nextIndex = (currentIndex + offset + targetIDs.count) % targetIDs.count
     selectedTargetID = targetIDs[nextIndex]
+    synchronizeHoverContext()
+  }
+
+  private func synchronizeHoverContext() {
+    guard let selectedTargetID else {
+      hoverContext = nil
+      hoverState.deactivate()
+      return
+    }
+    hoverContext = hoverState.activate(
+      targetID: selectedTargetID,
+      window: window
+    )
+  }
+}
+
+struct StatusMenuQuotaTrendHoverContext: Equatable {
+  let targetID: UUID
+  let window: QuotaTrendWindow
+  let generation: UInt64
+}
+
+@MainActor
+final class StatusMenuQuotaTrendHoverState: ObservableObject {
+  @Published private(set) var selectedPointID: UUID?
+
+  private var activeContext: StatusMenuQuotaTrendHoverContext?
+  private var generation: UInt64 = 0
+
+  func activate(
+    targetID: UUID,
+    window: QuotaTrendWindow
+  ) -> StatusMenuQuotaTrendHoverContext {
+    generation &+= 1
+    let context = StatusMenuQuotaTrendHoverContext(
+      targetID: targetID,
+      window: window,
+      generation: generation
+    )
+    activeContext = context
+    updateSelectedPoint(nil)
+    return context
+  }
+
+  func deactivate() {
+    generation &+= 1
+    activeContext = nil
+    updateSelectedPoint(nil)
+  }
+
+  func select(
+    _ pointID: UUID?,
+    in context: StatusMenuQuotaTrendHoverContext
+  ) {
+    guard context == activeContext else {
+      return
+    }
+    updateSelectedPoint(pointID)
+  }
+
+  private func updateSelectedPoint(_ pointID: UUID?) {
+    guard selectedPointID != pointID else {
+      return
+    }
+    selectedPointID = pointID
   }
 }

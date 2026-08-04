@@ -5,6 +5,7 @@ struct QuotaCumulativeTrendChart: View {
   let trend: QuotaTrend
   var isCompact = false
   var isExpanded = false
+  var externalInteraction: QuotaCumulativeTrendExternalInteraction?
 
   @State private var hoveredPointID: UUID?
 
@@ -60,7 +61,7 @@ struct QuotaCumulativeTrendChart: View {
     dateDomain: ClosedRange<Date>,
     totalUsageDomain: ClosedRange<Double>
   ) -> some View {
-    let hoveredPoint = hoveredPoint(in: model)
+    let selectedPoint = selectedPoint(in: model)
     let chart = Chart {
       ForEach(model.segments) { segment in
         let seriesID = segmentSeriesID(segment.id)
@@ -91,9 +92,9 @@ struct QuotaCumulativeTrendChart: View {
         }
       }
 
-      if let hoveredPoint {
+      if let selectedPoint {
         QuotaCumulativeHoverMarks(
-          displayPoint: hoveredPoint
+          displayPoint: selectedPoint
         )
       }
     }
@@ -106,41 +107,20 @@ struct QuotaCumulativeTrendChart: View {
       plotContent.clipped()
     }
     .chartOverlay { proxy in
-      GeometryReader { geometry in
-        ZStack(alignment: .topLeading) {
-          Rectangle()
-            .fill(.clear)
-            .contentShape(Rectangle())
-            .onContinuousHover { phase in
-              updateHover(
-                phase,
-                proxy: proxy,
-                geometry: geometry,
-                model: model
-              )
-            }
-
-          if !isCompact,
-            let hoveredPoint,
-            let plotFrame = resolvedPlotFrame(proxy: proxy, geometry: geometry),
-            let xPosition = proxy.position(forX: hoveredPoint.point.date)
-          {
-            QuotaCumulativeTrendHoverOverlay(
-              displayPoint: hoveredPoint,
-              breakReason: breakReason(for: hoveredPoint.id, in: model),
-              selectedX: plotFrame.minX + xPosition,
-              plotFrame: plotFrame
-            )
-          }
-        }
-      }
+      QuotaCumulativeTrendChartInteractionOverlay(
+        proxy: proxy,
+        model: model,
+        selectedPoint: isCompact ? nil : selectedPoint,
+        externalInteraction: externalInteraction,
+        onInternalSelectedPointChange: updateInternalSelectedPoint
+      )
     }
     .accessibilityElement(children: .ignore)
     .accessibilityLabel("机场累计总消耗走势")
     .accessibilityValue(accessibilityValue(model: model, dateDomain: dateDomain))
 
     chart
-      .allowsHitTesting(!isCompact)
+      .allowsHitTesting(!isCompact || externalInteraction != nil)
       .chartXAxis {
         AxisMarks(values: .automatic(desiredCount: isCompact ? 3 : 4)) { value in
           AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5, dash: [3, 3]))
@@ -172,7 +152,7 @@ struct QuotaCumulativeTrendChart: View {
 
   @ViewBuilder
   private func compactDetail(model: QuotaCumulativeTrendChartModel) -> some View {
-    if let displayPoint = hoveredPoint(in: model) ?? model.latestPoint {
+    if let displayPoint = selectedPoint(in: model) ?? model.latestPoint {
       QuotaCumulativeTrendHoverView(
         displayPoint: displayPoint,
         breakReason: breakReason(for: displayPoint.id, in: model),
@@ -192,13 +172,17 @@ struct QuotaCumulativeTrendChart: View {
       .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
   }
 
-  private func hoveredPoint(
+  private func selectedPoint(
     in model: QuotaCumulativeTrendChartModel
   ) -> QuotaCumulativeTrendDisplayPoint? {
-    guard let hoveredPointID else {
-      return nil
+    if let externalInteraction {
+      return externalInteraction.selectedPointID.flatMap { pointID in
+        model.points.first(where: { $0.id == pointID })
+      } ?? model.latestPoint
     }
-    return model.points.first(where: { $0.id == hoveredPointID })
+    return hoveredPointID.flatMap { pointID in
+      model.points.first(where: { $0.id == pointID })
+    }
   }
 
   private func breakReason(
@@ -208,39 +192,11 @@ struct QuotaCumulativeTrendChart: View {
     model.segments.first(where: { $0.points.first?.id == pointID })?.breakReason
   }
 
-  private func updateHover(
-    _ phase: HoverPhase,
-    proxy: ChartProxy,
-    geometry: GeometryProxy,
-    model: QuotaCumulativeTrendChartModel
-  ) {
-    switch phase {
-    case .active(let location):
-      guard let plotFrame = resolvedPlotFrame(proxy: proxy, geometry: geometry),
-        plotFrame.contains(location),
-        let date = proxy.value(
-          atX: location.x - plotFrame.minX,
-          as: Date.self
-        ),
-        let nearestPoint = model.nearestPoint(to: date)
-      else {
-        hoveredPointID = nil
-        return
-      }
-      hoveredPointID = nearestPoint.id
-    case .ended:
-      hoveredPointID = nil
+  private func updateInternalSelectedPoint(_ pointID: UUID?) {
+    guard externalInteraction == nil, hoveredPointID != pointID else {
+      return
     }
-  }
-
-  private func resolvedPlotFrame(
-    proxy: ChartProxy,
-    geometry: GeometryProxy
-  ) -> CGRect? {
-    guard let anchor = proxy.plotFrame else {
-      return nil
-    }
-    return geometry[anchor]
+    hoveredPointID = pointID
   }
 
   private func segmentSeriesID(
