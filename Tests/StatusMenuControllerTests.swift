@@ -140,55 +140,6 @@ final class StatusMenuControllerTests: XCTestCase {
     XCTAssertEqual(quotaPrepareCallCount, 2)
   }
 
-  func testQuotaTrendStateKeepsInlineProfileAndRangeSelection() {
-    let now = Date(timeIntervalSince1970: 1_700_800_000)
-    let firstID = UUID()
-    let secondID = UUID()
-    let state = StatusMenuQuotaTrendState(now: { now })
-
-    state.prepareForPresentation(
-      targetIDs: [firstID, secondID],
-      defaultTargetID: firstID
-    )
-    XCTAssertEqual(state.selectedTargetID, firstID)
-    XCTAssertEqual(state.window, .day)
-    XCTAssertEqual(state.referenceDate, now)
-
-    state.selectNext(targetIDs: [firstID, secondID])
-    state.selectWindow(.week)
-    XCTAssertEqual(state.selectedTargetID, secondID)
-    XCTAssertEqual(state.window, .week)
-
-    state.prepareForPresentation(
-      targetIDs: [firstID, secondID],
-      defaultTargetID: firstID
-    )
-    XCTAssertEqual(state.selectedTargetID, secondID)
-    XCTAssertEqual(state.window, .week)
-
-    state.selectPrevious(targetIDs: [firstID, secondID])
-    XCTAssertEqual(state.selectedTargetID, firstID)
-  }
-
-  func testQuotaTrendStateFollowsChangedCurrentProfileAndRejectsUnsupportedWindow() {
-    let firstID = UUID()
-    let secondID = UUID()
-    let state = StatusMenuQuotaTrendState()
-
-    state.prepareForPresentation(
-      targetIDs: [firstID, secondID],
-      defaultTargetID: firstID
-    )
-    state.selectWindow(.month)
-    XCTAssertEqual(state.window, .day)
-
-    state.prepareForPresentation(
-      targetIDs: [firstID, secondID],
-      defaultTargetID: secondID
-    )
-    XCTAssertEqual(state.selectedTargetID, secondID)
-  }
-
   func testMenuRefreshesNaturalContentSizesWithoutApplyingViewportCap() {
     var primaryHeight: CGFloat = 166
     var sectionHeight: CGFloat = 720

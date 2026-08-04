@@ -6,6 +6,8 @@ struct StatusMenuQuotaMetricsView: View {
   let quota: SubscriptionQuotaSnapshot
   let trends: RuntimeQuotaTrends
   let window: QuotaTrendWindow
+  @ObservedObject var hoverState: StatusMenuQuotaTrendHoverState
+  let hoverContext: StatusMenuQuotaTrendHoverContext?
   let onSelectWindow: (QuotaTrendWindow) -> Void
 
   var body: some View {
@@ -26,7 +28,11 @@ struct StatusMenuQuotaMetricsView: View {
 
       rangeSummary
 
-      QuotaCumulativeTrendChart(trend: trend, isCompact: true)
+      QuotaCumulativeTrendChart(
+        trend: trend,
+        isCompact: true,
+        externalInteraction: externalInteraction
+      )
     }
   }
 
@@ -124,6 +130,18 @@ struct StatusMenuQuotaMetricsView: View {
 
   private var trend: QuotaTrend {
     trends.trend(for: window)
+  }
+
+  private var externalInteraction: QuotaCumulativeTrendExternalInteraction? {
+    guard let hoverContext else {
+      return nil
+    }
+    return QuotaCumulativeTrendExternalInteraction(
+      selectedPointID: hoverState.selectedPointID,
+      onSelectedPointChange: { pointID in
+        hoverState.select(pointID, in: hoverContext)
+      }
+    )
   }
 
   private var remainingSummary: String {

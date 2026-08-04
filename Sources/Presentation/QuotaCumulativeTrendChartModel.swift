@@ -142,6 +142,19 @@ struct QuotaCumulativeTrendChartModel: Equatable, Sendable {
     }
   }
 
+  func nearestPoint(
+    atNormalizedPosition position: Double
+  ) -> QuotaCumulativeTrendDisplayPoint? {
+    guard let dateDomain else {
+      return nil
+    }
+    let normalizedPosition = min(max(position, 0), 1)
+    let duration = dateDomain.upperBound.timeIntervalSince(dateDomain.lowerBound)
+    return nearestPoint(
+      to: dateDomain.lowerBound.addingTimeInterval(duration * normalizedPosition)
+    )
+  }
+
   private struct SplitSegment {
     let id: QuotaCumulativeTrendDisplaySegment.ID
     let breakReason: QuotaCumulativeTrendDisplaySegment.BreakReason

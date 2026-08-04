@@ -17,6 +17,8 @@ struct StatusMenuQuotaTrendView: View {
             quota: quota,
             trends: target.trends,
             window: state.window,
+            hoverState: state.hoverState,
+            hoverContext: state.hoverContext,
             onSelectWindow: state.selectWindow
           )
         } else {
