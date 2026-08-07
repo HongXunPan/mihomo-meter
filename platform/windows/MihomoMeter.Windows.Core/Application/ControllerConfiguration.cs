@@ -139,5 +139,5 @@ public sealed class ControllerConfigurationSaveException : ControllerConfigurati
         RollbackException = rollbackException;
     }
 
-    public Exception RollbackException { get; }
+    public Exception? RollbackException { get; }
 }
