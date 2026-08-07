@@ -12,7 +12,7 @@ macOS 工程需要：
 
 应用与测试 Target 均最低支持 macOS 14。
 
-Windows 工程需要 Windows 10 22H2 x64 或更高版本、.NET SDK 10.0.302，以及 Windows 10 SDK 10.0.19041.0 或更高版本。W2A 核心流量账本已合并，当前 W2B1 继续使用 `Microsoft.Data.Sqlite.Core` 10.0.10 与 `SQLitePCLRaw.bundle_winsqlite3` 2.1.11 接入系统 SQLite；`MSTest.Sdk` 4.3.2 仍只用于测试。非 Windows 主机只能运行静态契约检查，不能据此宣称 Windows 已构建或 Win10 实机兼容通过。
+Windows 工程需要 Windows 10 22H2 x64 或更高版本、.NET SDK 10.0.302，以及 Windows 10 SDK 10.0.19041.0 或更高版本。W2B1 统计任务账本已合并，当前 W2B2 完整工作台继续使用 `Microsoft.Data.Sqlite.Core` 10.0.10 与 `SQLitePCLRaw.bundle_winsqlite3` 2.1.11 接入系统 SQLite，不引入第三方图表依赖；`MSTest.Sdk` 4.3.2 仍只用于测试。非 Windows 主机只能运行静态契约检查，不能据此宣称 Windows 已构建或 Win10 实机兼容通过。
 
 项目固定依赖 Sparkle 2.9.4 处理应用内更新，并使用 Yams 6.2.2 类型化解析用户授权目录中的 `profiles.yaml`。Yams 不得扩展为通用配置加载入口。请勿为了局部功能继续引入未经讨论的框架、代码生成器或包管理脚本。
 

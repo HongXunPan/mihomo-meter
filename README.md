@@ -8,7 +8,7 @@
 [使用文档（Wiki）](https://github.com/HongXunPan/mihomo-meter/wiki) ·
 [版本发布与下载（GitHub Releases）](https://github.com/HongXunPan/mihomo-meter/releases)
 
-Mihomo Meter 是一款通过 Mihomo Controller API 统计真实代理流量的原生桌面应用。macOS 已提供 Dock 应用窗口与状态栏原生快速菜单；Windows 10 22H2 x64 的 W2A 核心流量账本已合并，当前进入 W2B 统计任务与工作台。
+Mihomo Meter 是一款通过 Mihomo Controller API 统计真实代理流量的原生桌面应用。macOS 已提供 Dock 应用窗口与状态栏原生快速菜单；Windows 10 22H2 x64 的 W2B1 统计任务账本已合并，W2B2 完整工作台已进入 CI 与实机验证。
 
 > 当前已完成 MVP-1、MVP-2、阶段 2 和阶段 3 源码实现；阶段 3.0 实机门禁以 46 条 Proxy 样本通过，完整构建测试与界面验收仍由 CI 和用户完成。
 

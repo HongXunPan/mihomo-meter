@@ -1,6 +1,7 @@
 using Microsoft.UI;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 using MihomoMeter.Windows.App.Diagnostics;
 using MihomoMeter.Windows.App.Infrastructure;
 using MihomoMeter.Windows.App.Presentation;
@@ -11,6 +12,8 @@ namespace MihomoMeter.Windows.App;
 public sealed partial class MainWindow : Window
 {
     private readonly WindowsAppServices _services;
+    private readonly RealtimeMonitoringView _realtimeView;
+    private readonly TrafficStatisticsWorkspaceView _statisticsView;
     private bool _stopped;
 
     internal MainWindow(WindowsAppServices services)
@@ -19,20 +22,31 @@ public sealed partial class MainWindow : Window
         ViewModel = new MainWindowViewModel(
             DispatcherQueue,
             services.ConfigurationStore,
+            services.Coordinator);
+        StatisticsViewModel = new TrafficStatisticsWorkspaceViewModel(
+            DispatcherQueue,
             services.Coordinator,
             services.Statistics);
         StartupConsoleReporter.Stage("main_window_xaml_initialize_started");
         InitializeComponent();
         StartupConsoleReporter.Stage("main_window_xaml_initialize_completed");
-        Title = "Mihomo Meter · Windows W2A";
+        _realtimeView = new RealtimeMonitoringView(ViewModel);
+        _statisticsView = new TrafficStatisticsWorkspaceView(StatisticsViewModel);
+        WorkspaceNavigation.SelectionChanged += WorkspaceNavigation_SelectionChanged;
+        WorkspaceNavigation.SelectedItem = RealtimeNavigationItem;
+        ShowWorkspace("realtime");
+        Title = "Mihomo Meter · Windows W2B";
         ResizeForPreview();
     }
 
     public MainWindowViewModel ViewModel { get; }
 
-    internal Task<bool> InitializeAsync()
+    public TrafficStatisticsWorkspaceViewModel StatisticsViewModel { get; }
+
+    internal async Task<bool> InitializeAsync()
     {
-        return ViewModel.InitializeAsync();
+        await StatisticsViewModel.InitializeAsync();
+        return await ViewModel.InitializeAsync();
     }
 
     internal async Task StopForApplicationTerminationAsync()
@@ -44,6 +58,7 @@ public sealed partial class MainWindow : Window
 
         _stopped = true;
         ViewModel.Detach();
+        StatisticsViewModel.Detach();
         await _services.DisposeAsync();
     }
 
@@ -52,38 +67,24 @@ public sealed partial class MainWindow : Window
         FloatingWidgetStateText.Text = enabled ? "悬浮图标：开启" : "悬浮图标：关闭";
     }
 
-    private async void ConnectButton_Click(object sender, RoutedEventArgs args)
+    private void WorkspaceNavigation_SelectionChanged(
+        NavigationView sender,
+        NavigationViewSelectionChangedEventArgs args)
     {
-        var secret = SecretPasswordBox.Password;
-        var forceEmptySecret = ForceEmptySecretCheckBox.IsChecked == true;
-        SecretPasswordBox.Password = string.Empty;
-        ForceEmptySecretCheckBox.IsChecked = false;
-        try
-        {
-            await ViewModel.ConnectAsync(secret, forceEmptySecret);
-        }
-        catch (Exception exception)
-        {
-            ViewModel.ShowError(exception.Message);
-        }
+        ShowWorkspace(args.SelectedItemContainer?.Tag?.ToString());
     }
 
-    private async void DisconnectButton_Click(object sender, RoutedEventArgs args)
+    private void ShowWorkspace(string? section)
     {
-        try
-        {
-            await ViewModel.DisconnectAsync();
-        }
-        catch (Exception exception)
-        {
-            ViewModel.ShowError(exception.Message);
-        }
+        WorkspaceContent.Content = section == "statistics"
+            ? _statisticsView
+            : _realtimeView;
     }
 
     private void ResizeForPreview()
     {
         var windowHandle = WinRT.Interop.WindowNative.GetWindowHandle(this);
         var windowId = Win32Interop.GetWindowIdFromWindow(windowHandle);
-        AppWindow.GetFromWindowId(windowId)?.Resize(new SizeInt32(860, 720));
+        AppWindow.GetFromWindowId(windowId)?.Resize(new SizeInt32(980, 720));
     }
 }

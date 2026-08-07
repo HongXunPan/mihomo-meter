@@ -5,239 +5,61 @@
 
     <Grid
         MinWidth="720"
-        Padding="32"
-        Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
-        RowSpacing="20">
+        Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <Grid ColumnSpacing="16">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
+        <NavigationView
+            x:Name="WorkspaceNavigation"
+            AlwaysShowHeader="False"
+            IsBackButtonVisible="Collapsed"
+            IsSettingsVisible="False"
+            PaneDisplayMode="Auto"
+            PaneTitle="Mihomo Meter">
+            <NavigationView.MenuItems>
+                <NavigationViewItem
+                    x:Name="RealtimeNavigationItem"
+                    Content="实时监控"
+                    Tag="realtime">
+                    <NavigationViewItem.Icon>
+                        <SymbolIcon Symbol="Sync" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem
+                    Content="Proxy 流量"
+                    Tag="statistics">
+                    <NavigationViewItem.Icon>
+                        <SymbolIcon Symbol="Clock" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+            </NavigationView.MenuItems>
 
-            <StackPanel Spacing="6">
-                <TextBlock
-                    FontSize="30"
-                    FontWeight="SemiBold"
-                    Text="Mihomo Meter" />
-                <TextBlock
-                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                    Text="Windows W2A · 实时分类与本地累计预览" />
-            </StackPanel>
+            <ContentControl x:Name="WorkspaceContent" />
+        </NavigationView>
 
-            <StackPanel
-                Grid.Column="1"
-                HorizontalAlignment="Right"
-                Spacing="4">
-                <TextBlock
-                    HorizontalAlignment="Right"
-                    FontSize="18"
-                    FontWeight="SemiBold"
-                    Text="{x:Bind ViewModel.StateTitle, Mode=OneWay}" />
-                <TextBlock
-                    HorizontalAlignment="Right"
-                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                    Text="{x:Bind ViewModel.VersionText, Mode=OneWay}" />
-            </StackPanel>
-        </Grid>
-
-        <InfoBar
+        <Border
             Grid.Row="1"
-            IsClosable="False"
-            IsOpen="True"
-            Message="{x:Bind ViewModel.Message, Mode=OneWay}"
-            Severity="Informational"
-            Title="{x:Bind ViewModel.StateTitle, Mode=OneWay}" />
-
-        <ScrollViewer Grid.Row="2">
-            <StackPanel Spacing="20">
-                <Border
-                    Padding="20"
-                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                    BorderThickness="1"
-                    CornerRadius="12">
-                    <StackPanel Spacing="14">
-                        <TextBlock
-                            FontSize="18"
-                            FontWeight="SemiBold"
-                            Text="Controller 连接" />
-                        <TextBox
-                            Header="Controller 地址"
-                            PlaceholderText="127.0.0.1:9090"
-                            Text="{x:Bind ViewModel.Address, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                        <PasswordBox
-                            x:Name="SecretPasswordBox"
-                            Header="访问密钥（未配置鉴权时可留空）"
-                            PlaceholderText="留空时复用同地址已保存的密钥"
-                            PasswordRevealMode="Peek" />
-                        <CheckBox
-                            x:Name="ForceEmptySecretCheckBox"
-                            Content="本次明确不使用 Secret；验证成功后删除已保存凭据" />
-                        <TextBlock
-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            Text="仅允许 127.0.0.1 或 ::1。验证成功后，Secret 只保存到 Windows Credential Manager。"
-                            TextWrapping="Wrap" />
-                        <StackPanel
-                            Orientation="Horizontal"
-                            Spacing="10">
-                            <Button
-                                Click="ConnectButton_Click"
-                                Content="{x:Bind ViewModel.ConnectButtonText, Mode=OneWay}"
-                                IsEnabled="{x:Bind ViewModel.CanConnect, Mode=OneWay}"
-                                Style="{StaticResource AccentButtonStyle}" />
-                            <Button
-                                Click="DisconnectButton_Click"
-                                Content="断开"
-                                IsEnabled="{x:Bind ViewModel.CanDisconnect, Mode=OneWay}" />
-                        </StackPanel>
-                    </StackPanel>
-                </Border>
-
-                <Grid RowSpacing="12" ColumnSpacing="12">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-
-                    <Border
-                        Padding="18"
-                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                        BorderThickness="1"
-                        CornerRadius="12">
-                        <StackPanel Spacing="8">
-                            <TextBlock FontWeight="SemiBold" Text="Proxy" />
-                            <TextBlock FontSize="18" Text="{x:Bind ViewModel.ProxyRateText, Mode=OneWay}" />
-                        </StackPanel>
-                    </Border>
-
-                    <Border
-                        Grid.Column="1"
-                        Padding="18"
-                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                        BorderThickness="1"
-                        CornerRadius="12">
-                        <StackPanel Spacing="8">
-                            <TextBlock FontWeight="SemiBold" Text="DIRECT" />
-                            <TextBlock FontSize="18" Text="{x:Bind ViewModel.DirectRateText, Mode=OneWay}" />
-                        </StackPanel>
-                    </Border>
-
-                    <Border
-                        Grid.Row="1"
-                        Padding="18"
-                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                        BorderThickness="1"
-                        CornerRadius="12">
-                        <StackPanel Spacing="8">
-                            <TextBlock FontWeight="SemiBold" Text="REJECT" />
-                            <TextBlock FontSize="18" Text="{x:Bind ViewModel.RejectRateText, Mode=OneWay}" />
-                        </StackPanel>
-                    </Border>
-
-                    <Border
-                        Grid.Row="1"
-                        Grid.Column="1"
-                        Padding="18"
-                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                        BorderThickness="1"
-                        CornerRadius="12">
-                        <StackPanel Spacing="8">
-                            <TextBlock FontWeight="SemiBold" Text="未知" />
-                            <TextBlock FontSize="18" Text="{x:Bind ViewModel.UnknownRateText, Mode=OneWay}" />
-                        </StackPanel>
-                    </Border>
-                </Grid>
-
+            Padding="16,10"
+            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+            BorderThickness="0,1,0,0">
+            <Grid ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
                 <TextBlock
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                    Text="{x:Bind ViewModel.CoverageText, Mode=OneWay}" />
-
-                <StackPanel Spacing="12">
-                    <TextBlock
-                        FontSize="20"
-                        FontWeight="SemiBold"
-                        Text="本地累计" />
-                    <TextBlock
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                        Text="{x:Bind ViewModel.StatisticsStatusText, Mode=OneWay}" />
-                    <Grid ColumnSpacing="12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-
-                        <Border
-                            Padding="18"
-                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                            BorderThickness="1"
-                            CornerRadius="12">
-                            <StackPanel Spacing="10">
-                                <TextBlock FontSize="17" FontWeight="SemiBold" Text="今日" />
-                                <TextBlock FontWeight="SemiBold" Text="Proxy" />
-                                <TextBlock Text="{x:Bind ViewModel.TodayProxyTotalText, Mode=OneWay}" />
-                                <TextBlock FontWeight="SemiBold" Text="DIRECT" />
-                                <TextBlock Text="{x:Bind ViewModel.TodayDirectTotalText, Mode=OneWay}" />
-                                <TextBlock FontWeight="SemiBold" Text="REJECT" />
-                                <TextBlock Text="{x:Bind ViewModel.TodayRejectTotalText, Mode=OneWay}" />
-                                <TextBlock FontWeight="SemiBold" Text="未知" />
-                                <TextBlock Text="{x:Bind ViewModel.TodayUnknownTotalText, Mode=OneWay}" />
-                            </StackPanel>
-                        </Border>
-
-                        <Border
-                            Grid.Column="1"
-                            Padding="18"
-                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                            BorderThickness="1"
-                            CornerRadius="12">
-                            <StackPanel Spacing="10">
-                                <TextBlock FontSize="17" FontWeight="SemiBold" Text="历史总计" />
-                                <TextBlock FontWeight="SemiBold" Text="Proxy" />
-                                <TextBlock Text="{x:Bind ViewModel.LifetimeProxyTotalText, Mode=OneWay}" />
-                                <TextBlock FontWeight="SemiBold" Text="DIRECT" />
-                                <TextBlock Text="{x:Bind ViewModel.LifetimeDirectTotalText, Mode=OneWay}" />
-                                <TextBlock FontWeight="SemiBold" Text="REJECT" />
-                                <TextBlock Text="{x:Bind ViewModel.LifetimeRejectTotalText, Mode=OneWay}" />
-                                <TextBlock FontWeight="SemiBold" Text="未知" />
-                                <TextBlock Text="{x:Bind ViewModel.LifetimeUnknownTotalText, Mode=OneWay}" />
-                            </StackPanel>
-                        </Border>
-                    </Grid>
-                </StackPanel>
-            </StackPanel>
-        </ScrollViewer>
-
-        <Grid Grid.Row="3" ColumnSpacing="12">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-            <TextBlock
-                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                Text="关闭窗口后继续在通知区域运行；请从通知区域菜单明确退出。"
-                TextWrapping="Wrap" />
-            <TextBlock
-                x:Name="FloatingWidgetStateText"
-                Grid.Column="1"
-                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                Text="悬浮图标：关闭" />
-        </Grid>
+                    Text="关闭窗口后继续在通知区域运行；请从通知区域菜单明确退出。"
+                    TextWrapping="Wrap" />
+                <TextBlock
+                    x:Name="FloatingWidgetStateText"
+                    Grid.Column="1"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Text="悬浮图标：关闭" />
+            </Grid>
+        </Border>
     </Grid>
 </Window>

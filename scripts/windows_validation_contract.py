@@ -78,6 +78,14 @@ REQUIRED_APP_FILES = (
     "Interop/ShellNativeMethods.cs",
     "Interop/FloatingWidgetNativeMethods.cs",
     "Presentation/MainWindowViewModel.cs",
+    "Presentation/RealtimeMonitoringView.xaml",
+    "Presentation/RealtimeMonitoringView.xaml.cs",
+    "Presentation/TrafficDisplayFormatter.cs",
+    "Presentation/TrafficStatisticsWorkspaceModels.cs",
+    "Presentation/TrafficStatisticsWorkspaceView.xaml",
+    "Presentation/TrafficStatisticsWorkspaceView.xaml.cs",
+    "Presentation/TrafficStatisticsWorkspaceViewModel.cs",
+    "Presentation/TrafficStatisticsWorkspaceViewModel.Projection.cs",
 )
 
 REQUIRED_CORE_FILES = (
@@ -98,6 +106,7 @@ REQUIRED_CORE_FILES = (
     "Application/TrafficMonitoringStream.cs",
     "Application/TrafficStatisticsRecording.cs",
     "Application/TrafficStatisticsCoordinator.cs",
+    "Application/TrafficStatisticsWorkspaceProjection.cs",
     "Infrastructure/Mihomo/ConnectionMessageAssembler.cs",
     "Infrastructure/Mihomo/ConnectionSnapshotCollector.cs",
     "Infrastructure/Mihomo/MihomoControllerClient.cs",
@@ -136,10 +145,22 @@ REQUIRED_TEST_FILES = (
     "TrafficLedgerDailyAndClearTests.cs",
     "TrafficLedgerMigrationTests.cs",
     "TrafficStatisticsBoundaryTests.cs",
+    "TrafficStatisticsWorkspaceProjectionTests.cs",
     "WindowsSqliteTestProvider.cs",
 )
 
 REQUIRED_CODE_MARKERS = {
+    APP_ROOT / "MainWindow.xaml": (
+        "NavigationView",
+        'Content="实时监控"',
+        'Content="Proxy 流量"',
+        "WorkspaceContent",
+    ),
+    APP_ROOT / "MainWindow.xaml.cs": (
+        "new RealtimeMonitoringView",
+        "new TrafficStatisticsWorkspaceView",
+        "WorkspaceNavigation_SelectionChanged",
+    ),
     APP_ROOT / "Program.cs": ("FindOrRegisterForKey", "RedirectActivationToAsync"),
     APP_ROOT / "Lifecycle/WindowLifecycleController.cs": (
         "args.Cancel = true",
@@ -221,6 +242,37 @@ REQUIRED_CODE_MARKERS = {
         "_operationGate",
         "StartIntervalAsync",
         "TryInterruptAfterStatisticsFailureAsync",
+    ),
+    CORE_ROOT / "Application/TrafficStatisticsWorkspaceProjection.cs": (
+        "TrafficStatisticsIntervalFilter",
+        "FilterIntervals",
+        "DailyRange",
+        "UploadFraction",
+        "DownloadFraction",
+    ),
+    APP_ROOT / "Presentation/TrafficStatisticsWorkspaceView.xaml": (
+        "ChartPoints",
+        "AutomationProperties.Name",
+        "StartIntervalButton_Click",
+        "ClearButton_Click",
+    ),
+    APP_ROOT / "Presentation/TrafficStatisticsWorkspaceView.xaml.cs": (
+        "ContentDialog",
+        "dialog.XamlRoot = Root.XamlRoot",
+        "StartIntervalAsync",
+        "RenameIntervalAsync",
+        "DeleteIntervalAsync",
+        "ClearAsync",
+    ),
+    APP_ROOT / "Presentation/TrafficStatisticsWorkspaceViewModel.cs": (
+        "TrafficStatisticsCoordinator",
+        "PerformOperationAsync",
+        "IsCurrentSession",
+    ),
+    APP_ROOT / "Presentation/TrafficStatisticsWorkspaceViewModel.Projection.cs": (
+        "TrafficStatisticsWorkspaceProjection.FilterIntervals",
+        "TrafficStatisticsWorkspaceProjection.DailyRange",
+        "TrafficStatisticsWorkspaceModelFactory.ChartPoint",
     ),
     CORE_ROOT / "Domain/TrafficIntervals.cs": (
         "TrafficIntervalStatus",

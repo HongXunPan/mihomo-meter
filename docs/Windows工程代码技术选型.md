@@ -2,12 +2,12 @@
 
 ## 1. 文档定位
 
-- 状态：W2A 已合并，W2B1 统计任务账本进入实现
+- 状态：W2B1 已合并，W2B2 完整工作台已实现，待 CI 与 Win10 实机验证
 - 更新日期：2026-08-08
 - 上游边界：父工作区 `docs/Windows技术方案.md`、`docs/Windows阶段W2B统计任务与工作台技术方案.md`
 - 历史门禁：[Windows 阶段 W0 实机指南](Windows阶段W0实机指南.md)
 
-本文是开源源码仓 Windows 工程结构、依赖版本和验证入口的唯一详细真相源，不重新定义父工作区的产品阶段或验收口径。W2B1 在 W2A 核心账本上增加统计任务、最近 30 日查询和清空语义，不移动或反向抽象 macOS `Sources/`。
+本文是开源源码仓 Windows 工程结构、依赖版本和验证入口的唯一详细真相源，不重新定义父工作区的产品阶段或验收口径。W2B1 在 W2A 核心账本上增加统计任务、最近 30 日查询和清空语义；W2B2 复用同一应用服务装配，增加可导航的实时监控与 Proxy 流量工作台，不移动或反向抽象 macOS `Sources/`。
 
 ## 2. 固定选型与依赖
 
@@ -52,7 +52,7 @@ platform/windows/
 └── MihomoMeter.Windows.Tests/
 ```
 
-- `MihomoMeter.Windows.App`：WinUI 进程入口、视图与 ViewModel、W0 壳层、Windows Credential Manager、本机设置路径和应用装配。
+- `MihomoMeter.Windows.App`：WinUI 进程入口、工作台壳层、独立实时监控/Proxy 流量视图与 ViewModel、W0 壳层、Windows Credential Manager、本机设置路径和应用装配。
 - `MihomoMeter.Windows.Core`：不依赖 WinUI 或 Win32 的领域模型、分类/差值/速率、连接状态机与流量账本契约，以及 Mihomo HTTP/WebSocket、SQLite 适配器。
 - `MihomoMeter.Windows.Tests`：只引用 Core，链接仓库既有 `Tests/Fixtures/` 脱敏 JSON，不复制第二套 fixture。
 - `Lifecycle` 与既有 `Interop` 继续只承载窗口、通知区域、悬浮入口和单实例能力，不接入网络或领域算法。
@@ -60,7 +60,7 @@ platform/windows/
 
 W1 开始前必须先建立 Core 与 Tests 的独立项目，不能继续把 Controller、状态机或分类算法追加进 `MainWindow.xaml.cs`。主窗口代码隐藏只允许处理窗口事件和把用户意图转交 ViewModel。
 
-## 4. W1、W2A 与 W2B1 实现契约
+## 4. W1、W2A 与 W2B 实现契约
 
 Controller 地址、Credential Target Name、设置路径、接口顺序、分类语义、stale、退避和人工验收以父工作区 `docs/Windows阶段W1实时纵切验收.md` 为上游唯一真相。源码实现需要保持以下边界：
 
@@ -79,8 +79,12 @@ Controller 地址、Credential Target Name、设置路径、接口顺序、分�
 13. 多个统计任务共享永久 Proxy 累计基线，固定使用 active/completed/interrupted 和类型化结束原因；分钟桶清理不得改变任务结果。
 14. 最近 30 日只读取 `traffic_daily_totals` 并补齐缺失日；清空在同一事务删除核心累计与任务，下一帧只建立新基线。
 15. 任务、每日查询、维护、快照和会话转换使用独立文件承载，`SQLiteTrafficLedger` 仍是唯一串行账本入口。
+16. 主窗口使用 `NavigationView` 组合“实时监控”和“Proxy 流量”两个缓存视图；切换模块只替换内容，不新建窗口、Coordinator 或采样器。
+17. `TrafficStatisticsWorkspaceViewModel` 只通过共享 `TrafficStatisticsCoordinator` 提交操作；筛选、自动名称和 30 日图表投影进入可独立测试的 Core 转换。
+18. 最近 30 日上传/下载堆叠柱只使用 WinUI 布局元素绘制，保留零值日期位置，并提供范围合计、峰值日与每柱可访问名称。
+19. 新建、重命名、删除和清空使用 WinUI `ContentDialog`；对话框绑定当前工作台 `XamlRoot`，清空文案明确区分被删除统计与保留配置。
 
-W2B1 不实现 WinUI 统计工作台、通知区域任务菜单、连接明细、Profile、订阅配额、诊断日志、开机启动、安装器或自动更新。W0 的 `run-w0-gate.cmd` 与控制台阶段码只保留为历史门禁，不成为预览产物的正式入口。
+W2B2 不实现通知区域任务菜单、连接明细、Profile、订阅配额、诊断日志、开机启动、安装器或自动更新。通知区域固定五槽位与任务生命周期收口属于 W2B3；W0 的 `run-w0-gate.cmd` 与控制台阶段码只保留为历史门禁，不成为预览产物的正式入口。
 
 ## 5. 配置、凭据与隐私
 
@@ -90,7 +94,7 @@ W2B1 不实现 WinUI 统计工作台、通知区域任务菜单、连接明细�
 - 测试使用内存凭据和设置替身，不访问真实 Credential Manager、用户目录或网络。
 - 共享 fixture 只包含合成版本、代理类型与连接累计；不得新增真实节点、规则、目标、进程路径、连接 ID 或 Secret。
 - `traffic.sqlite3` 只保存四类聚合、会话、运行状态和统计任务基线，不保存连接、节点、规则、目标、地址或 Secret。
-- W2B1 不创建运行日志或诊断 ZIP；可观察错误使用不含地址细节和 Secret 的类型化状态。
+- W2B 不创建运行日志或诊断 ZIP；可观察错误使用不含地址细节和 Secret 的类型化状态。
 
 ## 6. 自动化验证
 
@@ -100,7 +104,7 @@ W2B1 不实现 WinUI 统计工作台、通知区域任务菜单、连接明细�
 python3 scripts/validate_windows.py
 ```
 
-该检查校验固定 SDK、项目分层、依赖白名单、Target Framework、清单、W0/W1 生命周期锚点、W2B1 必需文件、schema v2 五张表与禁止项。非 Windows 主机执行成功只证明静态契约成立。
+该检查校验固定 SDK、项目分层、依赖白名单、Target Framework、清单、全部 WinUI XAML、W0/W1 生命周期锚点、W2B 工作台必需文件、schema v2 五张表与禁止项。非 Windows 主机执行成功只证明静态契约成立。
 
 Windows CI 和具备相同环境的 Windows 主机使用：
 
@@ -110,7 +114,7 @@ pwsh -File scripts/validate_windows.ps1
 
 固定顺序为静态检查、solution restore、Core 单元测试、App x64 Release 构建、非打包自包含 publish 和发布目录检查。CI 上传 W2B x64 预览 artifact，不运行真实 Credential Manager 写入或外部 Controller 集成测试。
 
-测试至少覆盖地址、fixture 解码、分类、差值、速率、stale、重连退避、会话隔离、配置保存，以及账本基线、分类增量、重连缺口、计数器回退、重启恢复、跨日、保留清理、v1→v2 迁移、重叠任务、各类中断、最近 30 日、清空回滚和数据库故障隔离。W0/W1 回归仍不能只靠 Core 单元测试。
+测试至少覆盖地址、fixture 解码、分类、差值、速率、stale、重连退避、会话隔离、配置保存，以及账本基线、分类增量、重连缺口、计数器回退、重启恢复、跨日、保留清理、v1→v2 迁移、重叠任务、各类中断、最近 30 日、筛选与图表投影、清空回滚和数据库故障隔离。W0/W1 回归与 WinUI 交互仍不能只靠 Core 单元测试。
 
 ## 7. 人工验收与证据边界
 
