@@ -8,6 +8,7 @@ public sealed class TrafficMonitoringCoordinator : IAsyncDisposable
     private readonly IMihomoControllerClient _client;
     private readonly IControllerConfigurationStore _configurationStore;
     private readonly TrafficMonitoringStream _stream;
+    private readonly ITrafficStatisticsRecorder _statisticsRecorder;
     private readonly TimeProvider _timeProvider;
     private readonly SemaphoreSlim _transitionLock = new(1, 1);
     private readonly object _stateLock = new();
@@ -20,17 +21,20 @@ public sealed class TrafficMonitoringCoordinator : IAsyncDisposable
         IConnectionSnapshotCollector collector,
         IControllerConfigurationStore configurationStore,
         MonitoringPolicy? policy = null,
-        TimeProvider? timeProvider = null)
+        TimeProvider? timeProvider = null,
+        ITrafficStatisticsRecorder? statisticsRecorder = null)
     {
         var selectedPolicy = (policy ?? MonitoringPolicy.Production).Validate();
         _client = client;
         _configurationStore = configurationStore;
         _timeProvider = timeProvider ?? TimeProvider.System;
+        _statisticsRecorder = statisticsRecorder ?? NullTrafficStatisticsRecorder.Instance;
         _stream = new TrafficMonitoringStream(
             client,
             collector,
             selectedPolicy,
-            _timeProvider);
+            _timeProvider,
+            _statisticsRecorder);
     }
 
     public event Action<TrafficMonitorSnapshot>? SnapshotChanged;
@@ -69,11 +73,22 @@ public sealed class TrafficMonitoringCoordinator : IAsyncDisposable
 
     public async Task StopAsync(CancellationToken cancellationToken = default)
     {
+        await StopAsync(TrafficSessionEndReason.MonitoringStopped, cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    private async Task StopAsync(
+        TrafficSessionEndReason reason,
+        CancellationToken cancellationToken)
+    {
         await _transitionLock.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
             var generation = Interlocked.Increment(ref _generation);
             await StopActiveRunAsync().ConfigureAwait(false);
+            await _statisticsRecorder
+                .InterruptMonitoringAsync(reason, cancellationToken)
+                .ConfigureAwait(false);
             Publish(generation, TrafficMonitorSnapshot.Disconnected);
         }
         finally
@@ -84,7 +99,8 @@ public sealed class TrafficMonitoringCoordinator : IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
-        await StopAsync().ConfigureAwait(false);
+        await StopAsync(TrafficSessionEndReason.ApplicationExit, CancellationToken.None)
+            .ConfigureAwait(false);
         _transitionLock.Dispose();
     }
 
@@ -137,6 +153,10 @@ public sealed class TrafficMonitoringCoordinator : IAsyncDisposable
                     shouldSaveConfiguration = false;
                 }
 
+                await _statisticsRecorder
+                    .BeginMonitoringAsync(version.Version, cancellationToken)
+                    .ConfigureAwait(false);
+
                 await _stream.RunAsync(
                     endpoint,
                     secret,
@@ -159,6 +179,11 @@ public sealed class TrafficMonitoringCoordinator : IAsyncDisposable
 
                 if (PublishTerminalIfNeeded(generation, exception.RootException))
                 {
+                    await _statisticsRecorder
+                        .InterruptMonitoringAsync(
+                            TrafficSessionEndReason.TerminalFailure,
+                            CancellationToken.None)
+                        .ConfigureAwait(false);
                     return;
                 }
 
@@ -172,6 +197,11 @@ public sealed class TrafficMonitoringCoordinator : IAsyncDisposable
             {
                 if (PublishTerminalIfNeeded(generation, exception))
                 {
+                    await _statisticsRecorder
+                        .InterruptMonitoringAsync(
+                            TrafficSessionEndReason.TerminalFailure,
+                            CancellationToken.None)
+                        .ConfigureAwait(false);
                     return;
                 }
 

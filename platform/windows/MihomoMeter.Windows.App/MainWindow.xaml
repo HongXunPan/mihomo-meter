@@ -28,7 +28,7 @@
                     Text="Mihomo Meter" />
                 <TextBlock
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                    Text="Windows W1 · 实时分类速率预览" />
+                    Text="Windows W2A · 实时分类与本地累计预览" />
             </StackPanel>
 
             <StackPanel
@@ -166,6 +166,61 @@
                 <TextBlock
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     Text="{x:Bind ViewModel.CoverageText, Mode=OneWay}" />
+
+                <StackPanel Spacing="12">
+                    <TextBlock
+                        FontSize="20"
+                        FontWeight="SemiBold"
+                        Text="本地累计" />
+                    <TextBlock
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="{x:Bind ViewModel.StatisticsStatusText, Mode=OneWay}" />
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <Border
+                            Padding="18"
+                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            CornerRadius="12">
+                            <StackPanel Spacing="10">
+                                <TextBlock FontSize="17" FontWeight="SemiBold" Text="今日" />
+                                <TextBlock FontWeight="SemiBold" Text="Proxy" />
+                                <TextBlock Text="{x:Bind ViewModel.TodayProxyTotalText, Mode=OneWay}" />
+                                <TextBlock FontWeight="SemiBold" Text="DIRECT" />
+                                <TextBlock Text="{x:Bind ViewModel.TodayDirectTotalText, Mode=OneWay}" />
+                                <TextBlock FontWeight="SemiBold" Text="REJECT" />
+                                <TextBlock Text="{x:Bind ViewModel.TodayRejectTotalText, Mode=OneWay}" />
+                                <TextBlock FontWeight="SemiBold" Text="未知" />
+                                <TextBlock Text="{x:Bind ViewModel.TodayUnknownTotalText, Mode=OneWay}" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border
+                            Grid.Column="1"
+                            Padding="18"
+                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            CornerRadius="12">
+                            <StackPanel Spacing="10">
+                                <TextBlock FontSize="17" FontWeight="SemiBold" Text="历史总计" />
+                                <TextBlock FontWeight="SemiBold" Text="Proxy" />
+                                <TextBlock Text="{x:Bind ViewModel.LifetimeProxyTotalText, Mode=OneWay}" />
+                                <TextBlock FontWeight="SemiBold" Text="DIRECT" />
+                                <TextBlock Text="{x:Bind ViewModel.LifetimeDirectTotalText, Mode=OneWay}" />
+                                <TextBlock FontWeight="SemiBold" Text="REJECT" />
+                                <TextBlock Text="{x:Bind ViewModel.LifetimeRejectTotalText, Mode=OneWay}" />
+                                <TextBlock FontWeight="SemiBold" Text="未知" />
+                                <TextBlock Text="{x:Bind ViewModel.LifetimeUnknownTotalText, Mode=OneWay}" />
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </StackPanel>
             </StackPanel>
         </ScrollViewer>
 

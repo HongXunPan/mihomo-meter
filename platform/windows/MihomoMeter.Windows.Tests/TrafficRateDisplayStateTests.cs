@@ -16,8 +16,9 @@ public sealed class TrafficRateDisplayStateTests
         display.Apply(new TrafficMeasurementResult(
             new TrafficRateWindow(rates, rates, 0.75),
             false,
-            false));
-        display.Apply(new TrafficMeasurementResult(null, false, false));
+            false,
+            CreateObservation()));
+        display.Apply(new TrafficMeasurementResult(null, false, false, CreateObservation()));
 
         Assert.AreEqual(rates, display.Rates);
         Assert.AreEqual(0.75, display.Coverage);
@@ -31,9 +32,14 @@ public sealed class TrafficRateDisplayStateTests
         display.Apply(new TrafficMeasurementResult(
             new TrafficRateWindow(rates, rates, 1),
             false,
-            false));
+            false,
+            CreateObservation()));
 
-        display.Apply(new TrafficMeasurementResult(null, false, true));
+        display.Apply(new TrafficMeasurementResult(
+            null,
+            false,
+            true,
+            CreateObservation(new TrafficLedgerCountersReset())));
 
         Assert.IsNull(display.Rates);
         Assert.IsNull(display.Coverage);
@@ -47,7 +53,8 @@ public sealed class TrafficRateDisplayStateTests
         display.Apply(new TrafficMeasurementResult(
             new TrafficRateWindow(rates, rates, 1),
             false,
-            false));
+            false,
+            CreateObservation()));
 
         display.Clear();
 
@@ -62,5 +69,14 @@ public sealed class TrafficRateDisplayStateTests
             TrafficRate.Zero,
             TrafficRate.Zero,
             TrafficRate.Zero);
+    }
+
+    private static TrafficLedgerObservation CreateObservation(
+        TrafficLedgerTransition? transition = null)
+    {
+        return new TrafficLedgerObservation(
+            DateTimeOffset.UnixEpoch,
+            TrafficBytes.Zero,
+            transition ?? new TrafficLedgerBaselineEstablished());
     }
 }

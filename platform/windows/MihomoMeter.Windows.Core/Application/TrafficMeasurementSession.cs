@@ -6,7 +6,8 @@ namespace MihomoMeter.Windows.Core.Application;
 public sealed record TrafficMeasurementResult(
     TrafficRateWindow? RateWindow,
     bool RequiresCatalogRefresh,
-    bool CountersReset);
+    bool CountersReset,
+    TrafficLedgerObservation LedgerObservation);
 
 public sealed class TrafficMeasurementSession
 {
@@ -46,10 +47,24 @@ public sealed class TrafficMeasurementSession
         switch (transition.Status)
         {
             case ConnectionDeltaStatus.BaselineEstablished:
-                return new TrafficMeasurementResult(null, requiresCatalogRefresh, false);
+                return new TrafficMeasurementResult(
+                    null,
+                    requiresCatalogRefresh,
+                    false,
+                    new TrafficLedgerObservation(
+                        _timeProvider.GetUtcNow(),
+                        trafficSnapshot.KernelTotal,
+                        new TrafficLedgerBaselineEstablished()));
             case ConnectionDeltaStatus.CountersReset:
                 _rateAggregator.Reset();
-                return new TrafficMeasurementResult(null, requiresCatalogRefresh, true);
+                return new TrafficMeasurementResult(
+                    null,
+                    requiresCatalogRefresh,
+                    true,
+                    new TrafficLedgerObservation(
+                        _timeProvider.GetUtcNow(),
+                        trafficSnapshot.KernelTotal,
+                        new TrafficLedgerCountersReset()));
             case ConnectionDeltaStatus.Delta when transition.Batch is not null:
                 var rateWindow = elapsedSeconds is null
                     ? null
@@ -59,9 +74,13 @@ public sealed class TrafficMeasurementSession
                 return new TrafficMeasurementResult(
                     rateWindow,
                     requiresCatalogRefresh,
-                    false);
+                    false,
+                    new TrafficLedgerObservation(
+                        _timeProvider.GetUtcNow(),
+                        trafficSnapshot.KernelTotal,
+                        new TrafficLedgerDelta(transition.Batch.Traffic)));
             default:
-                return new TrafficMeasurementResult(null, requiresCatalogRefresh, false);
+                throw new InvalidOperationException("连接差值状态缺少对应账本观测。");
         }
     }
 

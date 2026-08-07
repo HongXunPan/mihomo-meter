@@ -13,6 +13,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="SQLitePCLRaw.bundle_winsqlite3" Version="2.1.11" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="../../../Tests/Fixtures/*.json"
           Link="Fixtures/%(Filename)%(Extension)"
           CopyToOutputDirectory="PreserveNewest" />

@@ -15,7 +15,9 @@ from windows_validation_contract import (
     CORE_ROOT,
     EXPECTED_APP_PACKAGES,
     EXPECTED_APP_PROPERTIES,
+    EXPECTED_CORE_PACKAGES,
     EXPECTED_SOLUTION_PROJECTS,
+    EXPECTED_TEST_PACKAGES,
     FORBIDDEN_CODE_MARKERS,
     FORBIDDEN_PROJECT_MARKERS,
     REQUIRED_APP_FILES,
@@ -86,15 +88,15 @@ def validate_app_project(errors: list[str]) -> None:
 
     content = APP_PROJECT.read_text(encoding="utf-8")
     if "run-w0-gate.cmd" in content:
-        errors.append("W1 App 发布项目不得继续复制 run-w0-gate.cmd")
+        errors.append("W2A App 发布项目不得继续复制 run-w0-gate.cmd")
 
 
 def validate_core_and_test_projects(errors: list[str]) -> None:
     core = load_xml(CORE_PROJECT)
     if project_values(core, "TargetFramework") != ["net10.0"]:
         errors.append("Core TargetFramework 必须为 net10.0")
-    if package_references(core):
-        errors.append("Core 不得包含 PackageReference")
+    if package_references(core) != EXPECTED_CORE_PACKAGES:
+        errors.append(f"Core NuGet 依赖必须严格等于 {EXPECTED_CORE_PACKAGES}")
 
     tests = load_xml(TEST_PROJECT)
     if tests.attrib.get("Sdk") != "MSTest.Sdk":
@@ -103,8 +105,8 @@ def validate_core_and_test_projects(errors: list[str]) -> None:
         errors.append("Tests TargetFramework 必须为 net10.0")
     if project_values(tests, "TestingExtensionsProfile") != ["None"]:
         errors.append("Tests 必须关闭额外 Testing Platform 扩展")
-    if package_references(tests):
-        errors.append("Tests 不得额外声明 PackageReference")
+    if package_references(tests) != EXPECTED_TEST_PACKAGES:
+        errors.append(f"Tests NuGet 依赖必须严格等于 {EXPECTED_TEST_PACKAGES}")
 
     fixture_links = [
         element.attrib.get("Include", "").replace("\\", "/")
@@ -147,7 +149,7 @@ def validate_xaml() -> None:
 def validate_files_and_code(errors: list[str]) -> None:
     for relative_path in REQUIRED_REPOSITORY_FILES:
         if not (ROOT / relative_path).is_file():
-            errors.append(f"缺少 Windows W1 仓库文件：{relative_path}")
+            errors.append(f"缺少 Windows W2A 仓库文件：{relative_path}")
     for relative_path in REQUIRED_APP_FILES:
         if not (APP_ROOT / relative_path).is_file():
             errors.append(f"缺少 Windows App 文件：{relative_path}")
@@ -172,7 +174,7 @@ def validate_files_and_code(errors: list[str]) -> None:
     )
     for marker in FORBIDDEN_PROJECT_MARKERS:
         if marker in project_content:
-            errors.append(f"Windows W1 不得包含未批准项目标记：{marker}")
+            errors.append(f"Windows W2A 不得包含未批准项目标记：{marker}")
 
     code = "\n".join(
         path.read_text(encoding="utf-8")
@@ -180,7 +182,7 @@ def validate_files_and_code(errors: list[str]) -> None:
     )
     for marker in FORBIDDEN_CODE_MARKERS:
         if marker in code:
-            errors.append(f"Windows W1 不得包含越界代码标记：{marker}")
+            errors.append(f"Windows W2A 不得包含越界代码标记：{marker}")
 
     address_store = (
         APP_ROOT / "Infrastructure/Configuration/JsonControllerAddressStore.cs"

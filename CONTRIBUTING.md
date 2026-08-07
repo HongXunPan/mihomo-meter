@@ -12,7 +12,7 @@ macOS 工程需要：
 
 应用与测试 Target 均最低支持 macOS 14。
 
-Windows 工程需要 Windows 10 22H2 x64 或更高版本、.NET SDK 10.0.302，以及 Windows 10 SDK 10.0.19041.0 或更高版本。W0 壳层门禁已通过，当前 W1 增加 `MSTest.Sdk` 4.3.2 作为仅测试依赖；非 Windows 主机只能运行静态契约检查，不能据此宣称 Windows 已构建或 Win10 实机兼容通过。
+Windows 工程需要 Windows 10 22H2 x64 或更高版本、.NET SDK 10.0.302，以及 Windows 10 SDK 10.0.19041.0 或更高版本。W1 实时纵切已带已知限制通过，当前 W2A 使用 `Microsoft.Data.Sqlite.Core` 10.0.10 与 `SQLitePCLRaw.bundle_winsqlite3` 2.1.11 接入系统 SQLite；`MSTest.Sdk` 4.3.2 仍只用于测试。非 Windows 主机只能运行静态契约检查，不能据此宣称 Windows 已构建或 Win10 实机兼容通过。
 
 项目固定依赖 Sparkle 2.9.4 处理应用内更新，并使用 Yams 6.2.2 类型化解析用户授权目录中的 `profiles.yaml`。Yams 不得扩展为通用配置加载入口。请勿为了局部功能继续引入未经讨论的框架、代码生成器或包管理脚本。
 
@@ -68,7 +68,7 @@ python3 scripts/validate_windows.py
 pwsh -File scripts/validate_windows.ps1
 ```
 
-该脚本按固定顺序执行静态契约、Core 单元测试、App Release 构建和非打包自包含发布。W0 历史壳层操作见[Windows 阶段 W0 实机指南](docs/Windows阶段W0实机指南.md)；W1 的真实 Controller、Credential Manager、资源指标和 W0 生命周期回归按[Windows 阶段 W1 实机指南](docs/Windows阶段W1实机指南.md)执行。工程依赖、目录职责和停止条件见[Windows 工程代码技术选型](docs/Windows工程代码技术选型.md)。
+该脚本按固定顺序执行静态契约、Core 单元测试、App Release 构建和非打包自包含发布。W0 历史壳层操作见[Windows 阶段 W0 实机指南](docs/Windows阶段W0实机指南.md)；W1 的 Controller 与生命周期历史矩阵见[Windows 阶段 W1 实机指南](docs/Windows阶段W1实机指南.md)；W2A 的累计、重启恢复和数据库边界按[Windows 阶段 W2A 实机指南](docs/Windows阶段W2A实机指南.md)执行。工程依赖、目录职责和停止条件见[Windows 工程代码技术选型](docs/Windows工程代码技术选型.md)。
 
 完整 macOS 无签名构建与测试属于重型门禁，不作为每次任务完成或普通提交前的默认本地验证。所有分支 Push 和 Pull Request 都会由 macOS 持续集成自动执行；用户明确要求本机完整验证时，可执行：
 
@@ -118,6 +118,7 @@ xcodebuild \
 - 应用与域名趋势必须至少带一个精确归因维度，只从既有日聚合按日期查询并补齐零值；不得为趋势保存目标、筛选、图表点或新增连接级字段。趋势查询失败不得写零值或中断核心流量总账。
 - Profile 目录只能在用户明确授权后以只读安全范围访问；持久化层只能保存 UID、脱敏展示字段和应用本地 HMAC 指纹，不得保存原始订阅地址。
 - 不把 DIRECT 或未知流量静默合并到 Proxy。
+- Windows 核心流量只允许写入 `%LOCALAPPDATA%\HongXunPan\MihomoMeter\traffic.sqlite3` 的分类聚合，不得保存连接、节点、目标、规则或 Secret；数据库故障不得停止实时监控。
 - 不提交本机构建产物、用户级 Xcode 配置、日志或真实响应数据。
 
 ## Pull Request

@@ -17,6 +17,7 @@ REQUIRED_REPOSITORY_FILES = (
     ".github/workflows/windows.yml",
     "docs/Windows工程代码技术选型.md",
     "docs/Windows阶段W1实机指南.md",
+    "docs/Windows阶段W2A实机指南.md",
     "scripts/validate_windows.ps1",
     "scripts/windows_validation_contract.py",
 )
@@ -36,6 +37,15 @@ EXPECTED_APP_PROPERTIES = {
 EXPECTED_APP_PACKAGES = {
     "Microsoft.Windows.SDK.BuildTools": "10.0.28000.2526",
     "Microsoft.WindowsAppSDK": "2.3.1",
+    "SQLitePCLRaw.bundle_winsqlite3": "2.1.11",
+}
+
+EXPECTED_CORE_PACKAGES = {
+    "Microsoft.Data.Sqlite.Core": "10.0.10",
+}
+
+EXPECTED_TEST_PACKAGES = {
+    "SQLitePCLRaw.bundle_winsqlite3": "2.1.11",
 }
 
 EXPECTED_SOLUTION_PROJECTS = {
@@ -55,6 +65,8 @@ REQUIRED_APP_FILES = (
     "Infrastructure/Configuration/JsonControllerAddressStore.cs",
     "Infrastructure/Credentials/CredentialManagerSecretStore.cs",
     "Infrastructure/WindowsAppServices.cs",
+    "Infrastructure/Statistics/TrafficLedgerLocation.cs",
+    "Infrastructure/Statistics/WindowsSqliteProvider.cs",
     "Lifecycle/ActivationRouter.cs",
     "Lifecycle/WindowLifecycleController.cs",
     "Lifecycle/NotificationAreaController.cs",
@@ -70,6 +82,8 @@ REQUIRED_APP_FILES = (
 REQUIRED_CORE_FILES = (
     "Domain/ControllerEndpoint.cs",
     "Domain/TrafficMeasurement.cs",
+    "Domain/TrafficLedgerObservation.cs",
+    "Domain/TrafficStatistics.cs",
     "Domain/ProxyClassifier.cs",
     "Domain/ConnectionDeltaTracker.cs",
     "Domain/TrafficRateAggregator.cs",
@@ -80,10 +94,18 @@ REQUIRED_CORE_FILES = (
     "Application/TrafficMonitorState.cs",
     "Application/TrafficMonitoringCoordinator.cs",
     "Application/TrafficMonitoringStream.cs",
+    "Application/TrafficStatisticsRecording.cs",
+    "Application/TrafficStatisticsCoordinator.cs",
     "Infrastructure/Mihomo/ConnectionMessageAssembler.cs",
     "Infrastructure/Mihomo/ConnectionSnapshotCollector.cs",
     "Infrastructure/Mihomo/MihomoControllerClient.cs",
     "Infrastructure/Mihomo/MihomoControllerModels.cs",
+    "Infrastructure/Statistics/TrafficLedgerRuntimeState.cs",
+    "Infrastructure/Statistics/TrafficLedgerSchema.cs",
+    "Infrastructure/Statistics/TrafficLedgerPersistence.cs",
+    "Infrastructure/Statistics/TrafficLedgerStorageValues.cs",
+    "Infrastructure/Statistics/SQLiteTrafficLedger.cs",
+    "Infrastructure/Statistics/TrafficStatisticsException.cs",
     "Properties/AssemblyInfo.cs",
 )
 
@@ -100,6 +122,9 @@ REQUIRED_TEST_FILES = (
     "TrafficMeasurementSessionTests.cs",
     "TrafficRateDisplayStateTests.cs",
     "TrafficMonitoringCoordinatorTests.cs",
+    "SQLiteTrafficLedgerTests.cs",
+    "TrafficStatisticsBoundaryTests.cs",
+    "WindowsSqliteTestProvider.cs",
 )
 
 REQUIRED_CODE_MARKERS = {
@@ -147,6 +172,15 @@ REQUIRED_CODE_MARKERS = {
     APP_ROOT / "Infrastructure/WindowsAppServices.cs": (
         "AllowAutoRedirect = false",
         "UseProxy = false",
+        "SQLiteTrafficLedger",
+        "TrafficStatisticsCoordinator",
+    ),
+    APP_ROOT / "Infrastructure/Statistics/TrafficLedgerLocation.cs": (
+        "LocalApplicationData",
+        "traffic.sqlite3",
+    ),
+    APP_ROOT / "Infrastructure/Statistics/WindowsSqliteProvider.cs": (
+        "SQLitePCL.Batteries_V2.Init()",
     ),
     CORE_ROOT / "Infrastructure/Mihomo/MihomoControllerClient.cs": (
         'HttpUri("/version")',
@@ -168,12 +202,28 @@ REQUIRED_CODE_MARKERS = {
         "IsCurrentSession",
         "SaveValidatedAsync",
         "backoff.Reset()",
+        "BeginMonitoringAsync",
+        "InterruptMonitoringAsync",
+    ),
+    CORE_ROOT / "Infrastructure/Statistics/TrafficLedgerSchema.cs": (
+        "CREATE TABLE core_sessions",
+        "CREATE TABLE traffic_buckets",
+        "CREATE TABLE traffic_daily_totals",
+        "CREATE TABLE ledger_state",
+    ),
+    CORE_ROOT / "Infrastructure/Statistics/SQLiteTrafficLedger.cs": (
+        "TrafficLedgerBaselineEstablished",
+        "TrafficLedgerDelta",
+        "TrafficLedgerCountersReset",
+        "TrafficCategory.Unknown",
+        "AddDays(-365)",
     ),
 }
 
 FORBIDDEN_PROJECT_MARKERS = (
-    "Microsoft.Data.Sqlite",
+    "Microsoft.EntityFrameworkCore",
     "System.Data.SQLite",
+    "SQLitePCLRaw.bundle_e_sqlite3",
     'PackageReference Include="Yaml',
 )
 
