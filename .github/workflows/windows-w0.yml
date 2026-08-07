@@ -1,0 +1,61 @@
+name: Windows W0 壳层门禁
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "platform/windows/**"
+      - "scripts/validate_windows_w0.py"
+      - "scripts/validate_windows_w0.ps1"
+      - "docs/Windows工程代码技术选型.md"
+      - "docs/Windows阶段W0实机指南.md"
+      - "CONTRIBUTING.md"
+      - ".github/workflows/windows-w0.yml"
+  push:
+    branches: [main]
+    paths:
+      - "platform/windows/**"
+      - "scripts/validate_windows_w0.py"
+      - "scripts/validate_windows_w0.ps1"
+      - "docs/Windows工程代码技术选型.md"
+      - "docs/Windows阶段W0实机指南.md"
+      - "CONTRIBUTING.md"
+      - ".github/workflows/windows-w0.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-w0-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: 构建 Windows x64 非打包自包含产物
+    runs-on: windows-2025
+    timeout-minutes: 20
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+      DOTNET_NOLOGO: "1"
+      NUGET_PACKAGES: ${{ github.workspace }}/.codex-tmp/nuget
+
+    steps:
+      - name: 检出源码
+        uses: actions/checkout@v7
+
+      - name: 安装固定 .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: platform/windows/global.json
+
+      - name: 执行 W0 静态、构建与发布检查
+        shell: pwsh
+        run: pwsh -File scripts/validate_windows_w0.ps1
+
+      - name: 上传 Win10 W0 实机测试目录
+        uses: actions/upload-artifact@v7
+        with:
+          name: mihomo-meter-windows-w0-x64-${{ github.sha }}
+          path: .codex-tmp/windows-w0-publish
+          if-no-files-found: error
+          retention-days: 14
