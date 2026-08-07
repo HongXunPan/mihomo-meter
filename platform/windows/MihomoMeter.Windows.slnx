@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="MihomoMeter.Windows.App/MihomoMeter.Windows.App.csproj" />
+  <Project Path="MihomoMeter.Windows.Core/MihomoMeter.Windows.Core.csproj" />
+  <Project Path="MihomoMeter.Windows.Tests/MihomoMeter.Windows.Tests.csproj" />
+</Solution>

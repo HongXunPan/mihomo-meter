@@ -29,7 +29,7 @@ internal sealed class FloatingWidgetController : IDisposable
         {
             _window = new FloatingWidgetWindow(_lastPosition, _activateMainWindow);
             _stateChanged(true);
-            W0ConsoleReporter.Stage("floating_widget_enabled");
+            StartupConsoleReporter.Stage("floating_widget_enabled");
             return;
         }
 
@@ -58,6 +58,6 @@ internal sealed class FloatingWidgetController : IDisposable
         _window.Dispose();
         _window = null;
         _stateChanged(false);
-        W0ConsoleReporter.Stage("floating_widget_disabled");
+        StartupConsoleReporter.Stage("floating_widget_disabled");
     }
 }

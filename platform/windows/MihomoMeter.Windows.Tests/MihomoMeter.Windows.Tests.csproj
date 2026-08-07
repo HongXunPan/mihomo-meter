@@ -1,0 +1,20 @@
+<Project Sdk="MSTest.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>MihomoMeter.Windows.Tests</RootNamespace>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <TestingExtensionsProfile>None</TestingExtensionsProfile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../MihomoMeter.Windows.Core/MihomoMeter.Windows.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="../../../Tests/Fixtures/*.json"
+          Link="Fixtures/%(Filename)%(Extension)"
+          CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

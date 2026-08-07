@@ -46,7 +46,7 @@ internal sealed class FloatingWidgetWindow : IDisposable
     {
         _activateMainWindow = activateMainWindow
             ?? throw new ArgumentNullException(nameof(activateMainWindow));
-        _className = $"MihomoMeter.Windows.W0.FloatingWidget.{Environment.ProcessId}";
+        _className = $"MihomoMeter.Windows.FloatingWidget.{Environment.ProcessId}";
         _instanceHandle = FloatingWidgetNativeMethods.GetModuleHandle(null);
         if (_instanceHandle == 0)
         {
@@ -88,7 +88,7 @@ internal sealed class FloatingWidgetWindow : IDisposable
             _position = FloatingWidgetPlacement.ClampToWorkArea(_position, _size);
             FloatingWidgetPainter.ApplyRoundRegion(_windowHandle, _size);
             MoveWindow(_position, _size, SetPositionShowWindow);
-            W0ConsoleReporter.Stage("floating_widget_created");
+            StartupConsoleReporter.Stage("floating_widget_created");
         }
         catch
         {
@@ -114,7 +114,7 @@ internal sealed class FloatingWidgetWindow : IDisposable
         }
 
         FloatingWidgetNativeMethods.UnregisterClass(_className, _instanceHandle);
-        W0ConsoleReporter.Stage("floating_widget_destroyed");
+        StartupConsoleReporter.Stage("floating_widget_destroyed");
     }
 
     private void RegisterWindowClass()
@@ -178,7 +178,7 @@ internal sealed class FloatingWidgetWindow : IDisposable
         }
         catch (Exception exception)
         {
-            W0ConsoleReporter.Failure("floating_widget_message", exception);
+            StartupConsoleReporter.Failure("floating_widget_message", exception);
         }
 
         return FloatingWidgetNativeMethods.DefWindowProc(

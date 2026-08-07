@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml;
 using MihomoMeter.Windows.App.Diagnostics;
+using MihomoMeter.Windows.App.Infrastructure;
 using MihomoMeter.Windows.App.Lifecycle;
 
 namespace MihomoMeter.Windows.App;
@@ -12,36 +13,62 @@ public partial class App : Application
     public App()
     {
         UnhandledException += App_UnhandledException;
-        W0ConsoleReporter.Stage("app_xaml_initialize_started");
+        StartupConsoleReporter.Stage("app_xaml_initialize_started");
         try
         {
             InitializeComponent();
-            W0ConsoleReporter.Stage("app_xaml_initialize_completed");
+            StartupConsoleReporter.Stage("app_xaml_initialize_completed");
         }
         catch (Exception exception)
         {
-            W0ConsoleReporter.Failure("app_constructor", exception);
+            StartupConsoleReporter.Failure("app_constructor", exception);
             throw;
         }
     }
 
-    protected override void OnLaunched(LaunchActivatedEventArgs args)
+    protected override async void OnLaunched(LaunchActivatedEventArgs args)
     {
-        W0ConsoleReporter.Stage("app_launch_entered");
+        StartupConsoleReporter.Stage("app_launch_entered");
+        WindowsAppServices? services = null;
         try
         {
-            var window = new MainWindow();
+            services = WindowsAppServices.Create();
+            var window = new MainWindow(services);
             _window = window;
             _windowLifecycle = new WindowLifecycleController(
                 window,
-                window.SetFloatingWidgetEnabled);
+                window.SetFloatingWidgetEnabled,
+                window.StopForApplicationTerminationAsync);
+            window.ViewModel.StatusSummaryChanged += _windowLifecycle.SetStatusText;
             ActivationRouter.Register(HandleRedirectedActivation);
-            _windowLifecycle.ShowMainWindow();
-            W0ConsoleReporter.Stage("app_launch_completed");
+            var hasStoredConfiguration = await window.InitializeAsync();
+            if (!hasStoredConfiguration)
+            {
+                _windowLifecycle.ShowMainWindow();
+            }
+
+            StartupConsoleReporter.Stage("app_launch_completed");
         }
         catch (Exception exception)
         {
-            W0ConsoleReporter.Failure("app_launch", exception);
+            try
+            {
+                _windowLifecycle?.Dispose();
+                if (_window is not null)
+                {
+                    await _window.StopForApplicationTerminationAsync();
+                }
+                else if (services is not null)
+                {
+                    await services.DisposeAsync();
+                }
+            }
+            catch (Exception cleanupException)
+            {
+                StartupConsoleReporter.Failure("app_launch_cleanup", cleanupException);
+            }
+
+            StartupConsoleReporter.Failure("app_launch", exception);
             throw;
         }
     }
@@ -51,12 +78,12 @@ public partial class App : Application
         var dispatcher = _window?.DispatcherQueue;
         if (dispatcher is null || !dispatcher.TryEnqueue(() =>
             {
-                W0ConsoleReporter.Stage("redirected_activation_window_show_started");
+                StartupConsoleReporter.Stage("redirected_activation_window_show_started");
                 _windowLifecycle?.ShowMainWindow();
-                W0ConsoleReporter.Stage("redirected_activation_window_show_completed");
+                StartupConsoleReporter.Stage("redirected_activation_window_show_completed");
             }))
         {
-            W0ConsoleReporter.Failure(
+            StartupConsoleReporter.Failure(
                 "redirected_activation_dispatch",
                 new InvalidOperationException("无法把单实例唤起请求发送到界面线程。"));
         }
@@ -66,6 +93,6 @@ public partial class App : Application
         object sender,
         Microsoft.UI.Xaml.UnhandledExceptionEventArgs args)
     {
-        W0ConsoleReporter.Failure("xaml_unhandled_exception", args.Exception);
+        StartupConsoleReporter.Failure("xaml_unhandled_exception", args.Exception);
     }
 }

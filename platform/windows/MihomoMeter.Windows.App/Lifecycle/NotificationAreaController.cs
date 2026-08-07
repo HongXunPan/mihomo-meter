@@ -8,6 +8,7 @@ namespace MihomoMeter.Windows.App.Lifecycle;
 internal sealed class NotificationAreaController : IDisposable
 {
     private const uint NotifyIconAdd = 0;
+    private const uint NotifyIconModify = 1;
     private const uint NotifyIconDelete = 2;
     private const uint NotifyIconSetFocus = 3;
     private const uint NotifyIconSetVersion = 4;
@@ -36,6 +37,7 @@ internal sealed class NotificationAreaController : IDisposable
     private readonly NotificationAreaMenu _menu;
     private readonly uint _taskbarCreatedMessage;
     private ShellNativeMethods.NotifyIconData _iconData;
+    private string _toolTip = "Mihomo Meter · 未连接";
     private bool _iconAdded;
     private bool _disposed;
 
@@ -104,6 +106,33 @@ internal sealed class NotificationAreaController : IDisposable
             WindowSubclassId);
     }
 
+    public void UpdateToolTip(string statusText)
+    {
+        if (_disposed || !_iconAdded)
+        {
+            return;
+        }
+
+        var normalizedStatus = string.IsNullOrWhiteSpace(statusText)
+            ? "Mihomo Meter"
+            : statusText.Trim();
+        _toolTip = normalizedStatus.Length <= 127
+            ? normalizedStatus
+            : normalizedStatus[..127];
+        _iconData.ToolTip = _toolTip;
+
+        var originalFlags = _iconData.Flags;
+        _iconData.Flags = NotifyIconFlagTip | (originalFlags & NotifyIconFlagGuid);
+        if (!ShellNativeMethods.ShellNotifyIcon(NotifyIconModify, ref _iconData))
+        {
+            StartupConsoleReporter.Failure(
+                "notification_area_tooltip",
+                new Win32Exception(Marshal.GetLastWin32Error()));
+        }
+
+        _iconData.Flags = originalFlags;
+    }
+
     private void AddIcon()
     {
         var iconHandle = ShellNativeMethods.LoadIcon(0, (nint)DefaultApplicationIcon);
@@ -123,7 +152,7 @@ internal sealed class NotificationAreaController : IDisposable
                 | NotifyIconFlagGuid,
             CallbackMessage = NotificationCallbackMessage,
             IconHandle = iconHandle,
-            ToolTip = "Mihomo Meter · Windows W0",
+            ToolTip = _toolTip,
             Info = string.Empty,
             InfoTitle = string.Empty,
             ItemGuid = NotificationIconGuid,
@@ -149,7 +178,7 @@ internal sealed class NotificationAreaController : IDisposable
                 "Shell_NotifyIcon(NIM_SETVERSION) 无法设置通知区域图标版本。");
         }
 
-        W0ConsoleReporter.Stage("notification_area_icon_added");
+        StartupConsoleReporter.Stage("notification_area_icon_added");
     }
 
     private void DeleteIcon()
@@ -161,7 +190,7 @@ internal sealed class NotificationAreaController : IDisposable
 
         ShellNativeMethods.ShellNotifyIcon(NotifyIconDelete, ref _iconData);
         _iconAdded = false;
-        W0ConsoleReporter.Stage("notification_area_icon_removed");
+        StartupConsoleReporter.Stage("notification_area_icon_removed");
     }
 
     private nint WindowSubclassProcedure(
@@ -189,7 +218,7 @@ internal sealed class NotificationAreaController : IDisposable
         }
         catch (Exception exception)
         {
-            W0ConsoleReporter.Failure("notification_area_message", exception);
+            StartupConsoleReporter.Failure("notification_area_message", exception);
         }
 
         return ShellNativeMethods.DefSubclassProc(

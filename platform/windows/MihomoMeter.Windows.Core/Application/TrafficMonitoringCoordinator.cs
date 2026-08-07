@@ -1,0 +1,289 @@
+using MihomoMeter.Windows.Core.Domain;
+using MihomoMeter.Windows.Core.Infrastructure.Mihomo;
+
+namespace MihomoMeter.Windows.Core.Application;
+
+public sealed class TrafficMonitoringCoordinator : IAsyncDisposable
+{
+    private readonly IMihomoControllerClient _client;
+    private readonly IControllerConfigurationStore _configurationStore;
+    private readonly TrafficMonitoringStream _stream;
+    private readonly TimeProvider _timeProvider;
+    private readonly SemaphoreSlim _transitionLock = new(1, 1);
+    private readonly object _stateLock = new();
+    private CancellationTokenSource? _runSource;
+    private Task? _runTask;
+    private long _generation;
+
+    public TrafficMonitoringCoordinator(
+        IMihomoControllerClient client,
+        IConnectionSnapshotCollector collector,
+        IControllerConfigurationStore configurationStore,
+        MonitoringPolicy? policy = null,
+        TimeProvider? timeProvider = null)
+    {
+        var selectedPolicy = (policy ?? MonitoringPolicy.Production).Validate();
+        _client = client;
+        _configurationStore = configurationStore;
+        _timeProvider = timeProvider ?? TimeProvider.System;
+        _stream = new TrafficMonitoringStream(
+            client,
+            collector,
+            selectedPolicy,
+            _timeProvider);
+    }
+
+    public event Action<TrafficMonitorSnapshot>? SnapshotChanged;
+
+    public bool IsCurrentSession(long sessionGeneration)
+    {
+        return sessionGeneration == Volatile.Read(ref _generation);
+    }
+
+    public async Task StartAsync(
+        string address,
+        string secret,
+        bool saveValidatedConfiguration,
+        CancellationToken cancellationToken = default)
+    {
+        await _transitionLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            _ = Interlocked.Increment(ref _generation);
+            await StopActiveRunAsync().ConfigureAwait(false);
+            var runSource = new CancellationTokenSource();
+            var generation = Interlocked.Increment(ref _generation);
+            _runSource = runSource;
+            _runTask = RunAsync(
+                generation,
+                address,
+                secret,
+                saveValidatedConfiguration,
+                runSource.Token);
+        }
+        finally
+        {
+            _transitionLock.Release();
+        }
+    }
+
+    public async Task StopAsync(CancellationToken cancellationToken = default)
+    {
+        await _transitionLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            var generation = Interlocked.Increment(ref _generation);
+            await StopActiveRunAsync().ConfigureAwait(false);
+            Publish(generation, TrafficMonitorSnapshot.Disconnected);
+        }
+        finally
+        {
+            _transitionLock.Release();
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await StopAsync().ConfigureAwait(false);
+        _transitionLock.Dispose();
+    }
+
+    private async Task RunAsync(
+        long generation,
+        string address,
+        string secret,
+        bool saveValidatedConfiguration,
+        CancellationToken cancellationToken)
+    {
+        ControllerEndpoint endpoint;
+        try
+        {
+            endpoint = new ControllerEndpoint(address);
+        }
+        catch (ControllerEndpointException exception)
+        {
+            Publish(generation, new TrafficMonitorSnapshot(
+                MonitorConnectionState.Disconnected,
+                exception.Message));
+            return;
+        }
+
+        var backoff = new ReconnectBackoff();
+        var shouldSaveConfiguration = saveValidatedConfiguration;
+        var isFirstAttempt = true;
+
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            Publish(generation, new TrafficMonitorSnapshot(
+                isFirstAttempt
+                    ? MonitorConnectionState.Connecting
+                    : MonitorConnectionState.Reconnecting,
+                isFirstAttempt ? "正在验证 Mihomo Controller。" : "正在重新连接 Mihomo。"));
+
+            try
+            {
+                var version = await _client
+                    .FetchVersionAsync(endpoint, secret, cancellationToken)
+                    .ConfigureAwait(false);
+                var proxies = await _client
+                    .FetchProxiesAsync(endpoint, secret, cancellationToken)
+                    .ConfigureAwait(false);
+
+                if (shouldSaveConfiguration)
+                {
+                    await _configurationStore
+                        .SaveValidatedAsync(endpoint, secret, cancellationToken)
+                        .ConfigureAwait(false);
+                    shouldSaveConfiguration = false;
+                }
+
+                await _stream.RunAsync(
+                    endpoint,
+                    secret,
+                    version.Version,
+                    proxies.ToCatalog(),
+                    snapshot => Publish(generation, snapshot),
+                    cancellationToken).ConfigureAwait(false);
+                throw new ConnectionStreamException(ConnectionStreamError.Closed);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                return;
+            }
+            catch (MonitoringStreamException exception)
+            {
+                if (exception.WasStable)
+                {
+                    backoff.Reset();
+                }
+
+                if (PublishTerminalIfNeeded(generation, exception.RootException))
+                {
+                    return;
+                }
+
+                await WaitForRetryAsync(
+                    generation,
+                    backoff,
+                    exception.RootException.Message,
+                    cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception exception) when (exception is not OperationCanceledException)
+            {
+                if (PublishTerminalIfNeeded(generation, exception))
+                {
+                    return;
+                }
+
+                await WaitForRetryAsync(
+                    generation,
+                    backoff,
+                    exception.Message,
+                    cancellationToken).ConfigureAwait(false);
+            }
+
+            isFirstAttempt = false;
+        }
+    }
+
+    private async Task WaitForRetryAsync(
+        long generation,
+        ReconnectBackoff backoff,
+        string message,
+        CancellationToken cancellationToken)
+    {
+        var delaySeconds = backoff.NextDelaySeconds();
+        Publish(generation, new TrafficMonitorSnapshot(
+            MonitorConnectionState.Reconnecting,
+            $"{message} 将在 {delaySeconds} 秒后重试。"));
+        try
+        {
+            await Task.Delay(
+                TimeSpan.FromSeconds(delaySeconds),
+                _timeProvider,
+                cancellationToken).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+        }
+    }
+
+    private bool PublishTerminalIfNeeded(long generation, Exception exception)
+    {
+        if (exception is MihomoControllerException controllerException)
+        {
+            if (controllerException.Reason == MihomoControllerError.AuthenticationFailed)
+            {
+                Publish(generation, new TrafficMonitorSnapshot(
+                    MonitorConnectionState.AuthenticationFailed,
+                    controllerException.Message));
+                return true;
+            }
+
+            if (controllerException.Reason == MihomoControllerError.UnsupportedResponse)
+            {
+                Publish(generation, new TrafficMonitorSnapshot(
+                    MonitorConnectionState.Unsupported,
+                    controllerException.Message));
+                return true;
+            }
+        }
+
+        if (exception is ConnectionStreamException streamException
+            && streamException.Reason
+                is ConnectionStreamError.UnsupportedResponse or ConnectionStreamError.MessageTooLarge)
+        {
+            Publish(generation, new TrafficMonitorSnapshot(
+                MonitorConnectionState.Unsupported,
+                streamException.Message));
+            return true;
+        }
+
+        if (exception is ControllerConfigurationException)
+        {
+            Publish(generation, new TrafficMonitorSnapshot(
+                MonitorConnectionState.Disconnected,
+                exception.Message));
+            return true;
+        }
+
+        return false;
+    }
+
+    private async Task StopActiveRunAsync()
+    {
+        var source = _runSource;
+        var task = _runTask;
+        _runSource = null;
+        _runTask = null;
+
+        if (source is null)
+        {
+            return;
+        }
+
+        source.Cancel();
+        if (task is not null)
+        {
+            await task.ConfigureAwait(false);
+        }
+
+        source.Dispose();
+    }
+
+    private void Publish(long generation, TrafficMonitorSnapshot snapshot)
+    {
+        Action<TrafficMonitorSnapshot>? handler;
+        lock (_stateLock)
+        {
+            if (generation != Volatile.Read(ref _generation))
+            {
+                return;
+            }
+
+            handler = SnapshotChanged;
+        }
+
+        handler?.Invoke(snapshot with { SessionGeneration = generation });
+    }
+}

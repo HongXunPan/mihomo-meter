@@ -12,7 +12,7 @@ macOS 工程需要：
 
 应用与测试 Target 均最低支持 macOS 14。
 
-Windows W0 工程需要 Windows 10 22H2 x64 或更高版本、.NET SDK 10.0.302，以及 Windows 10 SDK 10.0.19041.0 或更高版本。非 Windows 主机只能运行静态契约检查，不能据此宣称 Win10 兼容或壳层交互通过。
+Windows 工程需要 Windows 10 22H2 x64 或更高版本、.NET SDK 10.0.302，以及 Windows 10 SDK 10.0.19041.0 或更高版本。W0 壳层门禁已通过，当前 W1 增加 `MSTest.Sdk` 4.3.2 作为仅测试依赖；非 Windows 主机只能运行静态契约检查，不能据此宣称 Windows 已构建或 Win10 实机兼容通过。
 
 项目固定依赖 Sparkle 2.9.4 处理应用内更新，并使用 Yams 6.2.2 类型化解析用户授权目录中的 `profiles.yaml`。Yams 不得扩展为通用配置加载入口。请勿为了局部功能继续引入未经讨论的框架、代码生成器或包管理脚本。
 
@@ -56,19 +56,19 @@ xcrun swift format lint --recursive --strict Sources Tests
 
 该检查只证明代码格式符合规范，不代表应用已编译或测试已通过。涉及脚本、配置或文档时，还应执行与变更直接相关的语法检查和定向复核，不扩大到无关门禁。
 
-Windows W0 变更至少执行跨平台静态契约检查：
+Windows 变更至少执行跨平台静态契约检查：
 
 ```bash
-python3 scripts/validate_windows_w0.py
+python3 scripts/validate_windows.py
 ```
 
 完整 Windows 构建、发布和静态检查由 Windows CI 执行；具备 Windows 环境时可运行：
 
 ```powershell
-pwsh -File scripts/validate_windows_w0.ps1
+pwsh -File scripts/validate_windows.ps1
 ```
 
-Win10 标准用户下的通知区域、悬浮图标、单实例和关闭隐藏行为仍须按[Windows 阶段 W0 实机指南](docs/Windows阶段W0实机指南.md)人工验收。工程依赖、目录职责和停止条件见[Windows 工程代码技术选型](docs/Windows工程代码技术选型.md)。
+该脚本按固定顺序执行静态契约、Core 单元测试、App Release 构建和非打包自包含发布。W0 历史壳层操作见[Windows 阶段 W0 实机指南](docs/Windows阶段W0实机指南.md)；W1 的真实 Controller、Credential Manager、资源指标和 W0 生命周期回归按[Windows 阶段 W1 实机指南](docs/Windows阶段W1实机指南.md)执行。工程依赖、目录职责和停止条件见[Windows 工程代码技术选型](docs/Windows工程代码技术选型.md)。
 
 完整 macOS 无签名构建与测试属于重型门禁，不作为每次任务完成或普通提交前的默认本地验证。所有分支 Push 和 Pull Request 都会由 macOS 持续集成自动执行；用户明确要求本机完整验证时，可执行：
 

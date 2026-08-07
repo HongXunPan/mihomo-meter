@@ -1,13 +1,14 @@
 # Mihomo Meter
 
 [![持续集成](https://github.com/HongXunPan/mihomo-meter/actions/workflows/ci.yml/badge.svg)](https://github.com/HongXunPan/mihomo-meter/actions/workflows/ci.yml)
+[![Windows 构建与测试](https://github.com/HongXunPan/mihomo-meter/actions/workflows/windows.yml/badge.svg)](https://github.com/HongXunPan/mihomo-meter/actions/workflows/windows.yml)
 [![许可证](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![DMG 下载量](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2FHongXunPan%2Fmihomo-meter%2Fbadges%2Fdownload-count.json&cacheSeconds=3600)](https://github.com/HongXunPan/mihomo-meter/releases)
 
 [使用文档（Wiki）](https://github.com/HongXunPan/mihomo-meter/wiki) ·
 [版本发布与下载（GitHub Releases）](https://github.com/HongXunPan/mihomo-meter/releases)
 
-Mihomo Meter 是一款默认静默启动、同时提供 Dock 应用窗口与状态栏原生快速菜单的 macOS 应用，通过 Mihomo Controller API 统计真实经过代理出口的实时网速、本机累计流量、机场订阅余额和连接归因日聚合。
+Mihomo Meter 是一款通过 Mihomo Controller API 统计真实代理流量的原生桌面应用。macOS 已提供 Dock 应用窗口与状态栏原生快速菜单；Windows 10 22H2 x64 已完成 W0 壳层门禁，当前进入 W1 实时分类速率预览实现。
 
 > 当前已完成 MVP-1、MVP-2、阶段 2 和阶段 3 源码实现；阶段 3.0 实机门禁以 46 条 Proxy 样本通过，完整构建测试与界面验收仍由 CI 和用户完成。
 
@@ -48,6 +49,8 @@ Mihomo Meter 是只读监控工具：
 - [x] 阶段 3.1：实时连接、每日归因、快速 Top 5 与 30 天 Proxy 柱图
 - [x] 阶段 3.2：Top 5 布局稳定、实时连接归位与应用/域名趋势钻取
 - [x] 阶段 3.3：归因记录覆盖率、多维实时连接、应用识别诊断与名称归一化
+- [x] Windows W0：WinUI 主窗口、通知区域、单实例、关闭隐藏与可选悬浮入口
+- [ ] [Windows W1](docs/Windows阶段W1实机指南.md)：Controller 配置、Credential Manager、分类实时速率、stale 与重连
 
 已勾选项目表示当前源码和测试已经实现；未勾选项目不代表发布时间承诺。各阶段的子任务与完成状态见[开发路线图](docs/路线图.md)。
 
@@ -112,6 +115,7 @@ README 顶部的下载量徽章汇总所有正式版本 DMG 资产的下载事�
 │   ├── Infrastructure/      # Controller、Profile YAML、SQLite、Keychain 与 Sparkle
 │   └── Presentation/        # 状态栏快速菜单、设置窗口和统计主窗口界面
 ├── Tests/                   # 单元测试
+├── platform/windows/        # Windows App、Core 与测试工程
 ├── scripts/                 # 构建与运行辅助脚本
 └── docs/                    # 公开架构、隐私和路线图
 ```
