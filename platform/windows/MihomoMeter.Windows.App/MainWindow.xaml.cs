@@ -27,6 +27,10 @@ public sealed partial class MainWindow : Window
             DispatcherQueue,
             services.Coordinator,
             services.Statistics);
+        NotificationAreaStatistics = new NotificationAreaStatisticsController(
+            DispatcherQueue,
+            services.Coordinator,
+            services.Statistics);
         StartupConsoleReporter.Stage("main_window_xaml_initialize_started");
         InitializeComponent();
         StartupConsoleReporter.Stage("main_window_xaml_initialize_completed");
@@ -42,6 +46,8 @@ public sealed partial class MainWindow : Window
     public MainWindowViewModel ViewModel { get; }
 
     public TrafficStatisticsWorkspaceViewModel StatisticsViewModel { get; }
+
+    internal NotificationAreaStatisticsController NotificationAreaStatistics { get; }
 
     internal async Task<bool> InitializeAsync()
     {
@@ -59,12 +65,19 @@ public sealed partial class MainWindow : Window
         _stopped = true;
         ViewModel.Detach();
         StatisticsViewModel.Detach();
+        NotificationAreaStatistics.Dispose();
         await _services.DisposeAsync();
     }
 
     public void SetFloatingWidgetEnabled(bool enabled)
     {
         FloatingWidgetStateText.Text = enabled ? "悬浮图标：开启" : "悬浮图标：关闭";
+    }
+
+    internal void ShowStatisticsWorkspace()
+    {
+        WorkspaceNavigation.SelectedItem = StatisticsNavigationItem;
+        ShowWorkspace("statistics");
     }
 
     private void WorkspaceNavigation_SelectionChanged(

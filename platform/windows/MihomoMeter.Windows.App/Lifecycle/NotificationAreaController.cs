@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Runtime.InteropServices;
 using MihomoMeter.Windows.App.Diagnostics;
 using MihomoMeter.Windows.App.Interop;
+using MihomoMeter.Windows.App.Presentation;
 
 namespace MihomoMeter.Windows.App.Lifecycle;
 
@@ -30,8 +31,12 @@ internal sealed class NotificationAreaController : IDisposable
 
     private readonly nint _windowHandle;
     private readonly Action _showWindow;
+    private readonly Action _showStatisticsWorkspace;
     private readonly Action _toggleFloatingWidget;
     private readonly Func<bool> _isFloatingWidgetVisible;
+    private readonly Func<NotificationAreaStatisticsMenuSnapshot> _captureStatisticsSnapshot;
+    private readonly Action _startStatistics;
+    private readonly Action<Guid> _stopStatistics;
     private readonly Action _exitApplication;
     private readonly ShellNativeMethods.SubclassProcedure _subclassProcedure;
     private readonly NotificationAreaMenu _menu;
@@ -44,8 +49,12 @@ internal sealed class NotificationAreaController : IDisposable
     public NotificationAreaController(
         nint windowHandle,
         Action showWindow,
+        Action showStatisticsWorkspace,
         Action toggleFloatingWidget,
         Func<bool> isFloatingWidgetVisible,
+        Func<NotificationAreaStatisticsMenuSnapshot> captureStatisticsSnapshot,
+        Action startStatistics,
+        Action<Guid> stopStatistics,
         Action exitApplication)
     {
         if (windowHandle == 0)
@@ -55,10 +64,18 @@ internal sealed class NotificationAreaController : IDisposable
 
         _windowHandle = windowHandle;
         _showWindow = showWindow ?? throw new ArgumentNullException(nameof(showWindow));
+        _showStatisticsWorkspace = showStatisticsWorkspace
+            ?? throw new ArgumentNullException(nameof(showStatisticsWorkspace));
         _toggleFloatingWidget = toggleFloatingWidget
             ?? throw new ArgumentNullException(nameof(toggleFloatingWidget));
         _isFloatingWidgetVisible = isFloatingWidgetVisible
             ?? throw new ArgumentNullException(nameof(isFloatingWidgetVisible));
+        _captureStatisticsSnapshot = captureStatisticsSnapshot
+            ?? throw new ArgumentNullException(nameof(captureStatisticsSnapshot));
+        _startStatistics = startStatistics
+            ?? throw new ArgumentNullException(nameof(startStatistics));
+        _stopStatistics = stopStatistics
+            ?? throw new ArgumentNullException(nameof(stopStatistics));
         _exitApplication = exitApplication ?? throw new ArgumentNullException(nameof(exitApplication));
         _subclassProcedure = WindowSubclassProcedure;
         _menu = new NotificationAreaMenu(windowHandle);
@@ -248,16 +265,27 @@ internal sealed class NotificationAreaController : IDisposable
     {
         var command = _menu.Show(
             ResolveMenuPoint(wordParameter),
-            _isFloatingWidgetVisible());
-        switch (command)
+            _isFloatingWidgetVisible(),
+            _captureStatisticsSnapshot());
+        switch (command.Kind)
         {
-            case NotificationAreaCommand.Open:
+            case NotificationAreaCommandKind.Open:
                 _showWindow();
                 break;
-            case NotificationAreaCommand.ToggleFloatingWidget:
+            case NotificationAreaCommandKind.OpenStatistics:
+                _showStatisticsWorkspace();
+                break;
+            case NotificationAreaCommandKind.StartStatistics:
+                _startStatistics();
+                break;
+            case NotificationAreaCommandKind.StopStatistics
+                when command.IntervalId is Guid intervalId:
+                _stopStatistics(intervalId);
+                break;
+            case NotificationAreaCommandKind.ToggleFloatingWidget:
                 _toggleFloatingWidget();
                 break;
-            case NotificationAreaCommand.Exit:
+            case NotificationAreaCommandKind.Exit:
                 _exitApplication();
                 break;
         }

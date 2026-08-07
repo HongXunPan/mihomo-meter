@@ -38,6 +38,10 @@ public partial class App : Application
             _windowLifecycle = new WindowLifecycleController(
                 window,
                 window.SetFloatingWidgetEnabled,
+                window.NotificationAreaStatistics.CaptureSnapshot,
+                window.ShowStatisticsWorkspace,
+                window.NotificationAreaStatistics.StartSuggestedIntervalAsync,
+                window.NotificationAreaStatistics.StopIntervalAsync,
                 window.StopForApplicationTerminationAsync);
             window.ViewModel.StatusSummaryChanged += _windowLifecycle.SetStatusText;
             ActivationRouter.Register(HandleRedirectedActivation);

@@ -28,6 +28,7 @@
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
                 <NavigationViewItem
+                    x:Name="StatisticsNavigationItem"
                     Content="Proxy 流量"
                     Tag="statistics">
                     <NavigationViewItem.Icon>

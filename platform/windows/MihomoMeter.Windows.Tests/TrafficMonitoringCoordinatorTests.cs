@@ -168,6 +168,28 @@ public sealed class TrafficMonitoringCoordinatorTests
         Assert.IsTrue(coordinator.IsCurrentSession(secondGeneration));
     }
 
+    [TestMethod]
+    public async Task StopAndDisposeUseTypedMonitoringInterruptionReasons()
+    {
+        var recorder = new RecordingStatisticsRecorder();
+        var coordinator = new TrafficMonitoringCoordinator(
+            new TestControllerClient([]),
+            new TestSnapshotCollector([]),
+            new TestConfigurationStore([]),
+            statisticsRecorder: recorder);
+
+        await coordinator.StopAsync();
+        await coordinator.DisposeAsync();
+
+        CollectionAssert.AreEqual(
+            new[]
+            {
+                TrafficSessionEndReason.MonitoringStopped,
+                TrafficSessionEndReason.ApplicationExit,
+            },
+            recorder.InterruptionReasons);
+    }
+
     private sealed class TestControllerClient : IMihomoControllerClient
     {
         private readonly List<string> _sequence;
@@ -211,6 +233,33 @@ public sealed class TrafficMonitoringCoordinatorTests
                     },
                 },
             });
+        }
+    }
+
+    private sealed class RecordingStatisticsRecorder : ITrafficStatisticsRecorder
+    {
+        public List<TrafficSessionEndReason> InterruptionReasons { get; } = [];
+
+        public Task BeginMonitoringAsync(
+            string version,
+            CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
+        }
+
+        public Task RecordAsync(
+            TrafficLedgerObservation observation,
+            CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
+        }
+
+        public Task InterruptMonitoringAsync(
+            TrafficSessionEndReason reason,
+            CancellationToken cancellationToken)
+        {
+            InterruptionReasons.Add(reason);
+            return Task.CompletedTask;
         }
     }
 

@@ -1,21 +1,31 @@
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using MihomoMeter.Windows.App.Interop;
+using MihomoMeter.Windows.App.Presentation;
 
 namespace MihomoMeter.Windows.App.Lifecycle;
 
-internal enum NotificationAreaCommand
+internal enum NotificationAreaCommandKind
 {
     None,
     Open,
+    OpenStatistics,
+    StartStatistics,
+    StopStatistics,
     ToggleFloatingWidget,
     Exit,
 }
 
-internal sealed class NotificationAreaMenu
+internal readonly record struct NotificationAreaCommand(
+    NotificationAreaCommandKind Kind,
+    Guid? IntervalId = null);
+
+internal sealed partial class NotificationAreaMenu
 {
     private const uint MenuFlagString = 0x0000;
+    private const uint MenuFlagGrayed = 0x0001;
     private const uint MenuFlagChecked = 0x0008;
+    private const uint MenuFlagPopup = 0x0010;
     private const uint MenuFlagSeparator = 0x0800;
     private const uint TrackMenuRightButton = 0x0002;
     private const uint TrackMenuReturnCommand = 0x0100;
@@ -32,26 +42,36 @@ internal sealed class NotificationAreaMenu
         _windowHandle = windowHandle;
     }
 
-    public NotificationAreaCommand Show(ShellNativeMethods.Point point, bool floatingWidgetVisible)
+    public NotificationAreaCommand Show(
+        ShellNativeMethods.Point point,
+        bool floatingWidgetVisible,
+        NotificationAreaStatisticsMenuSnapshot statisticsSnapshot)
     {
-        var menuHandle = ShellNativeMethods.CreatePopupMenu();
-        if (menuHandle == 0)
-        {
-            throw new Win32Exception(Marshal.GetLastWin32Error());
-        }
-
+        var menuHandle = CreateMenu();
+        var commands = new Dictionary<uint, NotificationAreaCommand>();
         try
         {
             AppendMenuItem(menuHandle, OpenCommand, "打开 Mihomo Meter");
+            commands.Add(
+                OpenCommand,
+                new NotificationAreaCommand(NotificationAreaCommandKind.Open));
+            AppendStatisticsMenu(menuHandle, statisticsSnapshot, commands);
             AppendMenuItem(
                 menuHandle,
                 ToggleFloatingWidgetCommand,
                 floatingWidgetVisible ? "关闭悬浮图标" : "显示悬浮图标",
-                floatingWidgetVisible);
+                isChecked: floatingWidgetVisible);
+            commands.Add(
+                ToggleFloatingWidgetCommand,
+                new NotificationAreaCommand(NotificationAreaCommandKind.ToggleFloatingWidget));
             AppendSeparator(menuHandle);
             AppendMenuItem(menuHandle, ExitCommand, "退出 Mihomo Meter");
+            commands.Add(
+                ExitCommand,
+                new NotificationAreaCommand(NotificationAreaCommandKind.Exit));
+
             ShellNativeMethods.SetForegroundWindow(_windowHandle);
-            var command = ShellNativeMethods.TrackPopupMenuEx(
+            var selectedCommand = ShellNativeMethods.TrackPopupMenuEx(
                 menuHandle,
                 TrackMenuRightButton | TrackMenuReturnCommand | TrackMenuNoNotify,
                 point.X,
@@ -59,13 +79,9 @@ internal sealed class NotificationAreaMenu
                 _windowHandle,
                 0);
             ShellNativeMethods.PostMessage(_windowHandle, WindowMessageNull, 0, 0);
-            return command switch
-            {
-                OpenCommand => NotificationAreaCommand.Open,
-                ToggleFloatingWidgetCommand => NotificationAreaCommand.ToggleFloatingWidget,
-                ExitCommand => NotificationAreaCommand.Exit,
-                _ => NotificationAreaCommand.None,
-            };
+            return commands.TryGetValue(selectedCommand, out var command)
+                ? command
+                : default;
         }
         finally
         {
@@ -73,14 +89,44 @@ internal sealed class NotificationAreaMenu
         }
     }
 
+    private static nint CreateMenu()
+    {
+        var menuHandle = ShellNativeMethods.CreatePopupMenu();
+        return menuHandle != 0
+            ? menuHandle
+            : throw new Win32Exception(Marshal.GetLastWin32Error());
+    }
+
     private static void AppendMenuItem(
         nint menuHandle,
         uint command,
         string text,
+        bool isEnabled = true,
         bool isChecked = false)
     {
-        var flags = MenuFlagString | (isChecked ? MenuFlagChecked : 0);
-        if (!ShellNativeMethods.AppendMenu(menuHandle, flags, command, text))
+        var flags = MenuFlagString
+            | (isEnabled ? 0 : MenuFlagGrayed)
+            | (isChecked ? MenuFlagChecked : 0);
+        if (!ShellNativeMethods.AppendMenu(
+                menuHandle,
+                flags,
+                command,
+                EscapeMenuText(text)))
+        {
+            throw new Win32Exception(Marshal.GetLastWin32Error());
+        }
+    }
+
+    private static void AppendPopupMenuItem(
+        nint menuHandle,
+        nint submenuHandle,
+        string text)
+    {
+        if (!ShellNativeMethods.AppendMenu(
+                menuHandle,
+                MenuFlagString | MenuFlagPopup,
+                unchecked((nuint)submenuHandle),
+                EscapeMenuText(text)))
         {
             throw new Win32Exception(Marshal.GetLastWin32Error());
         }
@@ -92,5 +138,10 @@ internal sealed class NotificationAreaMenu
         {
             throw new Win32Exception(Marshal.GetLastWin32Error());
         }
+    }
+
+    private static string EscapeMenuText(string text)
+    {
+        return text.Replace("&", "&&", StringComparison.Ordinal);
     }
 }
