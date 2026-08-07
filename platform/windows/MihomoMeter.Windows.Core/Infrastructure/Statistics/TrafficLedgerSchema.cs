@@ -4,7 +4,7 @@ namespace MihomoMeter.Windows.Core.Infrastructure.Statistics;
 
 internal static class TrafficLedgerSchema
 {
-    public const long CurrentVersion = 1;
+    public const long CurrentVersion = 2;
 
     public static void Migrate(SqliteConnection connection)
     {
@@ -16,12 +16,30 @@ internal static class TrafficLedgerSchema
             throw new TrafficStatisticsException("本地统计数据库版本过新。");
         }
 
-        if (version != 0)
+        if (version == CurrentVersion)
         {
             return;
         }
 
         using var transaction = connection.BeginTransaction();
+        if (version == 0)
+        {
+            CreateCoreTables(connection, transaction);
+        }
+
+        if (version <= 1)
+        {
+            CreateIntervalTable(connection, transaction);
+        }
+
+        Execute(connection, transaction, $"PRAGMA user_version = {CurrentVersion}");
+        transaction.Commit();
+    }
+
+    private static void CreateCoreTables(
+        SqliteConnection connection,
+        SqliteTransaction transaction)
+    {
         Execute(connection, transaction, """
             CREATE TABLE core_sessions (
               id TEXT PRIMARY KEY,
@@ -74,8 +92,44 @@ internal static class TrafficLedgerSchema
             )
             """);
         Execute(connection, transaction, "INSERT INTO ledger_state(id) VALUES (1)");
-        Execute(connection, transaction, $"PRAGMA user_version = {CurrentVersion}");
-        transaction.Commit();
+    }
+
+    private static void CreateIntervalTable(
+        SqliteConnection connection,
+        SqliteTransaction transaction)
+    {
+        Execute(connection, transaction, """
+            CREATE TABLE traffic_intervals (
+              id TEXT PRIMARY KEY,
+              name TEXT NOT NULL,
+              note TEXT,
+              status TEXT NOT NULL CHECK(status IN ('active', 'completed', 'interrupted')),
+              started_at INTEGER NOT NULL,
+              ended_at INTEGER,
+              end_reason TEXT,
+              start_proxy_upload INTEGER NOT NULL CHECK(start_proxy_upload >= 0),
+              start_proxy_download INTEGER NOT NULL CHECK(start_proxy_download >= 0),
+              end_proxy_upload INTEGER CHECK(end_proxy_upload >= 0),
+              end_proxy_download INTEGER CHECK(end_proxy_download >= 0),
+              CHECK(
+                (status = 'active'
+                  AND ended_at IS NULL
+                  AND end_reason IS NULL
+                  AND end_proxy_upload IS NULL
+                  AND end_proxy_download IS NULL)
+                OR
+                (status IN ('completed', 'interrupted')
+                  AND ended_at IS NOT NULL
+                  AND end_reason IS NOT NULL
+                  AND end_proxy_upload IS NOT NULL
+                  AND end_proxy_download IS NOT NULL)
+              )
+            )
+            """);
+        Execute(connection, transaction, """
+            CREATE INDEX traffic_intervals_status_time
+            ON traffic_intervals(status, started_at DESC, ended_at DESC)
+            """);
     }
 
     private static void Execute(

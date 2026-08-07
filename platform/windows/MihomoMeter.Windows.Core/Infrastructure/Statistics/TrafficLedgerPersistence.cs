@@ -1,4 +1,3 @@
-using System.Globalization;
 using Microsoft.Data.Sqlite;
 using MihomoMeter.Windows.Core.Domain;
 using static MihomoMeter.Windows.Core.Infrastructure.Statistics.TrafficLedgerStorageValues;
@@ -22,6 +21,9 @@ internal sealed class TrafficLedgerPersistence : IDisposable
             Pooling = false,
         }.ToString();
         _connection = new SqliteConnection(connectionString);
+        Intervals = new TrafficIntervalPersistence(_connection);
+        Daily = new TrafficDailyPersistence(_connection);
+        Maintenance = new TrafficLedgerMaintenancePersistence(_connection);
         try
         {
             _connection.Open();
@@ -37,6 +39,12 @@ internal sealed class TrafficLedgerPersistence : IDisposable
             throw;
         }
     }
+
+    public TrafficIntervalPersistence Intervals { get; }
+
+    public TrafficDailyPersistence Daily { get; }
+
+    public TrafficLedgerMaintenancePersistence Maintenance { get; }
 
     public void Dispose()
     {
@@ -175,7 +183,7 @@ internal sealed class TrafficLedgerPersistence : IDisposable
         SqliteTransaction transaction)
     {
         var bucketStart = observedAt.ToUnixTimeSeconds() / 60 * 60;
-        var localDay = LocalDay(observedAt, timeZone);
+        var localDay = TrafficDailyPersistence.LocalDay(observedAt, timeZone);
         foreach (var category in Enum.GetValues<TrafficCategory>())
         {
             var bytes = BytesFor(categories, category);
@@ -194,72 +202,6 @@ internal sealed class TrafficLedgerPersistence : IDisposable
                 transaction);
             AddDailyTotal(localDay, category, bytes, transaction);
         }
-    }
-
-    public void PruneBuckets(DateTimeOffset cutoff, SqliteTransaction transaction)
-    {
-        using var command = _connection.CreateCommand();
-        command.Transaction = transaction;
-        command.CommandText = "DELETE FROM traffic_buckets WHERE bucket_start < $cutoff";
-        command.Parameters.AddWithValue("$cutoff", cutoff.ToUnixTimeSeconds());
-        command.ExecuteNonQuery();
-    }
-
-    public CategorizedTrafficBytes Totals(string? localDay = null)
-    {
-        using var command = _connection.CreateCommand();
-        command.CommandText = localDay is null
-            ? "SELECT category, upload_bytes, download_bytes FROM traffic_daily_totals"
-            : """
-                SELECT category, upload_bytes, download_bytes
-                FROM traffic_daily_totals WHERE local_day = $day
-                """;
-        if (localDay is not null)
-        {
-            command.Parameters.AddWithValue("$day", localDay);
-        }
-
-        var totals = CategorizedTrafficBytes.Zero;
-        using var reader = command.ExecuteReader();
-        while (reader.Read())
-        {
-            var category = ParseCategory(reader.GetString(0));
-            var bytes = new TrafficBytes(
-                checked((ulong)reader.GetInt64(1)),
-                checked((ulong)reader.GetInt64(2)));
-            var existing = BytesFor(totals, category);
-            var nextUpload = checked(existing.Upload + bytes.Upload);
-            var nextDownload = checked(existing.Download + bytes.Download);
-            if (nextUpload > (ulong)long.MaxValue || nextDownload > (ulong)long.MaxValue)
-            {
-                throw new TrafficStatisticsException("本地统计字节累计超出支持范围。");
-            }
-
-            totals = totals with
-            {
-                Proxy = category == TrafficCategory.Proxy
-                    ? new TrafficBytes(nextUpload, nextDownload)
-                    : totals.Proxy,
-                Direct = category == TrafficCategory.Direct
-                    ? new TrafficBytes(nextUpload, nextDownload)
-                    : totals.Direct,
-                Reject = category == TrafficCategory.Reject
-                    ? new TrafficBytes(nextUpload, nextDownload)
-                    : totals.Reject,
-                Unknown = category == TrafficCategory.Unknown
-                    ? new TrafficBytes(nextUpload, nextDownload)
-                    : totals.Unknown,
-            };
-        }
-
-        return totals;
-    }
-
-    public static string LocalDay(DateTimeOffset date, TimeZoneInfo timeZone)
-    {
-        return TimeZoneInfo
-            .ConvertTime(date, timeZone)
-            .ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
     }
 
     private void AddBucket(

@@ -18,6 +18,7 @@ REQUIRED_REPOSITORY_FILES = (
     "docs/Windows工程代码技术选型.md",
     "docs/Windows阶段W1实机指南.md",
     "docs/Windows阶段W2A实机指南.md",
+    "docs/Windows阶段W2B实机指南.md",
     "scripts/validate_windows.ps1",
     "scripts/windows_validation_contract.py",
 )
@@ -84,6 +85,7 @@ REQUIRED_CORE_FILES = (
     "Domain/TrafficMeasurement.cs",
     "Domain/TrafficLedgerObservation.cs",
     "Domain/TrafficStatistics.cs",
+    "Domain/TrafficIntervals.cs",
     "Domain/ProxyClassifier.cs",
     "Domain/ConnectionDeltaTracker.cs",
     "Domain/TrafficRateAggregator.cs",
@@ -103,8 +105,14 @@ REQUIRED_CORE_FILES = (
     "Infrastructure/Statistics/TrafficLedgerRuntimeState.cs",
     "Infrastructure/Statistics/TrafficLedgerSchema.cs",
     "Infrastructure/Statistics/TrafficLedgerPersistence.cs",
+    "Infrastructure/Statistics/TrafficDailyPersistence.cs",
+    "Infrastructure/Statistics/TrafficIntervalPersistence.cs",
+    "Infrastructure/Statistics/TrafficLedgerMaintenancePersistence.cs",
     "Infrastructure/Statistics/TrafficLedgerStorageValues.cs",
     "Infrastructure/Statistics/SQLiteTrafficLedger.cs",
+    "Infrastructure/Statistics/SQLiteTrafficLedger.Intervals.cs",
+    "Infrastructure/Statistics/SQLiteTrafficLedger.Snapshot.cs",
+    "Infrastructure/Statistics/SQLiteTrafficLedger.Transitions.cs",
     "Infrastructure/Statistics/TrafficStatisticsException.cs",
     "Properties/AssemblyInfo.cs",
 )
@@ -123,6 +131,10 @@ REQUIRED_TEST_FILES = (
     "TrafficRateDisplayStateTests.cs",
     "TrafficMonitoringCoordinatorTests.cs",
     "SQLiteTrafficLedgerTests.cs",
+    "TrafficIntervalInputTests.cs",
+    "TrafficIntervalLedgerTests.cs",
+    "TrafficLedgerDailyAndClearTests.cs",
+    "TrafficLedgerMigrationTests.cs",
     "TrafficStatisticsBoundaryTests.cs",
     "WindowsSqliteTestProvider.cs",
 )
@@ -205,18 +217,47 @@ REQUIRED_CODE_MARKERS = {
         "BeginMonitoringAsync",
         "InterruptMonitoringAsync",
     ),
+    CORE_ROOT / "Application/TrafficStatisticsCoordinator.cs": (
+        "_operationGate",
+        "StartIntervalAsync",
+        "TryInterruptAfterStatisticsFailureAsync",
+    ),
+    CORE_ROOT / "Domain/TrafficIntervals.cs": (
+        "TrafficIntervalStatus",
+        "TrafficIntervalEndReason",
+        "TrafficIntervalInput",
+    ),
     CORE_ROOT / "Infrastructure/Statistics/TrafficLedgerSchema.cs": (
+        "CurrentVersion = 2",
         "CREATE TABLE core_sessions",
         "CREATE TABLE traffic_buckets",
         "CREATE TABLE traffic_daily_totals",
+        "CREATE TABLE traffic_intervals",
         "CREATE TABLE ledger_state",
     ),
     CORE_ROOT / "Infrastructure/Statistics/SQLiteTrafficLedger.cs": (
         "TrafficLedgerBaselineEstablished",
         "TrafficLedgerDelta",
         "TrafficLedgerCountersReset",
-        "TrafficCategory.Unknown",
+    ),
+    CORE_ROOT / "Infrastructure/Statistics/SQLiteTrafficLedger.Intervals.cs": (
+        "StartIntervalAsync",
+        "StopIntervalAsync",
+        "InterruptActiveIntervalsAsync",
+        "Maintenance.Reset",
+    ),
+    CORE_ROOT / "Infrastructure/Statistics/SQLiteTrafficLedger.Snapshot.cs": (
         "AddDays(-365)",
+        "RecentProxyDays",
+    ),
+    CORE_ROOT / "Infrastructure/Statistics/SQLiteTrafficLedger.Transitions.cs": (
+        "TrafficCategory.Unknown",
+        "counter_reset",
+    ),
+    CORE_ROOT / "Infrastructure/Statistics/TrafficIntervalPersistence.cs": (
+        "status = 'completed'",
+        "status = 'interrupted'",
+        "statistics_unavailable",
     ),
 }
 
