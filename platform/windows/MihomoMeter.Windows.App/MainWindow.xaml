@@ -1,0 +1,87 @@
+<Window
+    x:Class="MihomoMeter.Windows.App.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Grid
+        MinWidth="680"
+        Padding="32"
+        Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+        RowSpacing="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Spacing="6">
+            <TextBlock
+                FontSize="30"
+                FontWeight="SemiBold"
+                Text="Mihomo Meter" />
+            <TextBlock
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Text="Windows 阶段 W0 · 桌面壳层门禁" />
+        </StackPanel>
+
+        <InfoBar
+            Grid.Row="1"
+            IsClosable="False"
+            IsOpen="True"
+            Message="当前版本只验证 Win10 壳层，不连接 Mihomo Controller，也不写入本机配置。"
+            Severity="Informational"
+            Title="门禁模式" />
+
+        <Grid Grid.Row="2" ColumnSpacing="16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Border
+                Padding="20"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="12">
+                <StackPanel Spacing="10">
+                    <TextBlock
+                        FontSize="18"
+                        FontWeight="SemiBold"
+                        Text="常驻状态" />
+                    <TextBlock
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="关闭主窗口后，应用继续保留在通知区域。第二次启动会唤起当前实例。"
+                        TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+
+            <Border
+                Grid.Column="1"
+                Padding="20"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="12">
+                <StackPanel Spacing="10">
+                    <TextBlock
+                        FontSize="18"
+                        FontWeight="SemiBold"
+                        Text="悬浮入口" />
+                    <TextBlock
+                        x:Name="FloatingWidgetStateText"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="未开启；可从通知区域菜单开启。"
+                        TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <TextBlock
+            Grid.Row="3"
+            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+            Text="要完全退出，请使用通知区域菜单中的“退出 Mihomo Meter”。"
+            TextWrapping="Wrap" />
+    </Grid>
+</Window>
