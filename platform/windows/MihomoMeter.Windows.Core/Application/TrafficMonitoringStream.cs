@@ -9,17 +9,20 @@ internal sealed class TrafficMonitoringStream
     private readonly IConnectionSnapshotCollector _collector;
     private readonly MonitoringPolicy _policy;
     private readonly TimeProvider _timeProvider;
+    private readonly ITrafficStatisticsRecorder _statisticsRecorder;
 
     public TrafficMonitoringStream(
         IMihomoControllerClient client,
         IConnectionSnapshotCollector collector,
         MonitoringPolicy policy,
-        TimeProvider timeProvider)
+        TimeProvider timeProvider,
+        ITrafficStatisticsRecorder statisticsRecorder)
     {
         _client = client;
         _collector = collector;
         _policy = policy;
         _timeProvider = timeProvider;
+        _statisticsRecorder = statisticsRecorder;
     }
 
     public async Task RunAsync(
@@ -71,6 +74,9 @@ internal sealed class TrafficMonitoringStream
                 }
 
                 var result = measurement.Consume(enumerator.Current);
+                await _statisticsRecorder
+                    .RecordAsync(result.LedgerObservation, cancellationToken)
+                    .ConfigureAwait(false);
                 display.Apply(result);
                 var snapshotTimestamp = _timeProvider.GetTimestamp();
                 connectedAt ??= snapshotTimestamp;

@@ -19,11 +19,12 @@ public sealed partial class MainWindow : Window
         ViewModel = new MainWindowViewModel(
             DispatcherQueue,
             services.ConfigurationStore,
-            services.Coordinator);
+            services.Coordinator,
+            services.Statistics);
         StartupConsoleReporter.Stage("main_window_xaml_initialize_started");
         InitializeComponent();
         StartupConsoleReporter.Stage("main_window_xaml_initialize_completed");
-        Title = "Mihomo Meter · Windows W1";
+        Title = "Mihomo Meter · Windows W2A";
         ResizeForPreview();
     }
 

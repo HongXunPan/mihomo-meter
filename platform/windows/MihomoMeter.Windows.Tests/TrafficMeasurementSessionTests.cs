@@ -25,9 +25,15 @@ public sealed class TrafficMeasurementSessionTests
         var measurement = session.Consume(next);
 
         Assert.IsNull(baseline.RateWindow);
+        Assert.IsInstanceOfType<TrafficLedgerBaselineEstablished>(baseline.LedgerObservation.Transition);
         Assert.IsNotNull(measurement.RateWindow);
         Assert.AreEqual((ulong)220, measurement.RateWindow.Smoothed.Proxy.UploadBytesPerSecond);
         Assert.AreEqual((ulong)580, measurement.RateWindow.Smoothed.Proxy.DownloadBytesPerSecond);
+        var ledgerDelta = measurement.LedgerObservation.Transition as TrafficLedgerDelta;
+        Assert.IsNotNull(ledgerDelta);
+        Assert.AreEqual((ulong)220, ledgerDelta.Report.Categories.Proxy.Upload);
+        Assert.AreEqual((ulong)580, ledgerDelta.Report.Categories.Proxy.Download);
+        Assert.AreEqual(timeProvider.GetUtcNow(), measurement.LedgerObservation.ObservedAt);
     }
 
     [TestMethod]
@@ -65,6 +71,7 @@ public sealed class TrafficMeasurementSessionTests
     private sealed class ManualTimeProvider : TimeProvider
     {
         private long _timestamp;
+        private DateTimeOffset _utcNow = DateTimeOffset.FromUnixTimeSeconds(1_700_000_000);
 
         public override long TimestampFrequency => TimeSpan.TicksPerSecond;
 
@@ -73,9 +80,15 @@ public sealed class TrafficMeasurementSessionTests
             return _timestamp;
         }
 
+        public override DateTimeOffset GetUtcNow()
+        {
+            return _utcNow;
+        }
+
         public void Advance(TimeSpan duration)
         {
             _timestamp += duration.Ticks;
+            _utcNow += duration;
         }
     }
 }

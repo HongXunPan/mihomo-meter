@@ -8,7 +8,7 @@
 [使用文档（Wiki）](https://github.com/HongXunPan/mihomo-meter/wiki) ·
 [版本发布与下载（GitHub Releases）](https://github.com/HongXunPan/mihomo-meter/releases)
 
-Mihomo Meter 是一款通过 Mihomo Controller API 统计真实代理流量的原生桌面应用。macOS 已提供 Dock 应用窗口与状态栏原生快速菜单；Windows 10 22H2 x64 已完成 W0 壳层门禁，当前进入 W1 实时分类速率预览实现。
+Mihomo Meter 是一款通过 Mihomo Controller API 统计真实代理流量的原生桌面应用。macOS 已提供 Dock 应用窗口与状态栏原生快速菜单；Windows 10 22H2 x64 的 W1 实时纵切已带已知限制通过，当前进入 W2A 本地核心流量账本预览。
 
 > 当前已完成 MVP-1、MVP-2、阶段 2 和阶段 3 源码实现；阶段 3.0 实机门禁以 46 条 Proxy 样本通过，完整构建测试与界面验收仍由 CI 和用户完成。
 
@@ -50,7 +50,8 @@ Mihomo Meter 是只读监控工具：
 - [x] 阶段 3.2：Top 5 布局稳定、实时连接归位与应用/域名趋势钻取
 - [x] 阶段 3.3：归因记录覆盖率、多维实时连接、应用识别诊断与名称归一化
 - [x] Windows W0：WinUI 主窗口、通知区域、单实例、关闭隐藏与可选悬浮入口
-- [ ] [Windows W1](docs/Windows阶段W1实机指南.md)：Controller 配置、Credential Manager、分类实时速率、stale 与重连
+- [x] [Windows W1](docs/Windows阶段W1实机指南.md)：Controller 配置、Credential Manager、分类实时速率、stale 与重连
+- [ ] [Windows W2A](docs/Windows阶段W2A实机指南.md)：分类分钟桶、今日与历史累计、重启恢复
 
 已勾选项目表示当前源码和测试已经实现；未勾选项目不代表发布时间承诺。各阶段的子任务与完成状态见[开发路线图](docs/路线图.md)。
 
