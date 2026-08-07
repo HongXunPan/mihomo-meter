@@ -1,5 +1,7 @@
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
+$env:PYTHONUTF8 = "1"
+$env:PYTHONIOENCODING = "utf-8"
 
 $RepositoryRoot = Split-Path -Parent $PSScriptRoot
 $WindowsRoot = Join-Path $RepositoryRoot "platform/windows"

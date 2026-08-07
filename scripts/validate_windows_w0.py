@@ -78,6 +78,13 @@ FORBIDDEN_CODE_MARKERS = (
 )
 
 
+def configure_console_encoding() -> None:
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if callable(reconfigure):
+            reconfigure(encoding="utf-8", errors="backslashreplace")
+
+
 def load_project() -> ET.Element:
     return ET.parse(PROJECT_FILE).getroot()
 
@@ -148,6 +155,7 @@ def validate_files_and_code(errors: list[str]) -> None:
 
 
 def main() -> int:
+    configure_console_encoding()
     errors: list[str] = []
     try:
         validate_global_json(errors)
