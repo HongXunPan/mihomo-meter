@@ -3,6 +3,7 @@ using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using MihomoMeter.Windows.App.Diagnostics;
 using MihomoMeter.Windows.App.Interop;
+using MihomoMeter.Windows.App.Presentation;
 
 namespace MihomoMeter.Windows.App.Lifecycle;
 
@@ -15,6 +16,9 @@ internal sealed class WindowLifecycleController : IDisposable
     private readonly nint _windowHandle;
     private readonly FloatingWidgetController _floatingWidget;
     private readonly NotificationAreaController _notificationArea;
+    private readonly Action _showStatisticsWorkspace;
+    private readonly Func<Task> _startStatistics;
+    private readonly Func<Guid, Task> _stopStatistics;
     private readonly Func<Task> _prepareForExit;
     private bool _exitRequested;
     private bool _disposed;
@@ -22,9 +26,20 @@ internal sealed class WindowLifecycleController : IDisposable
     public WindowLifecycleController(
         Window window,
         Action<bool> floatingWidgetStateChanged,
+        Func<NotificationAreaStatisticsMenuSnapshot> captureStatisticsSnapshot,
+        Action showStatisticsWorkspace,
+        Func<Task> startStatistics,
+        Func<Guid, Task> stopStatistics,
         Func<Task> prepareForExit)
     {
         _window = window ?? throw new ArgumentNullException(nameof(window));
+        ArgumentNullException.ThrowIfNull(captureStatisticsSnapshot);
+        _showStatisticsWorkspace = showStatisticsWorkspace
+            ?? throw new ArgumentNullException(nameof(showStatisticsWorkspace));
+        _startStatistics = startStatistics
+            ?? throw new ArgumentNullException(nameof(startStatistics));
+        _stopStatistics = stopStatistics
+            ?? throw new ArgumentNullException(nameof(stopStatistics));
         _prepareForExit = prepareForExit ?? throw new ArgumentNullException(nameof(prepareForExit));
         _windowHandle = WinRT.Interop.WindowNative.GetWindowHandle(window);
         var windowId = Win32Interop.GetWindowIdFromWindow(_windowHandle);
@@ -40,8 +55,12 @@ internal sealed class WindowLifecycleController : IDisposable
             _notificationArea = new NotificationAreaController(
                 _windowHandle,
                 QueueShowMainWindow,
+                QueueShowStatisticsWorkspace,
                 QueueToggleFloatingWidget,
                 () => _floatingWidget.IsVisible,
+                captureStatisticsSnapshot,
+                QueueStartStatistics,
+                QueueStopStatistics,
                 QueueExitApplication);
         }
         catch
@@ -124,6 +143,57 @@ internal sealed class WindowLifecycleController : IDisposable
             }))
         {
             ReportDispatcherFailure("floating_widget_toggle_dispatch");
+        }
+    }
+
+    private void QueueShowStatisticsWorkspace()
+    {
+        if (!_window.DispatcherQueue.TryEnqueue(() =>
+            {
+                _showStatisticsWorkspace();
+                ShowMainWindow();
+            }))
+        {
+            ReportDispatcherFailure("statistics_workspace_show_dispatch");
+        }
+    }
+
+    private void QueueStartStatistics()
+    {
+        QueueStatisticsOperation(
+            _startStatistics,
+            "notification_area_statistics_start");
+    }
+
+    private void QueueStopStatistics(Guid id)
+    {
+        QueueStatisticsOperation(
+            () => _stopStatistics(id),
+            "notification_area_statistics_stop");
+    }
+
+    private void QueueStatisticsOperation(Func<Task> operation, string source)
+    {
+        if (!_window.DispatcherQueue.TryEnqueue(() =>
+            {
+                _ = RunStatisticsOperationAsync(operation, source);
+            }))
+        {
+            ReportDispatcherFailure($"{source}_dispatch");
+        }
+    }
+
+    private static async Task RunStatisticsOperationAsync(
+        Func<Task> operation,
+        string source)
+    {
+        try
+        {
+            await operation();
+        }
+        catch (Exception exception)
+        {
+            StartupConsoleReporter.Failure(source, exception);
         }
     }
 

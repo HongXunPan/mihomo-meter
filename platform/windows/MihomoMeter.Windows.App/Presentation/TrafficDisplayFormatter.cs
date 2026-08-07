@@ -38,4 +38,36 @@ internal static class TrafficDisplayFormatter
             ? $"{(int)duration.TotalDays}天 {duration:hh\\:mm\\:ss}"
             : duration.ToString("hh\\:mm\\:ss");
     }
+
+    public static string IntervalTime(TrafficInterval interval, DateTimeOffset now)
+    {
+        var endedAt = interval.EndedAt ?? now;
+        return $"{DateTime(interval.StartedAt)} 开始 · "
+            + Duration(interval.StartedAt, endedAt);
+    }
+
+    public static string IntervalStatus(
+        TrafficInterval interval,
+        bool statisticsAvailable)
+    {
+        if (interval.Status == TrafficIntervalStatus.Active && !statisticsAvailable)
+        {
+            return "统计异常";
+        }
+
+        return interval.Status switch
+        {
+            TrafficIntervalStatus.Active => "进行中",
+            TrafficIntervalStatus.Completed => "已完成",
+            TrafficIntervalStatus.Interrupted => interval.EndReason switch
+            {
+                TrafficIntervalEndReason.ApplicationExit => "已中断 · 应用退出",
+                TrafficIntervalEndReason.MonitoringStopped => "已中断 · 监控停止",
+                TrafficIntervalEndReason.Recovery => "已中断 · 启动恢复",
+                TrafficIntervalEndReason.StatisticsUnavailable => "已中断 · 统计故障",
+                _ => "已中断",
+            },
+            _ => "未知状态",
+        };
+    }
 }

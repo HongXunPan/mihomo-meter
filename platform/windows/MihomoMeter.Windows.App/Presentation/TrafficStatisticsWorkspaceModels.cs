@@ -186,8 +186,9 @@ internal static class TrafficStatisticsWorkspaceModelFactory
         bool canOperate,
         DateTimeOffset now)
     {
-        var statusText = StatusText(interval, statisticsAvailable);
-        var endedAt = interval.EndedAt ?? now;
+        var statusText = TrafficDisplayFormatter.IntervalStatus(
+            interval,
+            statisticsAvailable);
         var noteText = interval.Note ?? string.Empty;
         var download = TrafficDisplayFormatter.ByteCount(interval.ProxyUsage.Download);
         var upload = TrafficDisplayFormatter.ByteCount(interval.ProxyUsage.Upload);
@@ -198,8 +199,7 @@ internal static class TrafficStatisticsWorkspaceModelFactory
             noteText,
             noteText.Length == 0 ? Visibility.Collapsed : Visibility.Visible,
             statusText,
-            $"{TrafficDisplayFormatter.DateTime(interval.StartedAt)} 开始 · "
-                + TrafficDisplayFormatter.Duration(interval.StartedAt, endedAt),
+            TrafficDisplayFormatter.IntervalTime(interval, now),
             $"↓ {download}",
             $"↑ {upload}",
             $"合计 {total}",
@@ -232,28 +232,4 @@ internal static class TrafficStatisticsWorkspaceModelFactory
             : localDay;
     }
 
-    private static string StatusText(
-        TrafficInterval interval,
-        bool statisticsAvailable)
-    {
-        if (interval.Status == TrafficIntervalStatus.Active && !statisticsAvailable)
-        {
-            return "统计异常";
-        }
-
-        return interval.Status switch
-        {
-            TrafficIntervalStatus.Active => "进行中",
-            TrafficIntervalStatus.Completed => "已完成",
-            TrafficIntervalStatus.Interrupted => interval.EndReason switch
-            {
-                TrafficIntervalEndReason.ApplicationExit => "已中断 · 应用退出",
-                TrafficIntervalEndReason.MonitoringStopped => "已中断 · 监控停止",
-                TrafficIntervalEndReason.Recovery => "已中断 · 启动恢复",
-                TrafficIntervalEndReason.StatisticsUnavailable => "已中断 · 统计故障",
-                _ => "已中断",
-            },
-            _ => "未知状态",
-        };
-    }
 }
