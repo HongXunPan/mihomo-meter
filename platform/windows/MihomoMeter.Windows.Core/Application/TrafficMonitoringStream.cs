@@ -35,6 +35,7 @@ internal sealed class TrafficMonitoringStream
             .CollectAsync(endpoint, secret, streamSource.Token)
             .GetAsyncEnumerator(streamSource.Token);
         var measurement = new TrafficMeasurementSession(catalog, _timeProvider);
+        var display = new TrafficRateDisplayState();
         Task<MihomoProxiesResponse>? catalogRefreshTask = null;
         long? connectedAt = null;
         var stablePeriodReached = false;
@@ -54,6 +55,7 @@ internal sealed class TrafficMonitoringStream
                 if (nextSnapshot.WasStale)
                 {
                     connectedAt = null;
+                    display.Clear();
                 }
 
                 if (!nextSnapshot.HasNext)
@@ -68,6 +70,7 @@ internal sealed class TrafficMonitoringStream
                 }
 
                 var result = measurement.Consume(enumerator.Current);
+                display.Apply(result);
                 var snapshotTimestamp = _timeProvider.GetTimestamp();
                 connectedAt ??= snapshotTimestamp;
                 stablePeriodReached |= _timeProvider.GetElapsedTime(
@@ -77,8 +80,8 @@ internal sealed class TrafficMonitoringStream
                     MonitorConnectionState.Connected,
                     result.CountersReset ? "Mihomo 计数器已重置，正在重建基线。" : "实时监控已连接。",
                     version,
-                    result.RateWindow?.Smoothed,
-                    result.RateWindow?.Coverage));
+                    display.Rates,
+                    display.Coverage));
 
                 if (result.RequiresCatalogRefresh && catalogRefreshTask is null)
                 {

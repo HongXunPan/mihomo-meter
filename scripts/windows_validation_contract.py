@@ -76,6 +76,7 @@ REQUIRED_CORE_FILES = (
     "Application/ReconnectBackoff.cs",
     "Application/ControllerConfiguration.cs",
     "Application/TrafficMeasurementSession.cs",
+    "Application/TrafficRateDisplayState.cs",
     "Application/TrafficMonitorState.cs",
     "Application/TrafficMonitoringCoordinator.cs",
     "Application/TrafficMonitoringStream.cs",
@@ -97,6 +98,7 @@ REQUIRED_TEST_FILES = (
     "TrafficRateAggregatorTests.cs",
     "ReconnectBackoffTests.cs",
     "TrafficMeasurementSessionTests.cs",
+    "TrafficRateDisplayStateTests.cs",
     "TrafficMonitoringCoordinatorTests.cs",
 )
 
