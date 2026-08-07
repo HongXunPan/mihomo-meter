@@ -37,12 +37,13 @@ internal sealed class TrafficMonitoringStream
         var measurement = new TrafficMeasurementSession(catalog, _timeProvider);
         var display = new TrafficRateDisplayState();
         Task<MihomoProxiesResponse>? catalogRefreshTask = null;
+        Task<bool>? moveNextTask = null;
         long? connectedAt = null;
         var stablePeriodReached = false;
 
         try
         {
-            var moveNextTask = enumerator.MoveNextAsync().AsTask();
+            moveNextTask = enumerator.MoveNextAsync().AsTask();
             while (!cancellationToken.IsCancellationRequested)
             {
                 var nextSnapshot = await WaitForNextSnapshotAsync(
@@ -105,6 +106,11 @@ internal sealed class TrafficMonitoringStream
         finally
         {
             streamSource.Cancel();
+            if (moveNextTask is not null)
+            {
+                await ObserveCancelledMoveAsync(moveNextTask).ConfigureAwait(false);
+            }
+
             if (catalogRefreshTask is not null)
             {
                 await ObserveCatalogRefreshAsync(catalogRefreshTask).ConfigureAwait(false);

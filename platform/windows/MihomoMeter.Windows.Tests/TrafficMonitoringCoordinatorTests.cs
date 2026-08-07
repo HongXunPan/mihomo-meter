@@ -142,7 +142,23 @@ public sealed class TrafficMonitoringCoordinatorTests
         Assert.IsTrue(await collector.Started.WaitAsync(TimeSpan.FromSeconds(2)));
         var firstGeneration = await firstConnected.Task.WaitAsync(TimeSpan.FromSeconds(2));
 
-        await coordinator.StartAsync("127.0.0.1:9090", string.Empty, false);
+        var replacementTask = coordinator.StartAsync(
+            "127.0.0.1:9090",
+            string.Empty,
+            false);
+        await collector.FirstCleanupStarted.Task.WaitAsync(TimeSpan.FromSeconds(2));
+        try
+        {
+            Assert.IsFalse(replacementTask.IsCompleted);
+            Assert.AreEqual(1, collector.RunCount);
+            Assert.AreEqual(1, collector.MaximumConcurrentRuns);
+        }
+        finally
+        {
+            collector.ReleaseFirstCleanup();
+        }
+
+        await replacementTask.WaitAsync(TimeSpan.FromSeconds(2));
         Assert.IsTrue(await collector.Started.WaitAsync(TimeSpan.FromSeconds(2)));
         var secondGeneration = await secondConnected.Task.WaitAsync(TimeSpan.FromSeconds(2));
 
@@ -244,8 +260,13 @@ public sealed class TrafficMonitoringCoordinatorTests
         private int _activeRuns;
         private int _maximumConcurrentRuns;
         private int _runCount;
+        private readonly TaskCompletionSource<bool> _firstCleanupRelease = new(
+            TaskCreationOptions.RunContinuationsAsynchronously);
 
         public SemaphoreSlim Started { get; } = new(0);
+
+        public TaskCompletionSource<bool> FirstCleanupStarted { get; } = new(
+            TaskCreationOptions.RunContinuationsAsynchronously);
 
         public int MaximumConcurrentRuns => Volatile.Read(ref _maximumConcurrentRuns);
 
@@ -257,7 +278,7 @@ public sealed class TrafficMonitoringCoordinatorTests
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             var activeRuns = Interlocked.Increment(ref _activeRuns);
-            Interlocked.Increment(ref _runCount);
+            var runNumber = Interlocked.Increment(ref _runCount);
             UpdateMaximum(activeRuns);
             Started.Release();
             try
@@ -272,8 +293,19 @@ public sealed class TrafficMonitoringCoordinatorTests
             }
             finally
             {
+                if (runNumber == 1)
+                {
+                    FirstCleanupStarted.TrySetResult(true);
+                    await _firstCleanupRelease.Task.ConfigureAwait(false);
+                }
+
                 Interlocked.Decrement(ref _activeRuns);
             }
+        }
+
+        public void ReleaseFirstCleanup()
+        {
+            _firstCleanupRelease.TrySetResult(true);
         }
 
         private void UpdateMaximum(int activeRuns)
