@@ -2,32 +2,87 @@ using Microsoft.UI;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using MihomoMeter.Windows.App.Diagnostics;
+using MihomoMeter.Windows.App.Infrastructure;
+using MihomoMeter.Windows.App.Presentation;
 using Windows.Graphics;
 
 namespace MihomoMeter.Windows.App;
 
 public sealed partial class MainWindow : Window
 {
-    public MainWindow()
+    private readonly WindowsAppServices _services;
+    private bool _stopped;
+
+    internal MainWindow(WindowsAppServices services)
     {
-        W0ConsoleReporter.Stage("main_window_xaml_initialize_started");
+        _services = services;
+        ViewModel = new MainWindowViewModel(
+            DispatcherQueue,
+            services.ConfigurationStore,
+            services.Coordinator);
+        StartupConsoleReporter.Stage("main_window_xaml_initialize_started");
         InitializeComponent();
-        W0ConsoleReporter.Stage("main_window_xaml_initialize_completed");
-        Title = "Mihomo Meter · Windows W0";
-        ResizeForGate();
+        StartupConsoleReporter.Stage("main_window_xaml_initialize_completed");
+        Title = "Mihomo Meter · Windows W1";
+        ResizeForPreview();
+    }
+
+    public MainWindowViewModel ViewModel { get; }
+
+    internal Task<bool> InitializeAsync()
+    {
+        return ViewModel.InitializeAsync();
+    }
+
+    internal async Task StopForApplicationTerminationAsync()
+    {
+        if (_stopped)
+        {
+            return;
+        }
+
+        _stopped = true;
+        ViewModel.Detach();
+        await _services.DisposeAsync();
     }
 
     public void SetFloatingWidgetEnabled(bool enabled)
     {
-        FloatingWidgetStateText.Text = enabled
-            ? "已开启；拖动只在当前进程内保留位置，单击可打开主窗口。"
-            : "未开启；可从通知区域菜单开启。";
+        FloatingWidgetStateText.Text = enabled ? "悬浮图标：开启" : "悬浮图标：关闭";
     }
 
-    private void ResizeForGate()
+    private async void ConnectButton_Click(object sender, RoutedEventArgs args)
+    {
+        var secret = SecretPasswordBox.Password;
+        var forceEmptySecret = ForceEmptySecretCheckBox.IsChecked == true;
+        SecretPasswordBox.Password = string.Empty;
+        ForceEmptySecretCheckBox.IsChecked = false;
+        try
+        {
+            await ViewModel.ConnectAsync(secret, forceEmptySecret);
+        }
+        catch (Exception exception)
+        {
+            ViewModel.ShowError(exception.Message);
+        }
+    }
+
+    private async void DisconnectButton_Click(object sender, RoutedEventArgs args)
+    {
+        try
+        {
+            await ViewModel.DisconnectAsync();
+        }
+        catch (Exception exception)
+        {
+            ViewModel.ShowError(exception.Message);
+        }
+    }
+
+    private void ResizeForPreview()
     {
         var windowHandle = WinRT.Interop.WindowNative.GetWindowHandle(this);
         var windowId = Win32Interop.GetWindowIdFromWindow(windowHandle);
-        AppWindow.GetFromWindowId(windowId)?.Resize(new SizeInt32(780, 500));
+        AppWindow.GetFromWindowId(windowId)?.Resize(new SizeInt32(860, 720));
     }
 }

@@ -28,6 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="run-w0-gate.cmd" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <ProjectReference Include="../MihomoMeter.Windows.Core/MihomoMeter.Windows.Core.csproj" />
   </ItemGroup>
+
 </Project>

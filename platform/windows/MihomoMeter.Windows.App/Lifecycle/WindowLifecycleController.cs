@@ -15,12 +15,17 @@ internal sealed class WindowLifecycleController : IDisposable
     private readonly nint _windowHandle;
     private readonly FloatingWidgetController _floatingWidget;
     private readonly NotificationAreaController _notificationArea;
+    private readonly Func<Task> _prepareForExit;
     private bool _exitRequested;
     private bool _disposed;
 
-    public WindowLifecycleController(Window window, Action<bool> floatingWidgetStateChanged)
+    public WindowLifecycleController(
+        Window window,
+        Action<bool> floatingWidgetStateChanged,
+        Func<Task> prepareForExit)
     {
         _window = window ?? throw new ArgumentNullException(nameof(window));
+        _prepareForExit = prepareForExit ?? throw new ArgumentNullException(nameof(prepareForExit));
         _windowHandle = WinRT.Interop.WindowNative.GetWindowHandle(window);
         var windowId = Win32Interop.GetWindowIdFromWindow(_windowHandle);
         _appWindow = AppWindow.GetFromWindowId(windowId)
@@ -46,7 +51,12 @@ internal sealed class WindowLifecycleController : IDisposable
             throw;
         }
 
-        W0ConsoleReporter.Stage("window_lifecycle_ready");
+        StartupConsoleReporter.Stage("window_lifecycle_ready");
+    }
+
+    public void SetStatusText(string statusText)
+    {
+        _notificationArea.UpdateToolTip($"Mihomo Meter · {statusText}");
     }
 
     public void ShowMainWindow()
@@ -76,23 +86,23 @@ internal sealed class WindowLifecycleController : IDisposable
 
     private void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
     {
-        if (_exitRequested)
+        if (_disposed)
         {
             return;
         }
 
         args.Cancel = true;
         sender.Hide();
-        W0ConsoleReporter.Stage("window_hidden_to_notification_area");
+        StartupConsoleReporter.Stage("window_hidden_to_notification_area");
     }
 
     private void QueueShowMainWindow()
     {
         if (!_window.DispatcherQueue.TryEnqueue(() =>
             {
-                W0ConsoleReporter.Stage("main_window_show_started");
+                StartupConsoleReporter.Stage("main_window_show_started");
                 ShowMainWindow();
-                W0ConsoleReporter.Stage("main_window_show_completed");
+                StartupConsoleReporter.Stage("main_window_show_completed");
             }))
         {
             ReportDispatcherFailure("main_window_show_dispatch");
@@ -109,7 +119,7 @@ internal sealed class WindowLifecycleController : IDisposable
                 }
                 catch (Exception exception)
                 {
-                    W0ConsoleReporter.Failure("floating_widget_toggle", exception);
+                    StartupConsoleReporter.Failure("floating_widget_toggle", exception);
                 }
             }))
         {
@@ -125,7 +135,7 @@ internal sealed class WindowLifecycleController : IDisposable
         }
     }
 
-    private void RequestExit()
+    private async void RequestExit()
     {
         if (_exitRequested)
         {
@@ -133,14 +143,25 @@ internal sealed class WindowLifecycleController : IDisposable
         }
 
         _exitRequested = true;
-        W0ConsoleReporter.Stage("application_exit_requested");
-        Dispose();
-        _window.Close();
+        StartupConsoleReporter.Stage("application_exit_requested");
+        try
+        {
+            await _prepareForExit();
+        }
+        catch (Exception exception)
+        {
+            StartupConsoleReporter.Failure("application_exit_cleanup", exception);
+        }
+        finally
+        {
+            Dispose();
+            _window.Close();
+        }
     }
 
     private static void ReportDispatcherFailure(string source)
     {
-        W0ConsoleReporter.Failure(
+        StartupConsoleReporter.Failure(
             source,
             new InvalidOperationException("无法把壳层操作发送到界面线程。"));
     }

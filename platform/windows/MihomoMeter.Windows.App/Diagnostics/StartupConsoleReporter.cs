@@ -3,9 +3,9 @@ using System.Text;
 
 namespace MihomoMeter.Windows.App.Diagnostics;
 
-internal static class W0ConsoleReporter
+internal static class StartupConsoleReporter
 {
-    private const string EnabledEnvironmentVariable = "MIHOMO_METER_W0_CONSOLE";
+    private const string EnabledEnvironmentVariable = "MIHOMO_METER_STARTUP_CONSOLE";
     private const uint AttachParentProcess = uint.MaxValue;
     private const int ErrorAccessDenied = 5;
 
@@ -53,7 +53,7 @@ internal static class W0ConsoleReporter
         _currentStage = stage;
         if (_enabled)
         {
-            Console.WriteLine($"W0_STAGE stage={stage}");
+            Console.WriteLine($"WINDOWS_STAGE stage={stage}");
         }
     }
 
@@ -66,7 +66,7 @@ internal static class W0ConsoleReporter
 
         var exceptionType = exception.GetType().FullName ?? exception.GetType().Name;
         Console.Error.WriteLine(
-            $"W0_FAILURE source={source} stage={_currentStage} "
+            $"WINDOWS_FAILURE source={source} stage={_currentStage} "
             + $"type={exceptionType} hresult=0x{unchecked((uint)exception.HResult):X8}");
     }
 

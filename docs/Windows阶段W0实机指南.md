@@ -1,8 +1,10 @@
 # Windows 阶段 W0 实机指南
 
+> 本文是 W0 历史 artifact 的验收说明。W1 预览目录不再包含 `run-w0-gate.cmd`，当前阶段请改用[Windows 阶段 W1 实机指南](Windows阶段W1实机指南.md)。
+
 ## 1. 用途与环境
 
-本指南用于验证 Windows W0 壳层，不验证 Mihomo 数据能力。固定环境为 Windows 10 22H2 x64、标准用户、无预装 .NET/Windows App SDK 的普通使用条件；测试产物应来自当前提交对应的 Windows CI 自包含目录 artifact。
+本指南用于验证 Windows W0 壳层，不验证 Mihomo 数据能力。固定环境为 Windows 10 22H2 x64、标准用户、无预装 .NET/Windows App SDK 的普通使用条件；测试产物应来自 W0 对应提交的 Windows CI 自包含目录 artifact。
 
 开始前记录 Windows 版本、CPU 架构、是否标准用户、提交 SHA 和 artifact 名称。不得记录用户名、机器唯一标识、完整本机路径或其他应用的隐私画面。
 
