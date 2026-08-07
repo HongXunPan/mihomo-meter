@@ -150,10 +150,10 @@ internal sealed class TrafficIntervalPersistence
         }
 
         var startBaseline = ReadBytes(reader, 7, 8);
-        var endedAt = reader.IsDBNull(5)
+        DateTimeOffset? endedAt = reader.IsDBNull(5)
             ? null
             : DateTimeOffset.FromUnixTimeMilliseconds(reader.GetInt64(5));
-        var endReason = reader.IsDBNull(6)
+        TrafficIntervalEndReason? endReason = reader.IsDBNull(6)
             ? null
             : ParseEndReason(reader.GetString(6));
         var hasEndBaseline = !reader.IsDBNull(9) && !reader.IsDBNull(10);
