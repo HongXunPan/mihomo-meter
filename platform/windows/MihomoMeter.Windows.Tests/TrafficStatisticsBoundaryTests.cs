@@ -137,7 +137,11 @@ public sealed class TrafficStatisticsBoundaryTests
 
     private SqliteConnection OpenDatabase()
     {
-        var connection = new SqliteConnection($"Data Source={_databasePath}");
+        var connection = new SqliteConnection(new SqliteConnectionStringBuilder
+        {
+            DataSource = _databasePath,
+            Pooling = false,
+        }.ToString());
         connection.Open();
         return connection;
     }
