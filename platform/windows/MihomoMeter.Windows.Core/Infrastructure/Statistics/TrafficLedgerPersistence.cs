@@ -22,12 +22,20 @@ internal sealed class TrafficLedgerPersistence : IDisposable
             Pooling = false,
         }.ToString();
         _connection = new SqliteConnection(connectionString);
-        _connection.Open();
-        Execute("PRAGMA foreign_keys = ON");
-        Execute("PRAGMA journal_mode = WAL");
-        Execute("PRAGMA synchronous = NORMAL");
-        Execute("PRAGMA busy_timeout = 3000");
-        TrafficLedgerSchema.Migrate(_connection);
+        try
+        {
+            _connection.Open();
+            Execute("PRAGMA foreign_keys = ON");
+            Execute("PRAGMA journal_mode = WAL");
+            Execute("PRAGMA synchronous = NORMAL");
+            Execute("PRAGMA busy_timeout = 3000");
+            TrafficLedgerSchema.Migrate(_connection);
+        }
+        catch
+        {
+            _connection.Dispose();
+            throw;
+        }
     }
 
     public void Dispose()

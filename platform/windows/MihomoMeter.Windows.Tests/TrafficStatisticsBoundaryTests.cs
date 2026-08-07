@@ -62,12 +62,17 @@ public sealed class TrafficStatisticsBoundaryTests
             command.ExecuteNonQuery();
         }
 
-        await using var ledger = new SQLiteTrafficLedger(_databasePath);
-        await Assert.ThrowsExactlyAsync<TrafficStatisticsException>(() =>
-            ledger.PrepareAsync(
-                TimeZoneInfo.Utc,
-                DateTimeOffset.UnixEpoch,
-                CancellationToken.None));
+        await using (var ledger = new SQLiteTrafficLedger(_databasePath))
+        {
+            await Assert.ThrowsExactlyAsync<TrafficStatisticsException>(() =>
+                ledger.PrepareAsync(
+                    TimeZoneInfo.Utc,
+                    DateTimeOffset.UnixEpoch,
+                    CancellationToken.None));
+        }
+
+        File.Delete(_databasePath);
+        Assert.IsFalse(File.Exists(_databasePath));
     }
 
     [TestMethod]
