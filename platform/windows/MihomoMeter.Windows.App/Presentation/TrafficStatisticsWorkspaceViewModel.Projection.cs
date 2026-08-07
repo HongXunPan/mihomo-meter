@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using MihomoMeter.Windows.Core.Application;
@@ -15,10 +16,10 @@ public sealed partial class TrafficStatisticsWorkspaceViewModel
     ];
 
     private TrafficStatisticsFilterOption _selectedFilter = Filters[2];
-    private IReadOnlyList<TrafficIntervalRowViewModel> _intervals =
-        Array.Empty<TrafficIntervalRowViewModel>();
-    private IReadOnlyList<TrafficDailyChartPointViewModel> _chartPoints =
-        Array.Empty<TrafficDailyChartPointViewModel>();
+    private readonly ObservableCollection<TrafficIntervalRowViewModel> _intervalItems = [];
+    private readonly ObservableCollection<TrafficDailyChartPointViewModel> _chartPointItems = [];
+    private TrafficDailyRangeSummary _dailyRange =
+        TrafficStatisticsWorkspaceProjection.DailyRange(Array.Empty<TrafficDailyTotal>());
 
     public IReadOnlyList<TrafficStatisticsFilterOption> FilterOptions => Filters;
 
@@ -34,32 +35,14 @@ public sealed partial class TrafficStatisticsWorkspaceViewModel
 
             _selectedFilter = value;
             OnPropertyChanged();
+            OnPropertyChanged(nameof(EmptyStateMessage));
             UpdateIntervals();
         }
     }
 
-    public IReadOnlyList<TrafficIntervalRowViewModel> Intervals
-    {
-        get => _intervals;
-        private set
-        {
-            _intervals = value;
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(IntervalListVisibility));
-            OnPropertyChanged(nameof(EmptyStateVisibility));
-            OnPropertyChanged(nameof(EmptyStateMessage));
-        }
-    }
+    public ObservableCollection<TrafficIntervalRowViewModel> Intervals => _intervalItems;
 
-    public IReadOnlyList<TrafficDailyChartPointViewModel> ChartPoints
-    {
-        get => _chartPoints;
-        private set
-        {
-            _chartPoints = value;
-            OnPropertyChanged();
-        }
-    }
+    public ObservableCollection<TrafficDailyChartPointViewModel> ChartPoints => _chartPointItems;
 
     public Visibility LoadingVisibility => _statisticsState.Availability
         == TrafficStatisticsAvailability.Loading
@@ -140,8 +123,7 @@ public sealed partial class TrafficStatisticsWorkspaceViewModel
     {
         get
         {
-            var range = CurrentDailyRange();
-            return $"30 天合计 {TrafficDisplayFormatter.ByteCount(range.Total.Total)}";
+            return $"30 天合计 {TrafficDisplayFormatter.ByteCount(_dailyRange.Total.Total)}";
         }
     }
 
@@ -149,7 +131,7 @@ public sealed partial class TrafficStatisticsWorkspaceViewModel
     {
         get
         {
-            var peak = CurrentDailyRange().PeakDay;
+            var peak = _dailyRange.PeakDay;
             return peak is null || peak.Bytes.Total == 0
                 ? "峰值日：暂无流量"
                 : $"峰值日：{peak.LocalDay} · "
@@ -181,9 +163,23 @@ public sealed partial class TrafficStatisticsWorkspaceViewModel
 
     public bool CanClear => StatisticsAvailable && !_isOperationPending;
 
+    public string ChartAxisMaximumText =>
+        TrafficDisplayFormatter.ByteCount(_dailyRange.AxisTicks.Maximum);
+
+    public string ChartAxisThreeQuarterText =>
+        TrafficDisplayFormatter.ByteCount(_dailyRange.AxisTicks.ThreeQuarters);
+
+    public string ChartAxisHalfText =>
+        TrafficDisplayFormatter.ByteCount(_dailyRange.AxisTicks.Half);
+
+    public string ChartAxisQuarterText =>
+        TrafficDisplayFormatter.ByteCount(_dailyRange.AxisTicks.Quarter);
+
     private void ApplyStatisticsState(TrafficStatisticsState state)
     {
         _statisticsState = state;
+        _dailyRange = TrafficStatisticsWorkspaceProjection.DailyRange(
+            state.Snapshot.RecentProxyDays);
         OnPropertyChanged(nameof(LoadingVisibility));
         OnPropertyChanged(nameof(ContentVisibility));
         OnPropertyChanged(nameof(IsNoticeOpen));
@@ -202,15 +198,41 @@ public sealed partial class TrafficStatisticsWorkspaceViewModel
         OnPropertyChanged(nameof(RangeTotalText));
         OnPropertyChanged(nameof(PeakDayText));
         OnPropertyChanged(nameof(RangeDateText));
+        OnPropertyChanged(nameof(ChartAxisMaximumText));
+        OnPropertyChanged(nameof(ChartAxisThreeQuarterText));
+        OnPropertyChanged(nameof(ChartAxisHalfText));
+        OnPropertyChanged(nameof(ChartAxisQuarterText));
         UpdateChart();
         NotifyOperationAvailability();
     }
 
     private void UpdateChart()
     {
-        ChartPoints = CurrentDailyRange().Points
+        var desired = _dailyRange.Points
             .Select(TrafficStatisticsWorkspaceModelFactory.ChartPoint)
             .ToArray();
+        for (var index = 0; index < desired.Length; index += 1)
+        {
+            var desiredPoint = desired[index];
+            var existingIndex = IndexOfChartDay(desiredPoint.LocalDay);
+            if (existingIndex < 0)
+            {
+                _chartPointItems.Insert(index, desiredPoint);
+                continue;
+            }
+
+            if (existingIndex != index)
+            {
+                _chartPointItems.Move(existingIndex, index);
+            }
+
+            _chartPointItems[index].Apply(desiredPoint);
+        }
+
+        while (_chartPointItems.Count > desired.Length)
+        {
+            _chartPointItems.RemoveAt(_chartPointItems.Count - 1);
+        }
     }
 
     private void UpdateIntervals()
@@ -219,19 +241,43 @@ public sealed partial class TrafficStatisticsWorkspaceViewModel
             _statisticsState.Snapshot.Intervals,
             SelectedFilter.Filter);
         var now = DateTimeOffset.Now;
-        Intervals = filtered
+        var desired = filtered
             .Select(interval => TrafficStatisticsWorkspaceModelFactory.IntervalRow(
                 interval,
                 StatisticsAvailable,
                 StatisticsAvailable && !_isOperationPending,
                 now))
             .ToArray();
-    }
+        var previousCount = _intervalItems.Count;
+        for (var index = 0; index < desired.Length; index += 1)
+        {
+            var desiredRow = desired[index];
+            var existingIndex = IndexOfInterval(desiredRow.Id);
+            if (existingIndex < 0)
+            {
+                _intervalItems.Insert(index, desiredRow);
+                continue;
+            }
 
-    private TrafficDailyRangeSummary CurrentDailyRange()
-    {
-        return TrafficStatisticsWorkspaceProjection.DailyRange(
-            _statisticsState.Snapshot.RecentProxyDays);
+            if (existingIndex != index)
+            {
+                _intervalItems.Move(existingIndex, index);
+            }
+
+            _intervalItems[index].Apply(desiredRow);
+        }
+
+        while (_intervalItems.Count > desired.Length)
+        {
+            _intervalItems.RemoveAt(_intervalItems.Count - 1);
+        }
+
+        if (previousCount != _intervalItems.Count)
+        {
+            OnPropertyChanged(nameof(IntervalListVisibility));
+            OnPropertyChanged(nameof(EmptyStateVisibility));
+            OnPropertyChanged(nameof(EmptyStateMessage));
+        }
     }
 
     private void NotifyOperationAvailability()
@@ -239,5 +285,34 @@ public sealed partial class TrafficStatisticsWorkspaceViewModel
         OnPropertyChanged(nameof(CanStartInterval));
         OnPropertyChanged(nameof(CanClear));
         UpdateIntervals();
+    }
+
+    private int IndexOfInterval(Guid id)
+    {
+        for (var index = 0; index < _intervalItems.Count; index += 1)
+        {
+            if (_intervalItems[index].Id == id)
+            {
+                return index;
+            }
+        }
+
+        return -1;
+    }
+
+    private int IndexOfChartDay(string localDay)
+    {
+        for (var index = 0; index < _chartPointItems.Count; index += 1)
+        {
+            if (string.Equals(
+                _chartPointItems[index].LocalDay,
+                localDay,
+                StringComparison.Ordinal))
+            {
+                return index;
+            }
+        }
+
+        return -1;
     }
 }

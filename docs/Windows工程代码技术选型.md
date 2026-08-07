@@ -2,7 +2,7 @@
 
 ## 1. 文档定位
 
-- 状态：W2B1 已合并，W2B2 完整工作台已实现，待 CI 与 Win10 实机验证
+- 状态：W2B2 首轮实机反馈修复完成，待 CI 与 Win10 复测
 - 更新日期：2026-08-08
 - 上游边界：父工作区 `docs/Windows技术方案.md`、`docs/Windows阶段W2B统计任务与工作台技术方案.md`
 - 历史门禁：[Windows 阶段 W0 实机指南](Windows阶段W0实机指南.md)
@@ -79,10 +79,11 @@ Controller 地址、Credential Target Name、设置路径、接口顺序、分�
 13. 多个统计任务共享永久 Proxy 累计基线，固定使用 active/completed/interrupted 和类型化结束原因；分钟桶清理不得改变任务结果。
 14. 最近 30 日只读取 `traffic_daily_totals` 并补齐缺失日；清空在同一事务删除核心累计与任务，下一帧只建立新基线。
 15. 任务、每日查询、维护、快照和会话转换使用独立文件承载，`SQLiteTrafficLedger` 仍是唯一串行账本入口。
-16. 主窗口使用 `NavigationView` 组合“实时监控”和“Proxy 流量”两个缓存视图；切换模块只替换内容，不新建窗口、Coordinator 或采样器。
+16. 主窗口使用 `NavigationView` 组合“实时监控”和“Proxy 流量”两个缓存视图；内容宿主横向、纵向铺满工作区，切换模块只替换内容，不新建窗口、Coordinator 或采样器。
 17. `TrafficStatisticsWorkspaceViewModel` 只通过共享 `TrafficStatisticsCoordinator` 提交操作；筛选、自动名称和 30 日图表投影进入可独立测试的 Core 转换。
-18. 最近 30 日上传/下载堆叠柱只使用 WinUI 布局元素绘制，保留零值日期位置，并提供范围合计、峰值日与每柱可访问名称。
+18. 最近 30 日上传/下载堆叠柱使用独立 WinUI `UserControl` 和系统布局元素绘制，保留零值日期位置；X 轴显示第 1、8、15、22 与最后一天，Y 轴显示零到峰值的字节刻度和网格线，并提供范围合计、峰值日与每柱可访问名称。
 19. 新建、重命名、删除和清空使用 WinUI `ContentDialog`；对话框绑定当前工作台 `XamlRoot`，清空文案明确区分被删除统计与保留配置。
+20. 高频账本快照使用稳定的可观察集合保留任务行和图表柱对象，只发布变化字段；不得通过每帧替换 `ItemsSource` 让已结束任务或整张图表反复重建。
 
 W2B2 不实现通知区域任务菜单、连接明细、Profile、订阅配额、诊断日志、开机启动、安装器或自动更新。通知区域固定五槽位与任务生命周期收口属于 W2B3；W0 的 `run-w0-gate.cmd` 与控制台阶段码只保留为历史门禁，不成为预览产物的正式入口。
 

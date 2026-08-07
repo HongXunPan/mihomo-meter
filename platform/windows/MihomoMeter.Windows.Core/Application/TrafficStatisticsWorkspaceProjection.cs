@@ -13,11 +13,19 @@ public sealed record TrafficDailyChartPoint(
     string LocalDay,
     TrafficBytes Bytes,
     double UploadFraction,
-    double DownloadFraction);
+    double DownloadFraction,
+    bool ShowsAxisLabel);
+
+public sealed record TrafficDailyAxisTicks(
+    ulong Maximum,
+    ulong ThreeQuarters,
+    ulong Half,
+    ulong Quarter);
 
 public sealed record TrafficDailyRangeSummary(
     TrafficBytes Total,
     TrafficDailyTotal? PeakDay,
+    TrafficDailyAxisTicks AxisTicks,
     IReadOnlyList<TrafficDailyChartPoint> Points);
 
 public static class TrafficStatisticsWorkspaceProjection
@@ -65,12 +73,33 @@ public static class TrafficStatisticsWorkspaceProjection
 
         var maximum = peakDay?.Bytes.Total ?? 0;
         var points = days
-            .Select(day => new TrafficDailyChartPoint(
+            .Select((day, index) => new TrafficDailyChartPoint(
                 day.LocalDay,
                 day.Bytes,
                 maximum == 0 ? 0 : (double)day.Bytes.Upload / maximum,
-                maximum == 0 ? 0 : (double)day.Bytes.Download / maximum))
+                maximum == 0 ? 0 : (double)day.Bytes.Download / maximum,
+                ShowsSparseAxisLabel(index, days.Count)))
             .ToArray();
-        return new TrafficDailyRangeSummary(total, peakDay, points);
+        return new TrafficDailyRangeSummary(
+            total,
+            peakDay,
+            new TrafficDailyAxisTicks(
+                maximum,
+                ScaleAxisTick(maximum, 3),
+                ScaleAxisTick(maximum, 2),
+                ScaleAxisTick(maximum, 1)),
+            points);
+    }
+
+    private static bool ShowsSparseAxisLabel(int index, int count)
+    {
+        return index == 0
+            || index == count - 1
+            || index is 7 or 14 or 21;
+    }
+
+    private static ulong ScaleAxisTick(ulong maximum, ulong numerator)
+    {
+        return (maximum / 4 * numerator) + (maximum % 4 * numerator / 4);
     }
 }

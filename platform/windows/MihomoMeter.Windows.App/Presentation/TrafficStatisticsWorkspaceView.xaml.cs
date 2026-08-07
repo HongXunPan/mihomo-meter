@@ -11,6 +11,7 @@ public sealed partial class TrafficStatisticsWorkspaceView : UserControl
     {
         ViewModel = viewModel;
         InitializeComponent();
+        DailyChartHost.Content = new ProxyDailyTrafficChartView(viewModel);
     }
 
     public TrafficStatisticsWorkspaceViewModel ViewModel { get; }

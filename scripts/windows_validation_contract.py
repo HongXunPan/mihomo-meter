@@ -78,6 +78,8 @@ REQUIRED_APP_FILES = (
     "Interop/ShellNativeMethods.cs",
     "Interop/FloatingWidgetNativeMethods.cs",
     "Presentation/MainWindowViewModel.cs",
+    "Presentation/ProxyDailyTrafficChartView.xaml",
+    "Presentation/ProxyDailyTrafficChartView.xaml.cs",
     "Presentation/RealtimeMonitoringView.xaml",
     "Presentation/RealtimeMonitoringView.xaml.cs",
     "Presentation/TrafficDisplayFormatter.cs",
@@ -155,6 +157,7 @@ REQUIRED_CODE_MARKERS = {
         'Content="实时监控"',
         'Content="Proxy 流量"',
         "WorkspaceContent",
+        'HorizontalContentAlignment="Stretch"',
     ),
     APP_ROOT / "MainWindow.xaml.cs": (
         "new RealtimeMonitoringView",
@@ -247,14 +250,21 @@ REQUIRED_CODE_MARKERS = {
         "TrafficStatisticsIntervalFilter",
         "FilterIntervals",
         "DailyRange",
+        "TrafficDailyAxisTicks",
+        "ShowsAxisLabel",
         "UploadFraction",
         "DownloadFraction",
     ),
     APP_ROOT / "Presentation/TrafficStatisticsWorkspaceView.xaml": (
-        "ChartPoints",
-        "AutomationProperties.Name",
+        "DailyChartHost",
         "StartIntervalButton_Click",
         "ClearButton_Click",
+    ),
+    APP_ROOT / "Presentation/ProxyDailyTrafficChartView.xaml": (
+        "ChartAxisMaximumText",
+        "ChartPoints",
+        "AxisLabelVisibility",
+        "AutomationProperties.Name",
     ),
     APP_ROOT / "Presentation/TrafficStatisticsWorkspaceView.xaml.cs": (
         "ContentDialog",
@@ -270,9 +280,12 @@ REQUIRED_CODE_MARKERS = {
         "IsCurrentSession",
     ),
     APP_ROOT / "Presentation/TrafficStatisticsWorkspaceViewModel.Projection.cs": (
+        "ObservableCollection",
         "TrafficStatisticsWorkspaceProjection.FilterIntervals",
         "TrafficStatisticsWorkspaceProjection.DailyRange",
         "TrafficStatisticsWorkspaceModelFactory.ChartPoint",
+        "_intervalItems[index].Apply",
+        "_chartPointItems[index].Apply",
     ),
     CORE_ROOT / "Domain/TrafficIntervals.cs": (
         "TrafficIntervalStatus",

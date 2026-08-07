@@ -66,6 +66,7 @@ public sealed class TrafficStatisticsWorkspaceProjectionTests
 
         Assert.AreEqual(new TrafficBytes(30, 110), range.Total);
         Assert.AreEqual("2026-08-08", range.PeakDay?.LocalDay);
+        Assert.AreEqual(new TrafficDailyAxisTicks(100, 75, 50, 25), range.AxisTicks);
         Assert.AreEqual(3, range.Points.Count);
         Assert.AreEqual(0.1, range.Points[0].UploadFraction, 0.0001);
         Assert.AreEqual(0.3, range.Points[0].DownloadFraction, 0.0001);
@@ -89,8 +90,16 @@ public sealed class TrafficStatisticsWorkspaceProjectionTests
         Assert.AreEqual(30, range.Points.Count);
         Assert.AreEqual(TrafficBytes.Zero, range.Total);
         Assert.AreEqual("2026-07-01", range.PeakDay?.LocalDay);
+        Assert.AreEqual(new TrafficDailyAxisTicks(0, 0, 0, 0), range.AxisTicks);
         Assert.IsTrue(range.Points.All(point =>
             point.UploadFraction == 0 && point.DownloadFraction == 0));
+        CollectionAssert.AreEqual(
+            new[] { 0, 7, 14, 21, 29 },
+            range.Points
+                .Select((point, index) => (point, index))
+                .Where(value => value.point.ShowsAxisLabel)
+                .Select(value => value.index)
+                .ToArray());
     }
 
     private static TrafficInterval Interval(string name, TrafficIntervalStatus status)

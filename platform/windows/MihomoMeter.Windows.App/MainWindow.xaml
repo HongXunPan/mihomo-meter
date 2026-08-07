@@ -36,7 +36,10 @@
                 </NavigationViewItem>
             </NavigationView.MenuItems>
 
-            <ContentControl x:Name="WorkspaceContent" />
+            <ContentControl
+                x:Name="WorkspaceContent"
+                HorizontalContentAlignment="Stretch"
+                VerticalContentAlignment="Stretch" />
         </NavigationView>
 
         <Border

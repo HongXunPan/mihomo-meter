@@ -129,93 +129,9 @@
                         </Border>
                     </Grid>
 
-                    <Border
-                        Padding="18"
-                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                        BorderThickness="1"
-                        CornerRadius="12">
-                        <StackPanel Spacing="12">
-                            <Grid ColumnSpacing="12">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <StackPanel Spacing="4">
-                                    <TextBlock
-                                        FontSize="18"
-                                        FontWeight="SemiBold"
-                                        Text="最近 30 天" />
-                                    <TextBlock
-                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                        Text="{x:Bind ViewModel.RangeDateText, Mode=OneWay}" />
-                                </StackPanel>
-                                <StackPanel
-                                    Grid.Column="1"
-                                    HorizontalAlignment="Right"
-                                    Spacing="4">
-                                    <TextBlock
-                                        HorizontalAlignment="Right"
-                                        FontWeight="SemiBold"
-                                        Text="{x:Bind ViewModel.RangeTotalText, Mode=OneWay}" />
-                                    <TextBlock
-                                        HorizontalAlignment="Right"
-                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                        Text="{x:Bind ViewModel.PeakDayText, Mode=OneWay}" />
-                                </StackPanel>
-                            </Grid>
-
-                            <StackPanel
-                                Orientation="Horizontal"
-                                Spacing="14">
-                                <StackPanel Orientation="Horizontal" Spacing="5">
-                                    <Ellipse
-                                        Width="8"
-                                        Height="8"
-                                        Fill="{ThemeResource AccentFillColorDefaultBrush}" />
-                                    <TextBlock Text="下载" />
-                                </StackPanel>
-                                <StackPanel Orientation="Horizontal" Spacing="5">
-                                    <Ellipse
-                                        Width="8"
-                                        Height="8"
-                                        Fill="{ThemeResource SystemFillColorCautionBrush}" />
-                                    <TextBlock Text="上传" />
-                                </StackPanel>
-                            </StackPanel>
-
-                            <ItemsControl
-                                HorizontalAlignment="Left"
-                                ItemsSource="{x:Bind ViewModel.ChartPoints, Mode=OneWay}">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <StackPanel Orientation="Horizontal" />
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate x:DataType="presentation:TrafficDailyChartPointViewModel">
-                                        <Grid
-                                            Width="14"
-                                            Height="112"
-                                            AutomationProperties.Name="{x:Bind AutomationName}">
-                                            <StackPanel
-                                                HorizontalAlignment="Center"
-                                                VerticalAlignment="Bottom">
-                                                <Border
-                                                    Width="8"
-                                                    Height="{x:Bind UploadHeight}"
-                                                    Background="{ThemeResource SystemFillColorCautionBrush}" />
-                                                <Border
-                                                    Width="8"
-                                                    Height="{x:Bind DownloadHeight}"
-                                                    Background="{ThemeResource AccentFillColorDefaultBrush}" />
-                                            </StackPanel>
-                                        </Grid>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </StackPanel>
-                    </Border>
+                    <ContentControl
+                        x:Name="DailyChartHost"
+                        HorizontalContentAlignment="Stretch" />
 
                     <Grid ColumnSpacing="12">
                         <Grid.ColumnDefinitions>
@@ -244,7 +160,7 @@
                                 <Border
                                     Margin="0,0,0,8"
                                     Padding="14"
-                                    AutomationProperties.Name="{x:Bind AutomationName}"
+                                    AutomationProperties.Name="{x:Bind AutomationName, Mode=OneWay}"
                                     Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                                     BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                                     BorderThickness="1"
@@ -259,16 +175,16 @@
                                         <StackPanel Spacing="4">
                                             <TextBlock
                                                 FontWeight="SemiBold"
-                                                Text="{x:Bind Name}"
+                                                Text="{x:Bind Name, Mode=OneWay}"
                                                 TextTrimming="CharacterEllipsis" />
                                             <TextBlock
                                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                Text="{x:Bind NoteText}"
+                                                Text="{x:Bind NoteText, Mode=OneWay}"
                                                 TextWrapping="Wrap"
-                                                Visibility="{x:Bind NoteVisibility}" />
+                                                Visibility="{x:Bind NoteVisibility, Mode=OneWay}" />
                                             <TextBlock
                                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                Text="{x:Bind TimeText}" />
+                                                Text="{x:Bind TimeText, Mode=OneWay}" />
                                         </StackPanel>
 
                                         <StackPanel
@@ -278,13 +194,13 @@
                                             <TextBlock
                                                 HorizontalAlignment="Right"
                                                 FontWeight="SemiBold"
-                                                Text="{x:Bind StatusText}" />
-                                            <TextBlock HorizontalAlignment="Right" Text="{x:Bind DownloadText}" />
-                                            <TextBlock HorizontalAlignment="Right" Text="{x:Bind UploadText}" />
+                                                Text="{x:Bind StatusText, Mode=OneWay}" />
+                                            <TextBlock HorizontalAlignment="Right" Text="{x:Bind DownloadText, Mode=OneWay}" />
+                                            <TextBlock HorizontalAlignment="Right" Text="{x:Bind UploadText, Mode=OneWay}" />
                                             <TextBlock
                                                 HorizontalAlignment="Right"
                                                 FontWeight="SemiBold"
-                                                Text="{x:Bind TotalText}" />
+                                                Text="{x:Bind TotalText, Mode=OneWay}" />
                                         </StackPanel>
 
                                         <StackPanel
@@ -295,18 +211,18 @@
                                             <Button
                                                 Click="StopIntervalButton_Click"
                                                 Content="停止"
-                                                IsEnabled="{x:Bind CanOperate}"
+                                                IsEnabled="{x:Bind CanOperate, Mode=OneWay}"
                                                 Tag="{x:Bind Id}"
-                                                Visibility="{x:Bind StopVisibility}" />
+                                                Visibility="{x:Bind StopVisibility, Mode=OneWay}" />
                                             <Button
                                                 Click="RenameIntervalButton_Click"
                                                 Content="重命名"
-                                                IsEnabled="{x:Bind CanOperate}"
+                                                IsEnabled="{x:Bind CanOperate, Mode=OneWay}"
                                                 Tag="{x:Bind Id}" />
                                             <Button
                                                 Click="DeleteIntervalButton_Click"
                                                 Content="删除"
-                                                IsEnabled="{x:Bind CanOperate}"
+                                                IsEnabled="{x:Bind CanOperate, Mode=OneWay}"
                                                 Tag="{x:Bind Id}" />
                                         </StackPanel>
                                     </Grid>
