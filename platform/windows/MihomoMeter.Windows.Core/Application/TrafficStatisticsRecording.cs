@@ -38,6 +38,43 @@ public interface ITrafficLedger : IAsyncDisposable
         TimeZoneInfo timeZone,
         DateTimeOffset now,
         CancellationToken cancellationToken);
+
+    Task<TrafficStatisticsSnapshot> StartIntervalAsync(
+        string name,
+        string? note,
+        TimeZoneInfo timeZone,
+        DateTimeOffset now,
+        CancellationToken cancellationToken);
+
+    Task<TrafficStatisticsSnapshot> StopIntervalAsync(
+        Guid id,
+        TimeZoneInfo timeZone,
+        DateTimeOffset now,
+        CancellationToken cancellationToken);
+
+    Task<TrafficStatisticsSnapshot> RenameIntervalAsync(
+        Guid id,
+        string name,
+        TimeZoneInfo timeZone,
+        DateTimeOffset now,
+        CancellationToken cancellationToken);
+
+    Task<TrafficStatisticsSnapshot> DeleteIntervalAsync(
+        Guid id,
+        TimeZoneInfo timeZone,
+        DateTimeOffset now,
+        CancellationToken cancellationToken);
+
+    Task<TrafficStatisticsSnapshot> InterruptActiveIntervalsAsync(
+        TrafficIntervalEndReason reason,
+        TimeZoneInfo timeZone,
+        DateTimeOffset now,
+        CancellationToken cancellationToken);
+
+    Task<TrafficStatisticsSnapshot> ClearAsync(
+        TimeZoneInfo timeZone,
+        DateTimeOffset now,
+        CancellationToken cancellationToken);
 }
 
 internal sealed class NullTrafficStatisticsRecorder : ITrafficStatisticsRecorder

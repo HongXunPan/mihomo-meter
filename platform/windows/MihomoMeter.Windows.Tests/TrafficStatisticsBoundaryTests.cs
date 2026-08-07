@@ -58,7 +58,7 @@ public sealed class TrafficStatisticsBoundaryTests
         using (var connection = OpenDatabase())
         {
             using var command = connection.CreateCommand();
-            command.CommandText = "PRAGMA user_version = 2";
+            command.CommandText = "PRAGMA user_version = 3";
             command.ExecuteNonQuery();
         }
 
@@ -109,6 +109,22 @@ public sealed class TrafficStatisticsBoundaryTests
             new[]
             {
                 "id",
+                "name",
+                "note",
+                "status",
+                "started_at",
+                "ended_at",
+                "end_reason",
+                "start_proxy_upload",
+                "start_proxy_download",
+                "end_proxy_upload",
+                "end_proxy_download",
+            },
+            ReadColumnNames(connection, "traffic_intervals"));
+        CollectionAssert.AreEqual(
+            new[]
+            {
+                "id",
                 "current_session_id",
                 "current_mihomo_version",
                 "last_observed_at",
@@ -124,9 +140,12 @@ public sealed class TrafficStatisticsBoundaryTests
         var snapshot = new TrafficStatisticsSnapshot(
             Categories(proxy: new TrafficBytes(10, 20)),
             Categories(proxy: new TrafficBytes(30, 40)),
+            Array.Empty<TrafficInterval>(),
+            Array.Empty<TrafficDailyTotal>(),
             DateTimeOffset.UnixEpoch);
+        var ledger = new FailingTrafficLedger(snapshot);
         await using var coordinator = new TrafficStatisticsCoordinator(
-            new FailingTrafficLedger(snapshot),
+            ledger,
             timeZone: TimeZoneInfo.Utc);
         await coordinator.PrepareAsync();
 
@@ -138,6 +157,29 @@ public sealed class TrafficStatisticsBoundaryTests
             TrafficStatisticsAvailability.Unavailable,
             coordinator.CurrentState.Availability);
         Assert.AreEqual(snapshot, coordinator.CurrentState.Snapshot);
+        Assert.AreEqual(
+            TrafficIntervalEndReason.StatisticsUnavailable,
+            ledger.LastInterruptReason);
+    }
+
+    [TestMethod]
+    public async Task UserOperationConflictKeepsStatisticsAvailableWithMessage()
+    {
+        var snapshot = TrafficStatisticsSnapshot.Empty;
+        await using var coordinator = new TrafficStatisticsCoordinator(
+            new FailingTrafficLedger(
+                snapshot,
+                new TrafficIntervalOperationException("统计任务已经结束。")),
+            timeZone: TimeZoneInfo.Utc);
+        await coordinator.PrepareAsync();
+
+        await coordinator.StartIntervalAsync("任务", null);
+
+        Assert.AreEqual(
+            TrafficStatisticsAvailability.Available,
+            coordinator.CurrentState.Availability);
+        Assert.AreEqual(snapshot, coordinator.CurrentState.Snapshot);
+        Assert.AreEqual("统计任务已经结束。", coordinator.CurrentState.Message);
     }
 
     private SqliteConnection OpenDatabase()
@@ -187,11 +229,17 @@ public sealed class TrafficStatisticsBoundaryTests
     private sealed class FailingTrafficLedger : ITrafficLedger
     {
         private readonly TrafficStatisticsSnapshot _snapshot;
+        private readonly Exception? _userOperationException;
 
-        public FailingTrafficLedger(TrafficStatisticsSnapshot snapshot)
+        public FailingTrafficLedger(
+            TrafficStatisticsSnapshot snapshot,
+            Exception? userOperationException = null)
         {
             _snapshot = snapshot;
+            _userOperationException = userOperationException;
         }
+
+        public TrafficIntervalEndReason? LastInterruptReason { get; private set; }
 
         public Task<TrafficStatisticsSnapshot> PrepareAsync(
             TimeZoneInfo timeZone,
@@ -221,6 +269,64 @@ public sealed class TrafficStatisticsBoundaryTests
 
         public Task<TrafficStatisticsSnapshot> InterruptMonitoringAsync(
             TrafficSessionEndReason reason,
+            TimeZoneInfo timeZone,
+            DateTimeOffset now,
+            CancellationToken cancellationToken)
+        {
+            return Task.FromResult(_snapshot);
+        }
+
+        public Task<TrafficStatisticsSnapshot> StartIntervalAsync(
+            string name,
+            string? note,
+            TimeZoneInfo timeZone,
+            DateTimeOffset now,
+            CancellationToken cancellationToken)
+        {
+            return _userOperationException is null
+                ? Task.FromResult(_snapshot)
+                : Task.FromException<TrafficStatisticsSnapshot>(_userOperationException);
+        }
+
+        public Task<TrafficStatisticsSnapshot> StopIntervalAsync(
+            Guid id,
+            TimeZoneInfo timeZone,
+            DateTimeOffset now,
+            CancellationToken cancellationToken)
+        {
+            return Task.FromResult(_snapshot);
+        }
+
+        public Task<TrafficStatisticsSnapshot> RenameIntervalAsync(
+            Guid id,
+            string name,
+            TimeZoneInfo timeZone,
+            DateTimeOffset now,
+            CancellationToken cancellationToken)
+        {
+            return Task.FromResult(_snapshot);
+        }
+
+        public Task<TrafficStatisticsSnapshot> DeleteIntervalAsync(
+            Guid id,
+            TimeZoneInfo timeZone,
+            DateTimeOffset now,
+            CancellationToken cancellationToken)
+        {
+            return Task.FromResult(_snapshot);
+        }
+
+        public Task<TrafficStatisticsSnapshot> InterruptActiveIntervalsAsync(
+            TrafficIntervalEndReason reason,
+            TimeZoneInfo timeZone,
+            DateTimeOffset now,
+            CancellationToken cancellationToken)
+        {
+            LastInterruptReason = reason;
+            return Task.FromResult(_snapshot);
+        }
+
+        public Task<TrafficStatisticsSnapshot> ClearAsync(
             TimeZoneInfo timeZone,
             DateTimeOffset now,
             CancellationToken cancellationToken)

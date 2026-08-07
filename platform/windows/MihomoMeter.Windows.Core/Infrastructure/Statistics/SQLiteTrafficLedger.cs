@@ -4,7 +4,7 @@ using MihomoMeter.Windows.Core.Domain;
 
 namespace MihomoMeter.Windows.Core.Infrastructure.Statistics;
 
-public sealed class SQLiteTrafficLedger : ITrafficLedger
+public sealed partial class SQLiteTrafficLedger : ITrafficLedger
 {
     private readonly string _databasePath;
     private readonly SemaphoreSlim _gate = new(1, 1);
@@ -137,9 +137,16 @@ public sealed class SQLiteTrafficLedger : ITrafficLedger
         return ExecuteAsync(() =>
         {
             var persistence = PreparedPersistence(timeZone, now);
+            var baseline = persistence.Daily.Totals().Proxy;
+            _ = persistence.Intervals.Load(baseline);
             persistence.Transaction(transaction =>
             {
                 var endedAt = _runtimeState.LastObservedAt ?? now;
+                persistence.Intervals.InterruptActive(
+                    endedAt,
+                    baseline,
+                    IntervalEndReason(reason),
+                    transaction);
                 if (_runtimeState.CurrentSessionId is Guid sessionId)
                 {
                     persistence.CloseCoreSession(
@@ -199,6 +206,8 @@ public sealed class SQLiteTrafficLedger : ITrafficLedger
                 or IOException
                 or UnauthorizedAccessException
                 or OverflowException
+                or ArgumentOutOfRangeException
+                or InvalidCastException
                 or FormatException)
         {
             throw new TrafficStatisticsException("本地统计数据库暂不可用。", exception);
@@ -240,9 +249,16 @@ public sealed class SQLiteTrafficLedger : ITrafficLedger
         }
 
         _runtimeState = persistence.LoadRuntimeState();
+        var baseline = persistence.Daily.Totals().Proxy;
+        _ = persistence.Intervals.Load(baseline);
         persistence.Transaction(transaction =>
         {
             var interruptedAt = _runtimeState.LastObservedAt ?? now;
+            persistence.Intervals.InterruptActive(
+                interruptedAt,
+                baseline,
+                TrafficIntervalEndReason.Recovery,
+                transaction);
             if (_runtimeState.CurrentSessionId is Guid sessionId)
             {
                 persistence.CloseCoreSession(
@@ -264,126 +280,4 @@ public sealed class SQLiteTrafficLedger : ITrafficLedger
         _isPrepared = true;
     }
 
-    private void OpenCoreSession(
-        string version,
-        DateTimeOffset date,
-        TrafficLedgerPersistence persistence,
-        SqliteTransaction transaction)
-    {
-        var sessionId = Guid.NewGuid();
-        persistence.CreateCoreSession(sessionId, version, date, transaction);
-        _runtimeState = _runtimeState with
-        {
-            CurrentSessionId = sessionId,
-            CurrentMihomoVersion = version,
-            LastKernelTotal = null,
-        };
-        persistence.SaveRuntimeState(_runtimeState, transaction);
-    }
-
-    private void ReplaceCoreSession(
-        string version,
-        DateTimeOffset date,
-        string reason,
-        TrafficLedgerPersistence persistence,
-        SqliteTransaction transaction)
-    {
-        if (_runtimeState.CurrentSessionId is Guid sessionId)
-        {
-            persistence.CloseCoreSession(sessionId, date, reason, transaction);
-        }
-
-        OpenCoreSession(version, date, persistence, transaction);
-    }
-
-    private void RecordReconnectGapIfNeeded(
-        TrafficBytes currentKernelTotal,
-        DateTimeOffset observedAt,
-        TimeZoneInfo timeZone,
-        TrafficLedgerPersistence persistence,
-        SqliteTransaction transaction)
-    {
-        if (_runtimeState.LastKernelTotal is not TrafficBytes previousKernelTotal)
-        {
-            return;
-        }
-
-        var gap = TrafficBytes.NonnegativeDelta(currentKernelTotal, previousKernelTotal);
-        if (gap is null)
-        {
-            ReplaceCoreSession(
-                _runtimeState.CurrentMihomoVersion ?? "unknown",
-                observedAt,
-                "counter_reset",
-                persistence,
-                transaction);
-            return;
-        }
-
-        Add(
-            CategorizedTrafficBytes.Zero.Adding(gap.Value, TrafficCategory.Unknown),
-            observedAt,
-            timeZone,
-            persistence,
-            transaction);
-    }
-
-    private void Add(
-        CategorizedTrafficBytes categories,
-        DateTimeOffset observedAt,
-        TimeZoneInfo timeZone,
-        TrafficLedgerPersistence persistence,
-        SqliteTransaction transaction)
-    {
-        if (_runtimeState.CurrentSessionId is not Guid sessionId)
-        {
-            throw new TrafficStatisticsException("缺少本地统计内核会话。");
-        }
-
-        persistence.Add(
-            categories,
-            observedAt,
-            timeZone,
-            sessionId,
-            transaction);
-    }
-
-    private void PruneIfNeeded(
-        TimeZoneInfo timeZone,
-        DateTimeOffset now,
-        TrafficLedgerPersistence persistence,
-        SqliteTransaction transaction)
-    {
-        var localDay = TrafficLedgerPersistence.LocalDay(now, timeZone);
-        if (string.Equals(localDay, _lastPrunedLocalDay, StringComparison.Ordinal))
-        {
-            return;
-        }
-
-        persistence.PruneBuckets(now.AddDays(-365), transaction);
-        _lastPrunedLocalDay = localDay;
-    }
-
-    private TrafficStatisticsSnapshot Snapshot(
-        TimeZoneInfo timeZone,
-        DateTimeOffset now,
-        TrafficLedgerPersistence persistence)
-    {
-        return new TrafficStatisticsSnapshot(
-            persistence.Totals(TrafficLedgerPersistence.LocalDay(now, timeZone)),
-            persistence.Totals(),
-            _runtimeState.LastObservedAt);
-    }
-
-    private static string EndReasonName(TrafficSessionEndReason reason)
-    {
-        return reason switch
-        {
-            TrafficSessionEndReason.MonitoringStopped => "monitoring_stopped",
-            TrafficSessionEndReason.ApplicationExit => "application_exit",
-            TrafficSessionEndReason.TerminalFailure => "terminal_failure",
-            TrafficSessionEndReason.Recovery => "recovery",
-            _ => throw new TrafficStatisticsException("本地统计结束原因无效。"),
-        };
-    }
 }

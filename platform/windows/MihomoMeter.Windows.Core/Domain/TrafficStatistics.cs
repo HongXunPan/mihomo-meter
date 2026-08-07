@@ -3,11 +3,15 @@ namespace MihomoMeter.Windows.Core.Domain;
 public sealed record TrafficStatisticsSnapshot(
     CategorizedTrafficBytes Today,
     CategorizedTrafficBytes Lifetime,
+    IReadOnlyList<TrafficInterval> Intervals,
+    IReadOnlyList<TrafficDailyTotal> RecentProxyDays,
     DateTimeOffset? LastObservedAt)
 {
     public static TrafficStatisticsSnapshot Empty => new(
         CategorizedTrafficBytes.Zero,
         CategorizedTrafficBytes.Zero,
+        Array.Empty<TrafficInterval>(),
+        Array.Empty<TrafficDailyTotal>(),
         null);
 }
 

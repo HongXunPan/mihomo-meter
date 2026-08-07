@@ -12,6 +12,7 @@ on:
       - "docs/Windows阶段W0实机指南.md"
       - "docs/Windows阶段W1实机指南.md"
       - "docs/Windows阶段W2A实机指南.md"
+      - "docs/Windows阶段W2B实机指南.md"
       - "CONTRIBUTING.md"
       - "README.md"
       - ".github/workflows/windows.yml"
@@ -26,6 +27,7 @@ on:
       - "docs/Windows阶段W0实机指南.md"
       - "docs/Windows阶段W1实机指南.md"
       - "docs/Windows阶段W2A实机指南.md"
+      - "docs/Windows阶段W2B实机指南.md"
       - "CONTRIBUTING.md"
       - "README.md"
       - ".github/workflows/windows.yml"
@@ -60,10 +62,10 @@ jobs:
         shell: pwsh
         run: pwsh -File scripts/validate_windows.ps1
 
-      - name: 上传 Windows W2A x64 预览目录
+      - name: 上传 Windows W2B x64 预览目录
         uses: actions/upload-artifact@v7
         with:
-          name: mihomo-meter-windows-w2a-x64-${{ github.sha }}
-          path: .codex-tmp/windows-w2a-publish
+          name: mihomo-meter-windows-w2b-x64-${{ github.sha }}
+          path: .codex-tmp/windows-w2b-publish
           if-no-files-found: error
           retention-days: 14
