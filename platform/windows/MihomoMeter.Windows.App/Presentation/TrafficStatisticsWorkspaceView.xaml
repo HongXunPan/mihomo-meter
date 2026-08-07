@@ -1,0 +1,251 @@
+<UserControl
+    x:Class="MihomoMeter.Windows.App.Presentation.TrafficStatisticsWorkspaceView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:presentation="using:MihomoMeter.Windows.App.Presentation">
+
+    <Grid x:Name="Root">
+        <ScrollViewer>
+            <StackPanel
+                Padding="32"
+                Spacing="20">
+                <Grid ColumnSpacing="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Spacing="6">
+                        <TextBlock
+                            FontSize="30"
+                            FontWeight="SemiBold"
+                            Text="Proxy 流量" />
+                        <TextBlock
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Text="管理秒表式统计任务，并查看本机 Proxy 累计。" />
+                        <TextBlock
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Text="{x:Bind ViewModel.StatisticsStatusText, Mode=OneWay}" />
+                    </StackPanel>
+
+                    <StackPanel
+                        Grid.Column="1"
+                        Orientation="Horizontal"
+                        Spacing="10">
+                        <Button
+                            Click="StartIntervalButton_Click"
+                            Content="开始统计"
+                            IsEnabled="{x:Bind ViewModel.CanStartInterval, Mode=OneWay}"
+                            Style="{StaticResource AccentButtonStyle}" />
+                        <Button
+                            Click="ClearButton_Click"
+                            Content="清空本地统计"
+                            IsEnabled="{x:Bind ViewModel.CanClear, Mode=OneWay}" />
+                    </StackPanel>
+                </Grid>
+
+                <InfoBar
+                    IsClosable="False"
+                    IsOpen="{x:Bind ViewModel.IsNoticeOpen, Mode=OneWay}"
+                    Message="{x:Bind ViewModel.NoticeMessage, Mode=OneWay}"
+                    Severity="{x:Bind ViewModel.NoticeSeverity, Mode=OneWay}"
+                    Title="{x:Bind ViewModel.NoticeTitle, Mode=OneWay}" />
+
+                <StackPanel
+                    HorizontalAlignment="Center"
+                    Spacing="10"
+                    Visibility="{x:Bind ViewModel.LoadingVisibility, Mode=OneWay}">
+                    <ProgressRing IsActive="True" />
+                    <TextBlock Text="正在准备本地统计…" />
+                </StackPanel>
+
+                <StackPanel
+                    Spacing="20"
+                    Visibility="{x:Bind ViewModel.ContentVisibility, Mode=OneWay}">
+                    <TextBlock
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="{x:Bind ViewModel.MonitoringStatusText, Mode=OneWay}" />
+
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <Border
+                            Padding="18"
+                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            CornerRadius="12">
+                            <StackPanel Spacing="8">
+                                <TextBlock FontWeight="SemiBold" Text="今日 Proxy" />
+                                <TextBlock Text="{x:Bind ViewModel.TodayDownloadText, Mode=OneWay}" />
+                                <TextBlock Text="{x:Bind ViewModel.TodayUploadText, Mode=OneWay}" />
+                                <TextBlock
+                                    FontSize="18"
+                                    FontWeight="SemiBold"
+                                    Text="{x:Bind ViewModel.TodayTotalText, Mode=OneWay}" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border
+                            Grid.Column="1"
+                            Padding="18"
+                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            CornerRadius="12">
+                            <StackPanel Spacing="8">
+                                <TextBlock FontWeight="SemiBold" Text="历史 Proxy" />
+                                <TextBlock Text="{x:Bind ViewModel.LifetimeDownloadText, Mode=OneWay}" />
+                                <TextBlock Text="{x:Bind ViewModel.LifetimeUploadText, Mode=OneWay}" />
+                                <TextBlock
+                                    FontSize="18"
+                                    FontWeight="SemiBold"
+                                    Text="{x:Bind ViewModel.LifetimeTotalText, Mode=OneWay}" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border
+                            Grid.Column="2"
+                            Padding="18"
+                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            CornerRadius="12">
+                            <StackPanel Spacing="8">
+                                <TextBlock FontWeight="SemiBold" Text="统计任务" />
+                                <TextBlock
+                                    FontSize="24"
+                                    FontWeight="SemiBold"
+                                    Text="{x:Bind ViewModel.ActiveCountText, Mode=OneWay}" />
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Text="任务共享权威 Proxy 累计基线。"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+
+                    <ContentControl
+                        x:Name="DailyChartHost"
+                        HorizontalContentAlignment="Stretch" />
+
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock
+                            FontSize="20"
+                            FontWeight="SemiBold"
+                            Text="统计任务" />
+                        <ComboBox
+                            Grid.Column="1"
+                            Width="150"
+                            DisplayMemberPath="Title"
+                            ItemsSource="{x:Bind ViewModel.FilterOptions}"
+                            SelectedItem="{x:Bind ViewModel.SelectedFilter, Mode=TwoWay}" />
+                    </Grid>
+
+                    <ListView
+                        IsItemClickEnabled="False"
+                        ItemsSource="{x:Bind ViewModel.Intervals, Mode=OneWay}"
+                        SelectionMode="None"
+                        Visibility="{x:Bind ViewModel.IntervalListVisibility, Mode=OneWay}">
+                        <ListView.ItemTemplate>
+                            <DataTemplate x:DataType="presentation:TrafficIntervalRowViewModel">
+                                <Border
+                                    Margin="0,0,0,8"
+                                    Padding="14"
+                                    AutomationProperties.Name="{x:Bind AutomationName, Mode=OneWay}"
+                                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="10">
+                                    <Grid ColumnSpacing="14">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="2*" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel Spacing="4">
+                                            <TextBlock
+                                                FontWeight="SemiBold"
+                                                Text="{x:Bind Name, Mode=OneWay}"
+                                                TextTrimming="CharacterEllipsis" />
+                                            <TextBlock
+                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                Text="{x:Bind NoteText, Mode=OneWay}"
+                                                TextWrapping="Wrap"
+                                                Visibility="{x:Bind NoteVisibility, Mode=OneWay}" />
+                                            <TextBlock
+                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                Text="{x:Bind TimeText, Mode=OneWay}" />
+                                        </StackPanel>
+
+                                        <StackPanel
+                                            Grid.Column="1"
+                                            HorizontalAlignment="Right"
+                                            Spacing="4">
+                                            <TextBlock
+                                                HorizontalAlignment="Right"
+                                                FontWeight="SemiBold"
+                                                Text="{x:Bind StatusText, Mode=OneWay}" />
+                                            <TextBlock HorizontalAlignment="Right" Text="{x:Bind DownloadText, Mode=OneWay}" />
+                                            <TextBlock HorizontalAlignment="Right" Text="{x:Bind UploadText, Mode=OneWay}" />
+                                            <TextBlock
+                                                HorizontalAlignment="Right"
+                                                FontWeight="SemiBold"
+                                                Text="{x:Bind TotalText, Mode=OneWay}" />
+                                        </StackPanel>
+
+                                        <StackPanel
+                                            Grid.Column="2"
+                                            HorizontalAlignment="Right"
+                                            Orientation="Horizontal"
+                                            Spacing="6">
+                                            <Button
+                                                Click="StopIntervalButton_Click"
+                                                Content="停止"
+                                                IsEnabled="{x:Bind CanOperate, Mode=OneWay}"
+                                                Tag="{x:Bind Id}"
+                                                Visibility="{x:Bind StopVisibility, Mode=OneWay}" />
+                                            <Button
+                                                Click="RenameIntervalButton_Click"
+                                                Content="重命名"
+                                                IsEnabled="{x:Bind CanOperate, Mode=OneWay}"
+                                                Tag="{x:Bind Id}" />
+                                            <Button
+                                                Click="DeleteIntervalButton_Click"
+                                                Content="删除"
+                                                IsEnabled="{x:Bind CanOperate, Mode=OneWay}"
+                                                Tag="{x:Bind Id}" />
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+
+                    <StackPanel
+                        HorizontalAlignment="Center"
+                        Spacing="8"
+                        Visibility="{x:Bind ViewModel.EmptyStateVisibility, Mode=OneWay}">
+                        <SymbolIcon Symbol="Clock" />
+                        <TextBlock
+                            FontSize="18"
+                            FontWeight="SemiBold"
+                            Text="没有统计任务" />
+                        <TextBlock
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Text="{x:Bind ViewModel.EmptyStateMessage, Mode=OneWay}" />
+                    </StackPanel>
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

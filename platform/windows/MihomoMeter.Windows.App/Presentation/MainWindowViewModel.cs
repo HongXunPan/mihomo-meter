@@ -11,7 +11,6 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     private readonly DispatcherQueue _dispatcherQueue;
     private readonly IControllerConfigurationStore _configurationStore;
     private readonly TrafficMonitoringCoordinator _coordinator;
-    private readonly TrafficStatisticsCoordinator _statistics;
     private string _address = string.Empty;
     private MonitorConnectionState _connectionState = MonitorConnectionState.Disconnected;
     private string _stateTitle = "未连接";
@@ -22,28 +21,16 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     private string _directRateText = "↑ --  ·  ↓ --";
     private string _rejectRateText = "↑ --  ·  ↓ --";
     private string _unknownRateText = "↑ --  ·  ↓ --";
-    private string _statisticsStatusText = "正在准备本地统计。";
-    private string _todayProxyTotalText = "↑ --  ·  ↓ --";
-    private string _todayDirectTotalText = "↑ --  ·  ↓ --";
-    private string _todayRejectTotalText = "↑ --  ·  ↓ --";
-    private string _todayUnknownTotalText = "↑ --  ·  ↓ --";
-    private string _lifetimeProxyTotalText = "↑ --  ·  ↓ --";
-    private string _lifetimeDirectTotalText = "↑ --  ·  ↓ --";
-    private string _lifetimeRejectTotalText = "↑ --  ·  ↓ --";
-    private string _lifetimeUnknownTotalText = "↑ --  ·  ↓ --";
 
     internal MainWindowViewModel(
         DispatcherQueue dispatcherQueue,
         IControllerConfigurationStore configurationStore,
-        TrafficMonitoringCoordinator coordinator,
-        TrafficStatisticsCoordinator statistics)
+        TrafficMonitoringCoordinator coordinator)
     {
         _dispatcherQueue = dispatcherQueue;
         _configurationStore = configurationStore;
         _coordinator = coordinator;
-        _statistics = statistics;
         _coordinator.SnapshotChanged += Coordinator_SnapshotChanged;
-        _statistics.StateChanged += Statistics_StateChanged;
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -104,60 +91,6 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         private set => SetField(ref _unknownRateText, value);
     }
 
-    public string StatisticsStatusText
-    {
-        get => _statisticsStatusText;
-        private set => SetField(ref _statisticsStatusText, value);
-    }
-
-    public string TodayProxyTotalText
-    {
-        get => _todayProxyTotalText;
-        private set => SetField(ref _todayProxyTotalText, value);
-    }
-
-    public string TodayDirectTotalText
-    {
-        get => _todayDirectTotalText;
-        private set => SetField(ref _todayDirectTotalText, value);
-    }
-
-    public string TodayRejectTotalText
-    {
-        get => _todayRejectTotalText;
-        private set => SetField(ref _todayRejectTotalText, value);
-    }
-
-    public string TodayUnknownTotalText
-    {
-        get => _todayUnknownTotalText;
-        private set => SetField(ref _todayUnknownTotalText, value);
-    }
-
-    public string LifetimeProxyTotalText
-    {
-        get => _lifetimeProxyTotalText;
-        private set => SetField(ref _lifetimeProxyTotalText, value);
-    }
-
-    public string LifetimeDirectTotalText
-    {
-        get => _lifetimeDirectTotalText;
-        private set => SetField(ref _lifetimeDirectTotalText, value);
-    }
-
-    public string LifetimeRejectTotalText
-    {
-        get => _lifetimeRejectTotalText;
-        private set => SetField(ref _lifetimeRejectTotalText, value);
-    }
-
-    public string LifetimeUnknownTotalText
-    {
-        get => _lifetimeUnknownTotalText;
-        private set => SetField(ref _lifetimeUnknownTotalText, value);
-    }
-
     public bool CanConnect => _connectionState
         is not (MonitorConnectionState.Connecting or MonitorConnectionState.Reconnecting);
 
@@ -169,7 +102,6 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 
     internal async Task<bool> InitializeAsync(CancellationToken cancellationToken = default)
     {
-        await _statistics.PrepareAsync(cancellationToken).ConfigureAwait(true);
         try
         {
             var configuration = await _configurationStore
@@ -227,7 +159,6 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     internal void Detach()
     {
         _coordinator.SnapshotChanged -= Coordinator_SnapshotChanged;
-        _statistics.StateChanged -= Statistics_StateChanged;
     }
 
     private void Coordinator_SnapshotChanged(TrafficMonitorSnapshot snapshot)
@@ -239,17 +170,6 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         }
 
         _ = _dispatcherQueue.TryEnqueue(() => ApplySnapshotIfCurrent(snapshot));
-    }
-
-    private void Statistics_StateChanged(TrafficStatisticsState state)
-    {
-        if (_dispatcherQueue.HasThreadAccess)
-        {
-            ApplyStatisticsState(state);
-            return;
-        }
-
-        _ = _dispatcherQueue.TryEnqueue(() => ApplyStatisticsState(state));
     }
 
     private void ApplySnapshotIfCurrent(TrafficMonitorSnapshot snapshot)
@@ -271,10 +191,10 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         CoverageText = snapshot.Coverage is null
             ? "分类覆盖率：--"
             : $"分类覆盖率：{snapshot.Coverage.Value:P1}";
-        ProxyRateText = FormatRate(snapshot.Rates?.Proxy);
-        DirectRateText = FormatRate(snapshot.Rates?.Direct);
-        RejectRateText = FormatRate(snapshot.Rates?.Reject);
-        UnknownRateText = FormatRate(snapshot.Rates?.Unknown);
+        ProxyRateText = TrafficDisplayFormatter.Rate(snapshot.Rates?.Proxy);
+        DirectRateText = TrafficDisplayFormatter.Rate(snapshot.Rates?.Direct);
+        RejectRateText = TrafficDisplayFormatter.Rate(snapshot.Rates?.Reject);
+        UnknownRateText = TrafficDisplayFormatter.Rate(snapshot.Rates?.Unknown);
         OnPropertyChanged(nameof(CanConnect));
         OnPropertyChanged(nameof(CanDisconnect));
         OnPropertyChanged(nameof(ConnectButtonText));
@@ -328,56 +248,6 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         {
             return string.Empty;
         }
-    }
-
-    private static string FormatRate(TrafficRate? rate)
-    {
-        return rate is null
-            ? "↑ --  ·  ↓ --"
-            : $"↑ {FormatByteCount(rate.Value.UploadBytesPerSecond)}/s  ·  "
-                + $"↓ {FormatByteCount(rate.Value.DownloadBytesPerSecond)}/s";
-    }
-
-    private void ApplyStatisticsState(TrafficStatisticsState state)
-    {
-        StatisticsStatusText = state.Availability switch
-        {
-            TrafficStatisticsAvailability.Loading => "正在准备本地统计。",
-            TrafficStatisticsAvailability.Unavailable =>
-                state.Message ?? "本地统计暂不可用，实时监控不受影响。",
-            TrafficStatisticsAvailability.Available
-                when state.Snapshot.LastObservedAt is DateTimeOffset observedAt =>
-                $"累计更新：{observedAt.ToLocalTime():yyyy-MM-dd HH:mm:ss}",
-            TrafficStatisticsAvailability.Available => "本地统计已就绪，等待首个完整观测。",
-            _ => "本地统计状态未知。",
-        };
-        TodayProxyTotalText = FormatTotal(state.Snapshot.Today.Proxy);
-        TodayDirectTotalText = FormatTotal(state.Snapshot.Today.Direct);
-        TodayRejectTotalText = FormatTotal(state.Snapshot.Today.Reject);
-        TodayUnknownTotalText = FormatTotal(state.Snapshot.Today.Unknown);
-        LifetimeProxyTotalText = FormatTotal(state.Snapshot.Lifetime.Proxy);
-        LifetimeDirectTotalText = FormatTotal(state.Snapshot.Lifetime.Direct);
-        LifetimeRejectTotalText = FormatTotal(state.Snapshot.Lifetime.Reject);
-        LifetimeUnknownTotalText = FormatTotal(state.Snapshot.Lifetime.Unknown);
-    }
-
-    private static string FormatTotal(TrafficBytes bytes)
-    {
-        return $"↑ {FormatByteCount(bytes.Upload)}  ·  ↓ {FormatByteCount(bytes.Download)}";
-    }
-
-    private static string FormatByteCount(ulong bytes)
-    {
-        const double kibibyte = 1_024;
-        const double mebibyte = 1_024 * 1_024;
-        const double gibibyte = 1_024 * 1_024 * 1_024;
-        return bytes switch
-        {
-            >= (ulong)gibibyte => $"{bytes / gibibyte:0.0} GiB",
-            >= (ulong)mebibyte => $"{bytes / mebibyte:0.0} MiB",
-            >= (ulong)kibibyte => $"{bytes / kibibyte:0.0} KiB",
-            _ => $"{bytes} B",
-        };
     }
 
     private bool SetField<T>(ref T field, T value, [CallerMemberName] string? name = null)
