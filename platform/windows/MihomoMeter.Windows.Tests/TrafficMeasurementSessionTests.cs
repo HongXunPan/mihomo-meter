@@ -1,5 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MihomoMeter.Windows.Core.Application;
+using MihomoMeter.Windows.Core.Domain;
 using MihomoMeter.Windows.Core.Infrastructure.Mihomo;
 
 namespace MihomoMeter.Windows.Tests;
