@@ -19,7 +19,8 @@ public sealed record TrafficMonitorSnapshot(
     string? MihomoVersion = null,
     CategorizedTrafficRates? Rates = null,
     double? Coverage = null,
-    long SessionGeneration = 0)
+    long SessionGeneration = 0,
+    ConnectionAttributionCoverage AttributionCoverage = default)
 {
     public static TrafficMonitorSnapshot Disconnected => new(
         MonitorConnectionState.Disconnected,

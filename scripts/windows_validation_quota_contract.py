@@ -83,16 +83,6 @@ QUOTA_REQUIRED_TEST_FILES = (
 )
 
 QUOTA_REQUIRED_CODE_MARKERS = {
-    ROOT / ".github/workflows/windows.yml": (
-        "mihomo-meter-windows-w2c-x64-${{ github.sha }}",
-        ".codex-tmp/windows-w2c-publish",
-        "scripts/windows_validation_quota_contract.py",
-        "docs/Windows阶段W2C实机指南.md",
-    ),
-    ROOT / "scripts/validate_windows.ps1": (
-        ".codex-tmp/windows-w2c-publish",
-        "Windows W2C 必须复用系统 winsqlite3.dll",
-    ),
     APP_ROOT / "Lifecycle/NotificationAreaMenu.Quota.cs": (
         "OpenQuotaCommand",
         "RefreshQuotaCommand",

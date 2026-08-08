@@ -54,7 +54,8 @@ public sealed record MihomoConnectionsSnapshot
             Connections.Select(connection => new ConnectionTrafficSample(
                 connection.Id,
                 new TrafficBytes(connection.Upload, connection.Download),
-                connection.Chains)).ToArray());
+                connection.Chains,
+                connection.MetadataAvailability)).ToArray());
     }
 }
 
@@ -71,6 +72,11 @@ public sealed record MihomoConnectionResponse
 
     [JsonPropertyName("chains")]
     public required List<string> Chains { get; init; }
+
+    [JsonPropertyName("metadata")]
+    [JsonConverter(typeof(ConnectionMetadataAvailabilityJsonConverter))]
+    public ConnectionMetadataAvailability MetadataAvailability { get; init; } =
+        ConnectionMetadataAvailability.Unavailable;
 }
 
 public static class MihomoJsonDecoder

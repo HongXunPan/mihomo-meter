@@ -49,7 +49,8 @@ public enum TrafficCategory
 public sealed record ConnectionTrafficSample(
     string Id,
     TrafficBytes Bytes,
-    IReadOnlyList<string> Chains);
+    IReadOnlyList<string> Chains,
+    ConnectionMetadataAvailability MetadataAvailability = default);
 
 public sealed record ConnectionTrafficSnapshot(
     TrafficBytes KernelTotal,

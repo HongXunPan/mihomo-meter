@@ -68,6 +68,90 @@ public sealed class TrafficMeasurementSessionTests
         Assert.IsFalse(resolved.RequiresCatalogRefresh);
     }
 
+    [TestMethod]
+    public void TracksOnlyReliablyClassifiedProxyMetadataAndClearsOnReset()
+    {
+        var session = new TrafficMeasurementSession(new ProxyCatalog(
+            new Dictionary<string, string>
+            {
+                ["Synthetic Proxy"] = "Vmess",
+                ["DIRECT"] = "Direct",
+            }));
+        var initial = Snapshot(
+            Connection("proxy", "Synthetic Proxy", true, false),
+            Connection("direct", "DIRECT", true, true));
+
+        var baseline = session.Consume(initial);
+        var upgraded = session.Consume(Snapshot(
+            Connection("proxy", "Synthetic Proxy", false, true),
+            Connection("direct", "DIRECT", true, true)));
+        session.ResetBaseline();
+        var reset = session.Consume(Snapshot(
+            Connection("direct", "DIRECT", true, true)));
+
+        Assert.AreEqual(
+            new ConnectionAttributionCoverage(1, 1, 0, 0),
+            baseline.AttributionCoverage);
+        Assert.AreEqual(
+            new ConnectionAttributionCoverage(1, 1, 1, 1),
+            upgraded.AttributionCoverage);
+        Assert.AreEqual(ConnectionAttributionCoverage.Empty, reset.AttributionCoverage);
+    }
+
+    [TestMethod]
+    public void CounterResetClearsAttributionCoverage()
+    {
+        var session = new TrafficMeasurementSession(new ProxyCatalog(
+            new Dictionary<string, string>
+            {
+                ["Synthetic Proxy"] = "Vmess",
+            }));
+        _ = session.Consume(new MihomoConnectionsSnapshot
+        {
+            UploadTotal = 100,
+            DownloadTotal = 100,
+            Connections = [Connection("proxy", "Synthetic Proxy", true, true)],
+        });
+
+        var reset = session.Consume(new MihomoConnectionsSnapshot
+        {
+            UploadTotal = 0,
+            DownloadTotal = 0,
+            Connections = [],
+        });
+
+        Assert.IsTrue(reset.CountersReset);
+        Assert.AreEqual(ConnectionAttributionCoverage.Empty, reset.AttributionCoverage);
+    }
+
+    private static MihomoConnectionsSnapshot Snapshot(params MihomoConnectionResponse[] connections)
+    {
+        return new MihomoConnectionsSnapshot
+        {
+            UploadTotal = (ulong)connections.Sum(connection => (long)connection.Upload),
+            DownloadTotal = (ulong)connections.Sum(connection => (long)connection.Download),
+            Connections = [.. connections],
+        };
+    }
+
+    private static MihomoConnectionResponse Connection(
+        string id,
+        string chain,
+        bool hasHostname,
+        bool hasApplication)
+    {
+        return new MihomoConnectionResponse
+        {
+            Id = id,
+            Upload = 1,
+            Download = 1,
+            Chains = [chain],
+            MetadataAvailability = new ConnectionMetadataAvailability(
+                hasHostname,
+                hasApplication),
+        };
+    }
+
     private sealed class ManualTimeProvider : TimeProvider
     {
         private long _timestamp;

@@ -10,6 +10,13 @@ from windows_validation_quota_contract import (
     QUOTA_REQUIRED_REPOSITORY_FILES,
     QUOTA_REQUIRED_TEST_FILES,
 )
+from windows_validation_connection_contract import (
+    CONNECTION_REQUIRED_APP_FILES,
+    CONNECTION_REQUIRED_CODE_MARKERS,
+    CONNECTION_REQUIRED_CORE_FILES,
+    CONNECTION_REQUIRED_REPOSITORY_FILES,
+    CONNECTION_REQUIRED_TEST_FILES,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -31,6 +38,7 @@ REQUIRED_REPOSITORY_FILES = (
     "scripts/validate_windows.ps1",
     "scripts/windows_validation_contract.py",
 ) + QUOTA_REQUIRED_REPOSITORY_FILES
+REQUIRED_REPOSITORY_FILES += CONNECTION_REQUIRED_REPOSITORY_FILES
 
 EXPECTED_APP_PROPERTIES = {
     "TargetFramework": "net10.0-windows10.0.19041.0",
@@ -102,6 +110,7 @@ REQUIRED_APP_FILES = (
     "Presentation/TrafficStatisticsWorkspaceViewModel.cs",
     "Presentation/TrafficStatisticsWorkspaceViewModel.Projection.cs",
 ) + QUOTA_REQUIRED_APP_FILES
+REQUIRED_APP_FILES += CONNECTION_REQUIRED_APP_FILES
 
 REQUIRED_CORE_FILES = (
     "Domain/ControllerEndpoint.cs",
@@ -141,6 +150,7 @@ REQUIRED_CORE_FILES = (
     "Infrastructure/Statistics/TrafficStatisticsException.cs",
     "Properties/AssemblyInfo.cs",
 ) + QUOTA_REQUIRED_CORE_FILES
+REQUIRED_CORE_FILES += CONNECTION_REQUIRED_CORE_FILES
 
 REQUIRED_TEST_FILES = (
     "ControllerEndpointTests.cs",
@@ -165,6 +175,7 @@ REQUIRED_TEST_FILES = (
     "TrafficStatisticsWorkspaceProjectionTests.cs",
     "WindowsSqliteTestProvider.cs",
 ) + QUOTA_REQUIRED_TEST_FILES
+REQUIRED_TEST_FILES += CONNECTION_REQUIRED_TEST_FILES
 
 REQUIRED_CODE_MARKERS = {
     APP_ROOT / "MainWindow.xaml": (
@@ -388,6 +399,7 @@ REQUIRED_CODE_MARKERS = {
         "statistics_unavailable",
     ),
     **QUOTA_REQUIRED_CODE_MARKERS,
+    **CONNECTION_REQUIRED_CODE_MARKERS,
 }
 
 FORBIDDEN_PROJECT_MARKERS = (

@@ -149,7 +149,7 @@ def validate_xaml() -> None:
 def validate_files_and_code(errors: list[str]) -> None:
     for relative_path in REQUIRED_REPOSITORY_FILES:
         if not (ROOT / relative_path).is_file():
-            errors.append(f"缺少 Windows W2C 仓库文件：{relative_path}")
+            errors.append(f"缺少 Windows 当前阶段仓库文件：{relative_path}")
     for relative_path in REQUIRED_APP_FILES:
         if not (APP_ROOT / relative_path).is_file():
             errors.append(f"缺少 Windows App 文件：{relative_path}")
@@ -174,7 +174,7 @@ def validate_files_and_code(errors: list[str]) -> None:
     )
     for marker in FORBIDDEN_PROJECT_MARKERS:
         if marker in project_content:
-            errors.append(f"Windows W2C 不得包含未批准项目标记：{marker}")
+            errors.append(f"Windows 当前阶段不得包含未批准项目标记：{marker}")
 
     code = "\n".join(
         path.read_text(encoding="utf-8")
@@ -182,7 +182,7 @@ def validate_files_and_code(errors: list[str]) -> None:
     )
     for marker in FORBIDDEN_CODE_MARKERS:
         if marker in code:
-            errors.append(f"Windows W2C 不得包含越界代码标记：{marker}")
+            errors.append(f"Windows 当前阶段不得包含越界代码标记：{marker}")
 
     address_store = (
         APP_ROOT / "Infrastructure/Configuration/JsonControllerAddressStore.cs"
@@ -209,6 +209,17 @@ def validate_files_and_code(errors: list[str]) -> None:
     ).read_text(encoding="utf-8")
     if "SubscriptionUri" in profile_settings or "UrlFingerprint" in profile_settings:
         errors.append("Profile 路径设置不得承载订阅 URL 或指纹")
+
+    metadata_models = "\n".join(
+        (CORE_ROOT / relative_path).read_text(encoding="utf-8")
+        for relative_path in (
+            "Domain/ConnectionAttributionCoverage.cs",
+            "Domain/TrafficMeasurement.cs",
+        )
+    )
+    for marker in ("string? Hostname", "string? ApplicationName", "string? ProcessPath"):
+        if marker in metadata_models:
+            errors.append(f"W2D-0 领域模型不得承载真实连接元数据：{marker}")
 
 
 def main() -> int:

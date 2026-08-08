@@ -7,12 +7,14 @@ public sealed record TrafficMeasurementResult(
     TrafficRateWindow? RateWindow,
     bool RequiresCatalogRefresh,
     bool CountersReset,
-    TrafficLedgerObservation LedgerObservation);
+    TrafficLedgerObservation LedgerObservation,
+    ConnectionAttributionCoverage AttributionCoverage = default);
 
 public sealed class TrafficMeasurementSession
 {
     private readonly TimeProvider _timeProvider;
     private readonly ConnectionDeltaTracker _deltaTracker = new();
+    private readonly ConnectionAttributionCoverageTracker _attributionCoverageTracker = new();
     private readonly TrafficRateAggregator _rateAggregator = new();
     private ProxyClassifier _classifier;
     private long? _lastSnapshotTimestamp;
@@ -33,9 +35,18 @@ public sealed class TrafficMeasurementSession
     public TrafficMeasurementResult Consume(MihomoConnectionsSnapshot snapshot)
     {
         var trafficSnapshot = snapshot.ToTrafficSnapshot();
-        var requiresCatalogRefresh = trafficSnapshot.Connections.Any(connection =>
-            _classifier.Classify(connection.Chains).UnknownReason
-                == UnknownTrafficReason.MissingCatalogEntry);
+        var classifications = trafficSnapshot.Connections.Select(connection => new
+        {
+            Connection = connection,
+            Classification = _classifier.Classify(connection.Chains),
+        }).ToArray();
+        var requiresCatalogRefresh = classifications.Any(item =>
+            item.Classification.UnknownReason == UnknownTrafficReason.MissingCatalogEntry);
+        var proxyConnections = classifications
+            .Where(item => item.Classification.Category == TrafficCategory.Proxy)
+            .Select(item => item.Connection)
+            .ToArray();
+        var attributionCoverage = _attributionCoverageTracker.Consume(proxyConnections);
 
         var now = _timeProvider.GetTimestamp();
         var elapsedSeconds = _lastSnapshotTimestamp is null
@@ -54,9 +65,11 @@ public sealed class TrafficMeasurementSession
                     new TrafficLedgerObservation(
                         _timeProvider.GetUtcNow(),
                         trafficSnapshot.KernelTotal,
-                        new TrafficLedgerBaselineEstablished()));
+                        new TrafficLedgerBaselineEstablished()),
+                    attributionCoverage);
             case ConnectionDeltaStatus.CountersReset:
                 _rateAggregator.Reset();
+                _attributionCoverageTracker.Reset();
                 return new TrafficMeasurementResult(
                     null,
                     requiresCatalogRefresh,
@@ -64,7 +77,8 @@ public sealed class TrafficMeasurementSession
                     new TrafficLedgerObservation(
                         _timeProvider.GetUtcNow(),
                         trafficSnapshot.KernelTotal,
-                        new TrafficLedgerCountersReset()));
+                        new TrafficLedgerCountersReset()),
+                    ConnectionAttributionCoverage.Empty);
             case ConnectionDeltaStatus.Delta when transition.Batch is not null:
                 var rateWindow = elapsedSeconds is null
                     ? null
@@ -78,7 +92,8 @@ public sealed class TrafficMeasurementSession
                     new TrafficLedgerObservation(
                         _timeProvider.GetUtcNow(),
                         trafficSnapshot.KernelTotal,
-                        new TrafficLedgerDelta(transition.Batch.Traffic)));
+                        new TrafficLedgerDelta(transition.Batch.Traffic)),
+                    attributionCoverage);
             default:
                 throw new InvalidOperationException("连接差值状态缺少对应账本观测。");
         }
@@ -87,6 +102,7 @@ public sealed class TrafficMeasurementSession
     public void ResetBaseline()
     {
         _deltaTracker.Reset();
+        _attributionCoverageTracker.Reset();
         _rateAggregator.Reset();
         _lastSnapshotTimestamp = null;
     }

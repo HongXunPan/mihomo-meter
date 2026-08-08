@@ -88,7 +88,8 @@ internal sealed class TrafficMonitoringStream
                     result.CountersReset ? "Mihomo 计数器已重置，正在重建基线。" : "实时监控已连接。",
                     version,
                     display.Rates,
-                    display.Coverage));
+                    display.Coverage,
+                    AttributionCoverage: result.AttributionCoverage));
 
                 if (result.RequiresCatalogRefresh && catalogRefreshTask is null)
                 {

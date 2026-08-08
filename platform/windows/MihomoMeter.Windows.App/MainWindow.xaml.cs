@@ -47,7 +47,7 @@ public sealed partial class MainWindow : Window
         WorkspaceNavigation.SelectionChanged += WorkspaceNavigation_SelectionChanged;
         WorkspaceNavigation.SelectedItem = RealtimeNavigationItem;
         ShowWorkspace("realtime");
-        Title = "Mihomo Meter · Windows W2C";
+        Title = "Mihomo Meter · Windows W2D";
         ResizeForPreview();
     }
 

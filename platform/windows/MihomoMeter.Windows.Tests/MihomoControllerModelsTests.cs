@@ -1,4 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Text;
+using MihomoMeter.Windows.Core.Domain;
 using MihomoMeter.Windows.Core.Infrastructure.Mihomo;
 
 namespace MihomoMeter.Windows.Tests;
@@ -50,5 +52,89 @@ public sealed class MihomoControllerModelsTests
                   ]
                 }
                 """u8));
+    }
+
+    [TestMethod]
+    public void DecodesOnlySanitizedMetadataAvailability()
+    {
+        var response = MihomoJsonDecoder.Decode<MihomoConnectionsSnapshot>(
+            """
+            {
+              "downloadTotal": 0,
+              "uploadTotal": 0,
+              "connections": [{
+                "id": "synthetic",
+                "upload": 0,
+                "download": 0,
+                "chains": ["Synthetic Proxy"],
+                "metadata": {
+                  "host": "example.test",
+                  "processPath": "C:\\Program Files\\Synthetic\\synthetic.exe"
+                }
+              }]
+            }
+            """u8);
+
+        Assert.AreEqual(
+            new ConnectionMetadataAvailability(true, true),
+            response.ToTrafficSnapshot().Connections[0].MetadataAvailability);
+    }
+
+    [TestMethod]
+    public void RejectsIpMalformedAndOversizedMetadataForCoverage()
+    {
+        var oversized = new string('x', 2_049);
+        var payload = Encoding.UTF8.GetBytes($$"""
+            {
+              "downloadTotal": 0,
+              "uploadTotal": 0,
+              "connections": [{
+                "id": "synthetic",
+                "upload": 0,
+                "download": 0,
+                "chains": ["Synthetic Proxy"],
+                "metadata": {
+                  "host": "203.0.113.1",
+                  "sniffHost": "{{oversized}}",
+                  "process": 42,
+                  "processPath": "/"
+                }
+              }]
+            }
+            """);
+
+        var response = MihomoJsonDecoder.Decode<MihomoConnectionsSnapshot>(payload);
+
+        Assert.AreEqual(
+            ConnectionMetadataAvailability.Unavailable,
+            response.ToTrafficSnapshot().Connections[0].MetadataAvailability);
+    }
+
+    [TestMethod]
+    public void UsesSniffHostAndApplicationBundleFallbacks()
+    {
+        var response = MihomoJsonDecoder.Decode<MihomoConnectionsSnapshot>(
+            """
+            {
+              "downloadTotal": 0,
+              "uploadTotal": 0,
+              "connections": [{
+                "id": "synthetic",
+                "upload": 0,
+                "download": 0,
+                "chains": ["Synthetic Proxy"],
+                "metadata": {
+                  "host": " ",
+                  "sniffHost": "fallback.test",
+                  "process": " ",
+                  "processPath": "C:\\Apps\\Synthetic.app\\Contents\\helper"
+                }
+              }]
+            }
+            """u8);
+
+        Assert.AreEqual(
+            new ConnectionMetadataAvailability(true, true),
+            response.ToTrafficSnapshot().Connections[0].MetadataAvailability);
     }
 }
