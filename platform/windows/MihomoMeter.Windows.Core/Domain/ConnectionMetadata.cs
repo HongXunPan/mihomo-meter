@@ -15,6 +15,7 @@ public static class ConnectionAttributionLabel
 {
     public const string UnknownApplication = "未知应用";
     public const string UnknownHostname = "未知域名";
+    public const string Overflow = "其他";
 }
 
 public enum MihomoProcessMatchingMode

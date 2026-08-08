@@ -7,17 +7,20 @@ public sealed class TrafficStatisticsCoordinator : ITrafficStatisticsRecorder, I
     private readonly ITrafficLedger _ledger;
     private readonly TimeProvider _timeProvider;
     private readonly TimeZoneInfo _timeZone;
+    private readonly IConnectionAnalyticsHistoryClearing? _connectionAnalyticsHistory;
     private readonly SemaphoreSlim _operationGate = new(1, 1);
     private TrafficStatisticsState _currentState = TrafficStatisticsState.Loading;
 
     public TrafficStatisticsCoordinator(
         ITrafficLedger ledger,
         TimeProvider? timeProvider = null,
-        TimeZoneInfo? timeZone = null)
+        TimeZoneInfo? timeZone = null,
+        IConnectionAnalyticsHistoryClearing? connectionAnalyticsHistory = null)
     {
         _ledger = ledger;
         _timeProvider = timeProvider ?? TimeProvider.System;
         _timeZone = timeZone ?? TimeZoneInfo.Local;
+        _connectionAnalyticsHistory = connectionAnalyticsHistory;
     }
 
     public event Action<TrafficStatisticsState>? StateChanged;
@@ -143,14 +146,42 @@ public sealed class TrafficStatisticsCoordinator : ITrafficStatisticsRecorder, I
             cancellationToken);
     }
 
-    public Task ClearAsync(CancellationToken cancellationToken = default)
+    public async Task ClearAsync(CancellationToken cancellationToken = default)
     {
-        return PerformUserOperationAsync(
-            token => _ledger.ClearAsync(
+        await _operationGate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            if (_currentState.Availability != TrafficStatisticsAvailability.Available)
+            {
+                return;
+            }
+
+            var snapshot = await _ledger.ClearAsync(
                 _timeZone,
                 _timeProvider.GetUtcNow(),
-                token),
-            cancellationToken);
+                cancellationToken).ConfigureAwait(false);
+            var didClearAnalytics = await TryClearConnectionAnalyticsHistoryAsync(
+                cancellationToken).ConfigureAwait(false);
+            Publish(new TrafficStatisticsState(
+                TrafficStatisticsAvailability.Available,
+                snapshot,
+                didClearAnalytics
+                    ? null
+                    : "核心流量统计已清空，但连接归因历史未能清空，请稍后重试。"));
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception)
+        {
+            await TryInterruptAfterStatisticsFailureAsync().ConfigureAwait(false);
+            PublishUnavailable();
+        }
+        finally
+        {
+            _operationGate.Release();
+        }
     }
 
     public async ValueTask DisposeAsync()
@@ -164,6 +195,30 @@ public sealed class TrafficStatisticsCoordinator : ITrafficStatisticsRecorder, I
         {
             _operationGate.Release();
             _operationGate.Dispose();
+        }
+    }
+
+    private async Task<bool> TryClearConnectionAnalyticsHistoryAsync(
+        CancellationToken cancellationToken)
+    {
+        if (_connectionAnalyticsHistory is null)
+        {
+            return true;
+        }
+
+        try
+        {
+            return await _connectionAnalyticsHistory
+                .ClearHistoryAsync(cancellationToken)
+                .ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception)
+        {
+            return false;
         }
     }
 

@@ -182,6 +182,46 @@ public sealed class TrafficStatisticsBoundaryTests
         Assert.AreEqual("统计任务已经结束。", coordinator.CurrentState.Message);
     }
 
+    [TestMethod]
+    public async Task GlobalClearReportsIndependentAnalyticsClearFailure()
+    {
+        var analytics = new FailingAnalyticsHistoryClearer();
+        await using var coordinator = new TrafficStatisticsCoordinator(
+            new FailingTrafficLedger(TrafficStatisticsSnapshot.Empty),
+            timeZone: TimeZoneInfo.Utc,
+            connectionAnalyticsHistory: analytics);
+        await coordinator.PrepareAsync();
+
+        await coordinator.ClearAsync();
+
+        Assert.AreEqual(1, analytics.ClearCount);
+        Assert.AreEqual(
+            TrafficStatisticsAvailability.Available,
+            coordinator.CurrentState.Availability);
+        StringAssert.Contains(
+            coordinator.CurrentState.Message ?? string.Empty,
+            "连接归因历史未能清空");
+    }
+
+    [TestMethod]
+    public async Task GlobalClearIsolatesThrownAnalyticsClearFailure()
+    {
+        await using var coordinator = new TrafficStatisticsCoordinator(
+            new FailingTrafficLedger(TrafficStatisticsSnapshot.Empty),
+            timeZone: TimeZoneInfo.Utc,
+            connectionAnalyticsHistory: new ThrowingAnalyticsHistoryClearer());
+        await coordinator.PrepareAsync();
+
+        await coordinator.ClearAsync();
+
+        Assert.AreEqual(
+            TrafficStatisticsAvailability.Available,
+            coordinator.CurrentState.Availability);
+        StringAssert.Contains(
+            coordinator.CurrentState.Message ?? string.Empty,
+            "连接归因历史未能清空");
+    }
+
     private SqliteConnection OpenDatabase()
     {
         var connection = new SqliteConnection(new SqliteConnectionStringBuilder
@@ -337,6 +377,25 @@ public sealed class TrafficStatisticsBoundaryTests
         public ValueTask DisposeAsync()
         {
             return ValueTask.CompletedTask;
+        }
+    }
+
+    private sealed class FailingAnalyticsHistoryClearer : IConnectionAnalyticsHistoryClearing
+    {
+        public int ClearCount { get; private set; }
+
+        public Task<bool> ClearHistoryAsync(CancellationToken cancellationToken)
+        {
+            ClearCount += 1;
+            return Task.FromResult(false);
+        }
+    }
+
+    private sealed class ThrowingAnalyticsHistoryClearer : IConnectionAnalyticsHistoryClearing
+    {
+        public Task<bool> ClearHistoryAsync(CancellationToken cancellationToken)
+        {
+            throw new InvalidOperationException("模拟连接归因清理异常");
         }
     }
 }

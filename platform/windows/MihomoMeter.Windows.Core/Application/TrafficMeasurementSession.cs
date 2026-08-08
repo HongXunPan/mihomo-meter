@@ -10,13 +10,17 @@ public sealed record TrafficMeasurementResult(
     TrafficLedgerObservation LedgerObservation,
     ConnectionAttributionCoverage AttributionCoverage = default,
     IReadOnlyList<LiveTrafficConnection>? ProxyConnections = null,
-    IReadOnlyList<LiveTrafficConnection>? DirectConnections = null)
+    IReadOnlyList<LiveTrafficConnection>? DirectConnections = null,
+    IReadOnlyList<ConnectionAttributionDelta>? AttributionDeltas = null)
 {
     public IReadOnlyList<LiveTrafficConnection> LiveProxyConnections =>
         ProxyConnections ?? Array.Empty<LiveTrafficConnection>();
 
     public IReadOnlyList<LiveTrafficConnection> LiveDirectConnections =>
         DirectConnections ?? Array.Empty<LiveTrafficConnection>();
+
+    public IReadOnlyList<ConnectionAttributionDelta> ConnectionAttributionDeltas =>
+        AttributionDeltas ?? Array.Empty<ConnectionAttributionDelta>();
 }
 
 public sealed class TrafficMeasurementSession
@@ -120,6 +124,14 @@ public sealed class TrafficMeasurementSession
                         .Where(delta => delta.Category == TrafficCategory.Direct)
                         .ToArray(),
                     elapsedSeconds);
+                var attributionDeltas = transition.Batch.Connections
+                    .Where(connection =>
+                        connection.Category == TrafficCategory.Proxy
+                        && connection.Bytes.Total > 0)
+                    .Select(connection => new ConnectionAttributionDelta(
+                        connection.Metadata,
+                        connection.Bytes))
+                    .ToArray();
                 return new TrafficMeasurementResult(
                     rateWindow,
                     requiresCatalogRefresh,
@@ -130,7 +142,8 @@ public sealed class TrafficMeasurementSession
                         new TrafficLedgerDelta(transition.Batch.Traffic)),
                     attributionCoverage,
                     liveProxyConnections,
-                    liveDirectConnections);
+                    liveDirectConnections,
+                    attributionDeltas);
             default:
                 throw new InvalidOperationException("连接差值状态缺少对应账本观测。");
         }

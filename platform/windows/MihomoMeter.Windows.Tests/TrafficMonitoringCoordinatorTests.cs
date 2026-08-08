@@ -213,6 +213,34 @@ public sealed class TrafficMonitoringCoordinatorTests
             recorder.InterruptionReasons);
     }
 
+    [TestMethod]
+    public async Task AnalyticsFailureDoesNotBlockRealtimeMonitoringOrStop()
+    {
+        var sequence = new List<string>();
+        var analytics = new ThrowingAnalyticsRecorder();
+        var connected = new TaskCompletionSource<bool>(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+        await using var coordinator = new TrafficMonitoringCoordinator(
+            new TestControllerClient(sequence),
+            new TestSnapshotCollector(sequence),
+            new TestConfigurationStore(sequence),
+            connectionAnalyticsRecorder: analytics);
+        coordinator.SnapshotChanged += snapshot =>
+        {
+            if (snapshot.State == MonitorConnectionState.Connected)
+            {
+                connected.TrySetResult(true);
+            }
+        };
+
+        await coordinator.StartAsync("127.0.0.1:9090", string.Empty, false);
+        Assert.IsTrue(await connected.Task.WaitAsync(TimeSpan.FromSeconds(2)));
+        await coordinator.StopAsync();
+
+        Assert.IsTrue(analytics.RecordCount > 0);
+        Assert.IsTrue(analytics.FlushCount > 0);
+    }
+
     private sealed class TestControllerClient : IMihomoControllerClient
     {
         private readonly List<string> _sequence;
@@ -329,6 +357,28 @@ public sealed class TrafficMonitoringCoordinatorTests
                 Connections = [],
             };
             await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
+        }
+    }
+
+    private sealed class ThrowingAnalyticsRecorder : IConnectionAnalyticsRecorder
+    {
+        public int RecordCount { get; private set; }
+
+        public int FlushCount { get; private set; }
+
+        public Task RecordAsync(
+            IReadOnlyList<ConnectionAttributionDelta> deltas,
+            DateTimeOffset observedAt,
+            CancellationToken cancellationToken)
+        {
+            RecordCount += 1;
+            throw new InvalidOperationException("模拟连接归因记录失败");
+        }
+
+        public Task FlushPendingAsync(CancellationToken cancellationToken)
+        {
+            FlushCount += 1;
+            throw new InvalidOperationException("模拟连接归因刷新失败");
         }
     }
 
