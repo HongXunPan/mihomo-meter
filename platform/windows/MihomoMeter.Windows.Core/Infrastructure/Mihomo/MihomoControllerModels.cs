@@ -55,7 +55,8 @@ public sealed record MihomoConnectionsSnapshot
                 connection.Id,
                 new TrafficBytes(connection.Upload, connection.Download),
                 connection.Chains,
-                connection.MetadataAvailability)).ToArray());
+                connection.Metadata,
+                connection.StartedAt)).ToArray());
     }
 }
 
@@ -74,9 +75,29 @@ public sealed record MihomoConnectionResponse
     public required List<string> Chains { get; init; }
 
     [JsonPropertyName("metadata")]
-    [JsonConverter(typeof(ConnectionMetadataAvailabilityJsonConverter))]
-    public ConnectionMetadataAvailability MetadataAvailability { get; init; } =
-        ConnectionMetadataAvailability.Unavailable;
+    [JsonConverter(typeof(ConnectionMetadataJsonConverter))]
+    public ConnectionMetadata Metadata { get; init; } = ConnectionMetadata.Unavailable;
+
+    [JsonPropertyName("start")]
+    [JsonConverter(typeof(TolerantDateTimeOffsetJsonConverter))]
+    public DateTimeOffset? StartedAt { get; init; }
+}
+
+public sealed record MihomoProcessConfigurationResponse
+{
+    [JsonPropertyName("find-process-mode")]
+    public string? FindProcessMode { get; init; }
+
+    public MihomoProcessMatchingMode? ToProcessMatchingMode()
+    {
+        return FindProcessMode?.Trim().ToLowerInvariant() switch
+        {
+            "always" => MihomoProcessMatchingMode.Always,
+            "strict" => MihomoProcessMatchingMode.Strict,
+            "off" => MihomoProcessMatchingMode.Off,
+            _ => null,
+        };
+    }
 }
 
 public static class MihomoJsonDecoder

@@ -28,7 +28,7 @@ public sealed class TrafficMonitoringCoordinatorTests
         await collector.Started.Task.WaitAsync(TimeSpan.FromSeconds(2));
 
         CollectionAssert.AreEqual(
-            new[] { "version", "proxies", "save", "stream" },
+            new[] { "version", "proxies", "configs", "save", "stream" },
             sequence);
         Assert.AreEqual("http://127.0.0.1:9090", store.SavedAddress);
         Assert.AreEqual("synthetic-secret", store.SavedSecret);
@@ -67,6 +67,29 @@ public sealed class TrafficMonitoringCoordinatorTests
         Assert.AreEqual(MonitorConnectionState.AuthenticationFailed, snapshot.State);
         Assert.AreEqual(0, store.SaveCount);
         CollectionAssert.AreEqual(new[] { "version" }, sequence);
+    }
+
+    [TestMethod]
+    public async Task ProcessConfigurationFailureDoesNotBlockMonitoringStream()
+    {
+        var sequence = new List<string>();
+        var collector = new TestSnapshotCollector(sequence);
+        var client = new TestControllerClient(sequence)
+        {
+            ProcessConfigurationFailure = new MihomoControllerException(
+                MihomoControllerError.UnsupportedResponse),
+        };
+        await using var coordinator = new TrafficMonitoringCoordinator(
+            client,
+            collector,
+            new TestConfigurationStore(sequence));
+
+        await coordinator.StartAsync("127.0.0.1:9090", string.Empty, false);
+        await collector.Started.Task.WaitAsync(TimeSpan.FromSeconds(2));
+
+        CollectionAssert.AreEqual(
+            new[] { "version", "proxies", "configs", "stream" },
+            sequence);
     }
 
     [TestMethod]
@@ -201,6 +224,8 @@ public sealed class TrafficMonitoringCoordinatorTests
 
         public Exception? VersionFailure { get; init; }
 
+        public Exception? ProcessConfigurationFailure { get; init; }
+
         public Task<MihomoVersionResponse> FetchVersionAsync(
             ControllerEndpoint endpoint,
             string secret,
@@ -233,6 +258,21 @@ public sealed class TrafficMonitoringCoordinatorTests
                     },
                 },
             });
+        }
+
+        public Task<MihomoProcessConfigurationResponse> FetchProcessConfigurationAsync(
+            ControllerEndpoint endpoint,
+            string secret,
+            CancellationToken cancellationToken)
+        {
+            _sequence.Add("configs");
+            return ProcessConfigurationFailure is null
+                ? Task.FromResult(new MihomoProcessConfigurationResponse
+                {
+                    FindProcessMode = "strict",
+                })
+                : Task.FromException<MihomoProcessConfigurationResponse>(
+                    ProcessConfigurationFailure);
         }
     }
 

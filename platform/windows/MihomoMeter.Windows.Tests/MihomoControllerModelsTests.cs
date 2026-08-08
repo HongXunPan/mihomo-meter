@@ -55,7 +55,7 @@ public sealed class MihomoControllerModelsTests
     }
 
     [TestMethod]
-    public void DecodesOnlySanitizedMetadataAvailability()
+    public void DecodesOnlySanitizedMetadata()
     {
         var response = MihomoJsonDecoder.Decode<MihomoConnectionsSnapshot>(
             """
@@ -76,8 +76,8 @@ public sealed class MihomoControllerModelsTests
             """u8);
 
         Assert.AreEqual(
-            new ConnectionMetadataAvailability(true, true),
-            response.ToTrafficSnapshot().Connections[0].MetadataAvailability);
+            new ConnectionMetadata("example.test", "synthetic.exe"),
+            response.ToTrafficSnapshot().Connections[0].Metadata);
     }
 
     [TestMethod]
@@ -106,8 +106,8 @@ public sealed class MihomoControllerModelsTests
         var response = MihomoJsonDecoder.Decode<MihomoConnectionsSnapshot>(payload);
 
         Assert.AreEqual(
-            ConnectionMetadataAvailability.Unavailable,
-            response.ToTrafficSnapshot().Connections[0].MetadataAvailability);
+            ConnectionMetadata.Unavailable,
+            response.ToTrafficSnapshot().Connections[0].Metadata);
     }
 
     [TestMethod]
@@ -134,7 +134,68 @@ public sealed class MihomoControllerModelsTests
             """u8);
 
         Assert.AreEqual(
-            new ConnectionMetadataAvailability(true, true),
-            response.ToTrafficSnapshot().Connections[0].MetadataAvailability);
+            new ConnectionMetadata("fallback.test", "Synthetic"),
+            response.ToTrafficSnapshot().Connections[0].Metadata);
+    }
+
+    [TestMethod]
+    public void DecodesStartAndToleratesMalformedOptionalValues()
+    {
+        var valid = MihomoJsonDecoder.Decode<MihomoConnectionsSnapshot>(
+            """
+            {
+              "downloadTotal": 0,
+              "uploadTotal": 0,
+              "connections": [{
+                "id": "valid",
+                "upload": 0,
+                "download": 0,
+                "chains": [],
+                "start": "2026-08-08T01:02:03.456Z"
+              }]
+            }
+            """u8);
+        var malformed = MihomoJsonDecoder.Decode<MihomoConnectionsSnapshot>(
+            """
+            {
+              "downloadTotal": 0,
+              "uploadTotal": 0,
+              "connections": [{
+                "id": "malformed",
+                "upload": 0,
+                "download": 0,
+                "chains": [],
+                "start": { "future": true }
+              }]
+            }
+            """u8);
+
+        Assert.AreEqual(
+            DateTimeOffset.Parse("2026-08-08T01:02:03.456Z"),
+            valid.Connections[0].StartedAt);
+        Assert.IsNull(malformed.Connections[0].StartedAt);
+    }
+
+    [DataRow("always", MihomoProcessMatchingMode.Always)]
+    [DataRow(" STRICT ", MihomoProcessMatchingMode.Strict)]
+    [DataRow("off", MihomoProcessMatchingMode.Off)]
+    [TestMethod]
+    public void MapsKnownProcessMatchingModes(
+        string value,
+        MihomoProcessMatchingMode expected)
+    {
+        var response = MihomoJsonDecoder.Decode<MihomoProcessConfigurationResponse>(
+            Encoding.UTF8.GetBytes($$"""{"find-process-mode":"{{value}}"}"""));
+
+        Assert.AreEqual(expected, response.ToProcessMatchingMode());
+    }
+
+    [TestMethod]
+    public void KeepsUnknownProcessMatchingModeUnavailable()
+    {
+        var response = MihomoJsonDecoder.Decode<MihomoProcessConfigurationResponse>(
+            """{"find-process-mode":"future"}"""u8);
+
+        Assert.IsNull(response.ToProcessMatchingMode());
     }
 }

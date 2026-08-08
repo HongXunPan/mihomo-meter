@@ -20,8 +20,17 @@ public sealed record TrafficMonitorSnapshot(
     CategorizedTrafficRates? Rates = null,
     double? Coverage = null,
     long SessionGeneration = 0,
-    ConnectionAttributionCoverage AttributionCoverage = default)
+    ConnectionAttributionCoverage AttributionCoverage = default,
+    IReadOnlyList<LiveTrafficConnection>? ProxyConnections = null,
+    IReadOnlyList<LiveTrafficConnection>? DirectConnections = null,
+    MihomoProcessMatchingMode? ProcessMatchingMode = null)
 {
+    public IReadOnlyList<LiveTrafficConnection> LiveProxyConnections =>
+        ProxyConnections ?? Array.Empty<LiveTrafficConnection>();
+
+    public IReadOnlyList<LiveTrafficConnection> LiveDirectConnections =>
+        DirectConnections ?? Array.Empty<LiveTrafficConnection>();
+
     public static TrafficMonitorSnapshot Disconnected => new(
         MonitorConnectionState.Disconnected,
         "尚未连接 Mihomo Controller。");

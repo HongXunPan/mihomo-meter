@@ -5,6 +5,7 @@ using Microsoft.UI.Xaml.Controls;
 using MihomoMeter.Windows.App.Diagnostics;
 using MihomoMeter.Windows.App.Infrastructure;
 using MihomoMeter.Windows.App.Presentation;
+using MihomoMeter.Windows.Core.Application;
 using Windows.Graphics;
 
 namespace MihomoMeter.Windows.App;
@@ -14,6 +15,8 @@ public sealed partial class MainWindow : Window
     private readonly WindowsAppServices _services;
     private readonly RealtimeMonitoringView _realtimeView;
     private readonly TrafficStatisticsWorkspaceView _statisticsView;
+    private readonly LiveConnectionWorkspaceView _liveConnectionView;
+    private readonly ProxyTrafficWorkspaceView _proxyTrafficView;
     private readonly SubscriptionQuotaWorkspaceView _quotaView;
     private bool _stopped;
 
@@ -31,6 +34,9 @@ public sealed partial class MainWindow : Window
         QuotaViewModel = new SubscriptionQuotaWorkspaceViewModel(
             DispatcherQueue,
             services.Quota);
+        LiveConnectionViewModel = new LiveConnectionWorkspaceViewModel(
+            DispatcherQueue,
+            services.Coordinator);
         NotificationAreaStatistics = new NotificationAreaStatisticsController(
             DispatcherQueue,
             services.Coordinator,
@@ -38,11 +44,18 @@ public sealed partial class MainWindow : Window
         NotificationAreaQuota = new NotificationAreaQuotaController(
             DispatcherQueue,
             services.Quota);
+        NotificationAreaConnections = new NotificationAreaConnectionController(
+            DispatcherQueue,
+            services.Coordinator);
         StartupConsoleReporter.Stage("main_window_xaml_initialize_started");
         InitializeComponent();
         StartupConsoleReporter.Stage("main_window_xaml_initialize_completed");
         _realtimeView = new RealtimeMonitoringView(ViewModel);
         _statisticsView = new TrafficStatisticsWorkspaceView(StatisticsViewModel);
+        _liveConnectionView = new LiveConnectionWorkspaceView(LiveConnectionViewModel);
+        _proxyTrafficView = new ProxyTrafficWorkspaceView(
+            _statisticsView,
+            _liveConnectionView);
         _quotaView = new SubscriptionQuotaWorkspaceView(QuotaViewModel, this);
         WorkspaceNavigation.SelectionChanged += WorkspaceNavigation_SelectionChanged;
         WorkspaceNavigation.SelectedItem = RealtimeNavigationItem;
@@ -57,9 +70,13 @@ public sealed partial class MainWindow : Window
 
     public SubscriptionQuotaWorkspaceViewModel QuotaViewModel { get; }
 
+    public LiveConnectionWorkspaceViewModel LiveConnectionViewModel { get; }
+
     internal NotificationAreaStatisticsController NotificationAreaStatistics { get; }
 
     internal NotificationAreaQuotaController NotificationAreaQuota { get; }
+
+    internal NotificationAreaConnectionController NotificationAreaConnections { get; }
 
     internal async Task<bool> InitializeAsync()
     {
@@ -79,8 +96,10 @@ public sealed partial class MainWindow : Window
         ViewModel.Detach();
         StatisticsViewModel.Detach();
         QuotaViewModel.Detach();
+        LiveConnectionViewModel.Detach();
         NotificationAreaStatistics.Dispose();
         NotificationAreaQuota.Dispose();
+        NotificationAreaConnections.Dispose();
         await _services.DisposeAsync();
     }
 
@@ -92,6 +111,14 @@ public sealed partial class MainWindow : Window
     internal void ShowStatisticsWorkspace()
     {
         WorkspaceNavigation.SelectedItem = StatisticsNavigationItem;
+        _proxyTrafficView.ShowStatistics();
+        ShowWorkspace("statistics");
+    }
+
+    internal void ShowLiveConnectionsWorkspace(LiveConnectionRoute route)
+    {
+        WorkspaceNavigation.SelectedItem = StatisticsNavigationItem;
+        _proxyTrafficView.ShowLiveConnections(route);
         ShowWorkspace("statistics");
     }
 
@@ -112,7 +139,7 @@ public sealed partial class MainWindow : Window
     {
         WorkspaceContent.Content = section switch
         {
-            "statistics" => _statisticsView,
+            "statistics" => _proxyTrafficView,
             "quota" => _quotaView,
             _ => _realtimeView,
         };

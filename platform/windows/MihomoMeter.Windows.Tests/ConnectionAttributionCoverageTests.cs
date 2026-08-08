@@ -52,6 +52,8 @@ public sealed class ConnectionAttributionCoverageTests
             id,
             TrafficBytes.Zero,
             ["Synthetic Proxy"],
-            new ConnectionMetadataAvailability(hasHostname, hasApplication));
+            Metadata: new ConnectionMetadata(
+                hasHostname ? "example.test" : null,
+                hasApplication ? "Synthetic" : null));
     }
 }

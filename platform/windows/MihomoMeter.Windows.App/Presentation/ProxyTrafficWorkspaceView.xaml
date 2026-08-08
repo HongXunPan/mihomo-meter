@@ -1,0 +1,33 @@
+<UserControl
+    x:Class="MihomoMeter.Windows.App.Presentation.ProxyTrafficWorkspaceView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Border
+            Padding="24,10"
+            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+            BorderThickness="0,0,0,1">
+            <RadioButtons
+                x:Name="WorkspaceModeButtons"
+                MaxColumns="2"
+                Orientation="Horizontal"
+                SelectionChanged="WorkspaceModeButtons_SelectionChanged">
+                <x:String>流量统计</x:String>
+                <x:String>实时连接</x:String>
+            </RadioButtons>
+        </Border>
+
+        <ContentControl
+            x:Name="WorkspaceContent"
+            Grid.Row="1"
+            HorizontalContentAlignment="Stretch"
+            VerticalContentAlignment="Stretch" />
+    </Grid>
+</UserControl>

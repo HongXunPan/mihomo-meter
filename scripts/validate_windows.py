@@ -210,16 +210,32 @@ def validate_files_and_code(errors: list[str]) -> None:
     if "SubscriptionUri" in profile_settings or "UrlFingerprint" in profile_settings:
         errors.append("Profile 路径设置不得承载订阅 URL 或指纹")
 
-    metadata_models = "\n".join(
+    runtime_models = "\n".join(
         (CORE_ROOT / relative_path).read_text(encoding="utf-8")
         for relative_path in (
             "Domain/ConnectionAttributionCoverage.cs",
+            "Domain/ConnectionMetadata.cs",
             "Domain/TrafficMeasurement.cs",
+            "Application/LiveConnectionProjection.cs",
         )
     )
-    for marker in ("string? Hostname", "string? ApplicationName", "string? ProcessPath"):
-        if marker in metadata_models:
-            errors.append(f"W2D-0 领域模型不得承载真实连接元数据：{marker}")
+    if "ProcessPath" in runtime_models:
+        errors.append("W2D-1 领域与应用模型不得承载完整进程路径")
+
+    persistence_code = "\n".join(
+        path.read_text(encoding="utf-8")
+        for path in sorted((CORE_ROOT / "Infrastructure").rglob("*Schema.cs"))
+    ).lower()
+    for marker in (
+        "connection_id",
+        "process_path",
+        "destination_ip",
+        "destination_port",
+        "rule_name",
+        "proxy_chain",
+    ):
+        if marker in persistence_code:
+            errors.append(f"W2D-1 持久化 schema 不得包含连接明细字段：{marker}")
 
 
 def main() -> int:

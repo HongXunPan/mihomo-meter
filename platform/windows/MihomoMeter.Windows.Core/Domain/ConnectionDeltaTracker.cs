@@ -47,7 +47,10 @@ public sealed class ConnectionDeltaTracker
             connectionDeltas.Add(new ConnectionTrafficDelta(
                 connection.Id,
                 classification.Category,
-                delta.Value));
+                delta.Value,
+                connection.Bytes,
+                connection.Metadata,
+                connection.StartedAt));
         }
 
         var unknown = TrafficBytes.Residual(kernelDelta.Value, categories.Classified);

@@ -10,6 +10,7 @@ internal enum NotificationAreaCommandKind
     None,
     Open,
     OpenStatistics,
+    OpenLiveConnections,
     OpenQuota,
     StartStatistics,
     StopStatistics,
@@ -20,7 +21,8 @@ internal enum NotificationAreaCommandKind
 
 internal readonly record struct NotificationAreaCommand(
     NotificationAreaCommandKind Kind,
-    Guid? IntervalId = null);
+    Guid? IntervalId = null,
+    MihomoMeter.Windows.Core.Application.LiveConnectionRoute? Route = null);
 
 internal sealed partial class NotificationAreaMenu
 {
@@ -48,7 +50,8 @@ internal sealed partial class NotificationAreaMenu
         ShellNativeMethods.Point point,
         bool floatingWidgetVisible,
         NotificationAreaStatisticsMenuSnapshot statisticsSnapshot,
-        NotificationAreaQuotaMenuSnapshot quotaSnapshot)
+        NotificationAreaQuotaMenuSnapshot quotaSnapshot,
+        NotificationAreaConnectionsMenuSnapshot connectionsSnapshot)
     {
         var menuHandle = CreateMenu();
         var commands = new Dictionary<uint, NotificationAreaCommand>();
@@ -60,6 +63,7 @@ internal sealed partial class NotificationAreaMenu
                 new NotificationAreaCommand(NotificationAreaCommandKind.Open));
             AppendQuotaMenu(menuHandle, quotaSnapshot, commands);
             AppendStatisticsMenu(menuHandle, statisticsSnapshot, commands);
+            AppendConnectionsMenu(menuHandle, connectionsSnapshot, commands);
             AppendMenuItem(
                 menuHandle,
                 ToggleFloatingWidgetCommand,

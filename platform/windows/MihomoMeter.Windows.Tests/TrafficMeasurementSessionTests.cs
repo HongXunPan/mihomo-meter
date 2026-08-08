@@ -33,6 +33,10 @@ public sealed class TrafficMeasurementSessionTests
         Assert.IsNotNull(ledgerDelta);
         Assert.AreEqual((ulong)220, ledgerDelta.Report.Categories.Proxy.Upload);
         Assert.AreEqual((ulong)580, ledgerDelta.Report.Categories.Proxy.Download);
+        Assert.AreEqual(1, measurement.LiveProxyConnections.Count);
+        Assert.AreEqual(new TrafficRate(220, 580), measurement.LiveProxyConnections[0].Rate);
+        Assert.AreEqual(1, measurement.LiveDirectConnections.Count);
+        Assert.AreEqual(new TrafficRate(80, 220), measurement.LiveDirectConnections[0].Rate);
         Assert.AreEqual(timeProvider.GetUtcNow(), measurement.LedgerObservation.ObservedAt);
     }
 
@@ -122,6 +126,8 @@ public sealed class TrafficMeasurementSessionTests
 
         Assert.IsTrue(reset.CountersReset);
         Assert.AreEqual(ConnectionAttributionCoverage.Empty, reset.AttributionCoverage);
+        Assert.AreEqual(0, reset.LiveProxyConnections.Count);
+        Assert.AreEqual(0, reset.LiveDirectConnections.Count);
     }
 
     private static MihomoConnectionsSnapshot Snapshot(params MihomoConnectionResponse[] connections)
@@ -146,9 +152,9 @@ public sealed class TrafficMeasurementSessionTests
             Upload = 1,
             Download = 1,
             Chains = [chain],
-            MetadataAvailability = new ConnectionMetadataAvailability(
-                hasHostname,
-                hasApplication),
+            Metadata = new ConnectionMetadata(
+                hasHostname ? "example.test" : null,
+                hasApplication ? "Synthetic" : null),
         };
     }
 
