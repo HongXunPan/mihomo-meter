@@ -158,7 +158,7 @@ QUOTA_REQUIRED_CODE_MARKERS = {
     CORE_ROOT / "Infrastructure/Quota/MihomoActiveQuotaQueryClient.cs": (
         "AllowAutoRedirect = false",
         "UseProxy = true",
-        "bypassOnLocal: false",
+        "new WebProxy(proxy.ProxyUri, false)",
         "MaximumRedirects = 5",
         'EndsWith(\n                "-subscription-userinfo"',
     ),

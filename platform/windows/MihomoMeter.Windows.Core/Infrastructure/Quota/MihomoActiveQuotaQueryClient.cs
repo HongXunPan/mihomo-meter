@@ -96,7 +96,7 @@ public sealed class MihomoActiveQuotaQueryClient : IActiveQuotaQueryClient
             AllowAutoRedirect = false,
             UseCookies = false,
             UseProxy = true,
-            Proxy = new WebProxy(proxy.ProxyUri, bypassOnLocal: false),
+            Proxy = new WebProxy(proxy.ProxyUri, false),
             ConnectTimeout = RequestTimeout,
         };
     }

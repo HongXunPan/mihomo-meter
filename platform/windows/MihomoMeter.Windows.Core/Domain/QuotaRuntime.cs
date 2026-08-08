@@ -60,7 +60,7 @@ public sealed class ActiveQuotaQueryException : Exception
     public ActiveQuotaQueryException(
         ActiveQuotaQueryFailureCategory category,
         int? statusCode = null)
-        : base(Message(category, statusCode))
+        : base(BuildMessage(category, statusCode))
     {
         Category = category;
         StatusCode = statusCode;
@@ -73,7 +73,7 @@ public sealed class ActiveQuotaQueryException : Exception
     public bool IsCommunicationFailure => Category is
         ActiveQuotaQueryFailureCategory.Timeout or ActiveQuotaQueryFailureCategory.Network;
 
-    private static string Message(
+    private static string BuildMessage(
         ActiveQuotaQueryFailureCategory category,
         int? statusCode)
     {
