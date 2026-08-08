@@ -134,7 +134,7 @@ public sealed partial class TrafficStatisticsWorkspaceView : UserControl
         var dialog = CreateDialog(
             "清空本地统计？",
             "清空",
-            "核心流量累计、全部统计任务和最近 30 天图表都会删除；"
+            "核心流量累计、全部统计任务、最近 30 天图表和连接归因历史都会删除；"
                 + "Controller 地址、Credential Manager Secret 与悬浮图标设置会保留。");
         if (await ShowDialogAsync(dialog) == ContentDialogResult.Primary)
         {

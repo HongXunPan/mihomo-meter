@@ -37,6 +37,10 @@ public sealed class TrafficMeasurementSessionTests
         Assert.AreEqual(new TrafficRate(220, 580), measurement.LiveProxyConnections[0].Rate);
         Assert.AreEqual(1, measurement.LiveDirectConnections.Count);
         Assert.AreEqual(new TrafficRate(80, 220), measurement.LiveDirectConnections[0].Rate);
+        Assert.AreEqual(1, measurement.ConnectionAttributionDeltas.Count);
+        Assert.AreEqual(
+            new TrafficBytes(220, 580),
+            measurement.ConnectionAttributionDeltas[0].Bytes);
         Assert.AreEqual(timeProvider.GetUtcNow(), measurement.LedgerObservation.ObservedAt);
     }
 

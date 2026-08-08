@@ -8,7 +8,7 @@
 [使用文档（Wiki）](https://github.com/HongXunPan/mihomo-meter/wiki) ·
 [版本发布与下载（GitHub Releases）](https://github.com/HongXunPan/mihomo-meter/releases)
 
-Mihomo Meter 是一款通过 Mihomo Controller API 统计真实代理流量的原生桌面应用。macOS 已提供完整桌面能力；Windows 10 22H2 x64 已通过 W2D-0，W2D-1 实时连接与通知区域 Top 5 已实现，待 CI 与实机验收。
+Mihomo Meter 是一款通过 Mihomo Controller API 统计真实代理流量的原生桌面应用。macOS 已提供完整桌面能力；Windows 10 22H2 x64 已通过 W2D-1，W2D-2 历史归因已实现并待 CI 与实机验收。
 
 > 当前已完成 MVP-1、MVP-2、阶段 2 和阶段 3 源码实现；阶段 3.0 实机门禁以 46 条 Proxy 样本通过，完整构建测试与界面验收仍由 CI 和用户完成。
 
@@ -55,9 +55,10 @@ Mihomo Meter 是只读监控工具：
 - [x] [Windows W2B](docs/Windows阶段W2B实机指南.md)：统计任务、30 日趋势与完整工作台
 - [x] [Windows W2C](docs/Windows阶段W2C实机指南.md)：订阅身份、配额账本、主动查询与趋势
 - [x] [Windows W2D-0](docs/Windows阶段W2D0实机指南.md)：Proxy 连接主机名与应用识别覆盖率门禁
-- [ ] [Windows W2D-1](docs/Windows阶段W2D1实机指南.md)：Proxy/DIRECT 实时连接、分组搜索、识别诊断与原生 Top 5
+- [x] [Windows W2D-1](docs/Windows阶段W2D1实机指南.md)：Proxy/DIRECT 实时连接、分组搜索、识别诊断与原生 Top 5
+- [ ] [Windows W2D-2](docs/Windows阶段W2D2实机指南.md)：独立归因账本、30 日榜单、交叉筛选、覆盖率与趋势
 
-已勾选项目表示当前源码和测试已经实现；未勾选项目不代表发布时间承诺。各阶段的子任务与完成状态见[开发路线图](docs/路线图.md)。
+已勾选项目表示源码、自动化与对应实机门禁均已通过；未勾选项目可能仍在实施或等待 CI / 实机验收，不代表发布时间承诺。各阶段的子任务与完成状态见[开发路线图](docs/路线图.md)。
 
 ## 已实现
 
@@ -69,6 +70,7 @@ Mihomo Meter 是只读监控工具：
 - 使用 `/connections?interval=500` WebSocket 采集连接快照
 - Windows W2D-0 以 52 条 Proxy 样本通过，主机名、应用及两者同时可识别均为 100%
 - Windows 在“Proxy 流量”内切换流量统计与实时连接，支持 Proxy/直连、连接/应用/域名、搜索、双向速率、累计和时长；通知区域以原生菜单分别提供固定五槽 Proxy/直连 Top 5
+- Windows 历史归因默认关闭，复用同一 Proxy 差值写入独立数据库，并提供 30 日应用/域名榜、精确交叉筛选、记录覆盖率和独立趋势窗口
 - 阶段 3.0 实机门禁中，46 条 Proxy 样本的主机名识别率为 100%，应用识别率为 82.6%
 - Proxy 与 DIRECT 实时连接列表和快速 Top 5 只保存在内存中，连接消失后立即移除，不保留连接 ID 或最近连接明细；完整列表先切换 Proxy 或直连，再按连接、应用、域名查看并搜索应用与主机名；双路 Top 5、分类状态和路由状态在主菜单保留摘要，并通过原生子菜单展示固定尺寸详情；快速菜单过高时由 macOS 统一滚动
 - 用户明确开启后，独立 `connection-analytics.sqlite3` 只保存应用与完整主机名的 Proxy 日聚合，默认关闭并保留 30 天

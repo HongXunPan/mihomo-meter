@@ -16,10 +16,11 @@
             BorderThickness="0,0,0,1">
             <RadioButtons
                 x:Name="WorkspaceModeButtons"
-                MaxColumns="2"
+                MaxColumns="3"
                 SelectionChanged="WorkspaceModeButtons_SelectionChanged">
                 <x:String>流量统计</x:String>
                 <x:String>实时连接</x:String>
+                <x:String>归因历史</x:String>
             </RadioButtons>
         </Border>
 

@@ -214,6 +214,7 @@ def validate_files_and_code(errors: list[str]) -> None:
         (CORE_ROOT / relative_path).read_text(encoding="utf-8")
         for relative_path in (
             "Domain/ConnectionAttributionCoverage.cs",
+            "Domain/ConnectionAnalytics.cs",
             "Domain/ConnectionMetadata.cs",
             "Domain/TrafficMeasurement.cs",
             "Application/LiveConnectionProjection.cs",
@@ -236,6 +237,26 @@ def validate_files_and_code(errors: list[str]) -> None:
     ):
         if marker in persistence_code:
             errors.append(f"W2D-1 持久化 schema 不得包含连接明细字段：{marker}")
+
+    attribution_schema = (
+        CORE_ROOT
+        / "Infrastructure/ConnectionAnalytics/ConnectionAnalyticsLedgerSchema.cs"
+    ).read_text(encoding="utf-8").lower()
+    for marker in (
+        "connection_id",
+        "url",
+        "ip_address",
+        "destination",
+        "port",
+        "process_path",
+        "node",
+        "rule",
+        "started_at",
+        "ended_at",
+        "observed_at",
+    ):
+        if marker in attribution_schema:
+            errors.append(f"W2D-2 归因 schema 不得包含连接明细字段：{marker}")
 
 
 def main() -> int:

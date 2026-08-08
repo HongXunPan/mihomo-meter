@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using MihomoMeter.Windows.App.Diagnostics;
 using MihomoMeter.Windows.App.Infrastructure;
+using MihomoMeter.Windows.App.Lifecycle;
 using MihomoMeter.Windows.App.Presentation;
 using MihomoMeter.Windows.Core.Application;
 using Windows.Graphics;
@@ -16,6 +17,8 @@ public sealed partial class MainWindow : Window
     private readonly RealtimeMonitoringView _realtimeView;
     private readonly TrafficStatisticsWorkspaceView _statisticsView;
     private readonly LiveConnectionWorkspaceView _liveConnectionView;
+    private readonly ConnectionAnalyticsWorkspaceView _connectionAnalyticsView;
+    private readonly ConnectionAnalyticsTrendWindowController _connectionTrendWindow;
     private readonly ProxyTrafficWorkspaceView _proxyTrafficView;
     private readonly SubscriptionQuotaWorkspaceView _quotaView;
     private bool _stopped;
@@ -37,6 +40,9 @@ public sealed partial class MainWindow : Window
         LiveConnectionViewModel = new LiveConnectionWorkspaceViewModel(
             DispatcherQueue,
             services.Coordinator);
+        ConnectionAnalyticsViewModel = new ConnectionAnalyticsWorkspaceViewModel(
+            DispatcherQueue,
+            services.ConnectionAnalytics);
         NotificationAreaStatistics = new NotificationAreaStatisticsController(
             DispatcherQueue,
             services.Coordinator,
@@ -53,14 +59,20 @@ public sealed partial class MainWindow : Window
         _realtimeView = new RealtimeMonitoringView(ViewModel);
         _statisticsView = new TrafficStatisticsWorkspaceView(StatisticsViewModel);
         _liveConnectionView = new LiveConnectionWorkspaceView(LiveConnectionViewModel);
+        _connectionTrendWindow = new ConnectionAnalyticsTrendWindowController(
+            services.ConnectionAnalytics);
+        _connectionAnalyticsView = new ConnectionAnalyticsWorkspaceView(
+            ConnectionAnalyticsViewModel,
+            _connectionTrendWindow.Show);
         _proxyTrafficView = new ProxyTrafficWorkspaceView(
             _statisticsView,
-            _liveConnectionView);
+            _liveConnectionView,
+            _connectionAnalyticsView);
         _quotaView = new SubscriptionQuotaWorkspaceView(QuotaViewModel, this);
         WorkspaceNavigation.SelectionChanged += WorkspaceNavigation_SelectionChanged;
         WorkspaceNavigation.SelectedItem = RealtimeNavigationItem;
         ShowWorkspace("realtime");
-        Title = "Mihomo Meter · Windows W2D";
+        Title = "Mihomo Meter · Windows W2D-2";
         ResizeForPreview();
     }
 
@@ -72,6 +84,8 @@ public sealed partial class MainWindow : Window
 
     public LiveConnectionWorkspaceViewModel LiveConnectionViewModel { get; }
 
+    public ConnectionAnalyticsWorkspaceViewModel ConnectionAnalyticsViewModel { get; }
+
     internal NotificationAreaStatisticsController NotificationAreaStatistics { get; }
 
     internal NotificationAreaQuotaController NotificationAreaQuota { get; }
@@ -81,6 +95,7 @@ public sealed partial class MainWindow : Window
     internal async Task<bool> InitializeAsync()
     {
         await StatisticsViewModel.InitializeAsync();
+        await ConnectionAnalyticsViewModel.InitializeAsync();
         await QuotaViewModel.InitializeAsync();
         return await ViewModel.InitializeAsync();
     }
@@ -97,6 +112,8 @@ public sealed partial class MainWindow : Window
         StatisticsViewModel.Detach();
         QuotaViewModel.Detach();
         LiveConnectionViewModel.Detach();
+        ConnectionAnalyticsViewModel.Detach();
+        _connectionTrendWindow.Dispose();
         NotificationAreaStatistics.Dispose();
         NotificationAreaQuota.Dispose();
         NotificationAreaConnections.Dispose();
