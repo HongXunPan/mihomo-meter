@@ -98,11 +98,11 @@ public sealed class ProfileQuotaIdentityTests
                 url: https://two.example/sub
             """);
 
-        Assert.ThrowsException<ProfileDirectoryException>(() =>
+        Assert.ThrowsExactly<ProfileDirectoryException>(() =>
             new YamlClashProfileCatalogReader().Read(_testDirectory));
 
         WriteProfiles("items: [not-closed");
-        Assert.ThrowsException<ProfileDirectoryException>(() =>
+        Assert.ThrowsExactly<ProfileDirectoryException>(() =>
             new YamlClashProfileCatalogReader().Read(_testDirectory));
     }
 

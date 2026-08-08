@@ -11,11 +11,11 @@ public sealed class ActiveQuotaQueryContractTests
     [TestMethod]
     public void RejectsNonHttpsSubscriptionAndRedirectTargets()
     {
-        var subscriptionError = Assert.ThrowsException<ActiveQuotaQueryException>(() =>
+        var subscriptionError = Assert.ThrowsExactly<ActiveQuotaQueryException>(() =>
             MihomoActiveQuotaQueryClient.EnsureHttps(
                 new Uri("http://example.com/sub"),
                 ActiveQuotaQueryFailureCategory.InsecureUrl));
-        var redirectError = Assert.ThrowsException<ActiveQuotaQueryException>(() =>
+        var redirectError = Assert.ThrowsExactly<ActiveQuotaQueryException>(() =>
             MihomoActiveQuotaQueryClient.EnsureHttps(
                 new Uri("http://example.com/redirect"),
                 ActiveQuotaQueryFailureCategory.InsecureRedirect));

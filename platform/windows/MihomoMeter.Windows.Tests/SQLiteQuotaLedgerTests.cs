@@ -159,7 +159,7 @@ public sealed class SQLiteQuotaLedgerTests
 
         await using (var ledger = new SQLiteQuotaLedger(_databasePath))
         {
-            await Assert.ThrowsExceptionAsync<QuotaLedgerException>(() =>
+            await Assert.ThrowsExactlyAsync<QuotaLedgerException>(() =>
                 ledger.PrepareAsync(DateTimeOffset.UtcNow, CancellationToken.None));
         }
 
@@ -176,7 +176,7 @@ public sealed class SQLiteQuotaLedgerTests
         await ledger.PrepareAsync(now, CancellationToken.None);
         await ledger.UpsertSubscriptionAsync(subscription, now, CancellationToken.None);
 
-        await Assert.ThrowsExceptionAsync<QuotaLedgerException>(() => ledger.RecordAsync(
+        await Assert.ThrowsExactlyAsync<QuotaLedgerException>(() => ledger.RecordAsync(
             new QuotaObservation(
                 subscription.Id,
                 now.AddSeconds(1),
@@ -207,7 +207,7 @@ public sealed class SQLiteQuotaLedgerTests
             original.CreatedAt,
             now.AddSeconds(1));
 
-        await Assert.ThrowsExceptionAsync<QuotaLedgerException>(() =>
+        await Assert.ThrowsExactlyAsync<QuotaLedgerException>(() =>
             ledger.UpsertSubscriptionAsync(
                 changedUid,
                 now.AddSeconds(1),

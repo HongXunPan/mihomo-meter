@@ -12,8 +12,8 @@ public sealed class QuotaDomainTests
     [TestMethod]
     public void TrafficRejectsZeroTotalAndIntegerOverflow()
     {
-        Assert.ThrowsException<QuotaDomainException>(() => new QuotaTraffic(1, 2, 0));
-        Assert.ThrowsException<QuotaDomainException>(() => new QuotaTraffic(
+        Assert.ThrowsExactly<QuotaDomainException>(() => new QuotaTraffic(1, 2, 0));
+        Assert.ThrowsExactly<QuotaDomainException>(() => new QuotaTraffic(
             checked((ulong)long.MaxValue),
             1,
             checked((ulong)long.MaxValue)));
@@ -36,9 +36,9 @@ public sealed class QuotaDomainTests
     [TestMethod]
     public void SubscriptionHeaderRejectsMissingOrOverflowingQuota()
     {
-        Assert.ThrowsException<ActiveQuotaQueryException>(() =>
+        Assert.ThrowsExactly<ActiveQuotaQueryException>(() =>
             SubscriptionUserInfoParser.Parse("upload=1; download=2"));
-        Assert.ThrowsException<ActiveQuotaQueryException>(() =>
+        Assert.ThrowsExactly<ActiveQuotaQueryException>(() =>
             SubscriptionUserInfoParser.Parse(
                 "upload=9223372036854775807; download=1; total=9223372036854775807"));
     }
