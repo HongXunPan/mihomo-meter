@@ -149,7 +149,7 @@ def validate_xaml() -> None:
 def validate_files_and_code(errors: list[str]) -> None:
     for relative_path in REQUIRED_REPOSITORY_FILES:
         if not (ROOT / relative_path).is_file():
-            errors.append(f"缺少 Windows W2B 仓库文件：{relative_path}")
+            errors.append(f"缺少 Windows W2C 仓库文件：{relative_path}")
     for relative_path in REQUIRED_APP_FILES:
         if not (APP_ROOT / relative_path).is_file():
             errors.append(f"缺少 Windows App 文件：{relative_path}")
@@ -174,7 +174,7 @@ def validate_files_and_code(errors: list[str]) -> None:
     )
     for marker in FORBIDDEN_PROJECT_MARKERS:
         if marker in project_content:
-            errors.append(f"Windows W2B 不得包含未批准项目标记：{marker}")
+            errors.append(f"Windows W2C 不得包含未批准项目标记：{marker}")
 
     code = "\n".join(
         path.read_text(encoding="utf-8")
@@ -182,13 +182,33 @@ def validate_files_and_code(errors: list[str]) -> None:
     )
     for marker in FORBIDDEN_CODE_MARKERS:
         if marker in code:
-            errors.append(f"Windows W2B 不得包含越界代码标记：{marker}")
+            errors.append(f"Windows W2C 不得包含越界代码标记：{marker}")
 
     address_store = (
         APP_ROOT / "Infrastructure/Configuration/JsonControllerAddressStore.cs"
     ).read_text(encoding="utf-8")
     if "Secret" in address_store:
         errors.append("普通设置实现不得定义或写入 Secret")
+
+    quota_schema = (
+        CORE_ROOT / "Infrastructure/Quota/QuotaLedgerSchema.cs"
+    ).read_text(encoding="utf-8")
+    for marker in (
+        "subscription_url",
+        "raw_url",
+        "controller_secret",
+        "provider_key",
+        "response_body",
+        "response_headers",
+    ):
+        if marker in quota_schema.lower():
+            errors.append(f"配额 schema 不得包含敏感字段：{marker}")
+
+    profile_settings = (
+        APP_ROOT / "Infrastructure/Configuration/JsonProfileDirectoryStore.cs"
+    ).read_text(encoding="utf-8")
+    if "SubscriptionUri" in profile_settings or "UrlFingerprint" in profile_settings:
+        errors.append("Profile 路径设置不得承载订阅 URL 或指纹")
 
 
 def main() -> int:

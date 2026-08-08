@@ -17,8 +17,10 @@ internal sealed class WindowLifecycleController : IDisposable
     private readonly FloatingWidgetController _floatingWidget;
     private readonly NotificationAreaController _notificationArea;
     private readonly Action _showStatisticsWorkspace;
+    private readonly Action _showQuotaWorkspace;
     private readonly Func<Task> _startStatistics;
     private readonly Func<Guid, Task> _stopStatistics;
+    private readonly Func<Task> _refreshQuota;
     private readonly Func<Task> _prepareForExit;
     private bool _exitRequested;
     private bool _disposed;
@@ -27,19 +29,26 @@ internal sealed class WindowLifecycleController : IDisposable
         Window window,
         Action<bool> floatingWidgetStateChanged,
         Func<NotificationAreaStatisticsMenuSnapshot> captureStatisticsSnapshot,
+        Func<NotificationAreaQuotaMenuSnapshot> captureQuotaSnapshot,
         Action showStatisticsWorkspace,
+        Action showQuotaWorkspace,
         Func<Task> startStatistics,
         Func<Guid, Task> stopStatistics,
+        Func<Task> refreshQuota,
         Func<Task> prepareForExit)
     {
         _window = window ?? throw new ArgumentNullException(nameof(window));
         ArgumentNullException.ThrowIfNull(captureStatisticsSnapshot);
+        ArgumentNullException.ThrowIfNull(captureQuotaSnapshot);
         _showStatisticsWorkspace = showStatisticsWorkspace
             ?? throw new ArgumentNullException(nameof(showStatisticsWorkspace));
+        _showQuotaWorkspace = showQuotaWorkspace
+            ?? throw new ArgumentNullException(nameof(showQuotaWorkspace));
         _startStatistics = startStatistics
             ?? throw new ArgumentNullException(nameof(startStatistics));
         _stopStatistics = stopStatistics
             ?? throw new ArgumentNullException(nameof(stopStatistics));
+        _refreshQuota = refreshQuota ?? throw new ArgumentNullException(nameof(refreshQuota));
         _prepareForExit = prepareForExit ?? throw new ArgumentNullException(nameof(prepareForExit));
         _windowHandle = WinRT.Interop.WindowNative.GetWindowHandle(window);
         var windowId = Win32Interop.GetWindowIdFromWindow(_windowHandle);
@@ -56,11 +65,14 @@ internal sealed class WindowLifecycleController : IDisposable
                 _windowHandle,
                 QueueShowMainWindow,
                 QueueShowStatisticsWorkspace,
+                QueueShowQuotaWorkspace,
                 QueueToggleFloatingWidget,
                 () => _floatingWidget.IsVisible,
                 captureStatisticsSnapshot,
+                captureQuotaSnapshot,
                 QueueStartStatistics,
                 QueueStopStatistics,
+                QueueRefreshQuota,
                 QueueExitApplication);
         }
         catch
@@ -158,6 +170,18 @@ internal sealed class WindowLifecycleController : IDisposable
         }
     }
 
+    private void QueueShowQuotaWorkspace()
+    {
+        if (!_window.DispatcherQueue.TryEnqueue(() =>
+            {
+                _showQuotaWorkspace();
+                ShowMainWindow();
+            }))
+        {
+            ReportDispatcherFailure("quota_workspace_show_dispatch");
+        }
+    }
+
     private void QueueStartStatistics()
     {
         QueueStatisticsOperation(
@@ -170,6 +194,13 @@ internal sealed class WindowLifecycleController : IDisposable
         QueueStatisticsOperation(
             () => _stopStatistics(id),
             "notification_area_statistics_stop");
+    }
+
+    private void QueueRefreshQuota()
+    {
+        QueueStatisticsOperation(
+            _refreshQuota,
+            "notification_area_quota_refresh");
     }
 
     private void QueueStatisticsOperation(Func<Task> operation, string source)

@@ -32,11 +32,14 @@ internal sealed class NotificationAreaController : IDisposable
     private readonly nint _windowHandle;
     private readonly Action _showWindow;
     private readonly Action _showStatisticsWorkspace;
+    private readonly Action _showQuotaWorkspace;
     private readonly Action _toggleFloatingWidget;
     private readonly Func<bool> _isFloatingWidgetVisible;
     private readonly Func<NotificationAreaStatisticsMenuSnapshot> _captureStatisticsSnapshot;
+    private readonly Func<NotificationAreaQuotaMenuSnapshot> _captureQuotaSnapshot;
     private readonly Action _startStatistics;
     private readonly Action<Guid> _stopStatistics;
+    private readonly Action _refreshQuota;
     private readonly Action _exitApplication;
     private readonly ShellNativeMethods.SubclassProcedure _subclassProcedure;
     private readonly NotificationAreaMenu _menu;
@@ -50,11 +53,14 @@ internal sealed class NotificationAreaController : IDisposable
         nint windowHandle,
         Action showWindow,
         Action showStatisticsWorkspace,
+        Action showQuotaWorkspace,
         Action toggleFloatingWidget,
         Func<bool> isFloatingWidgetVisible,
         Func<NotificationAreaStatisticsMenuSnapshot> captureStatisticsSnapshot,
+        Func<NotificationAreaQuotaMenuSnapshot> captureQuotaSnapshot,
         Action startStatistics,
         Action<Guid> stopStatistics,
+        Action refreshQuota,
         Action exitApplication)
     {
         if (windowHandle == 0)
@@ -66,16 +72,21 @@ internal sealed class NotificationAreaController : IDisposable
         _showWindow = showWindow ?? throw new ArgumentNullException(nameof(showWindow));
         _showStatisticsWorkspace = showStatisticsWorkspace
             ?? throw new ArgumentNullException(nameof(showStatisticsWorkspace));
+        _showQuotaWorkspace = showQuotaWorkspace
+            ?? throw new ArgumentNullException(nameof(showQuotaWorkspace));
         _toggleFloatingWidget = toggleFloatingWidget
             ?? throw new ArgumentNullException(nameof(toggleFloatingWidget));
         _isFloatingWidgetVisible = isFloatingWidgetVisible
             ?? throw new ArgumentNullException(nameof(isFloatingWidgetVisible));
         _captureStatisticsSnapshot = captureStatisticsSnapshot
             ?? throw new ArgumentNullException(nameof(captureStatisticsSnapshot));
+        _captureQuotaSnapshot = captureQuotaSnapshot
+            ?? throw new ArgumentNullException(nameof(captureQuotaSnapshot));
         _startStatistics = startStatistics
             ?? throw new ArgumentNullException(nameof(startStatistics));
         _stopStatistics = stopStatistics
             ?? throw new ArgumentNullException(nameof(stopStatistics));
+        _refreshQuota = refreshQuota ?? throw new ArgumentNullException(nameof(refreshQuota));
         _exitApplication = exitApplication ?? throw new ArgumentNullException(nameof(exitApplication));
         _subclassProcedure = WindowSubclassProcedure;
         _menu = new NotificationAreaMenu(windowHandle);
@@ -266,7 +277,8 @@ internal sealed class NotificationAreaController : IDisposable
         var command = _menu.Show(
             ResolveMenuPoint(wordParameter),
             _isFloatingWidgetVisible(),
-            _captureStatisticsSnapshot());
+            _captureStatisticsSnapshot(),
+            _captureQuotaSnapshot());
         switch (command.Kind)
         {
             case NotificationAreaCommandKind.Open:
@@ -275,12 +287,18 @@ internal sealed class NotificationAreaController : IDisposable
             case NotificationAreaCommandKind.OpenStatistics:
                 _showStatisticsWorkspace();
                 break;
+            case NotificationAreaCommandKind.OpenQuota:
+                _showQuotaWorkspace();
+                break;
             case NotificationAreaCommandKind.StartStatistics:
                 _startStatistics();
                 break;
             case NotificationAreaCommandKind.StopStatistics
                 when command.IntervalId is Guid intervalId:
                 _stopStatistics(intervalId);
+                break;
+            case NotificationAreaCommandKind.RefreshQuota:
+                _refreshQuota();
                 break;
             case NotificationAreaCommandKind.ToggleFloatingWidget:
                 _toggleFloatingWidget();

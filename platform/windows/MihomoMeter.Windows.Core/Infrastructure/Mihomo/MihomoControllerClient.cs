@@ -17,7 +17,20 @@ public interface IMihomoControllerClient
         CancellationToken cancellationToken);
 }
 
-public sealed class MihomoControllerClient : IMihomoControllerClient
+public interface IMihomoQuotaControllerClient
+{
+    Task<MihomoProxyProvidersResponse> FetchProxyProvidersAsync(
+        ControllerEndpoint endpoint,
+        string secret,
+        CancellationToken cancellationToken);
+
+    Task<MihomoQuotaConfigurationResponse> FetchQuotaConfigurationAsync(
+        ControllerEndpoint endpoint,
+        string secret,
+        CancellationToken cancellationToken);
+}
+
+public sealed class MihomoControllerClient : IMihomoControllerClient, IMihomoQuotaControllerClient
 {
     private static readonly TimeSpan RequestTimeout = TimeSpan.FromSeconds(5);
     private readonly HttpClient _httpClient;
@@ -45,6 +58,28 @@ public sealed class MihomoControllerClient : IMihomoControllerClient
     {
         return GetAsync<MihomoProxiesResponse>(
             endpoint.HttpUri("/proxies"),
+            secret,
+            cancellationToken);
+    }
+
+    public Task<MihomoProxyProvidersResponse> FetchProxyProvidersAsync(
+        ControllerEndpoint endpoint,
+        string secret,
+        CancellationToken cancellationToken)
+    {
+        return GetAsync<MihomoProxyProvidersResponse>(
+            endpoint.HttpUri("/providers/proxies"),
+            secret,
+            cancellationToken);
+    }
+
+    public Task<MihomoQuotaConfigurationResponse> FetchQuotaConfigurationAsync(
+        ControllerEndpoint endpoint,
+        string secret,
+        CancellationToken cancellationToken)
+    {
+        return GetAsync<MihomoQuotaConfigurationResponse>(
+            endpoint.HttpUri("/configs"),
             secret,
             cancellationToken);
     }

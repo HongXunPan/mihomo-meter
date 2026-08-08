@@ -2,12 +2,12 @@
 
 ## 1. 文档定位
 
-- 状态：W2B2 已通过实机验收，W2B3 已实现并通过本地静态契约，待 CI 与 Win10 实机验证
+- 状态：W2B 已通过，W2C 已完成本地实现，待 CI 与 Win10 实机验证
 - 更新日期：2026-08-08
-- 上游边界：父工作区 `docs/Windows技术方案.md`、`docs/Windows阶段W2B统计任务与工作台技术方案.md`
+- 上游边界：父工作区 `docs/Windows技术方案.md`、`docs/Windows阶段W2C订阅配额技术方案.md`
 - 历史门禁：[Windows 阶段 W0 实机指南](Windows阶段W0实机指南.md)
 
-本文是开源源码仓 Windows 工程结构、依赖版本和验证入口的唯一详细真相源，不重新定义父工作区的产品阶段或验收口径。W2B1 增加统计任务账本，W2B2 增加 Proxy 流量工作台，W2B3 在既有通知区域壳层上增加原生任务子菜单；三个增量复用同一应用服务装配，不移动或反向抽象 macOS `Sources/`。
+本文是开源源码仓 Windows 工程结构、依赖版本和验证入口的唯一详细真相源，不重新定义父工作区的产品阶段或验收口径。W2B 已完成统计工作台与通知区域任务菜单；W2C 订阅配额细节由[独立实现契约](Windows订阅配额实现契约.md)维护。
 
 ## 2. 固定选型与依赖
 
@@ -23,9 +23,10 @@
 | 测试 | MSTest.Sdk 4.3.2，仅测试工程使用 |
 | SQLite ADO.NET | Microsoft.Data.Sqlite.Core 10.0.10，仅 Core 使用 |
 | SQLite Provider | SQLitePCLRaw.bundle_winsqlite3 2.1.11，仅 App / Tests 初始化 |
+| Profile YAML | YamlDotNet 18.1.0，仅 Core 类型化读取 `profiles.yaml` |
 | 产物 | 非打包、自包含 `win-x64` 目录，不裁剪、不合并单文件 |
 
-App 的运行时包只增加 `SQLitePCLRaw.bundle_winsqlite3`，它连接 Windows 10 系统 `winsqlite3.dll`，发布目录不得携带 `e_sqlite3`。Core 只允许 `Microsoft.Data.Sqlite.Core`；Tests 只允许系统 Provider。项目不引入 EF Core、ORM、迁移工具或另一份原生 SQLite。新增依赖、调整 Target Framework、改变运行时发布形态或更换 UI 技术栈必须先回到父仓技术选型闸门。
+App 的运行时包只含系统 SQLite Provider，发布目录不得携带 `e_sqlite3`。Core 只允许 SQLite ADO.NET 与 W2C 类型化 YAML；Tests 只允许系统 Provider。项目不引入 ORM、迁移工具或另一份原生 SQLite。
 
 测试工程采用 `MSTest.Sdk/4.3.2` 与 Microsoft Testing Platform，版本在工程和 `global.json` 中锁定。当前不启用覆盖率、浏览器、云服务或其他测试扩展，避免把测试工具链扩成运行时依赖。
 
@@ -60,7 +61,7 @@ platform/windows/
 
 W1 开始前必须先建立 Core 与 Tests 的独立项目，不能继续把 Controller、状态机或分类算法追加进 `MainWindow.xaml.cs`。主窗口代码隐藏只允许处理窗口事件和把用户意图转交 ViewModel。
 
-## 4. W1、W2A 与 W2B 实现契约
+## 4. W1、W2A、W2B 与 W2C 实现契约
 
 Controller 地址、Credential Target Name、设置路径、接口顺序、分类语义、stale、退避和人工验收以父工作区 `docs/Windows阶段W1实时纵切验收.md` 为上游唯一真相。源码实现需要保持以下边界：
 
@@ -89,7 +90,7 @@ Controller 地址、Credential Target Name、设置路径、接口顺序、分�
 23. 通知区域继续使用 `CreatePopupMenu`、`AppendMenu` 与 `TrackPopupMenuEx`；任务父项、五个槽位、查看/停止子命令和溢出入口全部使用原生菜单，不引入自绘面板或菜单依赖。
 24. 菜单跟踪期只持有任务 ID 映射；选中后先关闭菜单，再由 Dispatcher 异步开始或停止。查看任务与溢出入口切换既有主窗口到“Proxy 流量”，不创建第二个窗口。
 
-W2B3 仍不实现连接明细、Profile、订阅配额、诊断日志、开机启动、安装器或自动更新。W0 的 `run-w0-gate.cmd` 与控制台阶段码只保留为历史门禁，不成为预览产物的正式入口。
+W2C 不实现连接分析、诊断 ZIP、开机启动、安装器或自动更新。配额账本、Profile、主动查询和展示边界见[Windows 订阅配额实现契约](Windows订阅配额实现契约.md)。
 
 ## 5. 配置、凭据与隐私
 
@@ -99,7 +100,7 @@ W2B3 仍不实现连接明细、Profile、订阅配额、诊断日志、开机�
 - 测试使用内存凭据和设置替身，不访问真实 Credential Manager、用户目录或网络。
 - 共享 fixture 只包含合成版本、代理类型与连接累计；不得新增真实节点、规则、目标、进程路径、连接 ID 或 Secret。
 - `traffic.sqlite3` 只保存四类聚合、会话、运行状态和统计任务基线，不保存连接、节点、规则、目标、地址或 Secret。
-- W2B 不创建运行日志或诊断 ZIP；可观察错误使用不含地址细节和 Secret 的类型化状态。
+- W2C 不创建运行日志或诊断 ZIP；错误状态不得包含 Secret、原始订阅 URL 或 Provider 键。
 
 ## 6. 自动化验证
 
@@ -109,7 +110,7 @@ W2B3 仍不实现连接明细、Profile、订阅配额、诊断日志、开机�
 python3 scripts/validate_windows.py
 ```
 
-该检查校验固定 SDK、项目分层、依赖白名单、Target Framework、清单、全部 WinUI XAML、W0/W1 生命周期锚点、W2B 工作台必需文件、schema v2 五张表与禁止项。非 Windows 主机执行成功只证明静态契约成立。
+该检查校验固定 SDK、依赖白名单、全部 WinUI XAML、W0–W2C 必需文件、流量 schema v2、配额 schema v1 与隐私禁止项。非 Windows 主机执行成功只证明静态契约成立。
 
 Windows CI 和具备相同环境的 Windows 主机使用：
 
@@ -117,16 +118,16 @@ Windows CI 和具备相同环境的 Windows 主机使用：
 pwsh -File scripts/validate_windows.ps1
 ```
 
-固定顺序为静态检查、solution restore、Core 单元测试、App x64 Release 构建、非打包自包含 publish 和发布目录检查。CI 上传 W2B x64 预览 artifact，不运行真实 Credential Manager 写入或外部 Controller 集成测试。
+固定顺序为静态检查、solution restore、Core 单元测试、App x64 Release 构建、非打包自包含 publish 和发布目录检查。CI 上传 W2C x64 预览 artifact，不查询真实机场。
 
-测试至少覆盖地址、fixture 解码、分类、差值、速率、stale、重连退避、会话隔离、配置保存，以及账本基线、分类增量、计数器回退、重启恢复、跨日、迁移、重叠任务、各类中断、最近 30 日、筛选与图表投影、五槽位、时区、任务 ID、清空回滚和数据库故障隔离。W0/W1 回归、原生菜单与 WinUI 交互仍不能只靠 Core 单元测试。
+测试在既有流量矩阵外增加配额范围、候选、schema、周期、预测、趋势、YAML、HMAC、响应头、HTTPS/代理、单并发、冷却、清空隔离和生命周期故障隔离。原生菜单与 WinUI 仍需实机验证。
 
 ## 7. 人工验收与证据边界
 
-Windows 10 22H2 x64 标准用户按[Windows 阶段 W2B 实机指南](Windows阶段W2B实机指南.md)分增量验证数据库升级、任务工作台、通知区域和 W0/W1 生命周期。分类兼容性与精确性能数据继续作为稳定分发后的观察项，不把未记录数据写成量化结论。
+Windows 10 22H2 x64 标准用户按[Windows 阶段 W2C 实机指南](Windows阶段W2C实机指南.md)一次验证配额、Profile、主动查询、趋势、通知区域、清空、重启和 W0–W2B 回归。
 
 GitHub Actions 成功不能表述为 Windows 10 实机、Credential Manager 或真实 Controller 已通过；macOS 静态检查成功也不能表述为 Windows 已编译。W1 通过后由父工作区保存带日期证据，源码仓只维护公开复现指南和自动化结果。
 
 ## 8. 停止条件
 
-出现以下情况必须停止实现并回到父仓重新决策：需要管理员权限、服务、驱动或 Clash Verge 私有 IPC；Secret 或连接明细进入数据库；Core 必须依赖 WinUI/Win32 Provider 才能测试；schema v2 迁移删除或重建 W2A 数据；账本故障停止实时监控；任务重复累计或跨日丢失；必须携带另一份原生 SQLite；共享 fixture 的 Swift/C# 口径无法对齐；增加未批准依赖；W0/W1 生命周期回归。
+出现以下情况必须停机：需要管理员权限、服务、驱动或私有 IPC；Secret、原始 URL 或连接明细落盘；查询无法保证经过 Mihomo；任一账本故障停止实时监控；必须携带另一份 SQLite；跨端契约无法对齐；W0–W2B 回归。

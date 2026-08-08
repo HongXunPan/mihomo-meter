@@ -39,9 +39,12 @@ public partial class App : Application
                 window,
                 window.SetFloatingWidgetEnabled,
                 window.NotificationAreaStatistics.CaptureSnapshot,
+                window.NotificationAreaQuota.CaptureSnapshot,
                 window.ShowStatisticsWorkspace,
+                window.ShowQuotaWorkspace,
                 window.NotificationAreaStatistics.StartSuggestedIntervalAsync,
                 window.NotificationAreaStatistics.StopIntervalAsync,
+                window.NotificationAreaQuota.RefreshAllAsync,
                 window.StopForApplicationTerminationAsync);
             window.ViewModel.StatusSummaryChanged += _windowLifecycle.SetStatusText;
             ActivationRouter.Register(HandleRedirectedActivation);
