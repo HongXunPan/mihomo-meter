@@ -50,7 +50,11 @@ public sealed record ConnectionTrafficSample(
     string Id,
     TrafficBytes Bytes,
     IReadOnlyList<string> Chains,
-    ConnectionMetadataAvailability MetadataAvailability = default);
+    ConnectionMetadata Metadata = default,
+    DateTimeOffset? StartedAt = null)
+{
+    public ConnectionMetadataAvailability MetadataAvailability => Metadata.Availability;
+}
 
 public sealed record ConnectionTrafficSnapshot(
     TrafficBytes KernelTotal,
@@ -97,7 +101,10 @@ public sealed record TrafficDeltaReport(
 public sealed record ConnectionTrafficDelta(
     string Id,
     TrafficCategory Category,
-    TrafficBytes Bytes);
+    TrafficBytes Bytes,
+    TrafficBytes CumulativeBytes,
+    ConnectionMetadata Metadata,
+    DateTimeOffset? StartedAt);
 
 public sealed record ConnectionDeltaBatch(
     TrafficDeltaReport Traffic,
@@ -119,6 +126,18 @@ public readonly record struct TrafficRate(
     ulong DownloadBytesPerSecond)
 {
     public static TrafficRate Zero => new(0, 0);
+}
+
+public sealed record LiveTrafficConnection(
+    string Id,
+    ConnectionMetadata Metadata,
+    TrafficRate Rate,
+    TrafficBytes CumulativeBytes,
+    DateTimeOffset? StartedAt)
+{
+    public ulong TotalBytesPerSecond => new TrafficBytes(
+        Rate.UploadBytesPerSecond,
+        Rate.DownloadBytesPerSecond).Total;
 }
 
 public readonly record struct CategorizedTrafficRates(

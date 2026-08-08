@@ -15,6 +15,11 @@ public interface IMihomoControllerClient
         ControllerEndpoint endpoint,
         string secret,
         CancellationToken cancellationToken);
+
+    Task<MihomoProcessConfigurationResponse> FetchProcessConfigurationAsync(
+        ControllerEndpoint endpoint,
+        string secret,
+        CancellationToken cancellationToken);
 }
 
 public interface IMihomoQuotaControllerClient
@@ -58,6 +63,17 @@ public sealed class MihomoControllerClient : IMihomoControllerClient, IMihomoQuo
     {
         return GetAsync<MihomoProxiesResponse>(
             endpoint.HttpUri("/proxies"),
+            secret,
+            cancellationToken);
+    }
+
+    public Task<MihomoProcessConfigurationResponse> FetchProcessConfigurationAsync(
+        ControllerEndpoint endpoint,
+        string secret,
+        CancellationToken cancellationToken)
+    {
+        return GetAsync<MihomoProcessConfigurationResponse>(
+            endpoint.HttpUri("/configs"),
             secret,
             cancellationToken);
     }

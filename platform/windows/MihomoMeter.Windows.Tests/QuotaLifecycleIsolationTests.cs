@@ -90,6 +90,17 @@ public sealed class QuotaLifecycleIsolationTests
                 },
             });
         }
+
+        public Task<MihomoProcessConfigurationResponse> FetchProcessConfigurationAsync(
+            ControllerEndpoint endpoint,
+            string secret,
+            CancellationToken cancellationToken)
+        {
+            return Task.FromResult(new MihomoProcessConfigurationResponse
+            {
+                FindProcessMode = "strict",
+            });
+        }
     }
 
     private sealed class SnapshotCollector : IConnectionSnapshotCollector

@@ -151,6 +151,10 @@ public sealed class TrafficMonitoringCoordinator : IAsyncDisposable
                 var proxies = await _client
                     .FetchProxiesAsync(endpoint, secret, cancellationToken)
                     .ConfigureAwait(false);
+                var processMatchingMode = await TryFetchProcessMatchingModeAsync(
+                    endpoint,
+                    secret,
+                    cancellationToken).ConfigureAwait(false);
 
                 if (shouldSaveConfiguration)
                 {
@@ -172,6 +176,7 @@ public sealed class TrafficMonitoringCoordinator : IAsyncDisposable
                     secret,
                     version.Version,
                     proxies.ToCatalog(),
+                    processMatchingMode,
                     snapshot => Publish(generation, snapshot),
                     cancellationToken).ConfigureAwait(false);
                 throw new ConnectionStreamException(ConnectionStreamError.Closed);
@@ -257,6 +262,28 @@ public sealed class TrafficMonitoringCoordinator : IAsyncDisposable
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
+        }
+    }
+
+    private async Task<MihomoProcessMatchingMode?> TryFetchProcessMatchingModeAsync(
+        ControllerEndpoint endpoint,
+        string secret,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var configuration = await _client
+                .FetchProcessConfigurationAsync(endpoint, secret, cancellationToken)
+                .ConfigureAwait(false);
+            return configuration.ToProcessMatchingMode();
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception)
+        {
+            return null;
         }
     }
 

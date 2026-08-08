@@ -89,6 +89,7 @@ REQUIRED_APP_FILES = (
     "Lifecycle/ActivationRouter.cs",
     "Lifecycle/WindowLifecycleController.cs",
     "Lifecycle/NotificationAreaController.cs",
+    "Lifecycle/NotificationAreaController.Commands.cs",
     "Lifecycle/NotificationAreaMenu.cs",
     "Lifecycle/NotificationAreaMenu.Tasks.cs",
     "Lifecycle/FloatingWidgetController.cs",
@@ -211,8 +212,12 @@ REQUIRED_CODE_MARKERS = {
         "NotifyIconModify",
         "_captureStatisticsSnapshot",
         "_captureQuotaSnapshot",
+    ),
+    APP_ROOT / "Lifecycle/NotificationAreaController.Commands.cs": (
         "NotificationAreaCommandKind.RefreshQuota",
         "NotificationAreaCommandKind.StopStatistics",
+        "NotificationAreaCommandKind.OpenLiveConnections",
+        "ResolveMenuPoint",
     ),
     APP_ROOT / "Lifecycle/NotificationAreaMenu.cs": (
         "TrackPopupMenuEx",

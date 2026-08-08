@@ -8,13 +8,24 @@ public sealed record TrafficMeasurementResult(
     bool RequiresCatalogRefresh,
     bool CountersReset,
     TrafficLedgerObservation LedgerObservation,
-    ConnectionAttributionCoverage AttributionCoverage = default);
+    ConnectionAttributionCoverage AttributionCoverage = default,
+    IReadOnlyList<LiveTrafficConnection>? ProxyConnections = null,
+    IReadOnlyList<LiveTrafficConnection>? DirectConnections = null)
+{
+    public IReadOnlyList<LiveTrafficConnection> LiveProxyConnections =>
+        ProxyConnections ?? Array.Empty<LiveTrafficConnection>();
+
+    public IReadOnlyList<LiveTrafficConnection> LiveDirectConnections =>
+        DirectConnections ?? Array.Empty<LiveTrafficConnection>();
+}
 
 public sealed class TrafficMeasurementSession
 {
     private readonly TimeProvider _timeProvider;
     private readonly ConnectionDeltaTracker _deltaTracker = new();
     private readonly ConnectionAttributionCoverageTracker _attributionCoverageTracker = new();
+    private readonly ConnectionRateAggregator _proxyConnectionRates = new();
+    private readonly ConnectionRateAggregator _directConnectionRates = new();
     private readonly TrafficRateAggregator _rateAggregator = new();
     private ProxyClassifier _classifier;
     private long? _lastSnapshotTimestamp;
@@ -46,6 +57,10 @@ public sealed class TrafficMeasurementSession
             .Where(item => item.Classification.Category == TrafficCategory.Proxy)
             .Select(item => item.Connection)
             .ToArray();
+        var directConnections = classifications
+            .Where(item => item.Classification.Category == TrafficCategory.Direct)
+            .Select(item => item.Connection)
+            .ToArray();
         var attributionCoverage = _attributionCoverageTracker.Consume(proxyConnections);
 
         var now = _timeProvider.GetTimestamp();
@@ -58,6 +73,8 @@ public sealed class TrafficMeasurementSession
         switch (transition.Status)
         {
             case ConnectionDeltaStatus.BaselineEstablished:
+                _proxyConnectionRates.EstablishBaseline(proxyConnections);
+                _directConnectionRates.EstablishBaseline(directConnections);
                 return new TrafficMeasurementResult(
                     null,
                     requiresCatalogRefresh,
@@ -66,9 +83,13 @@ public sealed class TrafficMeasurementSession
                         _timeProvider.GetUtcNow(),
                         trafficSnapshot.KernelTotal,
                         new TrafficLedgerBaselineEstablished()),
-                    attributionCoverage);
+                    attributionCoverage,
+                    _proxyConnectionRates.LiveConnections,
+                    _directConnectionRates.LiveConnections);
             case ConnectionDeltaStatus.CountersReset:
                 _rateAggregator.Reset();
+                _proxyConnectionRates.Reset();
+                _directConnectionRates.Reset();
                 _attributionCoverageTracker.Reset();
                 return new TrafficMeasurementResult(
                     null,
@@ -78,13 +99,27 @@ public sealed class TrafficMeasurementSession
                         _timeProvider.GetUtcNow(),
                         trafficSnapshot.KernelTotal,
                         new TrafficLedgerCountersReset()),
-                    ConnectionAttributionCoverage.Empty);
+                    ConnectionAttributionCoverage.Empty,
+                    Array.Empty<LiveTrafficConnection>(),
+                    Array.Empty<LiveTrafficConnection>());
             case ConnectionDeltaStatus.Delta when transition.Batch is not null:
                 var rateWindow = elapsedSeconds is null
                     ? null
                     : _rateAggregator.Consume(
                         transition.Batch.Traffic,
                         elapsedSeconds.Value);
+                var liveProxyConnections = _proxyConnectionRates.Consume(
+                    proxyConnections,
+                    transition.Batch.Connections
+                        .Where(delta => delta.Category == TrafficCategory.Proxy)
+                        .ToArray(),
+                    elapsedSeconds);
+                var liveDirectConnections = _directConnectionRates.Consume(
+                    directConnections,
+                    transition.Batch.Connections
+                        .Where(delta => delta.Category == TrafficCategory.Direct)
+                        .ToArray(),
+                    elapsedSeconds);
                 return new TrafficMeasurementResult(
                     rateWindow,
                     requiresCatalogRefresh,
@@ -93,7 +128,9 @@ public sealed class TrafficMeasurementSession
                         _timeProvider.GetUtcNow(),
                         trafficSnapshot.KernelTotal,
                         new TrafficLedgerDelta(transition.Batch.Traffic)),
-                    attributionCoverage);
+                    attributionCoverage,
+                    liveProxyConnections,
+                    liveDirectConnections);
             default:
                 throw new InvalidOperationException("连接差值状态缺少对应账本观测。");
         }
@@ -104,6 +141,8 @@ public sealed class TrafficMeasurementSession
         _deltaTracker.Reset();
         _attributionCoverageTracker.Reset();
         _rateAggregator.Reset();
+        _proxyConnectionRates.Reset();
+        _directConnectionRates.Reset();
         _lastSnapshotTimestamp = null;
     }
 }

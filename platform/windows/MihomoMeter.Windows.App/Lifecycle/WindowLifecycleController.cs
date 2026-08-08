@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml;
 using MihomoMeter.Windows.App.Diagnostics;
 using MihomoMeter.Windows.App.Interop;
 using MihomoMeter.Windows.App.Presentation;
+using MihomoMeter.Windows.Core.Application;
 
 namespace MihomoMeter.Windows.App.Lifecycle;
 
@@ -18,6 +19,7 @@ internal sealed class WindowLifecycleController : IDisposable
     private readonly NotificationAreaController _notificationArea;
     private readonly Action _showStatisticsWorkspace;
     private readonly Action _showQuotaWorkspace;
+    private readonly Action<LiveConnectionRoute> _showLiveConnectionsWorkspace;
     private readonly Func<Task> _startStatistics;
     private readonly Func<Guid, Task> _stopStatistics;
     private readonly Func<Task> _refreshQuota;
@@ -30,8 +32,10 @@ internal sealed class WindowLifecycleController : IDisposable
         Action<bool> floatingWidgetStateChanged,
         Func<NotificationAreaStatisticsMenuSnapshot> captureStatisticsSnapshot,
         Func<NotificationAreaQuotaMenuSnapshot> captureQuotaSnapshot,
+        Func<NotificationAreaConnectionsMenuSnapshot> captureConnectionsSnapshot,
         Action showStatisticsWorkspace,
         Action showQuotaWorkspace,
+        Action<LiveConnectionRoute> showLiveConnectionsWorkspace,
         Func<Task> startStatistics,
         Func<Guid, Task> stopStatistics,
         Func<Task> refreshQuota,
@@ -40,10 +44,13 @@ internal sealed class WindowLifecycleController : IDisposable
         _window = window ?? throw new ArgumentNullException(nameof(window));
         ArgumentNullException.ThrowIfNull(captureStatisticsSnapshot);
         ArgumentNullException.ThrowIfNull(captureQuotaSnapshot);
+        ArgumentNullException.ThrowIfNull(captureConnectionsSnapshot);
         _showStatisticsWorkspace = showStatisticsWorkspace
             ?? throw new ArgumentNullException(nameof(showStatisticsWorkspace));
         _showQuotaWorkspace = showQuotaWorkspace
             ?? throw new ArgumentNullException(nameof(showQuotaWorkspace));
+        _showLiveConnectionsWorkspace = showLiveConnectionsWorkspace
+            ?? throw new ArgumentNullException(nameof(showLiveConnectionsWorkspace));
         _startStatistics = startStatistics
             ?? throw new ArgumentNullException(nameof(startStatistics));
         _stopStatistics = stopStatistics
@@ -70,6 +77,8 @@ internal sealed class WindowLifecycleController : IDisposable
                 () => _floatingWidget.IsVisible,
                 captureStatisticsSnapshot,
                 captureQuotaSnapshot,
+                captureConnectionsSnapshot,
+                QueueShowLiveConnectionsWorkspace,
                 QueueStartStatistics,
                 QueueStopStatistics,
                 QueueRefreshQuota,
@@ -179,6 +188,18 @@ internal sealed class WindowLifecycleController : IDisposable
             }))
         {
             ReportDispatcherFailure("quota_workspace_show_dispatch");
+        }
+    }
+
+    private void QueueShowLiveConnectionsWorkspace(LiveConnectionRoute route)
+    {
+        if (!_window.DispatcherQueue.TryEnqueue(() =>
+            {
+                _showLiveConnectionsWorkspace(route);
+                ShowMainWindow();
+            }))
+        {
+            ReportDispatcherFailure("live_connections_workspace_show_dispatch");
         }
     }
 

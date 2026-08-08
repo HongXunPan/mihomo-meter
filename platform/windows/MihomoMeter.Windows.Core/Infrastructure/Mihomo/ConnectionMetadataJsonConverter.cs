@@ -6,12 +6,12 @@ using MihomoMeter.Windows.Core.Domain;
 
 namespace MihomoMeter.Windows.Core.Infrastructure.Mihomo;
 
-public sealed class ConnectionMetadataAvailabilityJsonConverter
-    : JsonConverter<ConnectionMetadataAvailability>
+public sealed class ConnectionMetadataJsonConverter
+    : JsonConverter<ConnectionMetadata>
 {
     private const int MaximumMetadataBytes = 2_048;
 
-    public override ConnectionMetadataAvailability Read(
+    public override ConnectionMetadata Read(
         ref Utf8JsonReader reader,
         Type typeToConvert,
         JsonSerializerOptions options)
@@ -19,7 +19,7 @@ public sealed class ConnectionMetadataAvailabilityJsonConverter
         using var document = JsonDocument.ParseValue(ref reader);
         if (document.RootElement.ValueKind != JsonValueKind.Object)
         {
-            return ConnectionMetadataAvailability.Unavailable;
+            return ConnectionMetadata.Unavailable;
         }
 
         var metadata = document.RootElement;
@@ -27,17 +27,17 @@ public sealed class ConnectionMetadataAvailabilityJsonConverter
         var sniffHost = StringValue(metadata, "sniffHost");
         var process = StringValue(metadata, "process");
         var processPath = StringValue(metadata, "processPath");
-        return new ConnectionMetadataAvailability(
-            HasHostname(host) || HasHostname(sniffHost),
-            HasApplication(process, processPath));
+        return new ConnectionMetadata(
+            NormalizedHostname(host) ?? NormalizedHostname(sniffHost),
+            ApplicationName(process, processPath));
     }
 
     public override void Write(
         Utf8JsonWriter writer,
-        ConnectionMetadataAvailability value,
+        ConnectionMetadata value,
         JsonSerializerOptions options)
     {
-        throw new NotSupportedException("连接元数据覆盖率只允许从 Mihomo 响应解码。");
+        throw new NotSupportedException("连接元数据只允许从 Mihomo 响应解码。");
     }
 
     private static string? StringValue(JsonElement metadata, string propertyName)
@@ -48,34 +48,34 @@ public sealed class ConnectionMetadataAvailabilityJsonConverter
                 : null;
     }
 
-    private static bool HasHostname(string? value)
+    private static string? NormalizedHostname(string? value)
     {
         var hostname = Normalized(value);
         if (hostname is null)
         {
-            return false;
+            return null;
         }
 
         var candidate = hostname.Trim('[', ']');
-        return !IPAddress.TryParse(candidate, out _);
+        return IPAddress.TryParse(candidate, out _) ? null : hostname;
     }
 
-    private static bool HasApplication(string? process, string? processPath)
+    private static string? ApplicationName(string? process, string? processPath)
     {
-        if (OutermostApplicationBundleName(processPath) is not null)
+        if (OutermostApplicationBundleName(processPath) is string applicationName)
         {
-            return true;
+            return applicationName;
         }
 
         var normalizedProcess = Normalized(process);
         if (normalizedProcess is not null)
         {
             return ContainsPathSeparator(normalizedProcess)
-                ? FileName(normalizedProcess) is not null
-                : true;
+                ? FileName(normalizedProcess)
+                : normalizedProcess;
         }
 
-        return FileName(processPath) is not null;
+        return FileName(processPath);
     }
 
     private static string? OutermostApplicationBundleName(string? path)

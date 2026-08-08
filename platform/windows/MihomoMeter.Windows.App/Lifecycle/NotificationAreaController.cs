@@ -3,10 +3,11 @@ using System.Runtime.InteropServices;
 using MihomoMeter.Windows.App.Diagnostics;
 using MihomoMeter.Windows.App.Interop;
 using MihomoMeter.Windows.App.Presentation;
+using MihomoMeter.Windows.Core.Application;
 
 namespace MihomoMeter.Windows.App.Lifecycle;
 
-internal sealed class NotificationAreaController : IDisposable
+internal sealed partial class NotificationAreaController : IDisposable
 {
     private const uint NotifyIconAdd = 0;
     private const uint NotifyIconModify = 1;
@@ -37,6 +38,8 @@ internal sealed class NotificationAreaController : IDisposable
     private readonly Func<bool> _isFloatingWidgetVisible;
     private readonly Func<NotificationAreaStatisticsMenuSnapshot> _captureStatisticsSnapshot;
     private readonly Func<NotificationAreaQuotaMenuSnapshot> _captureQuotaSnapshot;
+    private readonly Func<NotificationAreaConnectionsMenuSnapshot> _captureConnectionsSnapshot;
+    private readonly Action<LiveConnectionRoute> _showLiveConnectionsWorkspace;
     private readonly Action _startStatistics;
     private readonly Action<Guid> _stopStatistics;
     private readonly Action _refreshQuota;
@@ -58,6 +61,8 @@ internal sealed class NotificationAreaController : IDisposable
         Func<bool> isFloatingWidgetVisible,
         Func<NotificationAreaStatisticsMenuSnapshot> captureStatisticsSnapshot,
         Func<NotificationAreaQuotaMenuSnapshot> captureQuotaSnapshot,
+        Func<NotificationAreaConnectionsMenuSnapshot> captureConnectionsSnapshot,
+        Action<LiveConnectionRoute> showLiveConnectionsWorkspace,
         Action startStatistics,
         Action<Guid> stopStatistics,
         Action refreshQuota,
@@ -82,6 +87,10 @@ internal sealed class NotificationAreaController : IDisposable
             ?? throw new ArgumentNullException(nameof(captureStatisticsSnapshot));
         _captureQuotaSnapshot = captureQuotaSnapshot
             ?? throw new ArgumentNullException(nameof(captureQuotaSnapshot));
+        _captureConnectionsSnapshot = captureConnectionsSnapshot
+            ?? throw new ArgumentNullException(nameof(captureConnectionsSnapshot));
+        _showLiveConnectionsWorkspace = showLiveConnectionsWorkspace
+            ?? throw new ArgumentNullException(nameof(showLiveConnectionsWorkspace));
         _startStatistics = startStatistics
             ?? throw new ArgumentNullException(nameof(startStatistics));
         _stopStatistics = stopStatistics
@@ -272,59 +281,4 @@ internal sealed class NotificationAreaController : IDisposable
         }
     }
 
-    private void ShowContextMenu(nuint wordParameter)
-    {
-        var command = _menu.Show(
-            ResolveMenuPoint(wordParameter),
-            _isFloatingWidgetVisible(),
-            _captureStatisticsSnapshot(),
-            _captureQuotaSnapshot());
-        switch (command.Kind)
-        {
-            case NotificationAreaCommandKind.Open:
-                _showWindow();
-                break;
-            case NotificationAreaCommandKind.OpenStatistics:
-                _showStatisticsWorkspace();
-                break;
-            case NotificationAreaCommandKind.OpenQuota:
-                _showQuotaWorkspace();
-                break;
-            case NotificationAreaCommandKind.StartStatistics:
-                _startStatistics();
-                break;
-            case NotificationAreaCommandKind.StopStatistics
-                when command.IntervalId is Guid intervalId:
-                _stopStatistics(intervalId);
-                break;
-            case NotificationAreaCommandKind.RefreshQuota:
-                _refreshQuota();
-                break;
-            case NotificationAreaCommandKind.ToggleFloatingWidget:
-                _toggleFloatingWidget();
-                break;
-            case NotificationAreaCommandKind.Exit:
-                _exitApplication();
-                break;
-        }
-
-        ShellNativeMethods.ShellNotifyIcon(NotifyIconSetFocus, ref _iconData);
-    }
-
-    private static ShellNativeMethods.Point ResolveMenuPoint(nuint wordParameter)
-    {
-        var packed = unchecked((long)wordParameter);
-        var point = new ShellNativeMethods.Point
-        {
-            X = unchecked((short)(packed & 0xFFFF)),
-            Y = unchecked((short)((packed >> 16) & 0xFFFF)),
-        };
-        if ((point.X != -1 || point.Y != -1)
-            || ShellNativeMethods.GetCursorPos(out point))
-        {
-            return point;
-        }
-
-        throw new Win32Exception(Marshal.GetLastWin32Error());
-    }
 }
