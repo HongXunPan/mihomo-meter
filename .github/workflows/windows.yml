@@ -8,6 +8,7 @@ on:
       - "scripts/validate_windows.py"
       - "scripts/windows_validation_contract.py"
       - "scripts/windows_validation_quota_contract.py"
+      - "scripts/windows_validation_connection_contract.py"
       - "scripts/validate_windows.ps1"
       - "docs/Windows工程代码技术选型.md"
       - "docs/Windows阶段W0实机指南.md"
@@ -16,6 +17,8 @@ on:
       - "docs/Windows阶段W2B实机指南.md"
       - "docs/Windows阶段W2C实机指南.md"
       - "docs/Windows订阅配额实现契约.md"
+      - "docs/Windows阶段W2D0实机指南.md"
+      - "docs/Windows连接分析实现契约.md"
       - "CONTRIBUTING.md"
       - "README.md"
       - ".github/workflows/windows.yml"
@@ -26,6 +29,7 @@ on:
       - "scripts/validate_windows.py"
       - "scripts/windows_validation_contract.py"
       - "scripts/windows_validation_quota_contract.py"
+      - "scripts/windows_validation_connection_contract.py"
       - "scripts/validate_windows.ps1"
       - "docs/Windows工程代码技术选型.md"
       - "docs/Windows阶段W0实机指南.md"
@@ -34,6 +38,8 @@ on:
       - "docs/Windows阶段W2B实机指南.md"
       - "docs/Windows阶段W2C实机指南.md"
       - "docs/Windows订阅配额实现契约.md"
+      - "docs/Windows阶段W2D0实机指南.md"
+      - "docs/Windows连接分析实现契约.md"
       - "CONTRIBUTING.md"
       - "README.md"
       - ".github/workflows/windows.yml"
@@ -68,10 +74,10 @@ jobs:
         shell: pwsh
         run: pwsh -File scripts/validate_windows.ps1
 
-      - name: 上传 Windows W2C x64 预览目录
+      - name: 上传 Windows W2D x64 预览目录
         uses: actions/upload-artifact@v7
         with:
-          name: mihomo-meter-windows-w2c-x64-${{ github.sha }}
-          path: .codex-tmp/windows-w2c-publish
+          name: mihomo-meter-windows-w2d-x64-${{ github.sha }}
+          path: .codex-tmp/windows-w2d-publish
           if-no-files-found: error
           retention-days: 14

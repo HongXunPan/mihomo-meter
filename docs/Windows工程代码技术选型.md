@@ -2,12 +2,12 @@
 
 ## 1. 文档定位
 
-- 状态：W2B 已通过，W2C 已完成本地实现，待 CI 与 Win10 实机验证
+- 状态：W2C 已通过，W2D-0 覆盖率门禁已实现，待 CI 与 Win10 实机验证
 - 更新日期：2026-08-08
-- 上游边界：父工作区 `docs/Windows技术方案.md`、`docs/Windows阶段W2C订阅配额技术方案.md`
+- 上游边界：父工作区 `docs/Windows技术方案.md`、`docs/Windows阶段W2D连接分析技术方案.md`
 - 历史门禁：[Windows 阶段 W0 实机指南](Windows阶段W0实机指南.md)
 
-本文是开源源码仓 Windows 工程结构、依赖版本和验证入口的唯一详细真相源，不重新定义父工作区的产品阶段或验收口径。W2B 已完成统计工作台与通知区域任务菜单；W2C 订阅配额细节由[独立实现契约](Windows订阅配额实现契约.md)维护。
+本文是开源源码仓 Windows 工程结构、依赖版本和验证入口的唯一详细真相源，不重新定义父工作区的产品阶段或验收口径。W2C 订阅配额已通过；W2D 连接分析按独立纵切推进，当前实现边界见[Windows 连接分析实现契约](Windows连接分析实现契约.md)。
 
 ## 2. 固定选型与依赖
 
@@ -61,7 +61,7 @@ platform/windows/
 
 W1 开始前必须先建立 Core 与 Tests 的独立项目，不能继续把 Controller、状态机或分类算法追加进 `MainWindow.xaml.cs`。主窗口代码隐藏只允许处理窗口事件和把用户意图转交 ViewModel。
 
-## 4. W1、W2A、W2B 与 W2C 实现契约
+## 4. W1 至 W2D-0 实现契约
 
 Controller 地址、Credential Target Name、设置路径、接口顺序、分类语义、stale、退避和人工验收以父工作区 `docs/Windows阶段W1实时纵切验收.md` 为上游唯一真相。源码实现需要保持以下边界：
 
@@ -89,8 +89,11 @@ Controller 地址、Credential Target Name、设置路径、接口顺序、分�
 22. `NotificationAreaStatisticsController` 只订阅共享 Monitoring/Statistics Coordinator，在界面线程生成不可变菜单快照；它不建立采样器、数据库连接或第二份统计状态。
 23. 通知区域继续使用 `CreatePopupMenu`、`AppendMenu` 与 `TrackPopupMenuEx`；任务父项、五个槽位、查看/停止子命令和溢出入口全部使用原生菜单，不引入自绘面板或菜单依赖。
 24. 菜单跟踪期只持有任务 ID 映射；选中后先关闭菜单，再由 Dispatcher 异步开始或停止。查看任务与溢出入口切换既有主窗口到“Proxy 流量”，不创建第二个窗口。
+25. W2D-0 复用既有 `/connections` WebSocket、`ProxyClassifier` 与监控会话，不建立第二个采样器或连接流。
+26. 元数据适配、可靠 Proxy 限定、会话去重、reset、聚合 UI 和隐私约束以[Windows 连接分析实现契约](Windows连接分析实现契约.md)为唯一详细真相源。
+27. W2D-1 开始前必须先由 Win10 实机确认主机名和应用识别均非零；失败时停止，不得用 IP、规则、节点或猜测进程补位。
 
-W2C 不实现连接分析、诊断 ZIP、开机启动、安装器或自动更新。配额账本、Profile、主动查询和展示边界见[Windows 订阅配额实现契约](Windows订阅配额实现契约.md)。
+W2D-0 不实现真实连接列表、历史归因、诊断 ZIP、开机启动、安装器或自动更新。配额边界见[Windows 订阅配额实现契约](Windows订阅配额实现契约.md)，当前连接门禁见[Windows 连接分析实现契约](Windows连接分析实现契约.md)。
 
 ## 5. 配置、凭据与隐私
 
@@ -101,6 +104,7 @@ W2C 不实现连接分析、诊断 ZIP、开机启动、安装器或自动更新
 - 共享 fixture 只包含合成版本、代理类型与连接累计；不得新增真实节点、规则、目标、进程路径、连接 ID 或 Secret。
 - `traffic.sqlite3` 只保存四类聚合、会话、运行状态和统计任务基线，不保存连接、节点、规则、目标、地址或 Secret。
 - W2C 不创建运行日志或诊断 ZIP；错误状态不得包含 Secret、原始订阅 URL 或 Provider 键。
+- W2D-0 不持久化任何覆盖率数据；连接 ID 只在会话内用于去重，真实主机名、应用名和进程路径不得进入领域或展示层。
 
 ## 6. 自动化验证
 
@@ -110,7 +114,7 @@ W2C 不实现连接分析、诊断 ZIP、开机启动、安装器或自动更新
 python3 scripts/validate_windows.py
 ```
 
-该检查校验固定 SDK、依赖白名单、全部 WinUI XAML、W0–W2C 必需文件、流量 schema v2、配额 schema v1 与隐私禁止项。非 Windows 主机执行成功只证明静态契约成立。
+该检查校验固定 SDK、依赖白名单、全部 WinUI XAML、W0–W2D-0 必需文件、流量 schema v2、配额 schema v1、连接元数据布尔边界与隐私禁止项。非 Windows 主机执行成功只证明静态契约成立。
 
 Windows CI 和具备相同环境的 Windows 主机使用：
 
@@ -118,16 +122,16 @@ Windows CI 和具备相同环境的 Windows 主机使用：
 pwsh -File scripts/validate_windows.ps1
 ```
 
-固定顺序为静态检查、solution restore、Core 单元测试、App x64 Release 构建、非打包自包含 publish 和发布目录检查。CI 上传 W2C x64 预览 artifact，不查询真实机场。
+固定顺序为静态检查、solution restore、Core 单元测试、App x64 Release 构建、非打包自包含 publish 和发布目录检查。CI 上传 W2D x64 预览 artifact，不连接真实 Controller，也不查询真实机场。
 
-测试在既有流量矩阵外增加配额范围、候选、schema、周期、预测、趋势、YAML、HMAC、响应头、HTTPS/代理、单并发、冷却、清空隔离和生命周期故障隔离。原生菜单与 WinUI 仍需实机验证。
+测试在既有流量与配额矩阵外增加连接元数据解码、异常值、IP 排除、Proxy 限定、去重升级和 reset。真实 Windows 元数据覆盖率、原生菜单与 WinUI 仍需实机验证。
 
 ## 7. 人工验收与证据边界
 
-Windows 10 22H2 x64 标准用户按[Windows 阶段 W2C 实机指南](Windows阶段W2C实机指南.md)一次验证配额、Profile、主动查询、趋势、通知区域、清空、重启和 W0–W2B 回归。
+Windows 10 22H2 x64 标准用户按[Windows 阶段 W2D-0 实机指南](Windows阶段W2D0实机指南.md)验证 Proxy 主机名与应用识别覆盖率、样本清理和 W0–W2C 回归。
 
 GitHub Actions 成功不能表述为 Windows 10 实机、Credential Manager 或真实 Controller 已通过；macOS 静态检查成功也不能表述为 Windows 已编译。W1 通过后由父工作区保存带日期证据，源码仓只维护公开复现指南和自动化结果。
 
 ## 8. 停止条件
 
-出现以下情况必须停机：需要管理员权限、服务、驱动或私有 IPC；Secret、原始 URL 或连接明细落盘；查询无法保证经过 Mihomo；任一账本故障停止实时监控；必须携带另一份 SQLite；跨端契约无法对齐；W0–W2B 回归。
+出现以下情况必须停机：需要管理员权限、服务、驱动或私有 IPC；Secret、原始 URL 或连接明细落盘；查询无法保证经过 Mihomo；任一账本故障停止实时监控；必须携带另一份 SQLite；跨端契约无法对齐；主机名或应用识别始终为零；W0–W2C 回归。

@@ -68,7 +68,7 @@ python3 scripts/validate_windows.py
 pwsh -File scripts/validate_windows.ps1
 ```
 
-该脚本按固定顺序执行静态契约、Core 单元测试、App Release 构建和非打包自包含发布。W0–W2B 历史门禁见各阶段指南；当前一次性矩阵见[Windows 阶段 W2C 实机指南](docs/Windows阶段W2C实机指南.md)，实现边界见[Windows 订阅配额实现契约](docs/Windows订阅配额实现契约.md)。
+该脚本按固定顺序执行静态契约、Core 单元测试、App Release 构建和非打包自包含发布。W0–W2C 历史门禁见各阶段指南；当前一次性矩阵见[Windows 阶段 W2D-0 实机指南](docs/Windows阶段W2D0实机指南.md)，实现边界见[Windows 连接分析实现契约](docs/Windows连接分析实现契约.md)。
 
 完整 macOS 无签名构建与测试属于重型门禁，不作为每次任务完成或普通提交前的默认本地验证。所有分支 Push 和 Pull Request 都会由 macOS 持续集成自动执行；用户明确要求本机完整验证时，可执行：
 
@@ -120,6 +120,7 @@ xcodebuild \
 - 不把 DIRECT 或未知流量静默合并到 Proxy。
 - Windows 核心流量只允许写入 `%LOCALAPPDATA%\HongXunPan\MihomoMeter\traffic.sqlite3` 的分类聚合，不得保存连接、节点、目标、规则或 Secret；数据库故障不得停止实时监控。
 - Windows 机场配额只允许写入独立 `quota.sqlite3`；原始订阅 URL、Token、正文、完整响应头、Provider 键、UA 原文和 Secret 不得持久化，查询必须经过当前 Mihomo。
+- Windows W2D-0 连接元数据只允许在 Mihomo JSON Converter 的局部解析中判断可用性；领域层只接收主机名与应用是否可识别的布尔值，真实值和完整路径不得进入快照、属性通知、日志、Fixture 或持久化层。
 - 不提交本机构建产物、用户级 Xcode 配置、日志或真实响应数据。
 
 ## Pull Request

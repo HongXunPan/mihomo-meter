@@ -8,7 +8,7 @@ $WindowsRoot = Join-Path $RepositoryRoot "platform/windows"
 $Solution = Join-Path $WindowsRoot "MihomoMeter.Windows.slnx"
 $AppProject = Join-Path $WindowsRoot "MihomoMeter.Windows.App/MihomoMeter.Windows.App.csproj"
 $TestProject = Join-Path $WindowsRoot "MihomoMeter.Windows.Tests/MihomoMeter.Windows.Tests.csproj"
-$OutputDirectory = Join-Path $RepositoryRoot ".codex-tmp/windows-w2c-publish"
+$OutputDirectory = Join-Path $RepositoryRoot ".codex-tmp/windows-w2d-publish"
 
 python (Join-Path $PSScriptRoot "validate_windows.py")
 if ($LASTEXITCODE -ne 0) {
@@ -80,7 +80,7 @@ if ($PackagedArtifacts.Count -ne 0) {
 }
 
 if (Test-Path -LiteralPath (Join-Path $OutputDirectory "run-w0-gate.cmd")) {
-    throw "Windows W2C 发布目录不得包含历史 run-w0-gate.cmd。"
+    throw "Windows 当前阶段发布目录不得包含历史 run-w0-gate.cmd。"
 }
 
 $BundledSqliteFiles = @(
@@ -88,7 +88,7 @@ $BundledSqliteFiles = @(
         Where-Object { $_.Name -like "e_sqlite3*" }
 )
 if ($BundledSqliteFiles.Count -ne 0) {
-    throw "Windows W2C 必须复用系统 winsqlite3.dll，不得携带 e_sqlite3。"
+    throw "Windows 当前阶段必须复用系统 winsqlite3.dll，不得携带 e_sqlite3。"
 }
 
 Write-Host "Windows 单元测试、Release 构建与自包含发布检查通过。"

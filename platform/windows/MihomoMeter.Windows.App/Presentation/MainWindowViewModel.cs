@@ -21,6 +21,10 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     private string _directRateText = "↑ --  ·  ↓ --";
     private string _rejectRateText = "↑ --  ·  ↓ --";
     private string _unknownRateText = "↑ --  ·  ↓ --";
+    private string _proxyConnectionSampleText = "0 条";
+    private string _hostnameIdentifiedText = "0 条 · --";
+    private string _applicationIdentifiedText = "0 条 · --";
+    private string _fullyIdentifiedText = "0 条 · --";
 
     internal MainWindowViewModel(
         DispatcherQueue dispatcherQueue,
@@ -89,6 +93,30 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     {
         get => _unknownRateText;
         private set => SetField(ref _unknownRateText, value);
+    }
+
+    public string ProxyConnectionSampleText
+    {
+        get => _proxyConnectionSampleText;
+        private set => SetField(ref _proxyConnectionSampleText, value);
+    }
+
+    public string HostnameIdentifiedText
+    {
+        get => _hostnameIdentifiedText;
+        private set => SetField(ref _hostnameIdentifiedText, value);
+    }
+
+    public string ApplicationIdentifiedText
+    {
+        get => _applicationIdentifiedText;
+        private set => SetField(ref _applicationIdentifiedText, value);
+    }
+
+    public string FullyIdentifiedText
+    {
+        get => _fullyIdentifiedText;
+        private set => SetField(ref _fullyIdentifiedText, value);
     }
 
     public bool CanConnect => _connectionState
@@ -195,6 +223,17 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         DirectRateText = TrafficDisplayFormatter.Rate(snapshot.Rates?.Direct);
         RejectRateText = TrafficDisplayFormatter.Rate(snapshot.Rates?.Reject);
         UnknownRateText = TrafficDisplayFormatter.Rate(snapshot.Rates?.Unknown);
+        var attributionCoverage = snapshot.AttributionCoverage;
+        ProxyConnectionSampleText = $"{attributionCoverage.ProxyConnectionCount} 条";
+        HostnameIdentifiedText = AttributionMetric(
+            attributionCoverage.HostnameIdentifiedCount,
+            attributionCoverage.HostnameRate);
+        ApplicationIdentifiedText = AttributionMetric(
+            attributionCoverage.ApplicationIdentifiedCount,
+            attributionCoverage.ApplicationRate);
+        FullyIdentifiedText = AttributionMetric(
+            attributionCoverage.FullyIdentifiedCount,
+            attributionCoverage.FullyIdentifiedRate);
         OnPropertyChanged(nameof(CanConnect));
         OnPropertyChanged(nameof(CanDisconnect));
         OnPropertyChanged(nameof(ConnectButtonText));
@@ -214,6 +253,13 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
             MonitorConnectionState.Unsupported => "响应不兼容",
             _ => "未知状态",
         };
+    }
+
+    private static string AttributionMetric(int count, double? rate)
+    {
+        return rate is null
+            ? $"{count} 条 · --"
+            : $"{count} 条 · {rate.Value:P1}";
     }
 
     private async Task<string> ResolveSecretAsync(

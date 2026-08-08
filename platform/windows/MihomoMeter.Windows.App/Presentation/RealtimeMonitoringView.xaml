@@ -165,6 +165,113 @@
                 <TextBlock
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     Text="{x:Bind ViewModel.CoverageText, Mode=OneWay}" />
+
+                <Border
+                    Padding="20"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="12">
+                    <StackPanel Spacing="14">
+                        <StackPanel Spacing="4">
+                            <TextBlock
+                                FontSize="18"
+                                FontWeight="SemiBold"
+                                Text="连接分析 W2D-0" />
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Text="仅验证本次会话中 Proxy 连接的主机名与应用识别覆盖率。"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+
+                        <InfoBar
+                            IsClosable="False"
+                            IsOpen="True"
+                            Message="不会展示、记录或持久化主机名、进程名、进程路径和连接 ID。"
+                            Severity="Warning"
+                            Title="隐私边界" />
+
+                        <Grid RowSpacing="12" ColumnSpacing="12">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <Border
+                                Padding="14"
+                                Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                                CornerRadius="8">
+                                <StackPanel Spacing="5">
+                                    <TextBlock
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        Text="Proxy 连接样本" />
+                                    <TextBlock
+                                        FontSize="18"
+                                        FontWeight="SemiBold"
+                                        Text="{x:Bind ViewModel.ProxyConnectionSampleText, Mode=OneWay}" />
+                                </StackPanel>
+                            </Border>
+
+                            <Border
+                                Grid.Column="1"
+                                Padding="14"
+                                Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                                CornerRadius="8">
+                                <StackPanel Spacing="5">
+                                    <TextBlock
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        Text="主机名可识别" />
+                                    <TextBlock
+                                        FontSize="18"
+                                        FontWeight="SemiBold"
+                                        Text="{x:Bind ViewModel.HostnameIdentifiedText, Mode=OneWay}" />
+                                </StackPanel>
+                            </Border>
+
+                            <Border
+                                Grid.Row="1"
+                                Padding="14"
+                                Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                                CornerRadius="8">
+                                <StackPanel Spacing="5">
+                                    <TextBlock
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        Text="应用可识别" />
+                                    <TextBlock
+                                        FontSize="18"
+                                        FontWeight="SemiBold"
+                                        Text="{x:Bind ViewModel.ApplicationIdentifiedText, Mode=OneWay}" />
+                                </StackPanel>
+                            </Border>
+
+                            <Border
+                                Grid.Row="1"
+                                Grid.Column="1"
+                                Padding="14"
+                                Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                                CornerRadius="8">
+                                <StackPanel Spacing="5">
+                                    <TextBlock
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        Text="两者同时可识别" />
+                                    <TextBlock
+                                        FontSize="18"
+                                        FontWeight="SemiBold"
+                                        Text="{x:Bind ViewModel.FullyIdentifiedText, Mode=OneWay}" />
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <TextBlock
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Text="请制造受控 Proxy 流量；重连、数据超时、停止监控或内核计数重置会清空本次样本。"
+                            TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
             </StackPanel>
         </Grid>
     </ScrollViewer>

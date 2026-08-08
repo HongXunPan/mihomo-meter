@@ -8,7 +8,7 @@
 [使用文档（Wiki）](https://github.com/HongXunPan/mihomo-meter/wiki) ·
 [版本发布与下载（GitHub Releases）](https://github.com/HongXunPan/mihomo-meter/releases)
 
-Mihomo Meter 是一款通过 Mihomo Controller API 统计真实代理流量的原生桌面应用。macOS 已提供完整桌面能力；Windows 10 22H2 x64 已完成 W2B，W2C 订阅配额已完成本地实现，待 CI 与实机验证。
+Mihomo Meter 是一款通过 Mihomo Controller API 统计真实代理流量的原生桌面应用。macOS 已提供完整桌面能力；Windows 10 22H2 x64 已通过 W2C，W2D-0 连接元数据覆盖率门禁已实现，待 CI 与实机验证。
 
 > 当前已完成 MVP-1、MVP-2、阶段 2 和阶段 3 源码实现；阶段 3.0 实机门禁以 46 条 Proxy 样本通过，完整构建测试与界面验收仍由 CI 和用户完成。
 
@@ -53,7 +53,8 @@ Mihomo Meter 是只读监控工具：
 - [x] [Windows W1](docs/Windows阶段W1实机指南.md)：Controller 配置、Credential Manager、分类实时速率、stale 与重连
 - [x] [Windows W2A](docs/Windows阶段W2A实机指南.md)：分类分钟桶、今日与历史累计、重启恢复
 - [x] [Windows W2B](docs/Windows阶段W2B实机指南.md)：统计任务、30 日趋势与完整工作台
-- [ ] [Windows W2C](docs/Windows阶段W2C实机指南.md)：订阅身份、配额账本、主动查询与趋势
+- [x] [Windows W2C](docs/Windows阶段W2C实机指南.md)：订阅身份、配额账本、主动查询与趋势
+- [ ] [Windows W2D-0](docs/Windows阶段W2D0实机指南.md)：Proxy 连接主机名与应用识别覆盖率门禁
 
 已勾选项目表示当前源码和测试已经实现；未勾选项目不代表发布时间承诺。各阶段的子任务与完成状态见[开发路线图](docs/路线图.md)。
 
@@ -206,6 +207,7 @@ xcodebuild \
 - [数据与隐私](docs/数据与隐私.md)
 - [MVP-1 使用与统计口径](docs/MVP-1使用与统计口径.md)
 - [MVP-2 秒表式流量统计](docs/MVP-2秒表式流量统计.md)
+- [Windows 连接分析实现契约](docs/Windows连接分析实现契约.md)
 - [发布与安装](docs/发布与安装.md)
 - [开发路线图](docs/路线图.md)
 - [贡献指南](CONTRIBUTING.md)
