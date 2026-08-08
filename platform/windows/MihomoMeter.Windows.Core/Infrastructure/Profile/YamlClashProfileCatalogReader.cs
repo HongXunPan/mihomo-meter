@@ -73,7 +73,7 @@ public sealed class YamlClashProfileCatalogReader : IProfileCatalogReader
         var profiles = new List<ClashProfile>();
         var seen = new HashSet<string>(StringComparer.Ordinal);
         var ignored = 0;
-        foreach (var item in document.Items ?? Array.Empty<ClashProfileItem>())
+        foreach (var item in document.Items ?? [])
         {
             if (!string.Equals(item.Type, "remote", StringComparison.OrdinalIgnoreCase))
             {
@@ -123,7 +123,7 @@ internal sealed class ClashProfilesDocument
 
     public string? Current { get; set; }
 
-    public IReadOnlyList<ClashProfileItem>? Items { get; set; }
+    public List<ClashProfileItem>? Items { get; set; }
 }
 
 internal sealed class ClashProfileItem

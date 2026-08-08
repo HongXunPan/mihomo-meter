@@ -10,7 +10,7 @@ internal sealed partial class QuotaLedgerPersistence
     public SubscriptionQuotaSnapshot? LatestSnapshot(Guid subscriptionId)
     {
         using var command = _connection.CreateCommand();
-        command.CommandText = SnapshotSelect + """
+        command.CommandText = SnapshotSelect + "\n" + """
             WHERE subscription_id = $subscription
             ORDER BY observed_at DESC LIMIT 1
             """;
@@ -25,7 +25,7 @@ internal sealed partial class QuotaLedgerPersistence
         DateTimeOffset end)
     {
         using var command = _connection.CreateCommand();
-        command.CommandText = SnapshotSelect + """
+        command.CommandText = SnapshotSelect + "\n" + """
             WHERE subscription_id = $subscription
               AND COALESCE(source_updated_at, observed_at) >= $start
               AND COALESCE(source_updated_at, observed_at) <= $end
