@@ -17,7 +17,6 @@
             <RadioButtons
                 x:Name="WorkspaceModeButtons"
                 MaxColumns="2"
-                Orientation="Horizontal"
                 SelectionChanged="WorkspaceModeButtons_SelectionChanged">
                 <x:String>流量统计</x:String>
                 <x:String>实时连接</x:String>
