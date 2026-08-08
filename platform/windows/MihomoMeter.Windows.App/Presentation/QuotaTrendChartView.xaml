@@ -4,20 +4,24 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <StackPanel Spacing="8">
-        <Grid ColumnSpacing="12">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
+        <Grid RowSpacing="4">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="60" />
+            </Grid.RowDefinitions>
             <TextBlock
                 x:Name="RangeUsageText"
                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                 TextWrapping="Wrap" />
             <TextBlock
                 x:Name="PointDetailText"
-                Grid.Column="1"
+                Grid.Row="1"
                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                HorizontalAlignment="Right"
+                HorizontalAlignment="Stretch"
+                MaxLines="3"
+                TextAlignment="Right"
+                TextTrimming="CharacterEllipsis"
+                VerticalAlignment="Center"
                 TextWrapping="Wrap" />
         </Grid>
 

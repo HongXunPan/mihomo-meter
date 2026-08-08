@@ -6,6 +6,8 @@ namespace MihomoMeter.Windows.App.Presentation;
 
 public sealed partial class SubscriptionQuotaWorkspaceView : UserControl
 {
+    private const string CommonProfileDirectory =
+        @"%APPDATA%\io.github.clash-verge-rev.clash-verge-rev";
     private readonly Window _window;
     private bool _isDialogOpen;
 
@@ -22,6 +24,15 @@ public sealed partial class SubscriptionQuotaWorkspaceView : UserControl
 
     private async void SelectDirectoryButton_Click(object sender, RoutedEventArgs args)
     {
+        var dialog = CreateDialog(
+            "选择 Profile 目录",
+            "打开文件夹选择器",
+            CreateProfileDirectoryHint());
+        if (await ShowDialogAsync(dialog) != ContentDialogResult.Primary)
+        {
+            return;
+        }
+
         var picker = new FolderPicker
         {
             SuggestedStartLocation = PickerLocationId.DocumentsLibrary,
@@ -34,6 +45,32 @@ public sealed partial class SubscriptionQuotaWorkspaceView : UserControl
         {
             await ViewModel.SetProfileDirectoryAsync(folder.Path);
         }
+    }
+
+    private static StackPanel CreateProfileDirectoryHint()
+    {
+        var content = new StackPanel
+        {
+            Spacing = 8,
+        };
+        content.Children.Add(new TextBlock
+        {
+            Text = "请选择根部直接包含 profiles.yaml 的目录。"
+                + "Windows 上的常见位置是：",
+            TextWrapping = TextWrapping.Wrap,
+        });
+        content.Children.Add(new TextBlock
+        {
+            IsTextSelectionEnabled = true,
+            Text = CommonProfileDirectory,
+            TextWrapping = TextWrapping.Wrap,
+        });
+        content.Children.Add(new TextBlock
+        {
+            Text = "请选择上述目录本身，不要选择其中的 profiles 子目录。",
+            TextWrapping = TextWrapping.Wrap,
+        });
+        return content;
     }
 
     private async void StopDirectoryAccessButton_Click(object sender, RoutedEventArgs args)
