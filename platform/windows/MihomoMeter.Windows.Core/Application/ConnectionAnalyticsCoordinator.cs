@@ -161,7 +161,7 @@ public sealed partial class ConnectionAnalyticsCoordinator :
                 cancellationToken).ConfigureAwait(false);
             if (!isEnabled)
             {
-                CancelScheduledFlushLocked();
+                _ = CancelScheduledFlushLocked();
             }
             await PublishAvailableSnapshotAsync(
                 snapshot,
@@ -268,7 +268,7 @@ public sealed partial class ConnectionAnalyticsCoordinator :
 
     private void PublishUnavailable(Exception exception)
     {
-        CancelScheduledFlushLocked();
+        _ = CancelScheduledFlushLocked();
         Publish(new ConnectionAnalyticsState(
             ConnectionAnalyticsAvailability.Unavailable,
             _currentState.Snapshot,

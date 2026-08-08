@@ -41,7 +41,7 @@ public sealed partial class ConnectionAnalyticsCoordinator
                 return false;
             }
 
-            CancelScheduledFlushLocked();
+            _ = CancelScheduledFlushLocked();
             _pending.Clear();
             if (_currentState.Availability != ConnectionAnalyticsAvailability.Available)
             {

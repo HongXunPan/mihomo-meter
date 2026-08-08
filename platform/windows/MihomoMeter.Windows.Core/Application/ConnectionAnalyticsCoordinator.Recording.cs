@@ -100,7 +100,7 @@ public sealed partial class ConnectionAnalyticsCoordinator
         CancellationToken cancellationToken,
         bool publishSnapshot)
     {
-        CancelScheduledFlushLocked();
+        _ = CancelScheduledFlushLocked();
         if (_pending.Count == 0)
         {
             return true;
@@ -159,7 +159,7 @@ public sealed partial class ConnectionAnalyticsCoordinator
 
     private async Task FlushPendingForTrendAsync(CancellationToken cancellationToken)
     {
-        CancelScheduledFlushLocked();
+        _ = CancelScheduledFlushLocked();
         if (_pending.Count == 0)
         {
             return;
