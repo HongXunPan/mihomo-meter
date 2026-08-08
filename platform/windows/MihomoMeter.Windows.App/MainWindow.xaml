@@ -35,6 +35,14 @@
                         <SymbolIcon Symbol="Clock" />
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
+                <NavigationViewItem
+                    x:Name="QuotaNavigationItem"
+                    Content="订阅余额"
+                    Tag="quota">
+                    <NavigationViewItem.Icon>
+                        <SymbolIcon Symbol="Globe" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
             </NavigationView.MenuItems>
 
             <ContentControl

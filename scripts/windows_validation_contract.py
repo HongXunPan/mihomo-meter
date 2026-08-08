@@ -2,6 +2,15 @@
 
 from pathlib import Path
 
+from windows_validation_quota_contract import (
+    QUOTA_CORE_PACKAGES,
+    QUOTA_REQUIRED_APP_FILES,
+    QUOTA_REQUIRED_CODE_MARKERS,
+    QUOTA_REQUIRED_CORE_FILES,
+    QUOTA_REQUIRED_REPOSITORY_FILES,
+    QUOTA_REQUIRED_TEST_FILES,
+)
+
 
 ROOT = Path(__file__).resolve().parents[1]
 WINDOWS_ROOT = ROOT / "platform" / "windows"
@@ -21,7 +30,7 @@ REQUIRED_REPOSITORY_FILES = (
     "docs/Windows阶段W2B实机指南.md",
     "scripts/validate_windows.ps1",
     "scripts/windows_validation_contract.py",
-)
+) + QUOTA_REQUIRED_REPOSITORY_FILES
 
 EXPECTED_APP_PROPERTIES = {
     "TargetFramework": "net10.0-windows10.0.19041.0",
@@ -43,6 +52,7 @@ EXPECTED_APP_PACKAGES = {
 
 EXPECTED_CORE_PACKAGES = {
     "Microsoft.Data.Sqlite.Core": "10.0.10",
+    **QUOTA_CORE_PACKAGES,
 }
 
 EXPECTED_TEST_PACKAGES = {
@@ -91,7 +101,7 @@ REQUIRED_APP_FILES = (
     "Presentation/TrafficStatisticsWorkspaceView.xaml.cs",
     "Presentation/TrafficStatisticsWorkspaceViewModel.cs",
     "Presentation/TrafficStatisticsWorkspaceViewModel.Projection.cs",
-)
+) + QUOTA_REQUIRED_APP_FILES
 
 REQUIRED_CORE_FILES = (
     "Domain/ControllerEndpoint.cs",
@@ -130,7 +140,7 @@ REQUIRED_CORE_FILES = (
     "Infrastructure/Statistics/SQLiteTrafficLedger.Transitions.cs",
     "Infrastructure/Statistics/TrafficStatisticsException.cs",
     "Properties/AssemblyInfo.cs",
-)
+) + QUOTA_REQUIRED_CORE_FILES
 
 REQUIRED_TEST_FILES = (
     "ControllerEndpointTests.cs",
@@ -154,13 +164,14 @@ REQUIRED_TEST_FILES = (
     "TrafficStatisticsQuickTaskProjectionTests.cs",
     "TrafficStatisticsWorkspaceProjectionTests.cs",
     "WindowsSqliteTestProvider.cs",
-)
+) + QUOTA_REQUIRED_TEST_FILES
 
 REQUIRED_CODE_MARKERS = {
     APP_ROOT / "MainWindow.xaml": (
         "NavigationView",
         'Content="实时监控"',
         'Content="Proxy 流量"',
+        'Content="订阅余额"',
         "StatisticsNavigationItem",
         "WorkspaceContent",
         'HorizontalContentAlignment="Stretch"',
@@ -168,8 +179,10 @@ REQUIRED_CODE_MARKERS = {
     APP_ROOT / "MainWindow.xaml.cs": (
         "new RealtimeMonitoringView",
         "new TrafficStatisticsWorkspaceView",
+        "new SubscriptionQuotaWorkspaceView",
         "NotificationAreaStatisticsController",
         "ShowStatisticsWorkspace",
+        "ShowQuotaWorkspace",
         "WorkspaceNavigation_SelectionChanged",
     ),
     APP_ROOT / "Program.cs": ("FindOrRegisterForKey", "RedirectActivationToAsync"),
@@ -186,12 +199,15 @@ REQUIRED_CODE_MARKERS = {
         "TaskbarCreated",
         "NotifyIconModify",
         "_captureStatisticsSnapshot",
+        "_captureQuotaSnapshot",
+        "NotificationAreaCommandKind.RefreshQuota",
         "NotificationAreaCommandKind.StopStatistics",
     ),
     APP_ROOT / "Lifecycle/NotificationAreaMenu.cs": (
         "TrackPopupMenuEx",
         "NotificationAreaCommand",
         "AppendStatisticsMenu",
+        "AppendQuotaMenu",
     ),
     APP_ROOT / "Lifecycle/NotificationAreaMenu.Tasks.cs": (
         "TrafficStatisticsQuickTaskProjection.SlotCount",
@@ -219,6 +235,8 @@ REQUIRED_CODE_MARKERS = {
     ),
     APP_ROOT / "Infrastructure/Credentials/CredentialManagerSecretStore.cs": (
         "com.HongXunPan.MihomoMeter.controller",
+    ),
+    APP_ROOT / "Infrastructure/Credentials/CredentialManagerBlobStore.cs": (
         "CredReadW",
         "CredWriteW",
         "CredDeleteW",
@@ -234,6 +252,10 @@ REQUIRED_CODE_MARKERS = {
         "UseProxy = false",
         "SQLiteTrafficLedger",
         "TrafficStatisticsCoordinator",
+        "SQLiteQuotaLedger",
+        "QuotaTrackingCoordinator",
+        "YamlClashProfileCatalogReader",
+        "MihomoActiveQuotaQueryClient",
     ),
     APP_ROOT / "Infrastructure/Statistics/TrafficLedgerLocation.cs": (
         "LocalApplicationData",
@@ -246,6 +268,8 @@ REQUIRED_CODE_MARKERS = {
         'HttpUri("/version")',
         'HttpUri("/proxies")',
         "AuthenticationFailed",
+        'HttpUri("/providers/proxies")',
+        'HttpUri("/configs")',
     ),
     CORE_ROOT / "Infrastructure/Mihomo/ConnectionSnapshotCollector.cs": (
         'WebSocketUri("/connections", "interval=500")',
@@ -264,6 +288,7 @@ REQUIRED_CODE_MARKERS = {
         "backoff.Reset()",
         "BeginMonitoringAsync",
         "InterruptMonitoringAsync",
+        "FaultIsolatedQuotaTrackingLifecycle",
     ),
     CORE_ROOT / "Application/TrafficStatisticsCoordinator.cs": (
         "_operationGate",
@@ -362,13 +387,13 @@ REQUIRED_CODE_MARKERS = {
         "status = 'interrupted'",
         "statistics_unavailable",
     ),
+    **QUOTA_REQUIRED_CODE_MARKERS,
 }
 
 FORBIDDEN_PROJECT_MARKERS = (
     "Microsoft.EntityFrameworkCore",
     "System.Data.SQLite",
     "SQLitePCLRaw.bundle_e_sqlite3",
-    'PackageReference Include="Yaml',
 )
 
 FORBIDDEN_CODE_MARKERS = (

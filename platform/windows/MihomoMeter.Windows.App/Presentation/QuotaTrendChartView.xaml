@@ -1,0 +1,59 @@
+<UserControl
+    x:Class="MihomoMeter.Windows.App.Presentation.QuotaTrendChartView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <StackPanel Spacing="8">
+        <Grid RowSpacing="4">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="60" />
+            </Grid.RowDefinitions>
+            <TextBlock
+                x:Name="RangeUsageText"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                TextWrapping="Wrap" />
+            <TextBlock
+                x:Name="PointDetailText"
+                Grid.Row="1"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                HorizontalAlignment="Stretch"
+                MaxLines="3"
+                TextAlignment="Right"
+                TextTrimming="CharacterEllipsis"
+                VerticalAlignment="Center"
+                TextWrapping="Wrap" />
+        </Grid>
+
+        <StackPanel Orientation="Horizontal" Spacing="14">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+                <Ellipse Width="8" Height="8" Fill="DodgerBlue" />
+                <TextBlock
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Text="下载增量" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="6">
+                <Ellipse Width="8" Height="8" Fill="Orange" />
+                <TextBlock
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Text="上传增量" />
+            </StackPanel>
+        </StackPanel>
+
+        <Grid Height="220">
+            <Canvas
+                x:Name="ChartCanvas"
+                Background="Transparent"
+                PointerExited="ChartCanvas_PointerExited"
+                PointerMoved="ChartCanvas_PointerMoved"
+                SizeChanged="ChartCanvas_SizeChanged" />
+            <TextBlock
+                x:Name="EmptyText"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                TextAlignment="Center"
+                TextWrapping="Wrap" />
+        </Grid>
+    </StackPanel>
+</UserControl>

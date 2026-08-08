@@ -110,6 +110,8 @@ public static class MihomoJsonDecoder
             MihomoVersionResponse version => !string.IsNullOrWhiteSpace(version.Version),
             MihomoProxiesResponse proxies => IsValidProxies(proxies),
             MihomoConnectionsSnapshot connections => IsValidConnections(connections),
+            MihomoProxyProvidersResponse providers => providers.Providers is not null
+                && providers.Providers.All(item => item.Value is not null),
             _ => true,
         };
     }

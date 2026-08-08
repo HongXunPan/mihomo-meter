@@ -10,8 +10,10 @@ internal enum NotificationAreaCommandKind
     None,
     Open,
     OpenStatistics,
+    OpenQuota,
     StartStatistics,
     StopStatistics,
+    RefreshQuota,
     ToggleFloatingWidget,
     Exit,
 }
@@ -45,7 +47,8 @@ internal sealed partial class NotificationAreaMenu
     public NotificationAreaCommand Show(
         ShellNativeMethods.Point point,
         bool floatingWidgetVisible,
-        NotificationAreaStatisticsMenuSnapshot statisticsSnapshot)
+        NotificationAreaStatisticsMenuSnapshot statisticsSnapshot,
+        NotificationAreaQuotaMenuSnapshot quotaSnapshot)
     {
         var menuHandle = CreateMenu();
         var commands = new Dictionary<uint, NotificationAreaCommand>();
@@ -55,6 +58,7 @@ internal sealed partial class NotificationAreaMenu
             commands.Add(
                 OpenCommand,
                 new NotificationAreaCommand(NotificationAreaCommandKind.Open));
+            AppendQuotaMenu(menuHandle, quotaSnapshot, commands);
             AppendStatisticsMenu(menuHandle, statisticsSnapshot, commands);
             AppendMenuItem(
                 menuHandle,

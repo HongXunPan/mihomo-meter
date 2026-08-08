@@ -9,6 +9,7 @@ public sealed class TrafficMonitoringCoordinator : IAsyncDisposable
     private readonly IControllerConfigurationStore _configurationStore;
     private readonly TrafficMonitoringStream _stream;
     private readonly ITrafficStatisticsRecorder _statisticsRecorder;
+    private readonly IQuotaTrackingLifecycle _quotaTrackingLifecycle;
     private readonly TimeProvider _timeProvider;
     private readonly SemaphoreSlim _transitionLock = new(1, 1);
     private readonly object _stateLock = new();
@@ -22,13 +23,16 @@ public sealed class TrafficMonitoringCoordinator : IAsyncDisposable
         IControllerConfigurationStore configurationStore,
         MonitoringPolicy? policy = null,
         TimeProvider? timeProvider = null,
-        ITrafficStatisticsRecorder? statisticsRecorder = null)
+        ITrafficStatisticsRecorder? statisticsRecorder = null,
+        IQuotaTrackingLifecycle? quotaTrackingLifecycle = null)
     {
         var selectedPolicy = (policy ?? MonitoringPolicy.Production).Validate();
         _client = client;
         _configurationStore = configurationStore;
         _timeProvider = timeProvider ?? TimeProvider.System;
         _statisticsRecorder = statisticsRecorder ?? NullTrafficStatisticsRecorder.Instance;
+        _quotaTrackingLifecycle = new FaultIsolatedQuotaTrackingLifecycle(
+            quotaTrackingLifecycle ?? NullQuotaTrackingLifecycle.Instance);
         _stream = new TrafficMonitoringStream(
             client,
             collector,
@@ -86,6 +90,9 @@ public sealed class TrafficMonitoringCoordinator : IAsyncDisposable
         {
             var generation = Interlocked.Increment(ref _generation);
             await StopActiveRunAsync().ConfigureAwait(false);
+            await _quotaTrackingLifecycle
+                .ControllerUnavailableAsync(cancellationToken)
+                .ConfigureAwait(false);
             await _statisticsRecorder
                 .InterruptMonitoringAsync(reason, cancellationToken)
                 .ConfigureAwait(false);
@@ -156,6 +163,9 @@ public sealed class TrafficMonitoringCoordinator : IAsyncDisposable
                 await _statisticsRecorder
                     .BeginMonitoringAsync(version.Version, cancellationToken)
                     .ConfigureAwait(false);
+                await _quotaTrackingLifecycle
+                    .ControllerValidatedAsync(endpoint, secret, cancellationToken)
+                    .ConfigureAwait(false);
 
                 await _stream.RunAsync(
                     endpoint,
@@ -179,6 +189,9 @@ public sealed class TrafficMonitoringCoordinator : IAsyncDisposable
 
                 if (PublishTerminalIfNeeded(generation, exception.RootException))
                 {
+                    await _quotaTrackingLifecycle
+                        .ControllerUnavailableAsync(CancellationToken.None)
+                        .ConfigureAwait(false);
                     await _statisticsRecorder
                         .InterruptMonitoringAsync(
                             TrafficSessionEndReason.TerminalFailure,
@@ -187,6 +200,9 @@ public sealed class TrafficMonitoringCoordinator : IAsyncDisposable
                     return;
                 }
 
+                await _quotaTrackingLifecycle
+                    .ControllerUnavailableAsync(CancellationToken.None)
+                    .ConfigureAwait(false);
                 await WaitForRetryAsync(
                     generation,
                     backoff,
@@ -197,6 +213,9 @@ public sealed class TrafficMonitoringCoordinator : IAsyncDisposable
             {
                 if (PublishTerminalIfNeeded(generation, exception))
                 {
+                    await _quotaTrackingLifecycle
+                        .ControllerUnavailableAsync(CancellationToken.None)
+                        .ConfigureAwait(false);
                     await _statisticsRecorder
                         .InterruptMonitoringAsync(
                             TrafficSessionEndReason.TerminalFailure,
@@ -205,6 +224,9 @@ public sealed class TrafficMonitoringCoordinator : IAsyncDisposable
                     return;
                 }
 
+                await _quotaTrackingLifecycle
+                    .ControllerUnavailableAsync(CancellationToken.None)
+                    .ConfigureAwait(false);
                 await WaitForRetryAsync(
                     generation,
                     backoff,
@@ -315,5 +337,23 @@ public sealed class TrafficMonitoringCoordinator : IAsyncDisposable
         }
 
         handler?.Invoke(snapshot with { SessionGeneration = generation });
+    }
+}
+
+internal sealed class NullQuotaTrackingLifecycle : IQuotaTrackingLifecycle
+{
+    public static NullQuotaTrackingLifecycle Instance { get; } = new();
+
+    public Task ControllerValidatedAsync(
+        ControllerEndpoint endpoint,
+        string secret,
+        CancellationToken cancellationToken)
+    {
+        return Task.CompletedTask;
+    }
+
+    public Task ControllerUnavailableAsync(CancellationToken cancellationToken)
+    {
+        return Task.CompletedTask;
     }
 }

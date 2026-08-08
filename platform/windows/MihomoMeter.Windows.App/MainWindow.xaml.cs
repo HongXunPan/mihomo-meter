@@ -14,6 +14,7 @@ public sealed partial class MainWindow : Window
     private readonly WindowsAppServices _services;
     private readonly RealtimeMonitoringView _realtimeView;
     private readonly TrafficStatisticsWorkspaceView _statisticsView;
+    private readonly SubscriptionQuotaWorkspaceView _quotaView;
     private bool _stopped;
 
     internal MainWindow(WindowsAppServices services)
@@ -27,19 +28,26 @@ public sealed partial class MainWindow : Window
             DispatcherQueue,
             services.Coordinator,
             services.Statistics);
+        QuotaViewModel = new SubscriptionQuotaWorkspaceViewModel(
+            DispatcherQueue,
+            services.Quota);
         NotificationAreaStatistics = new NotificationAreaStatisticsController(
             DispatcherQueue,
             services.Coordinator,
             services.Statistics);
+        NotificationAreaQuota = new NotificationAreaQuotaController(
+            DispatcherQueue,
+            services.Quota);
         StartupConsoleReporter.Stage("main_window_xaml_initialize_started");
         InitializeComponent();
         StartupConsoleReporter.Stage("main_window_xaml_initialize_completed");
         _realtimeView = new RealtimeMonitoringView(ViewModel);
         _statisticsView = new TrafficStatisticsWorkspaceView(StatisticsViewModel);
+        _quotaView = new SubscriptionQuotaWorkspaceView(QuotaViewModel, this);
         WorkspaceNavigation.SelectionChanged += WorkspaceNavigation_SelectionChanged;
         WorkspaceNavigation.SelectedItem = RealtimeNavigationItem;
         ShowWorkspace("realtime");
-        Title = "Mihomo Meter · Windows W2B";
+        Title = "Mihomo Meter · Windows W2C";
         ResizeForPreview();
     }
 
@@ -47,11 +55,16 @@ public sealed partial class MainWindow : Window
 
     public TrafficStatisticsWorkspaceViewModel StatisticsViewModel { get; }
 
+    public SubscriptionQuotaWorkspaceViewModel QuotaViewModel { get; }
+
     internal NotificationAreaStatisticsController NotificationAreaStatistics { get; }
+
+    internal NotificationAreaQuotaController NotificationAreaQuota { get; }
 
     internal async Task<bool> InitializeAsync()
     {
         await StatisticsViewModel.InitializeAsync();
+        await QuotaViewModel.InitializeAsync();
         return await ViewModel.InitializeAsync();
     }
 
@@ -65,7 +78,9 @@ public sealed partial class MainWindow : Window
         _stopped = true;
         ViewModel.Detach();
         StatisticsViewModel.Detach();
+        QuotaViewModel.Detach();
         NotificationAreaStatistics.Dispose();
+        NotificationAreaQuota.Dispose();
         await _services.DisposeAsync();
     }
 
@@ -80,6 +95,12 @@ public sealed partial class MainWindow : Window
         ShowWorkspace("statistics");
     }
 
+    internal void ShowQuotaWorkspace()
+    {
+        WorkspaceNavigation.SelectedItem = QuotaNavigationItem;
+        ShowWorkspace("quota");
+    }
+
     private void WorkspaceNavigation_SelectionChanged(
         NavigationView sender,
         NavigationViewSelectionChangedEventArgs args)
@@ -89,9 +110,12 @@ public sealed partial class MainWindow : Window
 
     private void ShowWorkspace(string? section)
     {
-        WorkspaceContent.Content = section == "statistics"
-            ? _statisticsView
-            : _realtimeView;
+        WorkspaceContent.Content = section switch
+        {
+            "statistics" => _statisticsView,
+            "quota" => _quotaView,
+            _ => _realtimeView,
+        };
     }
 
     private void ResizeForPreview()
