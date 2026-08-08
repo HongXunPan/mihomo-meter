@@ -226,7 +226,8 @@ public sealed class SQLiteConnectionAnalyticsLedgerTests
     [TestMethod]
     public async Task RejectsDatabaseSchemaNewerThanApplication()
     {
-        using (var connection = new SqliteConnection($"Data Source={_databasePath}"))
+        using (var connection = new SqliteConnection(
+            $"Data Source={_databasePath};Pooling=False"))
         {
             connection.Open();
             using var command = connection.CreateCommand();
