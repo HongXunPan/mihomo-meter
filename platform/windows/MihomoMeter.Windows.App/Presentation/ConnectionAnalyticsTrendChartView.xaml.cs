@@ -260,7 +260,7 @@ public sealed partial class ConnectionAnalyticsTrendChartView : UserControl
         double top,
         double width,
         double height,
-        Windows.UI.Color color,
+        global::Windows.UI.Color color,
         double opacity)
     {
         if (height <= 0)
