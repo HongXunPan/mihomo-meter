@@ -40,12 +40,13 @@
 
 ## 5. Profile 授权与身份
 
-1. 点击“选择 Profile 目录”，确认弹窗提示 Clash Verge Rev 的 Windows 常见路径 `%APPDATA%\io.github.clash-verge-rev.clash-verge-rev`，随后使用 Windows 原生文件夹选择器；取消提示或取消选择均不应改变现状。
-2. 选择根部含 `profiles.yaml` 的目录，不要选择其中的 `profiles` 子目录；确认只显示远程 Profile，当前 UID 有明确标识，HTTP Profile 可见但不能开启主动查询。
-3. 为两个以上 HTTPS Profile 分别开启追踪，并选择不同的 1/3/6/12/24 小时间隔；重启应用后选择与间隔应恢复。
-4. 在 Clash Verge 中只改一个 Profile 的名称或让其配置文件发生原子替换，确认约 1 秒内列表更新且既有历史不丢失。
-5. 若实际安全地更换同一 UID 的 URL，确认历史仍归同一 UID，但下一次查询使用新地址；界面和数据库不得展示原始 URL。
-6. 点击“停止目录访问”，确认观察停止、Profile 追踪暂停、历史保留；重新选择后可恢复管理。
+1. 点击“选择 Profile 目录”，确认弹窗分别展示 Clash Verge Rev 的 `%APPDATA%\io.github.clash-verge-rev.clash-verge-rev` 与旧版 Clash Verge 的 `%APPDATA%\top.gydi.clashverge`，每行都有“打开目录”按钮。
+2. 点击已安装客户端对应的“打开目录”，确认 Windows 原生选择器尝试定位到该路径；再通过底部“浏览其他目录”进入选择器，确认它不强制定位到任一客户端路径。取消提示或取消选择均不应改变现状。
+3. 选择根部含 `profiles.yaml` 的目录，不要选择其中的 `profiles` 子目录；确认只显示远程 Profile，当前 UID 有明确标识，HTTP Profile 可见但不能开启主动查询。
+4. 为两个以上 HTTPS Profile 分别开启追踪，并选择不同的 1/3/6/12/24 小时间隔；重启应用后选择与间隔应恢复。
+5. 在 Clash Verge 中只改一个 Profile 的名称或让其配置文件发生原子替换，确认约 1 秒内列表更新且既有历史不丢失。
+6. 若实际安全地更换同一 UID 的 URL，确认历史仍归同一 UID，但下一次查询使用新地址；界面和数据库不得展示原始 URL。
+7. 点击“停止目录访问”，确认观察停止、Profile 追踪暂停、历史保留；重新选择后可恢复管理。
 
 若目录是符号链接、Junction 或其他重解析点，应明确拒绝；不要为了测试破坏 Clash Verge 正在使用的真实配置。
 

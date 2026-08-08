@@ -1,13 +1,10 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Windows.Storage.Pickers;
 
 namespace MihomoMeter.Windows.App.Presentation;
 
 public sealed partial class SubscriptionQuotaWorkspaceView : UserControl
 {
-    private const string CommonProfileDirectory =
-        @"%APPDATA%\io.github.clash-verge-rev.clash-verge-rev";
     private readonly Window _window;
     private bool _isDialogOpen;
 
@@ -24,53 +21,36 @@ public sealed partial class SubscriptionQuotaWorkspaceView : UserControl
 
     private async void SelectDirectoryButton_Click(object sender, RoutedEventArgs args)
     {
-        var dialog = CreateDialog(
-            "选择 Profile 目录",
-            "打开文件夹选择器",
-            CreateProfileDirectoryHint());
-        if (await ShowDialogAsync(dialog) != ContentDialogResult.Primary)
+        var dialog = new ProfileDirectoryChoiceDialog();
+        await ShowDialogAsync(dialog);
+        if (!dialog.ShouldOpenPicker)
         {
             return;
         }
 
-        var picker = new FolderPicker
-        {
-            SuggestedStartLocation = PickerLocationId.DocumentsLibrary,
-        };
-        picker.FileTypeFilter.Add("*");
+        await PickProfileDirectoryAsync(dialog.SuggestedDirectoryPath);
+    }
+
+    private async Task PickProfileDirectoryAsync(string? suggestedDirectoryPath)
+    {
         var windowHandle = WinRT.Interop.WindowNative.GetWindowHandle(_window);
-        WinRT.Interop.InitializeWithWindow.Initialize(picker, windowHandle);
+        var windowId = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(windowHandle);
+        var picker = new Microsoft.Windows.Storage.Pickers.FolderPicker(windowId)
+        {
+            CommitButtonText = "选择此目录",
+            SettingsIdentifier = "MihomoMeter.ProfileDirectory",
+            Title = "选择包含 profiles.yaml 的目录",
+        };
+        if (suggestedDirectoryPath is not null)
+        {
+            picker.SuggestedFolder = suggestedDirectoryPath;
+        }
+
         var folder = await picker.PickSingleFolderAsync();
         if (folder is not null)
         {
             await ViewModel.SetProfileDirectoryAsync(folder.Path);
         }
-    }
-
-    private static StackPanel CreateProfileDirectoryHint()
-    {
-        var content = new StackPanel
-        {
-            Spacing = 8,
-        };
-        content.Children.Add(new TextBlock
-        {
-            Text = "请选择根部直接包含 profiles.yaml 的目录。"
-                + "Windows 上的常见位置是：",
-            TextWrapping = TextWrapping.Wrap,
-        });
-        content.Children.Add(new TextBlock
-        {
-            IsTextSelectionEnabled = true,
-            Text = CommonProfileDirectory,
-            TextWrapping = TextWrapping.Wrap,
-        });
-        content.Children.Add(new TextBlock
-        {
-            Text = "请选择上述目录本身，不要选择其中的 profiles 子目录。",
-            TextWrapping = TextWrapping.Wrap,
-        });
-        return content;
     }
 
     private async void StopDirectoryAccessButton_Click(object sender, RoutedEventArgs args)
