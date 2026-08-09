@@ -21,11 +21,46 @@ if ($Version -cnotmatch "^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$") {
 
 $RepositoryRoot = Split-Path -Parent $PSScriptRoot
 $InstallerScript = Join-Path $RepositoryRoot "platform/windows/installer/MihomoMeter.nsi"
+$InstallerSourceFiles = @(
+    $InstallerScript
+    (Join-Path $RepositoryRoot "platform/windows/installer/MihomoMeter.InstallDirectory.nsh")
+)
 $PayloadDirectory = [System.IO.Path]::GetFullPath($PayloadDirectory)
 $OutputPath = [System.IO.Path]::GetFullPath($OutputPath)
 
-if (-not (Test-Path -LiteralPath $InstallerScript -PathType Leaf)) {
-    throw "缺少 Windows NSIS 安装器脚本：$InstallerScript"
+function Assert-Utf8BomSource {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Path
+    )
+
+    if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
+        throw "缺少 Windows NSIS 安装器源文件：$Path"
+    }
+
+    $Bytes = [System.IO.File]::ReadAllBytes($Path)
+    if ($Bytes.Length -lt 3 -or
+        $Bytes[0] -ne 0xEF -or
+        $Bytes[1] -ne 0xBB -or
+        $Bytes[2] -ne 0xBF) {
+        throw "Windows NSIS 安装器源文件必须使用带 BOM 的 UTF-8：$Path"
+    }
+
+    try {
+        $StrictUtf8 = [System.Text.UTF8Encoding]::new($true, $true)
+        $Content = $StrictUtf8.GetString($Bytes)
+    }
+    catch {
+        throw "Windows NSIS 安装器源文件包含无效 UTF-8：$Path"
+    }
+
+    if ($Content -match "[\u0080-\u009F\u00C0-\u024F\uFFFD]") {
+        throw "Windows NSIS 安装器源文件疑似包含乱码字符：$Path"
+    }
+}
+
+foreach ($InstallerSourceFile in $InstallerSourceFiles) {
+    Assert-Utf8BomSource -Path $InstallerSourceFile
 }
 if (-not (Test-Path -LiteralPath $PayloadDirectory -PathType Container)) {
     throw "Windows 安装器载荷目录不存在：$PayloadDirectory"

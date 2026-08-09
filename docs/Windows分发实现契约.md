@@ -22,7 +22,7 @@ PR 与 `main` push 的预览版本固定回退为 `0.0.0`；手动 workflow 允�
 
 `scripts/package_windows.ps1` 只消费已经验证的发布目录，不执行 restore、build 或 publish。它检查可执行文件四段版本、必需 PRI、敏感文件和禁止扩展名，排除 PDB 后生成一份临时统一载荷；便携 ZIP 和 NSIS 安装器必须消费该同一载荷，完成后清理载荷目录。
 
-`scripts/build_windows_installer.ps1` 只负责调用已锁定的 NSIS 编译器、以 `/INPUTCHARSET UTF8` 读取主脚本、传入版本/载荷/输出路径并复核安装器版本，不复制发布、测试或 ZIP 职责。NSIS 脚本固定放在 `platform/windows/installer/MihomoMeter.nsi`，其 UTF-8 中文和显式指定 UTF-8 的拆分 include 必须保持一致，不得引入额外插件。
+`scripts/build_windows_installer.ps1` 只负责调用已锁定的 NSIS 编译器、检查全部 NSIS 源文件均为带 BOM 的有效 UTF-8、以 `/INPUTCHARSET UTF8` 读取主脚本、传入版本/载荷/输出路径并复核安装器版本，不复制发布、测试或 ZIP 职责。NSIS 主脚本固定放在 `platform/windows/installer/MihomoMeter.nsi`，拆分 include 固定显式指定 UTF-8；BOM、命令行字符集与静态乱码扫描共同保护全部自定义中文，不得引入额外插件。
 
 ## 4. 资产与内容契约
 

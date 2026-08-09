@@ -1,4 +1,4 @@
-Unicode true
+﻿Unicode true
 
 !include "LogicLib.nsh"
 !include "MUI2.nsh"

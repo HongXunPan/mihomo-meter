@@ -1,9 +1,14 @@
 """定义 Windows W3 公开分发静态门禁使用的增量契约。"""
 
+import codecs
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+NSIS_SOURCE_PATHS = (
+    ROOT / "platform/windows/installer/MihomoMeter.nsi",
+    ROOT / "platform/windows/installer/MihomoMeter.InstallDirectory.nsh",
+)
 
 DISTRIBUTION_REQUIRED_REPOSITORY_FILES = (
     "docs/Windows分发实现契约.md",
@@ -65,6 +70,11 @@ DISTRIBUTION_REQUIRED_CODE_MARKERS = {
     ),
     ROOT / "scripts/build_windows_installer.ps1": (
         "platform/windows/installer/MihomoMeter.nsi",
+        "MihomoMeter.InstallDirectory.nsh",
+        "Assert-Utf8BomSource",
+        "[System.IO.File]::ReadAllBytes",
+        "[System.Text.UTF8Encoding]::new($true, $true)",
+        '"[\\u0080-\\u009F\\u00C0-\\u024F\\uFFFD]"',
         '"/INPUTCHARSET",\n    "UTF8",',
         '"/DAPP_VERSION=$Version"',
         '"/DPAYLOAD_DIRECTORY=$PayloadDirectory"',
@@ -114,13 +124,49 @@ DISTRIBUTION_REQUIRED_CODE_MARKERS = {
 }
 
 
+def read_nsis_source(path: Path, errors: list[str]) -> str:
+    if not path.is_file():
+        return ""
+
+    raw = path.read_bytes()
+    if not raw.startswith(codecs.BOM_UTF8):
+        errors.append(
+            f"Windows NSIS 安装器源文件必须使用带 BOM 的 UTF-8：{path.relative_to(ROOT)}"
+        )
+
+    try:
+        content = raw.decode("utf-8-sig", errors="strict")
+    except UnicodeDecodeError:
+        errors.append(
+            f"Windows NSIS 安装器源文件包含无效 UTF-8：{path.relative_to(ROOT)}"
+        )
+        return ""
+
+    suspicious_code_points = sorted(
+        {
+            ord(character)
+            for character in content
+            if 0x0080 <= ord(character) <= 0x009F
+            or 0x00C0 <= ord(character) <= 0x024F
+            or character == "\ufffd"
+        }
+    )
+    if suspicious_code_points:
+        code_points = ", ".join(
+            f"U+{code_point:04X}" for code_point in suspicious_code_points
+        )
+        errors.append(
+            "Windows NSIS 安装器源文件疑似包含乱码字符："
+            f"{path.relative_to(ROOT)}（{code_points}）"
+        )
+
+    return content
+
+
 def validate_distribution_contract(errors: list[str]) -> None:
     installer = "\n".join(
-        path.read_text(encoding="utf-8")
-        for path in (
-            ROOT / "platform/windows/installer/MihomoMeter.nsi",
-            ROOT / "platform/windows/installer/MihomoMeter.InstallDirectory.nsh",
-        )
+        read_nsis_source(path, errors)
+        for path in NSIS_SOURCE_PATHS
     )
     forbidden_markers = (
         "RequestExecutionLevel admin",

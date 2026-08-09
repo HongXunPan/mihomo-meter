@@ -35,7 +35,7 @@ Get-Content .\SHA256SUMS | ForEach-Object {
 1. 使用标准用户双击 `setup.exe`，不要选择“以管理员身份运行”；首次下载可能出现 SmartScreen，确认来源后继续。
 2. 安装全程不得出现 UAC。首次安装应显示目录选择页，默认值为 `%LOCALAPPDATA%\Programs\Mihomo Meter`；改选其他磁盘上的空专用目录，例如 `D:\Apps\Mihomo Meter`，确认可以继续。
 3. 分别尝试磁盘根目录、`%LOCALAPPDATA%\HongXunPan\MihomoMeter`、无写权限目录和已有文件的非空目录，确认安装器拒绝继续且不会删除其中内容。
-4. 确认安装器标题、正文、按钮和“运行 Mihomo Meter”均以清晰中文字体显示，不再出现缺字、乱码或英文字母笔画残缺。
+4. 确认欢迎页、目录页、安装/升级/卸载阻断提示、危险目录提示、完成页标题/正文/按钮和“运行 Mihomo Meter”等全部文字均清晰显示，不再出现缺字、乱码或英文字母笔画残缺。
 5. 确认开始菜单出现 “Mihomo Meter”，桌面没有自动创建快捷方式，“已安装的应用”中存在当前版本和卸载入口，`InstallLocation` 与所选目录一致。
 6. 完成页保持“运行 Mihomo Meter”后结束安装，确认标题显示“Windows W3-1”，且只有一个进程和通知区域图标。
 7. 快速确认 Controller 配置、Credential Manager、Proxy/DIRECT 实时速度、核心累计、统计任务、订阅配额、实时连接与历史归因可以正常进入。
