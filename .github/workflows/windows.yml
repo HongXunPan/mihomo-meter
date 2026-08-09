@@ -16,6 +16,10 @@ on:
       - "scripts/windows_validation_quota_contract.py"
       - "scripts/windows_validation_connection_contract.py"
       - "scripts/windows_validation_distribution_contract.py"
+      - "scripts/windows_validation_release_contract.py"
+      - "scripts/release_platform_descriptors.py"
+      - "scripts/test_release_platform_descriptors.py"
+      - "scripts/validate_release_candidate.py"
       - "scripts/validate_windows.ps1"
       - "scripts/package_windows.ps1"
       - "scripts/build_windows_installer.ps1"
@@ -33,10 +37,12 @@ on:
       - "docs/Windows连接分析实现契约.md"
       - "docs/Windows阶段W3-0实机指南.md"
       - "docs/Windows阶段W3-1实机指南.md"
+      - "docs/Windows阶段W3-2实机指南.md"
       - "docs/Windows分发实现契约.md"
       - "CONTRIBUTING.md"
       - "README.md"
       - ".github/workflows/windows.yml"
+      - ".github/workflows/release.yml"
   push:
     branches: [main]
     paths:
@@ -46,6 +52,10 @@ on:
       - "scripts/windows_validation_quota_contract.py"
       - "scripts/windows_validation_connection_contract.py"
       - "scripts/windows_validation_distribution_contract.py"
+      - "scripts/windows_validation_release_contract.py"
+      - "scripts/release_platform_descriptors.py"
+      - "scripts/test_release_platform_descriptors.py"
+      - "scripts/validate_release_candidate.py"
       - "scripts/validate_windows.ps1"
       - "scripts/package_windows.ps1"
       - "scripts/build_windows_installer.ps1"
@@ -63,10 +73,12 @@ on:
       - "docs/Windows连接分析实现契约.md"
       - "docs/Windows阶段W3-0实机指南.md"
       - "docs/Windows阶段W3-1实机指南.md"
+      - "docs/Windows阶段W3-2实机指南.md"
       - "docs/Windows分发实现契约.md"
       - "CONTRIBUTING.md"
       - "README.md"
       - ".github/workflows/windows.yml"
+      - ".github/workflows/release.yml"
 
 permissions:
   contents: read
@@ -119,7 +131,7 @@ jobs:
           -Version "$env:WINDOWS_PREVIEW_VERSION"
           -MakeNsisPath "$env:NSIS_COMPILER_PATH"
 
-      - name: 上传 Windows W3-1 x64 预览包
+      - name: 上传 Windows W3-2 x64 预览包
         uses: actions/upload-artifact@v7
         with:
           name: mihomo-meter-windows-w3-preview-${{ env.WINDOWS_PREVIEW_VERSION }}-${{ github.sha }}

@@ -7,6 +7,7 @@ using MihomoMeter.Windows.App.Infrastructure;
 using MihomoMeter.Windows.App.Lifecycle;
 using MihomoMeter.Windows.App.Presentation;
 using MihomoMeter.Windows.Core.Application;
+using MihomoMeter.Windows.Core.Domain;
 using Windows.Graphics;
 
 namespace MihomoMeter.Windows.App;
@@ -21,6 +22,7 @@ public sealed partial class MainWindow : Window
     private readonly ConnectionAnalyticsTrendWindowController _connectionTrendWindow;
     private readonly ProxyTrafficWorkspaceView _proxyTrafficView;
     private readonly SubscriptionQuotaWorkspaceView _quotaView;
+    private readonly WindowsUpdateWorkspaceView _updateView;
     private bool _stopped;
 
     internal MainWindow(WindowsAppServices services)
@@ -43,6 +45,11 @@ public sealed partial class MainWindow : Window
         ConnectionAnalyticsViewModel = new ConnectionAnalyticsWorkspaceViewModel(
             DispatcherQueue,
             services.ConnectionAnalytics);
+        var assemblyVersion = typeof(App).Assembly.GetName().Version
+            ?? throw new InvalidOperationException("无法读取 Windows 应用版本。");
+        UpdateViewModel = new WindowsUpdateWorkspaceViewModel(
+            services.UpdateChecker,
+            ReleaseVersion.FromAssemblyVersion(assemblyVersion));
         NotificationAreaStatistics = new NotificationAreaStatisticsController(
             DispatcherQueue,
             services.Coordinator,
@@ -55,6 +62,10 @@ public sealed partial class MainWindow : Window
             services.Coordinator);
         StartupConsoleReporter.Stage("main_window_xaml_initialize_started");
         InitializeComponent();
+        if (WorkspaceNavigation.SettingsItem is NavigationViewItem settingsItem)
+        {
+            settingsItem.Content = "关于与更新";
+        }
         StartupConsoleReporter.Stage("main_window_xaml_initialize_completed");
         _realtimeView = new RealtimeMonitoringView(ViewModel);
         _statisticsView = new TrafficStatisticsWorkspaceView(StatisticsViewModel);
@@ -69,10 +80,11 @@ public sealed partial class MainWindow : Window
             _liveConnectionView,
             _connectionAnalyticsView);
         _quotaView = new SubscriptionQuotaWorkspaceView(QuotaViewModel, this);
+        _updateView = new WindowsUpdateWorkspaceView(UpdateViewModel);
         WorkspaceNavigation.SelectionChanged += WorkspaceNavigation_SelectionChanged;
         WorkspaceNavigation.SelectedItem = RealtimeNavigationItem;
         ShowWorkspace("realtime");
-        Title = "Mihomo Meter · Windows W3-1";
+        Title = "Mihomo Meter · Windows W3-2";
         ResizeForPreview();
     }
 
@@ -85,6 +97,8 @@ public sealed partial class MainWindow : Window
     public LiveConnectionWorkspaceViewModel LiveConnectionViewModel { get; }
 
     public ConnectionAnalyticsWorkspaceViewModel ConnectionAnalyticsViewModel { get; }
+
+    public WindowsUpdateWorkspaceViewModel UpdateViewModel { get; }
 
     internal NotificationAreaStatisticsController NotificationAreaStatistics { get; }
 
@@ -149,6 +163,12 @@ public sealed partial class MainWindow : Window
         NavigationView sender,
         NavigationViewSelectionChangedEventArgs args)
     {
+        if (args.IsSettingsSelected)
+        {
+            ShowWorkspace("updates");
+            return;
+        }
+
         ShowWorkspace(args.SelectedItemContainer?.Tag?.ToString());
     }
 
@@ -158,6 +178,7 @@ public sealed partial class MainWindow : Window
         {
             "statistics" => _proxyTrafficView,
             "quota" => _quotaView,
+            "updates" => _updateView,
             _ => _realtimeView,
         };
     }

@@ -15,7 +15,7 @@
             x:Name="WorkspaceNavigation"
             AlwaysShowHeader="False"
             IsBackButtonVisible="Collapsed"
-            IsSettingsVisible="False"
+            IsSettingsVisible="True"
             PaneDisplayMode="Auto"
             PaneTitle="Mihomo Meter">
             <NavigationView.MenuItems>

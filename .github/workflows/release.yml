@@ -1,26 +1,124 @@
-name: 发布自签名 DMG
+name: 发布 Mihomo Meter
 
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: 发布版本号，格式为 X.Y.Z
+        description: 发布快照版本，格式为 X.Y.Z
         required: true
         type: string
+      platform:
+        description: 本次构建平台
+        required: true
+        default: all
+        type: choice
+        options:
+          - all
+          - macos
+          - windows
+      release_mode:
+        description: 发布模式
+        required: true
+        default: draft
+        type: choice
+        options:
+          - draft
+          - stable
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: release-mihomo-meter
   cancel-in-progress: false
 
 jobs:
-  release:
-    name: 构建并发布
+  preflight:
+    name: 校验发布输入
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+
+    steps:
+      - name: 检出完整仓库
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: 测试平台发布描述与候选校验
+        run: PYTHONDONTWRITEBYTECODE=1 python3 scripts/test_release_platform_descriptors.py
+
+      - name: 校验分支、版本与既有发布
+        env:
+          VERSION: ${{ inputs.version }}
+          PLATFORM: ${{ inputs.platform }}
+          RELEASE_MODE: ${{ inputs.release_mode }}
+          GH_TOKEN: ${{ github.token }}
+          GH_PROMPT_DISABLED: "1"
+        run: |
+          set -euo pipefail
+          if [[ "${GITHUB_REF}" != "refs/heads/main" ]]; then
+            echo "只能从 main 分支发布。" >&2
+            exit 1
+          fi
+          if [[ ! "${VERSION}" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+            echo "版本号必须使用无前导零的 X.Y.Z 格式。" >&2
+            exit 1
+          fi
+          if [[ "${PLATFORM}" != "all" && "${PLATFORM}" != "macos" && "${PLATFORM}" != "windows" ]]; then
+            echo "发布平台必须为 all、macos 或 windows。" >&2
+            exit 1
+          fi
+          if [[ "${RELEASE_MODE}" != "draft" && "${RELEASE_MODE}" != "stable" ]]; then
+            echo "发布模式必须为 draft 或 stable。" >&2
+            exit 1
+          fi
+          if [[ "${RELEASE_MODE}" == "draft" ]]; then
+            if git rev-parse --verify --quiet "refs/tags/v${VERSION}" >/dev/null; then
+              echo "标签 v${VERSION} 已存在。" >&2
+              exit 1
+            fi
+            if gh release view "v${VERSION}" >/dev/null 2>&1; then
+              echo "Release v${VERSION} 已存在。" >&2
+              exit 1
+            fi
+
+            if [[ "${PLATFORM}" != "all" ]]; then
+              mkdir -p "${RUNNER_TEMP}/release-baseline"
+              gh release download \
+                --pattern appcast.xml \
+                --pattern macos-release.json \
+                --pattern windows-release.json \
+                --dir "${RUNNER_TEMP}/release-baseline"
+              baseline_tag="$(gh release view --json tagName --jq .tagName)"
+              baseline_version="${baseline_tag#v}"
+              python3 scripts/release_platform_descriptors.py validate \
+                --release-version "${baseline_version}" \
+                --macos "${RUNNER_TEMP}/release-baseline/macos-release.json" \
+                --windows "${RUNNER_TEMP}/release-baseline/windows-release.json"
+            fi
+          else
+            if [[ "$(gh release view "v${VERSION}" --json isDraft --jq .isDraft)" != "true" ]]; then
+              echo "stable 模式只允许提升同版本 draft Release。" >&2
+              exit 1
+            fi
+            if [[ "$(gh release view "v${VERSION}" --json isPrerelease --jq .isPrerelease)" != "false" ]]; then
+              echo "候选 Release 不得标记为 prerelease。" >&2
+              exit 1
+            fi
+            draft_target="$(gh release view "v${VERSION}" --json targetCommitish --jq .targetCommitish)"
+            if ! git merge-base --is-ancestor "${draft_target}" "${GITHUB_SHA}"; then
+              echo "候选 Release 目标 ${draft_target} 不属于当前 main 历史。" >&2
+              exit 1
+            fi
+          fi
+
+  macos:
+    name: 构建 macOS 正式资产
+    needs: preflight
+    if: ${{ inputs.release_mode == 'draft' && inputs.platform != 'windows' }}
     runs-on: macos-26
     timeout-minutes: 60
-
     env:
       SIGNING_IDENTITY: Mihomo Meter By HongXunPan
 
@@ -30,29 +128,6 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-
-      - name: 校验发布输入
-        env:
-          VERSION: ${{ inputs.version }}
-          GH_TOKEN: ${{ github.token }}
-          GH_PROMPT_DISABLED: "1"
-        run: |
-          if [[ "${GITHUB_REF}" != "refs/heads/main" ]]; then
-            echo "只能从 main 分支发布。" >&2
-            exit 1
-          fi
-          if [[ ! "${VERSION}" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
-            echo "版本号必须使用无前导零的 X.Y.Z 格式。" >&2
-            exit 1
-          fi
-          if git rev-parse --verify --quiet "refs/tags/v${VERSION}" >/dev/null; then
-            echo "标签 v${VERSION} 已存在。" >&2
-            exit 1
-          fi
-          if gh release view "v${VERSION}" >/dev/null 2>&1; then
-            echo "Release v${VERSION} 已存在。" >&2
-            exit 1
-          fi
 
       - name: 检查 Swift 格式
         run: xcrun swift format lint --recursive --strict Sources Tests
@@ -72,8 +147,8 @@ jobs:
           SIGNING_P12_BASE64: ${{ secrets.MIHOMO_METER_SIGNING_P12_BASE64 }}
           SIGNING_P12_PASSWORD: ${{ secrets.MIHOMO_METER_SIGNING_P12_PASSWORD }}
         run: |
+          set -euo pipefail
           umask 077
-
           if [[ -z "${SIGNING_P12_BASE64}" || -z "${SIGNING_P12_PASSWORD}" ]]; then
             echo "缺少发布签名证书 Secrets。" >&2
             exit 1
@@ -95,7 +170,6 @@ jobs:
           security list-keychains -d user |
             sed -e 's/^[[:space:]]*"//' -e 's/"$//' >"${original_keychains_path}"
           printf '%s' "${SIGNING_P12_BASE64}" | /usr/bin/base64 -D >"${certificate_path}"
-
           security create-keychain -p "${keychain_password}" "${keychain_name}"
           security set-keychain-settings -lut 21600 "${keychain_name}"
           security unlock-keychain -p "${keychain_password}" "${keychain_name}"
@@ -140,6 +214,7 @@ jobs:
         env:
           VERSION: ${{ inputs.version }}
         run: |
+          set -euo pipefail
           rm -rf dist
           for architecture in arm64 x86_64 universal; do
             scripts/build-release-dmg.sh \
@@ -154,31 +229,24 @@ jobs:
             shasum -a 256 ./*.dmg >SHA256SUMS
           )
 
-      - name: 生成中文发布摘要
-        env:
-          VERSION: ${{ inputs.version }}
-        run: |
-          scripts/generate-release-notes.sh \
-            --version "${VERSION}" \
-            --output dist/RELEASE_NOTES.md
-
-      - name: 生成 Sparkle 更新清单
+      - name: 生成 macOS 描述与 Sparkle 更新清单
         env:
           VERSION: ${{ inputs.version }}
           SPARKLE_ED_PRIVATE_KEY_BASE64: ${{ secrets.SPARKLE_ED_PRIVATE_KEY_BASE64 }}
         run: |
           set -euo pipefail
           umask 077
-
           if [[ -z "${SPARKLE_ED_PRIVATE_KEY_BASE64}" ]]; then
             echo "缺少 Sparkle Ed25519 私钥 Secret。" >&2
             exit 1
           fi
 
+          scripts/generate-release-notes.sh \
+            --version "${VERSION}" \
+            --output dist/MACOS_RELEASE_NOTES.md
           sparkle_private_key_path="${RUNNER_TEMP}/mihomo-meter-sparkle-ed25519-private-key"
           printf '%s' "${SPARKLE_ED_PRIVATE_KEY_BASE64}" |
             /usr/bin/base64 -D >"${sparkle_private_key_path}"
-
           generate_appcast_path="$(
             find \
               "${RUNNER_TEMP}/MihomoMeterTestDerivedData/SourcePackages/artifacts" \
@@ -196,16 +264,20 @@ jobs:
           scripts/generate-sparkle-appcast.sh \
             --version "${VERSION}" \
             --dmg "dist/Mihomo-Meter-${VERSION}-macos-universal.dmg" \
-            --release-notes dist/RELEASE_NOTES.md \
+            --release-notes dist/MACOS_RELEASE_NOTES.md \
             --private-key "${sparkle_private_key_path}" \
             --generate-appcast "${generate_appcast_path}" \
             --output dist/appcast.xml
+          python3 scripts/release_platform_descriptors.py generate \
+            --platform macos \
+            --version "${VERSION}" \
+            --asset-dir dist \
+            --output dist/macos-release.json
 
       - name: 清理临时签名材料
         if: always()
         run: |
           echo "开始清理临时用户钥匙串和签名文件。"
-
           if [[ -n "${ORIGINAL_KEYCHAINS_PATH:-}" && -f "${ORIGINAL_KEYCHAINS_PATH}" ]]; then
             original_keychains=()
             while IFS= read -r original_keychain; do
@@ -217,13 +289,11 @@ jobs:
           else
             echo "::warning::未找到原始用户钥匙串列表，跳过恢复。" >&2
           fi
-
           if [[ -n "${RELEASE_KEYCHAIN_NAME:-}" ]]; then
             if ! security delete-keychain "${RELEASE_KEYCHAIN_NAME}"; then
               echo "::warning::删除临时发布钥匙串失败，Runner 结束后会自动销毁。" >&2
             fi
           fi
-
           if ! rm -f \
             "${RUNNER_TEMP}/mihomo-meter-release.p12" \
             "${RUNNER_TEMP}/mihomo-meter-release.pem" \
@@ -232,25 +302,269 @@ jobs:
             "${RUNNER_TEMP}/mihomo-meter-sparkle-ed25519-private-key"; then
             echo "::warning::删除临时签名文件失败，Runner 结束后会自动销毁。" >&2
           fi
-
           echo "临时签名材料清理完成。"
 
-      - name: 创建标签并发布 GitHub Release
+      - name: 上传 macOS 发布资产
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-macos-${{ inputs.version }}
+          path: |
+            dist/Mihomo-Meter-${{ inputs.version }}-macos-arm64.dmg
+            dist/Mihomo-Meter-${{ inputs.version }}-macos-x86_64.dmg
+            dist/Mihomo-Meter-${{ inputs.version }}-macos-universal.dmg
+            dist/appcast.xml
+            dist/macos-release.json
+            dist/SHA256SUMS
+          if-no-files-found: error
+          retention-days: 3
+
+  windows:
+    name: 构建 Windows 正式资产
+    needs: preflight
+    if: ${{ inputs.release_mode == 'draft' && inputs.platform != 'macos' }}
+    runs-on: windows-2025
+    timeout-minutes: 25
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+      DOTNET_NOLOGO: "1"
+      NUGET_PACKAGES: ${{ github.workspace }}/.codex-tmp/nuget
+
+    steps:
+      - name: 检出源码
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: 安装固定 .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: platform/windows/global.json
+
+      - name: 安装固定 NSIS
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          choco install nsis --version=3.12.0 --yes --no-progress --limit-output
+          if ($LASTEXITCODE -ne 0) {
+            throw "NSIS 3.12.0 安装失败。"
+          }
+          $compilerPath = Join-Path ${env:ProgramFiles(x86)} "NSIS\makensis.exe"
+          if (-not (Test-Path -LiteralPath $compilerPath -PathType Leaf)) {
+            throw "NSIS 编译器不存在：$compilerPath"
+          }
+          Add-Content -LiteralPath $env:GITHUB_ENV `
+            -Value "NSIS_COMPILER_PATH=$compilerPath" `
+            -Encoding utf8
+
+      - name: 执行 Windows 静态、测试、构建与打包门禁
+        shell: pwsh
+        env:
+          VERSION: ${{ inputs.version }}
+        run: >-
+          pwsh -File scripts/validate_windows.ps1
+          -Version "$env:VERSION"
+          -MakeNsisPath "$env:NSIS_COMPILER_PATH"
+
+      - name: 生成 Windows 平台描述
+        shell: pwsh
+        env:
+          VERSION: ${{ inputs.version }}
+        run: >-
+          python scripts/release_platform_descriptors.py generate
+          --platform windows
+          --version "$env:VERSION"
+          --asset-dir .codex-tmp/windows-package
+          --output .codex-tmp/windows-package/windows-release.json
+
+      - name: 上传 Windows 发布资产
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-windows-${{ inputs.version }}
+          path: .codex-tmp/windows-package
+          if-no-files-found: error
+          retention-days: 3
+
+  publish:
+    name: 创建或原样提升 Release
+    needs:
+      - preflight
+      - macos
+      - windows
+    if: ${{ always() && needs.preflight.result == 'success' && (needs.macos.result == 'success' || needs.macos.result == 'skipped') && (needs.windows.result == 'success' || needs.windows.result == 'skipped') }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+
+    steps:
+      - name: 检出完整仓库
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: 下载本次 macOS 资产
+        if: ${{ inputs.release_mode == 'draft' && inputs.platform != 'windows' }}
+        uses: actions/download-artifact@v7
+        with:
+          name: release-macos-${{ inputs.version }}
+          path: dist/macos
+
+      - name: 下载本次 Windows 资产
+        if: ${{ inputs.release_mode == 'draft' && inputs.platform != 'macos' }}
+        uses: actions/download-artifact@v7
+        with:
+          name: release-windows-${{ inputs.version }}
+          path: dist/windows
+
+      - name: 继承未构建平台描述
+        if: ${{ inputs.release_mode == 'draft' }}
+        env:
+          PLATFORM: ${{ inputs.platform }}
+          GH_TOKEN: ${{ github.token }}
+          GH_PROMPT_DISABLED: "1"
+        run: |
+          set -euo pipefail
+          if [[ "${PLATFORM}" == "windows" ]]; then
+            mkdir -p dist/inherited-macos
+            gh release download \
+              --pattern appcast.xml \
+              --pattern macos-release.json \
+              --dir dist/inherited-macos
+          elif [[ "${PLATFORM}" == "macos" ]]; then
+            mkdir -p dist/inherited-windows
+            gh release download \
+              --pattern windows-release.json \
+              --dir dist/inherited-windows
+          fi
+
+      - name: 组装并验证发布快照
+        if: ${{ inputs.release_mode == 'draft' }}
+        env:
+          VERSION: ${{ inputs.version }}
+          PLATFORM: ${{ inputs.platform }}
+        run: |
+          set -euo pipefail
+          mkdir -p dist/release
+          if [[ "${PLATFORM}" != "windows" ]]; then
+            cp dist/macos/*.dmg dist/release/
+            cp dist/macos/appcast.xml dist/release/
+            cp dist/macos/macos-release.json dist/release/
+          else
+            cp dist/inherited-macos/appcast.xml dist/release/
+            cp dist/inherited-macos/macos-release.json dist/release/
+          fi
+          if [[ "${PLATFORM}" != "macos" ]]; then
+            cp dist/windows/*.exe dist/release/
+            cp dist/windows/*.zip dist/release/
+            cp dist/windows/windows-release.json dist/release/
+          else
+            cp dist/inherited-windows/windows-release.json dist/release/
+          fi
+
+          python3 scripts/release_platform_descriptors.py validate \
+            --release-version "${VERSION}" \
+            --macos dist/release/macos-release.json \
+            --windows dist/release/windows-release.json
+          if [[ "${PLATFORM}" != "windows" ]]; then
+            python3 scripts/release_platform_descriptors.py verify-assets \
+              --platform macos \
+              --descriptor dist/release/macos-release.json \
+              --asset-dir dist/release
+          fi
+          if [[ "${PLATFORM}" != "macos" ]]; then
+            python3 scripts/release_platform_descriptors.py verify-assets \
+              --platform windows \
+              --descriptor dist/release/windows-release.json \
+              --asset-dir dist/release
+          fi
+
+          (
+            cd dist/release
+            find . -maxdepth 1 -type f \
+              \( -name '*.dmg' -o -name '*.exe' -o -name '*.zip' \) \
+              -printf '%f\0' |
+              sort -z |
+              xargs -0 sha256sum >SHA256SUMS
+          )
+          if [[ ! -s dist/release/SHA256SUMS ]]; then
+            echo "当前 Release 没有本次新构建资产。" >&2
+            exit 1
+          fi
+
+      - name: 生成下载指引与发布说明
+        if: ${{ inputs.release_mode == 'draft' }}
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          python3 scripts/release_platform_descriptors.py render \
+            --release-version "${VERSION}" \
+            --macos dist/release/macos-release.json \
+            --windows dist/release/windows-release.json \
+            --output dist/DOWNLOADS.md
+          scripts/generate-release-notes.sh \
+            --version "${VERSION}" \
+            --output dist/RELEASE_NOTES.md
+          cat dist/DOWNLOADS.md dist/RELEASE_NOTES.md >dist/RELEASE_BODY.md
+
+      - name: 创建候选 draft Release
+        if: ${{ inputs.release_mode == 'draft' }}
+        env:
+          VERSION: ${{ inputs.version }}
+          PLATFORM: ${{ inputs.platform }}
+          GH_TOKEN: ${{ github.token }}
+          GH_PROMPT_DISABLED: "1"
+        run: |
+          set -euo pipefail
+          assets=(
+            dist/release/appcast.xml
+            dist/release/macos-release.json
+            dist/release/windows-release.json
+            dist/release/SHA256SUMS
+          )
+          if [[ "${PLATFORM}" != "windows" ]]; then
+            assets+=(dist/release/*.dmg)
+          fi
+          if [[ "${PLATFORM}" != "macos" ]]; then
+            assets+=(dist/release/*.exe dist/release/*.zip)
+          fi
+
+          gh release create "v${VERSION}" \
+            "${assets[@]}" \
+            --target "${GITHUB_SHA}" \
+            --title "Mihomo Meter ${VERSION}" \
+            --generate-notes \
+            --notes-file dist/RELEASE_BODY.md \
+            --fail-on-no-commits \
+            --draft
+
+      - name: 下载并校验候选 Release
+        if: ${{ inputs.release_mode == 'stable' }}
+        env:
+          VERSION: ${{ inputs.version }}
+          PLATFORM: ${{ inputs.platform }}
+          GH_TOKEN: ${{ github.token }}
+          GH_PROMPT_DISABLED: "1"
+        run: |
+          set -euo pipefail
+          promotion_root=".codex-tmp/release-promotion"
+          asset_root="${promotion_root}/assets"
+          rm -rf "${promotion_root}"
+          mkdir -p "${asset_root}"
+          gh release download "v${VERSION}" --dir "${asset_root}"
+          gh release view "v${VERSION}" --json body --jq .body \
+            >"${promotion_root}/actual-body.md"
+          python3 scripts/validate_release_candidate.py \
+            --version "${VERSION}" \
+            --platform "${PLATFORM}" \
+            --asset-dir "${asset_root}" \
+            --body "${promotion_root}/actual-body.md"
+
+      - name: 提升为稳定 Latest Release
+        if: ${{ inputs.release_mode == 'stable' }}
         env:
           VERSION: ${{ inputs.version }}
           GH_TOKEN: ${{ github.token }}
           GH_PROMPT_DISABLED: "1"
-        run: |
-          release_summary="$(cat dist/RELEASE_NOTES.md)"
-          gh release create "v${VERSION}" \
-            "dist/Mihomo-Meter-${VERSION}-macos-arm64.dmg" \
-            "dist/Mihomo-Meter-${VERSION}-macos-x86_64.dmg" \
-            "dist/Mihomo-Meter-${VERSION}-macos-universal.dmg" \
-            "dist/appcast.xml" \
-            "dist/SHA256SUMS" \
-            --target "${GITHUB_SHA}" \
-            --title "Mihomo Meter ${VERSION}" \
-            --generate-notes \
-            --notes "${release_summary}" \
-            --fail-on-no-commits \
-            --latest
+        run: gh release edit "v${VERSION}" --draft=false --latest

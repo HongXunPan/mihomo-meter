@@ -114,7 +114,7 @@ DISTRIBUTION_REQUIRED_CODE_MARKERS = {
         "PRODUCT_INSTALL_MARKER",
     ),
     ROOT / "platform/windows/MihomoMeter.Windows.App/MainWindow.xaml.cs": (
-        "Mihomo Meter · Windows W3-1",
+        "Mihomo Meter · Windows W3-2",
     ),
     ROOT / "README.md": (
         "Windows W3-1 安装生命周期已通过",
