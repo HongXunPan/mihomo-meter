@@ -2,12 +2,12 @@
 
 ## 1. 文档定位
 
-- 状态：W0-W2 已通过，当前进入 W3-0 打包基线
+- 状态：W0-W2 与 W3-0 已通过，当前进入 W3-1 安装生命周期
 - 更新日期：2026-08-09
 - 上游边界：父工作区 `docs/Windows技术方案.md`、`docs/Windows阶段W2D连接分析技术方案.md`
 - 历史门禁：[Windows 阶段 W0 实机指南](Windows阶段W0实机指南.md)
 
-本文是开源源码仓 Windows 工程结构、依赖版本和验证入口的唯一详细真相源，不重新定义父工作区的产品阶段或验收口径。W2 已完成，连接分析边界见[Windows 连接分析实现契约](Windows连接分析实现契约.md)；当前 W3-0 版本与资产边界见[Windows 分发实现契约](Windows分发实现契约.md)。
+本文是开源源码仓 Windows 工程结构、依赖版本和验证入口的唯一详细真相源，不重新定义父工作区的产品阶段或验收口径。W2 已完成，连接分析边界见[Windows 连接分析实现契约](Windows连接分析实现契约.md)；当前 W3-1 版本、资产与安装边界见[Windows 分发实现契约](Windows分发实现契约.md)。
 
 ## 2. 固定选型与依赖
 
@@ -24,7 +24,7 @@
 | SQLite ADO.NET | Microsoft.Data.Sqlite.Core 10.0.10，仅 Core 使用 |
 | SQLite Provider | SQLitePCLRaw.bundle_winsqlite3 2.1.11，仅 App / Tests 初始化 |
 | Profile YAML | YamlDotNet 18.1.0，仅 Core 类型化读取 `profiles.yaml` |
-| 产物 | 非打包、自包含 `win-x64` 目录及版本化便携 ZIP，不裁剪、不合并单文件 |
+| 产物 | 非打包、自包含 `win-x64` 目录、版本化便携 ZIP 与 unsigned NSIS 3.12.0 当前用户安装器，不裁剪、不合并单文件 |
 
 App 的运行时包只含系统 SQLite Provider，发布目录不得携带 `e_sqlite3`。Core 只允许 SQLite ADO.NET 与 W2C 类型化 YAML；Tests 只允许系统 Provider。项目不引入 ORM、迁移工具或另一份原生 SQLite。
 
@@ -94,7 +94,7 @@ Controller 地址、Credential Target Name、设置路径、接口顺序、分�
 29. 通知区域 Proxy/直连 Top 5 使用两个原生子菜单和固定五槽，菜单打开时只投影内存快照，不查询网络或数据库。
 30. 连接元数据、投影、菜单与隐私细节以[Windows 连接分析实现契约](Windows连接分析实现契约.md)为唯一详细真相源。
 
-W2D-2 的独立账本、默认关闭、批量刷新、榜单、覆盖率和趋势边界由[Windows 连接分析实现契约](Windows连接分析实现契约.md)维护。W3-0 只增加便携 ZIP 与 SHA-256，不实现诊断 ZIP、开机启动、安装器或自动更新。
+W2D-2 的独立账本、默认关闭、批量刷新、榜单、覆盖率和趋势边界由[Windows 连接分析实现契约](Windows连接分析实现契约.md)维护。W3-0 便携基线已通过；W3-1 只在同一发布载荷上增加当前用户 NSIS 安装、升级与卸载，不实现诊断 ZIP、开机启动或自动更新。
 
 ## 5. 配置、凭据与隐私
 
@@ -115,7 +115,7 @@ W2D-2 的独立账本、默认关闭、批量刷新、榜单、覆盖率和趋�
 python3 scripts/validate_windows.py
 ```
 
-该检查校验固定 SDK、依赖白名单、全部 WinUI XAML、W0–W2D-2 必需文件、三套独立 schema、连接投影、批量归因，以及 W3-0 脚本、工作流和隐私禁止项。非 Windows 主机执行成功只证明静态契约成立。
+该检查校验固定 SDK、依赖白名单、全部 WinUI XAML、W0–W2D-2 必需文件、三套独立 schema、连接投影、批量归因，以及 W3-1 安装权限、脚本、工作流和隐私禁止项。非 Windows 主机执行成功只证明静态契约成立。
 
 Windows CI 和具备相同环境的 Windows 主机使用：
 

@@ -58,7 +58,7 @@ Mihomo Meter 是只读监控工具：
 - [x] [Windows W2D-1](docs/Windows阶段W2D1实机指南.md)：Proxy/DIRECT 实时连接、分组搜索、识别诊断与原生 Top 5
 - [x] [Windows W2D-2](docs/Windows阶段W2D2实机指南.md)：独立归因账本、30 日榜单、交叉筛选、覆盖率与趋势
 - [x] [Windows W3-0](docs/Windows阶段W3-0实机指南.md)：版本化便携 ZIP、SHA-256 与无提权启动
-- [ ] Windows W3-1：unsigned NSIS 当前用户安装、覆盖升级、卸载与数据保留
+- [ ] [Windows W3-1](docs/Windows阶段W3-1实机指南.md)：unsigned NSIS 当前用户安装、覆盖升级、卸载与数据保留
 
 已勾选项目表示源码、自动化与对应实机门禁均已通过；未勾选项目可能仍在实施或等待 CI / 实机验收，不代表发布时间承诺。各阶段的子任务与完成状态见[开发路线图](docs/路线图.md)。
 

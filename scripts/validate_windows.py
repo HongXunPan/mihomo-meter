@@ -34,6 +34,7 @@ from windows_validation_contract import (
 from windows_validation_notification_area_contract import (
     validate_notification_area_command_ids,
 )
+from windows_validation_distribution_contract import validate_distribution_contract
 
 
 def configure_console_encoding() -> None:
@@ -274,6 +275,7 @@ def main() -> int:
         validate_xaml()
         validate_files_and_code(errors)
         validate_notification_area_command_ids(errors)
+        validate_distribution_contract(errors)
     except (OSError, ET.ParseError, json.JSONDecodeError) as exception:
         errors.append(f"读取工程契约失败：{type(exception).__name__}")
 

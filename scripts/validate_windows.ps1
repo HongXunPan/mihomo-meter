@@ -1,5 +1,7 @@
 param(
-    [string]$Version = "0.0.0"
+    [string]$Version = "0.0.0",
+
+    [string]$MakeNsisPath = "makensis.exe"
 )
 
 $ErrorActionPreference = "Stop"
@@ -109,6 +111,7 @@ if ($BundledSqliteFiles.Count -ne 0) {
 & (Join-Path $PSScriptRoot "package_windows.ps1") `
     -Version $Version `
     -PublishDirectory $OutputDirectory `
-    -OutputDirectory $PackageDirectory
+    -OutputDirectory $PackageDirectory `
+    -MakeNsisPath $MakeNsisPath
 
-Write-Host "Windows 单元测试、Release 构建、自包含发布与 W3-0 打包检查通过。"
+Write-Host "Windows 单元测试、Release 构建、自包含发布与 W3-1 打包检查通过。"
