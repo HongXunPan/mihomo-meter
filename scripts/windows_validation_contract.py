@@ -41,6 +41,7 @@ REQUIRED_REPOSITORY_FILES = (
     "docs/Windows阶段W2B实机指南.md",
     "scripts/validate_windows.ps1",
     "scripts/windows_validation_contract.py",
+    "scripts/windows_validation_notification_area_contract.py",
 ) + QUOTA_REQUIRED_REPOSITORY_FILES
 REQUIRED_REPOSITORY_FILES += CONNECTION_REQUIRED_REPOSITORY_FILES
 REQUIRED_REPOSITORY_FILES += DISTRIBUTION_REQUIRED_REPOSITORY_FILES
@@ -96,6 +97,7 @@ REQUIRED_APP_FILES = (
     "Lifecycle/NotificationAreaController.cs",
     "Lifecycle/NotificationAreaController.Commands.cs",
     "Lifecycle/NotificationAreaMenu.cs",
+    "Lifecycle/NotificationAreaMenu.CommandIds.cs",
     "Lifecycle/NotificationAreaMenu.Tasks.cs",
     "Lifecycle/FloatingWidgetController.cs",
     "Lifecycle/FloatingWidgetPainter.cs",
@@ -229,6 +231,11 @@ REQUIRED_CODE_MARKERS = {
         "NotificationAreaCommand",
         "AppendStatisticsMenu",
         "AppendQuotaMenu",
+    ),
+    APP_ROOT / "Lifecycle/NotificationAreaMenu.CommandIds.cs": (
+        "RegisterCommand",
+        "OpenProxyConnectionsCommand = 4001",
+        "OpenDirectConnectionsCommand = 4002",
     ),
     APP_ROOT / "Lifecycle/NotificationAreaMenu.Tasks.cs": (
         "TrafficStatisticsQuickTaskProjection.SlotCount",

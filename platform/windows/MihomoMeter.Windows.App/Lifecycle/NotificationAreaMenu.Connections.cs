@@ -6,9 +6,6 @@ namespace MihomoMeter.Windows.App.Lifecycle;
 
 internal sealed partial class NotificationAreaMenu
 {
-    private const uint OpenProxyConnectionsCommand = 3001;
-    private const uint OpenDirectConnectionsCommand = 3002;
-
     private static void AppendConnectionsMenu(
         nint rootMenuHandle,
         NotificationAreaConnectionsMenuSnapshot snapshot,
@@ -50,7 +47,8 @@ internal sealed partial class NotificationAreaMenu
 
             AppendSeparator(routeMenuHandle);
             AppendMenuItem(routeMenuHandle, openCommand, "查看实时连接…");
-            commands.Add(
+            RegisterCommand(
+                commands,
                 openCommand,
                 new NotificationAreaCommand(
                     NotificationAreaCommandKind.OpenLiveConnections,

@@ -6,10 +6,6 @@ namespace MihomoMeter.Windows.App.Lifecycle;
 
 internal sealed partial class NotificationAreaMenu
 {
-    private const uint StartStatisticsCommand = 2001;
-    private const uint OverflowStatisticsCommand = 2002;
-    private const uint ViewStatisticsCommandBase = 2100;
-    private const uint StopStatisticsCommandBase = 2200;
     private const int MaximumTaskNameLength = 40;
 
     private static void AppendStatisticsMenu(
@@ -34,7 +30,8 @@ internal sealed partial class NotificationAreaMenu
                 snapshot.CanStart);
             if (snapshot.CanStart)
             {
-                commands.Add(
+                RegisterCommand(
+                    commands,
                     StartStatisticsCommand,
                     new NotificationAreaCommand(
                         NotificationAreaCommandKind.StartStatistics));
@@ -58,7 +55,8 @@ internal sealed partial class NotificationAreaMenu
                     statisticsMenuHandle,
                     OverflowStatisticsCommand,
                     $"查看其余 {snapshot.AdditionalCount} 个任务…");
-                commands.Add(
+                RegisterCommand(
+                    commands,
                     OverflowStatisticsCommand,
                     new NotificationAreaCommand(
                         NotificationAreaCommandKind.OpenStatistics));
@@ -105,7 +103,8 @@ internal sealed partial class NotificationAreaMenu
 
             var viewCommand = ViewStatisticsCommandBase + (uint)index;
             AppendMenuItem(taskMenuHandle, viewCommand, "查看任务");
-            commands.Add(
+            RegisterCommand(
+                commands,
                 viewCommand,
                 new NotificationAreaCommand(
                     NotificationAreaCommandKind.OpenStatistics,
@@ -121,7 +120,8 @@ internal sealed partial class NotificationAreaMenu
                     task.CanStop);
                 if (task.CanStop)
                 {
-                    commands.Add(
+                    RegisterCommand(
+                        commands,
                         stopCommand,
                         new NotificationAreaCommand(
                             NotificationAreaCommandKind.StopStatistics,

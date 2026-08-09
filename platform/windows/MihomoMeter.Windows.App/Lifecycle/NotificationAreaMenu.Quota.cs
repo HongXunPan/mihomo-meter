@@ -5,9 +5,6 @@ namespace MihomoMeter.Windows.App.Lifecycle;
 
 internal sealed partial class NotificationAreaMenu
 {
-    private const uint OpenQuotaCommand = 3001;
-    private const uint RefreshQuotaCommand = 3002;
-
     private static void AppendQuotaMenu(
         nint rootMenuHandle,
         NotificationAreaQuotaMenuSnapshot snapshot,
@@ -42,7 +39,8 @@ internal sealed partial class NotificationAreaMenu
             }
 
             AppendMenuItem(quotaMenuHandle, OpenQuotaCommand, "查看订阅余额…");
-            commands.Add(
+            RegisterCommand(
+                commands,
                 OpenQuotaCommand,
                 new NotificationAreaCommand(NotificationAreaCommandKind.OpenQuota));
             AppendMenuItem(
@@ -52,7 +50,8 @@ internal sealed partial class NotificationAreaMenu
                 snapshot.CanRefreshAll);
             if (snapshot.CanRefreshAll)
             {
-                commands.Add(
+                RegisterCommand(
+                    commands,
                     RefreshQuotaCommand,
                     new NotificationAreaCommand(NotificationAreaCommandKind.RefreshQuota));
             }
