@@ -2,64 +2,75 @@
 
 ## 1. 文档定位
 
-- 状态：W3-0 与 W3-1 已通过，下一纵切为 W3-2 更新检查与稳定发布
+- 状态：W3-0 与 W3-1 已通过，W3-2 更新检查与稳定发布正在实施
 - 更新日期：2026-08-09
 - 工程基线：[Windows 工程代码技术选型](Windows工程代码技术选型.md)
-- W3-1 实机指南：[Windows 阶段 W3-1 实机指南](Windows阶段W3-1实机指南.md)
-- 历史实机指南：[Windows 阶段 W3-0 实机指南](Windows阶段W3-0实机指南.md)
+- 当前实机指南：[Windows 阶段 W3-2 实机指南](Windows阶段W3-2实机指南.md)
+- 历史实机指南：[Windows 阶段 W3-1 实机指南](Windows阶段W3-1实机指南.md)
 
-本文是源码仓 Windows 版本输入、统一程序载荷、便携 ZIP、NSIS 安装器、校验文件和预览工作流的公开真相源。父工作区维护 W3 阶段范围与放行结论；W3-1 安装生命周期已经完成，应用内版本检查和稳定 Release 只有在父工作区确认 W3-2 契约后才能在本文扩展。
+本文是源码仓 Windows 版本输入、更新描述、统一程序载荷、便携 ZIP、NSIS 安装器和 GitHub Release 接入的公开真相源。父工作区维护 W3 范围与最终放行结论；源码仓只实现已确认契约，不把 draft 演练或 CI runner 结果写成稳定分发已通过。
 
-## 2. W3-1 范围与版本
+## 2. W3-2 范围与版本
 
-W3-1 在已通过的 W3-0 便携打包基线上增加 unsigned NSIS 当前用户安装器、运行中操作阻断、覆盖升级、开始菜单、卸载和重装，不修改业务模型、数据目录、Credential Manager Target Name 或单实例身份。它不创建 MSIX、APPX、Tag、GitHub Release、所有用户安装、桌面快捷方式、服务、开机启动、计划任务或应用内更新入口。
+W3-2 在 W3-1 安装生命周期上增加人工更新检查、Windows 平台描述文件、Latest Release 下载指引和统一正式发布工作流，不修改业务模型、数据目录、Credential Manager Target Name、单实例身份或安装范围。应用只比较 Windows 实际版本并打开原始 Release 页面，不自动下载、安装、退出或重启。
 
-PR 与 `main` push 的预览版本固定回退为 `0.0.0`；手动 workflow 允许输入无前导零的 `X.Y.Z`，用于两个连续版本的覆盖升级验收，但仍只上传预览 artifact。同一次调用必须把唯一版本输入传给 App 的 `Version`、`FileVersion`、`AssemblyVersion`、NSIS 版本资源和全部资产名，不允许脚本从文件名或 Git Tag 猜测版本。
+应用版本、构建号和新构建资产继续使用无前导零的 `X.Y.Z`；发布 Tag 使用 `vX.Y.Z`，表示一次稳定发布快照。工作流允许选择 `macos`、`windows` 或 `all`：本次构建平台的实际版本等于 Tag 版本，未构建平台继续引用较早正式版本，旧资产不得复制、改名或伪装为当前 Tag 版本。
 
-## 3. 构建与打包职责
+PR 与 `main` push 的 Windows 预览仍回退为 `0.0.0`；手动 Windows 预览 workflow 只上传 artifact。只有统一 Release workflow 可以创建 Tag 与 Release，且固定接收版本、目标平台和 `draft` / `stable` 模式。首次建立平台描述文件的稳定版本必须选择 `all`；后续单平台发布才允许继承另一平台描述。
 
-`scripts/validate_windows.ps1` 继续唯一负责静态检查、solution restore、Core 测试、App x64 Release 构建和 `dotnet publish`，发布目录固定为 `.codex-tmp/windows-publish`。它把相同版本传给构建与发布，检查可执行文件、PRI、非 MSIX 和系统 `winsqlite3.dll` 后调用打包脚本。
+## 3. Windows 构建与打包职责
 
-`scripts/package_windows.ps1` 只消费已经验证的发布目录，不执行 restore、build 或 publish。它检查可执行文件四段版本、必需 PRI、敏感文件和禁止扩展名，排除 PDB 后生成一份临时统一载荷；便携 ZIP 和 NSIS 安装器必须消费该同一载荷，完成后清理载荷目录。
+`scripts/validate_windows.ps1` 唯一负责静态检查、solution restore、Core 测试、App x64 Release 构建和 `dotnet publish`，发布目录固定为 `.codex-tmp/windows-publish`。它把相同版本传给 App、文件版本、程序集版本和打包入口，不允许 workflow 建立第二套发布口径。
 
-`scripts/build_windows_installer.ps1` 只负责调用已锁定的 NSIS 编译器、检查全部 NSIS 源文件均为带 BOM 的有效 UTF-8、以 `/INPUTCHARSET UTF8` 读取主脚本、传入版本/载荷/输出路径并复核安装器版本，不复制发布、测试或 ZIP 职责。NSIS 主脚本固定放在 `platform/windows/installer/MihomoMeter.nsi`，拆分 include 固定显式指定 UTF-8；BOM、命令行字符集与静态乱码扫描共同保护全部自定义中文，不得引入额外插件。
+`scripts/package_windows.ps1` 只消费已验证发布目录，检查可执行文件版本、PRI、敏感文件和禁止扩展名，排除 PDB 后生成同一载荷的便携 ZIP 与 NSIS 安装器。输出目录 `.codex-tmp/windows-package` 仍只包含版本化 ZIP、安装器和两行 `SHA256SUMS`；安装版与便携版不得产生不同业务实现。
 
-## 4. 资产与内容契约
+`scripts/build_windows_installer.ps1` 继续只负责锁定 NSIS、校验带 BOM 的 UTF-8 源码、传入版本/载荷/输出路径并复核安装器版本。W3-2 不改变当前用户安装、首次可选目录、升级锁定已登记目录、开始菜单、卸载入口、运行中阻断和用户数据保留契约。
 
-W3-1 输出目录固定为 `.codex-tmp/windows-package`，只包含：
+## 4. 平台描述与下载指引
+
+每个 draft 或稳定 Release 必须包含：
 
 ```text
-Mihomo-Meter-0.0.0-windows-x64-portable.zip
-Mihomo-Meter-0.0.0-windows-x64-setup.exe
+appcast.xml
+macos-release.json
+windows-release.json
 SHA256SUMS
 ```
 
-ZIP 内使用单一顶层目录 `Mihomo Meter/`。ZIP 与安装器必须包含同一份 `MihomoMeter.Windows.App.exe`、WinUI PRI 和运行依赖，不包含 PDB、MSIX、APPX、日志、转储、签名密钥、设置、Profile、Controller Secret 或三套业务数据库。
+`appcast.xml` 继续只服务 Sparkle。两个 JSON 均使用 schema v1，分别记录平台、实际版本、来源 Tag、原始 Release 页面，以及带固定中文用途、文件名、HTTPS 下载地址和小写 SHA-256 的资产列表。macOS 固定列出 Apple Silicon、Intel 与通用 DMG；Windows 固定列出 x64 安装版与便携版。
 
-`SHA256SUMS` 使用 UTF-8 无 BOM、按资产文件名排序，每行“小写 SHA-256、两个空格、资产文件名”的格式，固定包含 ZIP 和安装器两行，不建立第二份校验文件。
+本次构建平台必须从当前产物生成新描述，文件名中的版本、内嵌版本、来源 Tag 和描述版本必须一致。未构建平台只复制上一正式 Release 的小型描述文件；其中的下载地址必须继续指向原 Release，不下载、复制或重新上传旧二进制。仅构建 Windows 时还要沿用上一正式 `appcast.xml`，保证既有 macOS Sparkle 固定 Latest 地址可用。
 
-## 5. Actions 边界
+Release 正文顶部必须由两个 JSON 确定性生成下载矩阵，链接文字固定面向普通用户说明“Apple Silicon Mac（M 系列芯片）”“Intel Mac”“通用 Mac（不确定机型时选择）”“Windows x64 安装版”和“Windows x64 便携版”。用户不需要展开 Assets 或从 `arm64`、`x86_64` 文件名判断下载项；未更新平台要明确显示“沿用来源 Tag 的稳定版本”。
 
-Windows workflow 对 PR、`main` push 和手动触发继续使用只读 `contents: read` 权限。官方 Windows 2025 runner 预装 Chocolatey，工作流通过它安装固定 NSIS 3.12.0；PR/Push 执行默认 `0.0.0`，手动触发使用显式版本。工作流上传 `.codex-tmp/windows-package` 为名称带版本和提交 SHA 的 W3 预览 artifact，保留 14 天。
+Windows 应用固定读取：
 
-W3-1 workflow 不使用个人 Token，不请求 `contents: write`，不创建或覆盖 Tag、Release。Actions 成功只证明 Windows runner 上的静态检查、Core 测试、Release 构建、自包含发布、统一载荷、ZIP、NSIS 编译和 SHA-256 组装通过，不代表 Win10 22H2 实机安装、升级或卸载通过。
+```text
+https://github.com/HongXunPan/mihomo-meter/releases/latest/download/windows-release.json
+```
 
-## 6. 安装与卸载生命周期
+客户端只接受 schema v1、`platform=windows`、严格 `X.Y.Z`、与版本一致的来源 Tag，以及本仓库 HTTPS Release 页面和资产地址。描述无效、超时、限流、重定向越界或网络失败只显示可恢复状态；只有实际版本高于当前应用时才显示更新，并由用户主动打开描述中的原始 Release 页面。
 
-安装器固定 `RequestExecutionLevel user`、`SetShellVarContext current` 和 64 位 HKCU 卸载视图，卸载标识为 `com.HongXunPan.MihomoMeter`。首次安装显示目录选择页，默认目录为 `%LOCALAPPDATA%\Programs\Mihomo Meter`，也允许选择其他磁盘上的当前用户可写专用目录；磁盘或共享根目录、用户数据目录、不可写目录和非空目录必须被拒绝。安装器仍不提供所有用户作用域，只创建当前用户开始菜单与卸载入口；完成页允许用户立即运行应用。
+## 5. Actions 与权限边界
 
-安装、升级和卸载都通过系统 PowerShell 只读检查应用进程。应用仍运行时只允许用户从通知区域明确退出后重试或取消，不强制结束进程。首次安装写入只属于程序目录的隐藏所有权标记；升级从 HKCU 读取既有 `InstallLocation`、跳过目录选择并在原目录完整替换旧载荷，避免迁移时遗留两套程序。当前旧预览版的默认目录允许一次兼容升级并补写标记；后续只有注册表路径、主程序和标记一致时才允许递归清理或卸载。
+`.github/workflows/windows.yml` 继续对 PR、`main` push 和手动预览使用 `contents: read`，在 Windows 2025 runner 安装固定 NSIS 3.12.0，复用 `validate_windows.ps1` 并上传保留 14 天的 W3 预览 artifact。它不创建 Tag 或 Release。
 
-如需迁移程序目录，用户应先卸载再重新安装并重新选择目录。卸载只删除已登记程序目录、开始菜单和 HKCU 卸载项，始终保留 `%LOCALAPPDATA%\HongXunPan\MihomoMeter` 与 Credential Manager 凭据。
+`.github/workflows/release.yml` 是唯一正式发布入口，固定拆分为预检、按需 macOS 构建、按需 Windows 构建和最终发布任务。工作流级权限默认为 `contents: read`，只有最终发布任务使用 `contents: write`；签名 Secrets 只进入 macOS 构建任务，不进入 Windows 或发布正文。
 
-便携 ZIP 与安装版运行同一程序、共享当前用户数据和单实例身份。它们可以保存在不同目录，但不能作为两套独立业务状态并行运行，也不宣称便携版数据完全便携。
+预检拒绝非 `main`、非法版本和不支持的模式。draft 模式还拒绝既有 Tag/Release，平台任务并行复用既有测试与打包入口，最终创建候选 Release；stable 模式必须命中同版本 draft 且其目标提交仍属于当前 `main` 历史，只下载复核资产清单、两个描述、下载矩阵和 SHA-256，再原样提升为 Latest，不重新构建、上传或替换资产。工作流只使用仓库 `GITHUB_TOKEN`，不使用个人 Token。
+
+## 6. 安装、隐私与信任边界
+
+Windows 安装器固定 `RequestExecutionLevel user`、当前用户 Shell/注册表范围和 x64 HKCU 卸载视图。首次安装默认 `%LOCALAPPDATA%\Programs\Mihomo Meter` 并允许其他磁盘的当前用户可写空专用目录；升级继续使用已登记位置，迁移必须先卸载再重装。卸载始终保留 `%LOCALAPPDATA%\HongXunPan\MihomoMeter` 和 Credential Manager 凭据。
+
+`windows-release.json` 是公开版本索引，不包含 Controller 地址、Secret、Profile、订阅 URL、主机名、应用名、流量、设置或数据库。它通过 GitHub HTTPS 帮助用户找到人工下载页面，但没有独立签名，不能作为自动下载或安装信任根；Windows unsigned 安装器仍可能显示“未知发布者”和 SmartScreen。
 
 ## 7. 验证与放行
 
-非 Windows 主机执行 `python3 scripts/validate_windows.py`，验证安装权限、默认目录、首次目录选择、升级锁定、程序目录所有权、当前用户注册表、禁止提权/强制结束/删除数据，以及 W3 脚本、工作流和既有工程契约。Windows CI 执行完整 PowerShell 门禁，并上传可人工下载的 ZIP、安装器与校验文件。
+非 Windows 主机执行 `python3 scripts/validate_windows.py`、平台描述脚本单元测试、发布脚本语法检查、工作流定向静态门禁和 `git diff --check`。Windows CI 继续执行完整 PowerShell 门禁，并验证新增 Core 测试、App x64 Release 构建、描述文件生成、ZIP、安装器与 SHA-256。
 
-Win10 22H2 x64 标准用户按 W3-1 指南验证两个版本的 SHA-256、首次安装、运行中阻断、覆盖升级、同版本重装、开始菜单、卸载、数据与凭据保留、重装恢复、便携版共存、单实例、通知区域和 W0-W2D 业务回归。W3-1 只放行安装生命周期；不得据此宣称应用内更新或稳定 GitHub 分发可用。
+W3-2 采用两段式门禁。首发前必须以 `all` 完成 draft 演练，确认两个平台新描述、appcast、下载矩阵、全部新资产和 draft 不进入 Latest，并在 Win10 22H2 x64 标准用户下验证当前版本展示、固定描述暂不可用时的故障隔离、重复点击、安装、覆盖升级、通知区域、单实例和 W0-W2D 回归。前置结果记录且用户明确确认后，才允许触发首个全平台 stable；发布后立即验证同版本显示和打开正确页面。低版本发现更新延后到下一次 Windows 稳定发布作为发布后门禁，不增加可替换更新地址或创建后删除临时稳定 Release。
 
 ## 8. 停止条件
 
-出现以下任一情况立即停止并重新规划：安装、升级或卸载需要提权；安装器强制结束应用或运行中覆盖；首次安装不能选择其他磁盘；升级静默迁移或留下两套程序；未验证目录所有权便递归删除；固定身份、版本或载荷不一致；卸载删除用户数据或凭据；ZIP/安装器包含禁止内容；脚本重复 build/publish；工作流需要写权限或个人 Token；安装版与便携版业务口径分叉；W0-W2D 回归；W3-2 尚未通过便创建稳定 Release。
+出现以下任一情况立即停止并重新规划：更新检查影响监控；客户端按 Latest Tag 而非 Windows 描述判断；描述允许非本仓库或非 HTTPS 地址；旧二进制被复制、改名或重新上传；下载矩阵与描述不一致；本次新资产的内嵌版本、文件名和平台描述不一致；首次稳定版本不是全平台；Release workflow 请求个人 Token 或把写权限授予构建任务；安装、升级或卸载需要提权；用户数据、凭据或敏感内容进入描述、日志或 Release；前置门禁未记录或用户未确认便触发首个稳定发布。

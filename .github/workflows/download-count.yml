@@ -9,7 +9,7 @@ on:
       - scripts/generate-download-badge-json.sh
   workflow_run:
     workflows:
-      - 发布自签名 DMG
+      - 发布 Mihomo Meter
     branches:
       - main
     types:

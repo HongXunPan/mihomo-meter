@@ -9,26 +9,32 @@ using MihomoMeter.Windows.Core.Infrastructure.ConnectionAnalytics;
 using MihomoMeter.Windows.Core.Infrastructure.Profile;
 using MihomoMeter.Windows.Core.Infrastructure.Quota;
 using MihomoMeter.Windows.Core.Infrastructure.Statistics;
+using MihomoMeter.Windows.Core.Infrastructure.Update;
 
 namespace MihomoMeter.Windows.App.Infrastructure;
 
 internal sealed class WindowsAppServices : IAsyncDisposable
 {
-    private readonly HttpClient _httpClient;
+    private readonly HttpClient _controllerHttpClient;
+    private readonly HttpClient _updateHttpClient;
 
     private WindowsAppServices(
-        HttpClient httpClient,
+        HttpClient controllerHttpClient,
+        HttpClient updateHttpClient,
         IControllerConfigurationStore configurationStore,
         TrafficStatisticsCoordinator statistics,
         ConnectionAnalyticsCoordinator connectionAnalytics,
         QuotaTrackingCoordinator quota,
+        WindowsUpdateChecker updateChecker,
         TrafficMonitoringCoordinator coordinator)
     {
-        _httpClient = httpClient;
+        _controllerHttpClient = controllerHttpClient;
+        _updateHttpClient = updateHttpClient;
         ConfigurationStore = configurationStore;
         Statistics = statistics;
         ConnectionAnalytics = connectionAnalytics;
         Quota = quota;
+        UpdateChecker = updateChecker;
         Coordinator = coordinator;
     }
 
@@ -42,15 +48,23 @@ internal sealed class WindowsAppServices : IAsyncDisposable
 
     public QuotaTrackingCoordinator Quota { get; }
 
+    public WindowsUpdateChecker UpdateChecker { get; }
+
     public static WindowsAppServices Create()
     {
         WindowsSqliteProvider.Initialize();
-        var httpClient = new HttpClient(new SocketsHttpHandler
+        var controllerHttpClient = new HttpClient(new SocketsHttpHandler
         {
             AllowAutoRedirect = false,
             UseProxy = false,
         });
-        var controllerClient = new MihomoControllerClient(httpClient);
+        var updateHttpClient = new HttpClient(new SocketsHttpHandler
+        {
+            AllowAutoRedirect = true,
+            MaxAutomaticRedirections = 5,
+            UseProxy = true,
+        });
+        var controllerClient = new MihomoControllerClient(controllerHttpClient);
         var configurationStore = new ValidatedControllerConfigurationStore(
             new JsonControllerAddressStore(),
             new CredentialManagerSecretStore());
@@ -78,12 +92,16 @@ internal sealed class WindowsAppServices : IAsyncDisposable
             statisticsRecorder: statistics,
             quotaTrackingLifecycle: quota,
             connectionAnalyticsRecorder: connectionAnalytics);
+        var updateChecker = new WindowsUpdateChecker(
+            new GitHubWindowsReleaseClient(updateHttpClient));
         return new WindowsAppServices(
-            httpClient,
+            controllerHttpClient,
+            updateHttpClient,
             configurationStore,
             statistics,
             connectionAnalytics,
             quota,
+            updateChecker,
             coordinator);
     }
 
@@ -93,6 +111,7 @@ internal sealed class WindowsAppServices : IAsyncDisposable
         await Statistics.DisposeAsync().ConfigureAwait(false);
         await ConnectionAnalytics.DisposeAsync().ConfigureAwait(false);
         await Quota.DisposeAsync().ConfigureAwait(false);
-        _httpClient.Dispose();
+        _controllerHttpClient.Dispose();
+        _updateHttpClient.Dispose();
     }
 }
