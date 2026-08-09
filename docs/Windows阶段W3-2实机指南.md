@@ -9,14 +9,14 @@
 ## 2. 自动化前提
 
 1. 确认 Windows 静态契约、Core 单元测试、App x64 Release 构建、自包含发布、NSIS、ZIP 和 SHA-256 全部通过。
-2. 确认统一发布工作流从 `main` 以 `platform=all`、`release_mode=draft` 完成，未标记 Latest；后续 stable 必须原样提升该同版本候选，不重新构建或替换资产。
-3. draft 必须包含新生成的 `appcast.xml`、`macos-release.json`、`windows-release.json`、跨平台下载指引和全部平台资产。
-4. 核对两个 JSON 的实际版本、来源 Tag、文件名、下载地址和 SHA-256；不得包含用户数据或本机信息。
+2. 确认统一发布工作流从 `main` 以 `platform=windows`、`release_mode=draft` 完成，未标记 Latest；后续 stable 必须用相同平台原样提升该同版本候选，不重新构建或替换资产。
+3. draft 必须包含新生成的 `windows-release.json`、从 `v0.5.1` 元数据补建的 `macos-release.json`、原样沿用的 `appcast.xml`、跨平台下载指引和本次 Windows 资产，不得包含旧 DMG。
+4. 核对 Windows 描述为本次版本，macOS 描述仍为 `0.5.1` 且指向 `v0.5.1` 原始资产；两个 JSON 不得包含用户数据或本机信息。
 
 ## 3. 两段式版本检查
 
 1. **首发前**：打开侧边栏“关于与更新”，确认当前版本正确；固定 Latest 描述尚不存在时应显示暂不可用，连续点击只存在一次检查，页面和监控数据不闪烁。
-2. **首发后**：首个全平台稳定 Release 只能在前置结果记录且用户明确确认后发布；使用该版本检查时必须显示“已是最新版本”，并可打开描述中的本仓库 HTTPS Release。
+2. **首发后**：首个 Windows-only 稳定 Release 只能在前置结果记录且用户明确确认后发布；使用该 Windows 版本检查时必须显示“已是最新版本”，并可打开描述中的本仓库 HTTPS Release。Mac 应继续停留在 `0.5.1`，不得收到本次 Windows 版本更新提示。
 3. **下一 Windows 稳定版**：保留上一稳定版，在新版本发布后检查，确认只提示 Windows 实际新版本而非 Latest Tag；点击“打开发布页面”不得直接下载或运行安装器。
 4. 当前版本高于描述版本时不得提示降级；同版本、升级和降级比较仍由 Core 自动测试在每次 CI 锁定。
 5. 不为提前测试增加可替换更新地址、环境开关或隐藏设置，也不创建后删除临时稳定 Release。

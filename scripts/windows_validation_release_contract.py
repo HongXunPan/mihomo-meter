@@ -13,6 +13,7 @@ RELEASE_REQUIRED_REPOSITORY_FILES = (
     ".github/workflows/download-count.yml",
     ".github/workflows/release.yml",
     "docs/Windows阶段W3-2实机指南.md",
+    "scripts/inherited_release_descriptor.py",
     "scripts/release_platform_descriptors.py",
     "scripts/test_release_platform_descriptors.py",
     "scripts/validate_release_candidate.py",
@@ -40,6 +41,9 @@ RELEASE_REQUIRED_TEST_FILES = (
 RELEASE_REQUIRED_CODE_MARKERS = {
     ROOT / ".github/workflows/download-count.yml": (
         "发布 Mihomo Meter",
+    ),
+    ROOT / ".github/workflows/windows.yml": (
+        "scripts/inherited_release_descriptor.py",
     ),
     APP_ROOT / "MainWindow.xaml": (
         'IsSettingsVisible="True"',
@@ -93,6 +97,12 @@ RELEASE_REQUIRED_CODE_MARKERS = {
         "validate_release_snapshot",
         "verify_descriptor_assets",
     ),
+    ROOT / "scripts/inherited_release_descriptor.py": (
+        "generate_inherited_descriptor",
+        "load_release_checksums",
+        "load_release_asset_names",
+        "descriptor_from_hashes",
+    ),
     ROOT / "scripts/validate_release_candidate.py": (
         "候选 Release 资产列表与发布平台不一致",
         "validate_release_snapshot",
@@ -110,6 +120,9 @@ RELEASE_REQUIRED_CODE_MARKERS = {
         "actions/download-artifact@v7",
         "inputs.release_mode == 'draft'",
         "stable 模式只允许提升同版本 draft Release。",
+        "inherited_release_descriptor.py generate",
+        "--pattern SHA256SUMS",
+        "grep -Fxq macos-release.json",
         "validate_release_candidate.py",
         "--draft",
         "--draft=false --latest",
@@ -127,6 +140,10 @@ def validate_release_contract(errors: list[str]) -> None:
         errors.append("正式发布工作流必须且只能把 contents: write 授予最终发布任务。")
     if "permissions:\n  contents: read" not in workflow:
         errors.append("正式发布工作流默认权限必须为 contents: read。")
+
+    windows_workflow = (ROOT / ".github/workflows/windows.yml").read_text(encoding="utf-8")
+    if windows_workflow.count('"scripts/inherited_release_descriptor.py"') != 2:
+        errors.append("旧 Release 描述引导脚本必须同时触发 Windows PR 与 main 门禁。")
     for forbidden in (
         "PERSONAL_ACCESS_TOKEN",
         "GH_PAT",
