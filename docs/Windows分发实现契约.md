@@ -46,18 +46,20 @@ W3-1 workflow 不使用个人 Token，不请求 `contents: write`，不创建或
 
 ## 6. 安装与卸载生命周期
 
-安装器固定 `RequestExecutionLevel user`、`SetShellVarContext current` 和 64 位 HKCU 卸载视图，安装目录为 `%LOCALAPPDATA%\Programs\Mihomo Meter`，卸载标识为 `com.HongXunPan.MihomoMeter`。不提供安装作用域或目录选择，只创建当前用户开始菜单与卸载入口；完成页允许用户立即运行应用。
+安装器固定 `RequestExecutionLevel user`、`SetShellVarContext current` 和 64 位 HKCU 卸载视图，卸载标识为 `com.HongXunPan.MihomoMeter`。首次安装显示目录选择页，默认目录为 `%LOCALAPPDATA%\Programs\Mihomo Meter`，也允许选择其他磁盘上的当前用户可写专用目录；磁盘或共享根目录、用户数据目录、不可写目录和非空目录必须被拒绝。安装器仍不提供所有用户作用域，只创建当前用户开始菜单与卸载入口；完成页允许用户立即运行应用。
 
-安装、升级和卸载都通过系统 PowerShell 只读检查应用进程。应用仍运行时只允许用户从通知区域明确退出后重试或取消，不强制结束进程。升级在固定程序目录内完整替换旧载荷，避免遗留旧 DLL；卸载只删除程序、开始菜单和 HKCU 卸载项，始终保留 `%LOCALAPPDATA%\HongXunPan\MihomoMeter` 与 Credential Manager 凭据。
+安装、升级和卸载都通过系统 PowerShell 只读检查应用进程。应用仍运行时只允许用户从通知区域明确退出后重试或取消，不强制结束进程。首次安装写入只属于程序目录的隐藏所有权标记；升级从 HKCU 读取既有 `InstallLocation`、跳过目录选择并在原目录完整替换旧载荷，避免迁移时遗留两套程序。当前旧预览版的默认目录允许一次兼容升级并补写标记；后续只有注册表路径、主程序和标记一致时才允许递归清理或卸载。
+
+如需迁移程序目录，用户应先卸载再重新安装并重新选择目录。卸载只删除已登记程序目录、开始菜单和 HKCU 卸载项，始终保留 `%LOCALAPPDATA%\HongXunPan\MihomoMeter` 与 Credential Manager 凭据。
 
 便携 ZIP 与安装版运行同一程序、共享当前用户数据和单实例身份。它们可以保存在不同目录，但不能作为两套独立业务状态并行运行，也不宣称便携版数据完全便携。
 
 ## 7. 验证与放行
 
-非 Windows 主机执行 `python3 scripts/validate_windows.py`，验证安装权限、固定目录、当前用户注册表、禁止提权/强制结束/删除数据，以及 W3 脚本、工作流和既有工程契约。Windows CI 执行完整 PowerShell 门禁，并上传可人工下载的 ZIP、安装器与校验文件。
+非 Windows 主机执行 `python3 scripts/validate_windows.py`，验证安装权限、默认目录、首次目录选择、升级锁定、程序目录所有权、当前用户注册表、禁止提权/强制结束/删除数据，以及 W3 脚本、工作流和既有工程契约。Windows CI 执行完整 PowerShell 门禁，并上传可人工下载的 ZIP、安装器与校验文件。
 
 Win10 22H2 x64 标准用户按 W3-1 指南验证两个版本的 SHA-256、首次安装、运行中阻断、覆盖升级、同版本重装、开始菜单、卸载、数据与凭据保留、重装恢复、便携版共存、单实例、通知区域和 W0-W2D 业务回归。W3-1 只放行安装生命周期；不得据此宣称应用内更新或稳定 GitHub 分发可用。
 
 ## 8. 停止条件
 
-出现以下任一情况立即停止并重新规划：安装、升级或卸载需要提权；安装器强制结束应用或运行中覆盖；固定身份、目录、版本或载荷不一致；卸载删除用户数据或凭据；ZIP/安装器包含禁止内容；脚本重复 build/publish；工作流需要写权限或个人 Token；安装版与便携版业务口径分叉；W0-W2D 回归；W3-1 尚未通过便创建稳定 Release。
+出现以下任一情况立即停止并重新规划：安装、升级或卸载需要提权；安装器强制结束应用或运行中覆盖；首次安装不能选择其他磁盘；升级静默迁移或留下两套程序；未验证目录所有权便递归删除；固定身份、版本或载荷不一致；卸载删除用户数据或凭据；ZIP/安装器包含禁止内容；脚本重复 build/publish；工作流需要写权限或个人 Token；安装版与便携版业务口径分叉；W0-W2D 回归；W3-1 尚未通过便创建稳定 Release。

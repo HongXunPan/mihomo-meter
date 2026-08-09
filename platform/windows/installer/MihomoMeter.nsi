@@ -16,15 +16,19 @@ Unicode true
 
 !define PRODUCT_NAME "Mihomo Meter"
 !define PRODUCT_PUBLISHER "HongXunPan"
+!define PRODUCT_INSTALL_ID "com.HongXunPan.MihomoMeter"
 !define PRODUCT_EXECUTABLE "MihomoMeter.Windows.App.exe"
-!define PRODUCT_UNINSTALL_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\com.HongXunPan.MihomoMeter"
-!define PRODUCT_INSTALL_DIRECTORY "$LOCALAPPDATA\Programs\Mihomo Meter"
+!define PRODUCT_INSTALL_MARKER ".mihomo-meter-install"
+!define PRODUCT_UNINSTALL_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_INSTALL_ID}"
+!define PRODUCT_DEFAULT_INSTALL_DIRECTORY "$LOCALAPPDATA\Programs\Mihomo Meter"
+!define PRODUCT_DATA_DIRECTORY "$LOCALAPPDATA\HongXunPan\MihomoMeter"
 !define PRODUCT_START_MENU_DIRECTORY "$SMPROGRAMS\Mihomo Meter"
 
 Name "${PRODUCT_NAME}"
 OutFile "${OUTPUT_FILE}"
-InstallDir "${PRODUCT_INSTALL_DIRECTORY}"
+InstallDir "${PRODUCT_DEFAULT_INSTALL_DIRECTORY}"
 RequestExecutionLevel user
+AllowRootDirInstall false
 SetCompressor /SOLID lzma
 SetOverwrite on
 ShowInstDetails show
@@ -45,6 +49,9 @@ VIAddVersionKey /LANG=2052 "LegalCopyright" "Copyright HongXunPan"
 !define MUI_FINISHPAGE_RUN_TEXT "运行 Mihomo Meter"
 
 !insertmacro MUI_PAGE_WELCOME
+!define MUI_PAGE_CUSTOMFUNCTION_PRE PrepareInstallDirectoryPage
+!define MUI_PAGE_CUSTOMFUNCTION_LEAVE ValidateInstallDirectoryPage
+!insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
 
@@ -53,6 +60,8 @@ VIAddVersionKey /LANG=2052 "LegalCopyright" "Copyright HongXunPan"
 !insertmacro MUI_UNPAGE_FINISH
 
 !insertmacro MUI_LANGUAGE "SimpChinese"
+SetFont /LANG=${LANG_SIMPCHINESE} "Microsoft YaHei UI" 9
+!include /CHARSET=UTF8 "${__FILEDIR__}\MihomoMeter.InstallDirectory.nsh"
 
 Function EnsureApplicationStopped
 install_process_check:
@@ -98,6 +107,13 @@ Function .onInit
         Abort
     ${EndIf}
     SetShellVarContext current
+    SetRegView 64
+    ReadRegStr $ExistingInstallDirectory HKCU \
+        "${PRODUCT_UNINSTALL_KEY}" "InstallLocation"
+    StrCmp $ExistingInstallDirectory "" existing_install_directory_loaded
+    StrCpy $INSTDIR "$ExistingInstallDirectory"
+    Call EnsureExistingInstallDirectoryOwned
+existing_install_directory_loaded:
     Call EnsureApplicationStopped
 FunctionEnd
 
@@ -116,17 +132,35 @@ Section "Mihomo Meter" MainSection
     SetRegView 64
     Call EnsureApplicationStopped
 
+    StrCmp $ExistingInstallDirectory "" fresh_install_directory_ready
+    Call EnsureExistingInstallDirectoryOwned
     ClearErrors
     RMDir /r "$INSTDIR"
     IfErrors 0 install_directory_ready
-        MessageBox MB_OK|MB_ICONSTOP \
-            "旧版本程序文件仍被占用，安装已取消。请确认 Mihomo Meter 已完全退出。"
-        Abort
+    MessageBox MB_OK|MB_ICONSTOP \
+        "旧版本程序文件仍被占用，安装已取消。请确认 Mihomo Meter 已完全退出。"
+    Abort
+fresh_install_directory_ready:
+    Call ValidateFreshInstallDirectory
 install_directory_ready:
 
     SetOutPath "$INSTDIR"
     File /r "${PAYLOAD_DIRECTORY}\*.*"
     WriteUninstaller "$INSTDIR\Uninstall.exe"
+    ClearErrors
+    FileOpen $0 "$INSTDIR\${PRODUCT_INSTALL_MARKER}" w
+    IfErrors install_marker_failed
+    FileWrite $0 "${PRODUCT_INSTALL_ID}"
+    FileClose $0
+    SetFileAttributes "$INSTDIR\${PRODUCT_INSTALL_MARKER}" HIDDEN
+    Goto install_marker_ready
+install_marker_failed:
+    SetOutPath "$TEMP"
+    RMDir /r "$INSTDIR"
+    MessageBox MB_OK|MB_ICONSTOP \
+        "无法写入安装目录所有权标记，安装已取消且已清理程序文件。"
+    Abort
+install_marker_ready:
 
     CreateDirectory "${PRODUCT_START_MENU_DIRECTORY}"
     CreateShortcut \
@@ -150,10 +184,28 @@ Section "Uninstall"
     SetRegView 64
     Call un.EnsureApplicationStopped
 
-    StrCmp $INSTDIR "${PRODUCT_INSTALL_DIRECTORY}" uninstall_path_valid
-        MessageBox MB_OK|MB_ICONSTOP \
-            "卸载目录不是 Mihomo Meter 的固定当前用户安装目录，卸载已取消。"
-        Abort
+    ReadRegStr $0 HKCU "${PRODUCT_UNINSTALL_KEY}" "InstallLocation"
+    StrCmp $0 $INSTDIR 0 uninstall_path_invalid
+    Call un.IsOwnedInstallDirectory
+    StrCmp $0 "1" 0 uninstall_path_invalid
+
+    StrLen $1 "${PRODUCT_DATA_DIRECTORY}"
+    StrCpy $2 "$INSTDIR" $1
+    StrCmp $2 "${PRODUCT_DATA_DIRECTORY}" 0 uninstall_path_outside_data
+    StrCpy $2 "$INSTDIR" 1 $1
+    StrCmp $2 "" uninstall_path_invalid
+    StrCmp $2 "\" uninstall_path_invalid uninstall_path_outside_data
+uninstall_path_outside_data:
+    ClearErrors
+    GetFullPathName $1 "$INSTDIR\.."
+    IfErrors uninstall_path_invalid
+    StrCmp $INSTDIR $1 uninstall_path_invalid
+    Goto uninstall_path_valid
+
+uninstall_path_invalid:
+    MessageBox MB_OK|MB_ICONSTOP \
+        "卸载目录身份或安全边界校验失败，卸载已取消且不会删除该目录。"
+    Abort
 uninstall_path_valid:
 
     SetOutPath "$TEMP"

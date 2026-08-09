@@ -123,13 +123,13 @@ Windows CI 和具备相同环境的 Windows 主机使用：
 pwsh -File scripts/validate_windows.ps1
 ```
 
-固定顺序为静态检查、solution restore、Core 单元测试、App x64 Release 构建、非打包自包含 publish、发布目录检查、便携 ZIP 和 SHA-256 组装。CI 上传版本化 W3-0 预览 artifact，不连接真实 Controller，也不查询真实机场。
+固定顺序为静态检查、solution restore、Core 单元测试、App x64 Release 构建、非打包自包含 publish、发布目录检查、便携 ZIP、NSIS 安装器和 SHA-256 组装。CI 上传版本化 W3-1 预览 artifact，不连接真实 Controller，也不查询真实机场。
 
 Core 测试在既有矩阵外覆盖归因默认关闭、批量与强制刷新、保留/基数、精确查询、覆盖率和趋势摘要；静态契约另锁定趋势请求代际与固定明细区。真实 Windows 原生菜单与 WinUI 仍需实机验证。
 
 ## 7. 人工验收与证据边界
 
-W2D-2 已完成实机验收；当前 Windows 10 22H2 x64 标准用户按[Windows 阶段 W3-0 实机指南](Windows阶段W3-0实机指南.md)验证 SHA-256、解压结构、无提权启动、单实例和 W0-W2D 回归。
+W2D-2 与 W3-0 已完成实机验收；当前 Windows 10 22H2 x64 标准用户按[Windows 阶段 W3-1 实机指南](Windows阶段W3-1实机指南.md)验证安装器字体、首次目录选择、升级锁定、卸载保留和 W0-W2D 回归。
 
 GitHub Actions 成功不能表述为 Windows 10 实机、Credential Manager 或真实 Controller 已通过；macOS 静态检查成功也不能表述为 Windows 已编译。每个纵切通过后由父工作区保存带日期证据，源码仓只维护公开复现指南和自动化结果。
 

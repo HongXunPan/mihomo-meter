@@ -54,6 +54,7 @@ if ($ActualFileVersion -ne $ExpectedFileVersion) {
 }
 
 $ForbiddenNames = @(
+    ".mihomo-meter-install",
     "settings.json",
     "traffic.sqlite3",
     "quota.sqlite3",

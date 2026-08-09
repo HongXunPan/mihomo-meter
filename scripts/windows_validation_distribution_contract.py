@@ -9,6 +9,7 @@ DISTRIBUTION_REQUIRED_REPOSITORY_FILES = (
     "docs/Windows分发实现契约.md",
     "docs/Windows阶段W3-0实机指南.md",
     "docs/Windows阶段W3-1实机指南.md",
+    "platform/windows/installer/MihomoMeter.InstallDirectory.nsh",
     "platform/windows/installer/MihomoMeter.nsi",
     "scripts/build_windows_installer.ps1",
     "scripts/package_windows.ps1",
@@ -59,6 +60,7 @@ DISTRIBUTION_REQUIRED_CODE_MARKERS = {
         "traffic.sqlite3",
         "quota.sqlite3",
         "connection-analytics.sqlite3",
+        '".mihomo-meter-install"',
         '".pdb"',
     ),
     ROOT / "scripts/build_windows_installer.ps1": (
@@ -70,15 +72,34 @@ DISTRIBUTION_REQUIRED_CODE_MARKERS = {
     ),
     ROOT / "platform/windows/installer/MihomoMeter.nsi": (
         "RequestExecutionLevel user",
+        "AllowRootDirInstall false",
         '$LOCALAPPDATA\\Programs\\Mihomo Meter',
+        '$LOCALAPPDATA\\HongXunPan\\MihomoMeter',
         "SetShellVarContext current",
         "SetRegView 64",
         "com.HongXunPan.MihomoMeter",
+        "MihomoMeter.InstallDirectory.nsh",
+        "MUI_PAGE_DIRECTORY",
+        "Microsoft YaHei UI",
+        "ReadRegStr $ExistingInstallDirectory HKCU",
+        "PRODUCT_INSTALL_MARKER",
         "WriteUninstaller",
         "CreateShortcut",
         "Call EnsureApplicationStopped",
         "Call un.EnsureApplicationStopped",
         "RMDir /r \"$INSTDIR\"",
+    ),
+    ROOT / "platform/windows/installer/MihomoMeter.InstallDirectory.nsh": (
+        "ValidateFreshInstallDirectory",
+        "EnsureInstallDirectoryOutsideData",
+        "IsOwnedInstallDirectory",
+        "EnsureExistingInstallDirectoryOwned",
+        "PrepareInstallDirectoryPage",
+        "ValidateInstallDirectoryPage",
+        "GetTempFileName",
+        "FindFirst",
+        "PRODUCT_DEFAULT_INSTALL_DIRECTORY",
+        "PRODUCT_INSTALL_MARKER",
     ),
     ROOT / "platform/windows/MihomoMeter.Windows.App/MainWindow.xaml.cs": (
         "Mihomo Meter · Windows W3-1",
@@ -93,9 +114,13 @@ DISTRIBUTION_REQUIRED_CODE_MARKERS = {
 
 
 def validate_distribution_contract(errors: list[str]) -> None:
-    installer = (
-        ROOT / "platform/windows/installer/MihomoMeter.nsi"
-    ).read_text(encoding="utf-8")
+    installer = "\n".join(
+        path.read_text(encoding="utf-8")
+        for path in (
+            ROOT / "platform/windows/installer/MihomoMeter.nsi",
+            ROOT / "platform/windows/installer/MihomoMeter.InstallDirectory.nsh",
+        )
+    )
     forbidden_markers = (
         "RequestExecutionLevel admin",
         "SetShellVarContext all",
@@ -103,8 +128,17 @@ def validate_distribution_contract(errors: list[str]) -> None:
         "$PROGRAMFILES",
         "$DESKTOP",
         "taskkill",
-        "$LOCALAPPDATA\\HongXunPan\\MihomoMeter",
     )
     for marker in forbidden_markers:
         if marker.lower() in installer.lower():
             errors.append(f"Windows W3-1 安装器不得包含越界标记：{marker}")
+
+    for line in installer.splitlines():
+        normalized = line.strip().lower()
+        deletes_directory = normalized.startswith(("rmdir ", "delete "))
+        targets_user_data = (
+            "product_data_directory" in normalized
+            or "$localappdata\\hongxunpan\\mihomometer" in normalized
+        )
+        if deletes_directory and targets_user_data:
+            errors.append("Windows W3-1 安装器不得删除用户数据目录。")
