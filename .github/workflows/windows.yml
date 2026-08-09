@@ -9,7 +9,9 @@ on:
       - "scripts/windows_validation_contract.py"
       - "scripts/windows_validation_quota_contract.py"
       - "scripts/windows_validation_connection_contract.py"
+      - "scripts/windows_validation_distribution_contract.py"
       - "scripts/validate_windows.ps1"
+      - "scripts/package_windows.ps1"
       - "docs/Windows工程代码技术选型.md"
       - "docs/Windows阶段W0实机指南.md"
       - "docs/Windows阶段W1实机指南.md"
@@ -21,6 +23,8 @@ on:
       - "docs/Windows阶段W2D1实机指南.md"
       - "docs/Windows阶段W2D2实机指南.md"
       - "docs/Windows连接分析实现契约.md"
+      - "docs/Windows阶段W3-0实机指南.md"
+      - "docs/Windows分发实现契约.md"
       - "CONTRIBUTING.md"
       - "README.md"
       - ".github/workflows/windows.yml"
@@ -32,7 +36,9 @@ on:
       - "scripts/windows_validation_contract.py"
       - "scripts/windows_validation_quota_contract.py"
       - "scripts/windows_validation_connection_contract.py"
+      - "scripts/windows_validation_distribution_contract.py"
       - "scripts/validate_windows.ps1"
+      - "scripts/package_windows.ps1"
       - "docs/Windows工程代码技术选型.md"
       - "docs/Windows阶段W0实机指南.md"
       - "docs/Windows阶段W1实机指南.md"
@@ -44,6 +50,8 @@ on:
       - "docs/Windows阶段W2D1实机指南.md"
       - "docs/Windows阶段W2D2实机指南.md"
       - "docs/Windows连接分析实现契约.md"
+      - "docs/Windows阶段W3-0实机指南.md"
+      - "docs/Windows分发实现契约.md"
       - "CONTRIBUTING.md"
       - "README.md"
       - ".github/workflows/windows.yml"
@@ -57,13 +65,14 @@ concurrency:
 
 jobs:
   build:
-    name: 测试并构建 Windows x64 预览产物
+    name: 测试并打包 Windows x64 预览产物
     runs-on: windows-2025
     timeout-minutes: 20
     env:
       DOTNET_CLI_TELEMETRY_OPTOUT: "1"
       DOTNET_NOLOGO: "1"
       NUGET_PACKAGES: ${{ github.workspace }}/.codex-tmp/nuget
+      WINDOWS_PREVIEW_VERSION: "0.0.0"
 
     steps:
       - name: 检出源码
@@ -76,12 +85,12 @@ jobs:
 
       - name: 执行 Windows 静态、测试、构建与发布检查
         shell: pwsh
-        run: pwsh -File scripts/validate_windows.ps1
+        run: pwsh -File scripts/validate_windows.ps1 -Version "$env:WINDOWS_PREVIEW_VERSION"
 
-      - name: 上传 Windows W2D x64 预览目录
+      - name: 上传 Windows W3-0 x64 预览包
         uses: actions/upload-artifact@v7
         with:
-          name: mihomo-meter-windows-w2d-x64-${{ github.sha }}
-          path: .codex-tmp/windows-w2d-publish
+          name: mihomo-meter-windows-w3-preview-${{ env.WINDOWS_PREVIEW_VERSION }}-${{ github.sha }}
+          path: .codex-tmp/windows-package
           if-no-files-found: error
           retention-days: 14
