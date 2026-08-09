@@ -54,8 +54,13 @@ function Assert-Utf8BomSource {
         throw "Windows NSIS 安装器源文件包含无效 UTF-8：$Path"
     }
 
-    if ($Content -match "[\u0080-\u009F\u00C0-\u024F\uFFFD]") {
-        throw "Windows NSIS 安装器源文件疑似包含乱码字符：$Path"
+    foreach ($Character in $Content.ToCharArray()) {
+        $CodePoint = [int]$Character
+        if (($CodePoint -ge 0x0080 -and $CodePoint -le 0x009F) -or
+            ($CodePoint -ge 0x00C0 -and $CodePoint -le 0x024F) -or
+            $CodePoint -eq 0xFFFD) {
+            throw "Windows NSIS 安装器源文件疑似包含乱码字符：$Path"
+        }
     }
 }
 
