@@ -7,7 +7,9 @@ param(
     [string]$PublishDirectory,
 
     [Parameter(Mandatory = $true)]
-    [string]$OutputDirectory
+    [string]$OutputDirectory,
+
+    [string]$MakeNsisPath = "makensis.exe"
 )
 
 $ErrorActionPreference = "Stop"
@@ -52,6 +54,7 @@ if ($ActualFileVersion -ne $ExpectedFileVersion) {
 }
 
 $ForbiddenNames = @(
+    ".mihomo-meter-install",
     "settings.json",
     "traffic.sqlite3",
     "quota.sqlite3",
@@ -93,68 +96,136 @@ if ($PackageFiles.Count -eq 0) {
     throw "Windows 发布目录没有可打包文件。"
 }
 
+$PayloadDirectory = Join-Path (
+    Split-Path -Parent $OutputDirectory) "windows-package-payload"
+$PayloadDirectory = [System.IO.Path]::GetFullPath($PayloadDirectory)
+if ($PayloadDirectory.Equals($PublishDirectory, $DirectoryComparison) -or
+    $PayloadDirectory.StartsWith($PublishPrefix, $DirectoryComparison) -or
+    $PayloadDirectory.Equals($OutputDirectory, $DirectoryComparison)) {
+    throw "Windows 安装器载荷目录必须与发布目录和输出目录隔离。"
+}
+
 if (Test-Path -LiteralPath $OutputDirectory) {
     Remove-Item -LiteralPath $OutputDirectory -Recurse -Force
 }
+if (Test-Path -LiteralPath $PayloadDirectory) {
+    Remove-Item -LiteralPath $PayloadDirectory -Recurse -Force
+}
 New-Item -ItemType Directory -Path $OutputDirectory | Out-Null
+New-Item -ItemType Directory -Path $PayloadDirectory | Out-Null
 
-Add-Type -AssemblyName System.IO.Compression
-Add-Type -AssemblyName System.IO.Compression.FileSystem
-
-$ArchiveName = "Mihomo-Meter-$Version-windows-x64-portable.zip"
-$ArchivePath = Join-Path $OutputDirectory $ArchiveName
-$Archive = [System.IO.Compression.ZipFile]::Open(
-    $ArchivePath,
-    [System.IO.Compression.ZipArchiveMode]::Create)
-$FixedTimestamp = [System.DateTimeOffset]::Parse("1980-01-01T00:00:00Z")
 try {
     foreach ($File in $PackageFiles) {
         $RelativePath = [System.IO.Path]::GetRelativePath(
             $PublishDirectory,
-            $File.FullName).Replace("\", "/")
-        $EntryName = "Mihomo Meter/$RelativePath"
-        $Entry = $Archive.CreateEntry(
-            $EntryName,
-            [System.IO.Compression.CompressionLevel]::Optimal)
-        $Entry.LastWriteTime = $FixedTimestamp
-        $SourceStream = $File.OpenRead()
-        $DestinationStream = $Entry.Open()
-        try {
-            $SourceStream.CopyTo($DestinationStream)
+            $File.FullName)
+        $DestinationPath = Join-Path $PayloadDirectory $RelativePath
+        $DestinationDirectory = Split-Path -Parent $DestinationPath
+        New-Item -ItemType Directory -Path $DestinationDirectory -Force | Out-Null
+        [System.IO.File]::Copy($File.FullName, $DestinationPath, $true)
+    }
+
+    $PayloadFiles = @(
+        Get-ChildItem -LiteralPath $PayloadDirectory -File -Recurse |
+            Sort-Object FullName
+    )
+    if ($PayloadFiles.Count -ne $PackageFiles.Count) {
+        throw "Windows 统一打包载荷与已验证发布文件数量不一致。"
+    }
+
+    Add-Type -AssemblyName System.IO.Compression
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+
+    $ArchiveName = "Mihomo-Meter-$Version-windows-x64-portable.zip"
+    $ArchivePath = Join-Path $OutputDirectory $ArchiveName
+    $Archive = [System.IO.Compression.ZipFile]::Open(
+        $ArchivePath,
+        [System.IO.Compression.ZipArchiveMode]::Create)
+    $FixedTimestamp = [System.DateTimeOffset]::Parse("1980-01-01T00:00:00Z")
+    try {
+        foreach ($File in $PayloadFiles) {
+            $RelativePath = [System.IO.Path]::GetRelativePath(
+                $PayloadDirectory,
+                $File.FullName).Replace("\", "/")
+            $EntryName = "Mihomo Meter/$RelativePath"
+            $Entry = $Archive.CreateEntry(
+                $EntryName,
+                [System.IO.Compression.CompressionLevel]::Optimal)
+            $Entry.LastWriteTime = $FixedTimestamp
+            $SourceStream = $File.OpenRead()
+            $DestinationStream = $Entry.Open()
+            try {
+                $SourceStream.CopyTo($DestinationStream)
+            }
+            finally {
+                $DestinationStream.Dispose()
+                $SourceStream.Dispose()
+            }
         }
-        finally {
-            $DestinationStream.Dispose()
-            $SourceStream.Dispose()
+    }
+    finally {
+        $Archive.Dispose()
+    }
+
+    $ArchiveRead = [System.IO.Compression.ZipFile]::OpenRead($ArchivePath)
+    try {
+        $EntryNames = @($ArchiveRead.Entries | ForEach-Object { $_.FullName })
+        if ($EntryNames -notcontains "Mihomo Meter/MihomoMeter.Windows.App.exe") {
+            throw "Windows 便携 ZIP 缺少应用可执行文件。"
         }
+        if (@($EntryNames | Where-Object { $_ -like "Mihomo Meter/*.pri" }).Count -eq 0) {
+            throw "Windows 便携 ZIP 缺少 WinUI 应用 PRI。"
+        }
+        if (@($EntryNames | Where-Object {
+                    $_.ToLowerInvariant().EndsWith(".pdb")
+                }).Count -ne 0) {
+            throw "Windows 便携 ZIP 不得包含 PDB。"
+        }
+    }
+    finally {
+        $ArchiveRead.Dispose()
+    }
+
+    $InstallerName = "Mihomo-Meter-$Version-windows-x64-setup.exe"
+    $InstallerPath = Join-Path $OutputDirectory $InstallerName
+    & (Join-Path $PSScriptRoot "build_windows_installer.ps1") `
+        -Version $Version `
+        -PayloadDirectory $PayloadDirectory `
+        -OutputPath $InstallerPath `
+        -MakeNsisPath $MakeNsisPath
+
+    $Assets = @(
+        Get-Item -LiteralPath $ArchivePath
+        Get-Item -LiteralPath $InstallerPath
+    ) | Sort-Object Name
+    $ChecksumLines = @(
+        foreach ($Asset in $Assets) {
+            $HashResult = Get-FileHash -LiteralPath $Asset.FullName -Algorithm SHA256
+            $Hash = $HashResult.Hash.ToLowerInvariant()
+            "$Hash  $($Asset.Name)"
+        }
+    )
+    $ChecksumPath = Join-Path $OutputDirectory "SHA256SUMS"
+    $ChecksumContent = ($ChecksumLines -join "`n") + "`n"
+    [System.IO.File]::WriteAllText(
+        $ChecksumPath,
+        $ChecksumContent,
+        [System.Text.UTF8Encoding]::new($false))
+
+    $ExpectedOutputNames = @($ArchiveName, $InstallerName, "SHA256SUMS") | Sort-Object
+    $ActualOutputNames = @(
+        Get-ChildItem -LiteralPath $OutputDirectory -File |
+            Select-Object -ExpandProperty Name |
+            Sort-Object
+    )
+    if (($ActualOutputNames -join "`n") -cne ($ExpectedOutputNames -join "`n")) {
+        throw "Windows W3-1 输出目录必须且只能包含 ZIP、安装器和 SHA256SUMS。"
     }
 }
 finally {
-    $Archive.Dispose()
-}
-
-$ArchiveRead = [System.IO.Compression.ZipFile]::OpenRead($ArchivePath)
-try {
-    $EntryNames = @($ArchiveRead.Entries | ForEach-Object { $_.FullName })
-    if ($EntryNames -notcontains "Mihomo Meter/MihomoMeter.Windows.App.exe") {
-        throw "Windows 便携 ZIP 缺少应用可执行文件。"
-    }
-    if (@($EntryNames | Where-Object { $_ -like "Mihomo Meter/*.pri" }).Count -eq 0) {
-        throw "Windows 便携 ZIP 缺少 WinUI 应用 PRI。"
-    }
-    if (@($EntryNames | Where-Object { $_.ToLowerInvariant().EndsWith(".pdb") }).Count -ne 0) {
-        throw "Windows 便携 ZIP 不得包含 PDB。"
+    if (Test-Path -LiteralPath $PayloadDirectory) {
+        Remove-Item -LiteralPath $PayloadDirectory -Recurse -Force
     }
 }
-finally {
-    $ArchiveRead.Dispose()
-}
 
-$ArchiveHash = (Get-FileHash -LiteralPath $ArchivePath -Algorithm SHA256).Hash.ToLowerInvariant()
-$ChecksumPath = Join-Path $OutputDirectory "SHA256SUMS"
-$ChecksumContent = "$ArchiveHash  $ArchiveName`n"
-[System.IO.File]::WriteAllText(
-    $ChecksumPath,
-    $ChecksumContent,
-    [System.Text.UTF8Encoding]::new($false))
-
-Write-Host "Windows W3-0 便携 ZIP 与 SHA256SUMS 已生成：$OutputDirectory"
+Write-Host "Windows W3-1 便携 ZIP、NSIS 安装器与 SHA256SUMS 已生成：$OutputDirectory"

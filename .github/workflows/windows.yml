@@ -2,6 +2,12 @@ name: Windows 构建与测试
 
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: Windows 预览版本（X.Y.Z）
+        required: false
+        default: "0.0.0"
+        type: string
   pull_request:
     paths:
       - "platform/windows/**"
@@ -12,6 +18,8 @@ on:
       - "scripts/windows_validation_distribution_contract.py"
       - "scripts/validate_windows.ps1"
       - "scripts/package_windows.ps1"
+      - "scripts/build_windows_installer.ps1"
+      - "platform/windows/installer/**"
       - "docs/Windows工程代码技术选型.md"
       - "docs/Windows阶段W0实机指南.md"
       - "docs/Windows阶段W1实机指南.md"
@@ -24,6 +32,7 @@ on:
       - "docs/Windows阶段W2D2实机指南.md"
       - "docs/Windows连接分析实现契约.md"
       - "docs/Windows阶段W3-0实机指南.md"
+      - "docs/Windows阶段W3-1实机指南.md"
       - "docs/Windows分发实现契约.md"
       - "CONTRIBUTING.md"
       - "README.md"
@@ -39,6 +48,8 @@ on:
       - "scripts/windows_validation_distribution_contract.py"
       - "scripts/validate_windows.ps1"
       - "scripts/package_windows.ps1"
+      - "scripts/build_windows_installer.ps1"
+      - "platform/windows/installer/**"
       - "docs/Windows工程代码技术选型.md"
       - "docs/Windows阶段W0实机指南.md"
       - "docs/Windows阶段W1实机指南.md"
@@ -51,6 +62,7 @@ on:
       - "docs/Windows阶段W2D2实机指南.md"
       - "docs/Windows连接分析实现契约.md"
       - "docs/Windows阶段W3-0实机指南.md"
+      - "docs/Windows阶段W3-1实机指南.md"
       - "docs/Windows分发实现契约.md"
       - "CONTRIBUTING.md"
       - "README.md"
@@ -72,7 +84,7 @@ jobs:
       DOTNET_CLI_TELEMETRY_OPTOUT: "1"
       DOTNET_NOLOGO: "1"
       NUGET_PACKAGES: ${{ github.workspace }}/.codex-tmp/nuget
-      WINDOWS_PREVIEW_VERSION: "0.0.0"
+      WINDOWS_PREVIEW_VERSION: ${{ inputs.version || '0.0.0' }}
 
     steps:
       - name: 检出源码
@@ -83,11 +95,31 @@ jobs:
         with:
           global-json-file: platform/windows/global.json
 
+      - name: 安装固定 NSIS
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          choco install nsis --version=3.12.0 --yes --no-progress --limit-output
+          if ($LASTEXITCODE -ne 0) {
+            throw "NSIS 3.12.0 安装失败。"
+          }
+          $compilerPath = Join-Path ${env:ProgramFiles(x86)} "NSIS\makensis.exe"
+          if (-not (Test-Path -LiteralPath $compilerPath -PathType Leaf)) {
+            throw "NSIS 编译器不存在：$compilerPath"
+          }
+          Add-Content -LiteralPath $env:GITHUB_ENV `
+            -Value "NSIS_COMPILER_PATH=$compilerPath" `
+            -Encoding utf8
+          Write-Host "使用 NSIS 编译器：$compilerPath"
+
       - name: 执行 Windows 静态、测试、构建与发布检查
         shell: pwsh
-        run: pwsh -File scripts/validate_windows.ps1 -Version "$env:WINDOWS_PREVIEW_VERSION"
+        run: >-
+          pwsh -File scripts/validate_windows.ps1
+          -Version "$env:WINDOWS_PREVIEW_VERSION"
+          -MakeNsisPath "$env:NSIS_COMPILER_PATH"
 
-      - name: 上传 Windows W3-0 x64 预览包
+      - name: 上传 Windows W3-1 x64 预览包
         uses: actions/upload-artifact@v7
         with:
           name: mihomo-meter-windows-w3-preview-${{ env.WINDOWS_PREVIEW_VERSION }}-${{ github.sha }}
