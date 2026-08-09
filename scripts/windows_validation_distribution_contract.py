@@ -117,9 +117,10 @@ DISTRIBUTION_REQUIRED_CODE_MARKERS = {
         "Mihomo Meter · Windows W3-1",
     ),
     ROOT / "README.md": (
-        "Windows W3-0 已通过",
+        "Windows W3-1 安装生命周期已通过",
         "Windows W3-0",
         "Windows W3-1",
+        "W3-2",
         "Windows分发实现契约.md",
     ),
 }
