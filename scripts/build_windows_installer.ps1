@@ -47,6 +47,8 @@ if (Test-Path -LiteralPath $OutputPath) {
 
 $CompilerArguments = @(
     "/V2",
+    "/INPUTCHARSET",
+    "UTF8",
     "/DAPP_VERSION=$Version",
     "/DPAYLOAD_DIRECTORY=$PayloadDirectory",
     "/DOUTPUT_FILE=$OutputPath",

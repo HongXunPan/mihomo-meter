@@ -65,6 +65,7 @@ DISTRIBUTION_REQUIRED_CODE_MARKERS = {
     ),
     ROOT / "scripts/build_windows_installer.ps1": (
         "platform/windows/installer/MihomoMeter.nsi",
+        '"/INPUTCHARSET",\n    "UTF8",',
         '"/DAPP_VERSION=$Version"',
         '"/DPAYLOAD_DIRECTORY=$PayloadDirectory"',
         '"/DOUTPUT_FILE=$OutputPath"',
