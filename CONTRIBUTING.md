@@ -12,7 +12,7 @@ macOS 工程需要：
 
 应用与测试 Target 均最低支持 macOS 14。
 
-Windows 工程需要 Windows 10 22H2 x64 或更高版本、.NET SDK 10.0.302、Windows 10 SDK 10.0.19041.0 或更高版本，以及可从 `PATH` 找到 `makensis.exe` 的 NSIS 3.12.0。W2C 使用 `Microsoft.Data.Sqlite.Core` 10.0.10、系统 `winsqlite3.dll` 和仅用于 `profiles.yaml` 的 `YamlDotNet` 18.1.0，不引入图表库；`MSTest.Sdk` 4.3.2 只用于测试。非 Windows 主机只能运行静态契约检查。
+Windows 工程需要 Windows 10 22H2 x64 或更高版本、.NET SDK 10.0.302、Windows 10 SDK 10.0.19041.0 或更高版本，以及 NSIS 3.12.0；`makensis.exe` 可以从 `PATH` 解析，也可以通过 `-MakeNsisPath` 显式传入。W2C 使用 `Microsoft.Data.Sqlite.Core` 10.0.10、系统 `winsqlite3.dll` 和仅用于 `profiles.yaml` 的 `YamlDotNet` 18.1.0，不引入图表库；`MSTest.Sdk` 4.3.2 只用于测试。非 Windows 主机只能运行静态契约检查。
 
 项目固定依赖 Sparkle 2.9.4 处理应用内更新，并使用 Yams 6.2.2 类型化解析用户授权目录中的 `profiles.yaml`。Yams 不得扩展为通用配置加载入口。请勿为了局部功能继续引入未经讨论的框架、代码生成器或包管理脚本。
 

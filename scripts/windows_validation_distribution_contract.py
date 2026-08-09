@@ -18,8 +18,11 @@ DISTRIBUTION_REQUIRED_REPOSITORY_FILES = (
 DISTRIBUTION_REQUIRED_CODE_MARKERS = {
     ROOT / ".github/workflows/windows.yml": (
         "WINDOWS_PREVIEW_VERSION",
+        "NSIS_COMPILER_PATH",
         "inputs.version || '0.0.0'",
         "choco install nsis --version=3.12.0",
+        "NSIS\\makensis.exe",
+        '-MakeNsisPath "$env:NSIS_COMPILER_PATH"',
         "mihomo-meter-windows-w3-preview-${{ env.WINDOWS_PREVIEW_VERSION }}-${{ github.sha }}",
         ".codex-tmp/windows-package",
         "scripts/build_windows_installer.ps1",

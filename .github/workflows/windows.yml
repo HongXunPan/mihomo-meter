@@ -103,12 +103,21 @@ jobs:
           if ($LASTEXITCODE -ne 0) {
             throw "NSIS 3.12.0 安装失败。"
           }
-          $compiler = Get-Command makensis.exe -CommandType Application
-          Write-Host "使用 NSIS 编译器：$($compiler.Source)"
+          $compilerPath = Join-Path ${env:ProgramFiles(x86)} "NSIS\makensis.exe"
+          if (-not (Test-Path -LiteralPath $compilerPath -PathType Leaf)) {
+            throw "NSIS 编译器不存在：$compilerPath"
+          }
+          Add-Content -LiteralPath $env:GITHUB_ENV `
+            -Value "NSIS_COMPILER_PATH=$compilerPath" `
+            -Encoding utf8
+          Write-Host "使用 NSIS 编译器：$compilerPath"
 
       - name: 执行 Windows 静态、测试、构建与发布检查
         shell: pwsh
-        run: pwsh -File scripts/validate_windows.ps1 -Version "$env:WINDOWS_PREVIEW_VERSION"
+        run: >-
+          pwsh -File scripts/validate_windows.ps1
+          -Version "$env:WINDOWS_PREVIEW_VERSION"
+          -MakeNsisPath "$env:NSIS_COMPILER_PATH"
 
       - name: 上传 Windows W3-1 x64 预览包
         uses: actions/upload-artifact@v7
