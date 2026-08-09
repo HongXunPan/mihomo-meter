@@ -8,7 +8,7 @@
 [使用文档（Wiki）](https://github.com/HongXunPan/mihomo-meter/wiki) ·
 [版本发布与下载（GitHub Releases）](https://github.com/HongXunPan/mihomo-meter/releases)
 
-Mihomo Meter 是一款通过 Mihomo Controller API 统计真实代理流量的原生桌面应用。macOS 已提供完整桌面能力；Windows W2D-2 已通过，当前进入 W3-0 便携打包基线。
+Mihomo Meter 是一款通过 Mihomo Controller API 统计真实代理流量的原生桌面应用。macOS 已提供完整桌面能力；Windows W3-0 已通过，当前进入 W3-1 安装生命周期。
 
 > 当前已完成 MVP-1、MVP-2、阶段 2 和阶段 3 源码实现；阶段 3.0 实机门禁以 46 条 Proxy 样本通过，完整构建测试与界面验收仍由 CI 和用户完成。
 
@@ -57,7 +57,8 @@ Mihomo Meter 是只读监控工具：
 - [x] [Windows W2D-0](docs/Windows阶段W2D0实机指南.md)：Proxy 连接主机名与应用识别覆盖率门禁
 - [x] [Windows W2D-1](docs/Windows阶段W2D1实机指南.md)：Proxy/DIRECT 实时连接、分组搜索、识别诊断与原生 Top 5
 - [x] [Windows W2D-2](docs/Windows阶段W2D2实机指南.md)：独立归因账本、30 日榜单、交叉筛选、覆盖率与趋势
-- [ ] [Windows W3-0](docs/Windows阶段W3-0实机指南.md)：版本化便携 ZIP、SHA-256 与无提权启动
+- [x] [Windows W3-0](docs/Windows阶段W3-0实机指南.md)：版本化便携 ZIP、SHA-256 与无提权启动
+- [ ] Windows W3-1：unsigned NSIS 当前用户安装、覆盖升级、卸载与数据保留
 
 已勾选项目表示源码、自动化与对应实机门禁均已通过；未勾选项目可能仍在实施或等待 CI / 实机验收，不代表发布时间承诺。各阶段的子任务与完成状态见[开发路线图](docs/路线图.md)。
 
@@ -113,7 +114,7 @@ README 顶部的下载量徽章汇总所有正式版本 DMG 资产的下载事�
 `0.1.x` 首次升级到包含 Sparkle 的 `0.2.x` 仍需手动下载 DMG；之后应用会在启动时检查更新，
 并在用户确认后使用 Universal DMG 完成安装，不会后台静默安装。
 
-Windows W0-W2 已通过，W3-0 当前只生成 unsigned 便携 ZIP 预览 artifact；NSIS、覆盖升级、卸载和人工更新检查通过后才会加入稳定 GitHub Release。
+Windows W0-W2 与 W3-0 打包基线已通过，当前进入 W3-1 unsigned NSIS 安装生命周期；覆盖升级、卸载和人工更新检查通过后才会加入稳定 GitHub Release。
 
 ## 项目结构
 

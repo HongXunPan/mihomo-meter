@@ -47,8 +47,9 @@ DISTRIBUTION_REQUIRED_CODE_MARKERS = {
         '".pdb"',
     ),
     ROOT / "README.md": (
-        "Windows W2D-2 已通过",
+        "Windows W3-0 已通过",
         "Windows W3-0",
+        "Windows W3-1",
         "Windows分发实现契约.md",
     ),
 }
