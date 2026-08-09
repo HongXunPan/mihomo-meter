@@ -35,10 +35,6 @@ internal sealed partial class NotificationAreaMenu
     private const uint TrackMenuReturnCommand = 0x0100;
     private const uint TrackMenuNoNotify = 0x0080;
     private const uint WindowMessageNull = 0x0000;
-    private const uint OpenCommand = 1001;
-    private const uint ToggleFloatingWidgetCommand = 1002;
-    private const uint ExitCommand = 1003;
-
     private readonly nint _windowHandle;
 
     public NotificationAreaMenu(nint windowHandle)
@@ -58,7 +54,8 @@ internal sealed partial class NotificationAreaMenu
         try
         {
             AppendMenuItem(menuHandle, OpenCommand, "打开 Mihomo Meter");
-            commands.Add(
+            RegisterCommand(
+                commands,
                 OpenCommand,
                 new NotificationAreaCommand(NotificationAreaCommandKind.Open));
             AppendQuotaMenu(menuHandle, quotaSnapshot, commands);
@@ -69,12 +66,14 @@ internal sealed partial class NotificationAreaMenu
                 ToggleFloatingWidgetCommand,
                 floatingWidgetVisible ? "关闭悬浮图标" : "显示悬浮图标",
                 isChecked: floatingWidgetVisible);
-            commands.Add(
+            RegisterCommand(
+                commands,
                 ToggleFloatingWidgetCommand,
                 new NotificationAreaCommand(NotificationAreaCommandKind.ToggleFloatingWidget));
             AppendSeparator(menuHandle);
             AppendMenuItem(menuHandle, ExitCommand, "退出 Mihomo Meter");
-            commands.Add(
+            RegisterCommand(
+                commands,
                 ExitCommand,
                 new NotificationAreaCommand(NotificationAreaCommandKind.Exit));
 

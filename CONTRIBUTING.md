@@ -68,7 +68,7 @@ python3 scripts/validate_windows.py
 pwsh -File scripts/validate_windows.ps1
 ```
 
-该脚本按固定顺序执行静态契约、Core 单元测试、App Release 构建和非打包自包含发布。W0–W2D-0 历史门禁见各阶段指南；当前一次性矩阵见[Windows 阶段 W2D-1 实机指南](docs/Windows阶段W2D1实机指南.md)，实现边界见[Windows 连接分析实现契约](docs/Windows连接分析实现契约.md)。
+该脚本按固定顺序执行静态契约、Core 单元测试、App Release 构建、非打包自包含发布、便携 ZIP 和 SHA-256 组装。W0–W2D 历史门禁见各阶段指南；当前矩阵见[Windows 阶段 W3-0 实机指南](docs/Windows阶段W3-0实机指南.md)，资产边界见[Windows 分发实现契约](docs/Windows分发实现契约.md)。
 
 完整 macOS 无签名构建与测试属于重型门禁，不作为每次任务完成或普通提交前的默认本地验证。所有分支 Push 和 Pull Request 都会由 macOS 持续集成自动执行；用户明确要求本机完整验证时，可执行：
 

@@ -8,7 +8,7 @@
 [使用文档（Wiki）](https://github.com/HongXunPan/mihomo-meter/wiki) ·
 [版本发布与下载（GitHub Releases）](https://github.com/HongXunPan/mihomo-meter/releases)
 
-Mihomo Meter 是一款通过 Mihomo Controller API 统计真实代理流量的原生桌面应用。macOS 已提供完整桌面能力；Windows 10 22H2 x64 已通过 W2D-1，W2D-2 历史归因已实现并待 CI 与实机验收。
+Mihomo Meter 是一款通过 Mihomo Controller API 统计真实代理流量的原生桌面应用。macOS 已提供完整桌面能力；Windows W3-0 已通过，当前进入 W3-1 安装生命周期。
 
 > 当前已完成 MVP-1、MVP-2、阶段 2 和阶段 3 源码实现；阶段 3.0 实机门禁以 46 条 Proxy 样本通过，完整构建测试与界面验收仍由 CI 和用户完成。
 
@@ -56,7 +56,9 @@ Mihomo Meter 是只读监控工具：
 - [x] [Windows W2C](docs/Windows阶段W2C实机指南.md)：订阅身份、配额账本、主动查询与趋势
 - [x] [Windows W2D-0](docs/Windows阶段W2D0实机指南.md)：Proxy 连接主机名与应用识别覆盖率门禁
 - [x] [Windows W2D-1](docs/Windows阶段W2D1实机指南.md)：Proxy/DIRECT 实时连接、分组搜索、识别诊断与原生 Top 5
-- [ ] [Windows W2D-2](docs/Windows阶段W2D2实机指南.md)：独立归因账本、30 日榜单、交叉筛选、覆盖率与趋势
+- [x] [Windows W2D-2](docs/Windows阶段W2D2实机指南.md)：独立归因账本、30 日榜单、交叉筛选、覆盖率与趋势
+- [x] [Windows W3-0](docs/Windows阶段W3-0实机指南.md)：版本化便携 ZIP、SHA-256 与无提权启动
+- [ ] Windows W3-1：unsigned NSIS 当前用户安装、覆盖升级、卸载与数据保留
 
 已勾选项目表示源码、自动化与对应实机门禁均已通过；未勾选项目可能仍在实施或等待 CI / 实机验收，不代表发布时间承诺。各阶段的子任务与完成状态见[开发路线图](docs/路线图.md)。
 
@@ -104,13 +106,15 @@ Mihomo Meter 是只读监控工具：
 
 当前运行订阅轻量模式不会读取 Clash Verge 配置文件或私有 IPC，不接触订阅 URL，也不会自动获取 Secret。它无法识别 Profile UID 或可靠感知同一运行来源背后的 Profile 切换，因此只适合用户确认仅使用一个订阅 Profile 的场景。指定 Profile 模式需要用户明确授予 Profile 目录只读权限，以 Profile UID 识别和选择订阅，并按 Mihomo Meter 的独立周期通过当前 Mihomo 本地代理查询配额。
 
-正式版本仅通过 GitHub Releases 分发自签名、未公证的 DMG，不上架 Mac App Store。
+macOS 正式版本仅通过 GitHub Releases 分发自签名、未公证的 DMG，不上架 Mac App Store。
 每个版本提供 Apple Silicon、Intel 和 Universal 三种 DMG，首次打开需要按
 [发布与安装](docs/发布与安装.md)处理 macOS Gatekeeper 提示。
 README 顶部的下载量徽章汇总所有正式版本 DMG 资产的下载事件，不包含更新清单、校验文件、
 草稿或预发布版本，也不代表唯一用户数或安装量。
 `0.1.x` 首次升级到包含 Sparkle 的 `0.2.x` 仍需手动下载 DMG；之后应用会在启动时检查更新，
 并在用户确认后使用 Universal DMG 完成安装，不会后台静默安装。
+
+Windows W0-W2 与 W3-0 打包基线已通过，当前进入 W3-1 unsigned NSIS 安装生命周期；覆盖升级、卸载和人工更新检查通过后才会加入稳定 GitHub Release。
 
 ## 项目结构
 
@@ -213,6 +217,7 @@ xcodebuild \
 - [MVP-1 使用与统计口径](docs/MVP-1使用与统计口径.md)
 - [MVP-2 秒表式流量统计](docs/MVP-2秒表式流量统计.md)
 - [Windows 连接分析实现契约](docs/Windows连接分析实现契约.md)
+- [Windows 分发实现契约](docs/Windows分发实现契约.md)
 - [发布与安装](docs/发布与安装.md)
 - [开发路线图](docs/路线图.md)
 - [贡献指南](CONTRIBUTING.md)

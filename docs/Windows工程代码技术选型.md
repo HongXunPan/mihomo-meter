@@ -2,12 +2,12 @@
 
 ## 1. 文档定位
 
-- 状态：W2D-0、W2D-1 已通过；W2D-2 已实现，待 CI 与 Win10 实机验收
-- 更新日期：2026-08-08
+- 状态：W0-W2 已通过，当前进入 W3-0 打包基线
+- 更新日期：2026-08-09
 - 上游边界：父工作区 `docs/Windows技术方案.md`、`docs/Windows阶段W2D连接分析技术方案.md`
 - 历史门禁：[Windows 阶段 W0 实机指南](Windows阶段W0实机指南.md)
 
-本文是开源源码仓 Windows 工程结构、依赖版本和验证入口的唯一详细真相源，不重新定义父工作区的产品阶段或验收口径。W2C 订阅配额已通过；W2D 连接分析按独立纵切推进，当前实现边界见[Windows 连接分析实现契约](Windows连接分析实现契约.md)。
+本文是开源源码仓 Windows 工程结构、依赖版本和验证入口的唯一详细真相源，不重新定义父工作区的产品阶段或验收口径。W2 已完成，连接分析边界见[Windows 连接分析实现契约](Windows连接分析实现契约.md)；当前 W3-0 版本与资产边界见[Windows 分发实现契约](Windows分发实现契约.md)。
 
 ## 2. 固定选型与依赖
 
@@ -24,7 +24,7 @@
 | SQLite ADO.NET | Microsoft.Data.Sqlite.Core 10.0.10，仅 Core 使用 |
 | SQLite Provider | SQLitePCLRaw.bundle_winsqlite3 2.1.11，仅 App / Tests 初始化 |
 | Profile YAML | YamlDotNet 18.1.0，仅 Core 类型化读取 `profiles.yaml` |
-| 产物 | 非打包、自包含 `win-x64` 目录，不裁剪、不合并单文件 |
+| 产物 | 非打包、自包含 `win-x64` 目录及版本化便携 ZIP，不裁剪、不合并单文件 |
 
 App 的运行时包只含系统 SQLite Provider，发布目录不得携带 `e_sqlite3`。Core 只允许 SQLite ADO.NET 与 W2C 类型化 YAML；Tests 只允许系统 Provider。项目不引入 ORM、迁移工具或另一份原生 SQLite。
 
@@ -94,7 +94,7 @@ Controller 地址、Credential Target Name、设置路径、接口顺序、分�
 29. 通知区域 Proxy/直连 Top 5 使用两个原生子菜单和固定五槽，菜单打开时只投影内存快照，不查询网络或数据库。
 30. 连接元数据、投影、菜单与隐私细节以[Windows 连接分析实现契约](Windows连接分析实现契约.md)为唯一详细真相源。
 
-W2D-2 的独立账本、默认关闭、批量刷新、榜单、覆盖率和趋势边界由[Windows 连接分析实现契约](Windows连接分析实现契约.md)维护；仍不实现连接明细、诊断 ZIP、开机启动、安装器或自动更新。
+W2D-2 的独立账本、默认关闭、批量刷新、榜单、覆盖率和趋势边界由[Windows 连接分析实现契约](Windows连接分析实现契约.md)维护。W3-0 只增加便携 ZIP 与 SHA-256，不实现诊断 ZIP、开机启动、安装器或自动更新。
 
 ## 5. 配置、凭据与隐私
 
@@ -115,7 +115,7 @@ W2D-2 的独立账本、默认关闭、批量刷新、榜单、覆盖率和趋�
 python3 scripts/validate_windows.py
 ```
 
-该检查校验固定 SDK、依赖白名单、全部 WinUI XAML、W0–W2D-2 必需文件、三套独立 schema、连接投影、批量归因、趋势和隐私禁止项。非 Windows 主机执行成功只证明静态契约成立。
+该检查校验固定 SDK、依赖白名单、全部 WinUI XAML、W0–W2D-2 必需文件、三套独立 schema、连接投影、批量归因，以及 W3-0 脚本、工作流和隐私禁止项。非 Windows 主机执行成功只证明静态契约成立。
 
 Windows CI 和具备相同环境的 Windows 主机使用：
 
@@ -123,13 +123,13 @@ Windows CI 和具备相同环境的 Windows 主机使用：
 pwsh -File scripts/validate_windows.ps1
 ```
 
-固定顺序为静态检查、solution restore、Core 单元测试、App x64 Release 构建、非打包自包含 publish 和发布目录检查。CI 上传 W2D x64 预览 artifact，不连接真实 Controller，也不查询真实机场。
+固定顺序为静态检查、solution restore、Core 单元测试、App x64 Release 构建、非打包自包含 publish、发布目录检查、便携 ZIP 和 SHA-256 组装。CI 上传版本化 W3-0 预览 artifact，不连接真实 Controller，也不查询真实机场。
 
 Core 测试在既有矩阵外覆盖归因默认关闭、批量与强制刷新、保留/基数、精确查询、覆盖率和趋势摘要；静态契约另锁定趋势请求代际与固定明细区。真实 Windows 原生菜单与 WinUI 仍需实机验证。
 
 ## 7. 人工验收与证据边界
 
-Windows 10 22H2 x64 标准用户按[Windows 阶段 W2D-2 实机指南](Windows阶段W2D2实机指南.md)验证默认关闭、启停、榜单、覆盖率、趋势、清理和 W0–W2D-1 回归。
+W2D-2 已完成实机验收；当前 Windows 10 22H2 x64 标准用户按[Windows 阶段 W3-0 实机指南](Windows阶段W3-0实机指南.md)验证 SHA-256、解压结构、无提权启动、单实例和 W0-W2D 回归。
 
 GitHub Actions 成功不能表述为 Windows 10 实机、Credential Manager 或真实 Controller 已通过；macOS 静态检查成功也不能表述为 Windows 已编译。每个纵切通过后由父工作区保存带日期证据，源码仓只维护公开复现指南和自动化结果。
 

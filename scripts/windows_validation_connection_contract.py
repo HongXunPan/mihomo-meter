@@ -72,19 +72,6 @@ CONNECTION_REQUIRED_TEST_FILES = (
 )
 
 CONNECTION_REQUIRED_CODE_MARKERS = {
-    ROOT / ".github/workflows/windows.yml": (
-        "mihomo-meter-windows-w2d-x64-${{ github.sha }}",
-        ".codex-tmp/windows-w2d-publish",
-        "scripts/windows_validation_connection_contract.py",
-        "docs/Windows阶段W2D0实机指南.md",
-        "docs/Windows阶段W2D1实机指南.md",
-        "docs/Windows阶段W2D2实机指南.md",
-        "docs/Windows连接分析实现契约.md",
-    ),
-    ROOT / "scripts/validate_windows.ps1": (
-        ".codex-tmp/windows-w2d-publish",
-        "Windows 当前阶段必须复用系统 winsqlite3.dll",
-    ),
     APP_ROOT / "MainWindow.xaml.cs": (
         "new RealtimeMonitoringView",
         "new TrafficStatisticsWorkspaceView",
@@ -93,7 +80,6 @@ CONNECTION_REQUIRED_CODE_MARKERS = {
         "ShowStatisticsWorkspace",
         "ShowQuotaWorkspace",
         "WorkspaceNavigation_SelectionChanged",
-        "Mihomo Meter · Windows W2D",
         "new LiveConnectionWorkspaceViewModel",
         "new ProxyTrafficWorkspaceView",
         "new ConnectionAnalyticsWorkspaceViewModel",
