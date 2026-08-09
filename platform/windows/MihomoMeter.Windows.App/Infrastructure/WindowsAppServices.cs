@@ -1,9 +1,11 @@
 using MihomoMeter.Windows.App.Infrastructure.Configuration;
+using MihomoMeter.Windows.App.Infrastructure.ConnectionAnalytics;
 using MihomoMeter.Windows.App.Infrastructure.Credentials;
 using MihomoMeter.Windows.App.Infrastructure.Quota;
 using MihomoMeter.Windows.App.Infrastructure.Statistics;
 using MihomoMeter.Windows.Core.Application;
 using MihomoMeter.Windows.Core.Infrastructure.Mihomo;
+using MihomoMeter.Windows.Core.Infrastructure.ConnectionAnalytics;
 using MihomoMeter.Windows.Core.Infrastructure.Profile;
 using MihomoMeter.Windows.Core.Infrastructure.Quota;
 using MihomoMeter.Windows.Core.Infrastructure.Statistics;
@@ -18,12 +20,14 @@ internal sealed class WindowsAppServices : IAsyncDisposable
         HttpClient httpClient,
         IControllerConfigurationStore configurationStore,
         TrafficStatisticsCoordinator statistics,
+        ConnectionAnalyticsCoordinator connectionAnalytics,
         QuotaTrackingCoordinator quota,
         TrafficMonitoringCoordinator coordinator)
     {
         _httpClient = httpClient;
         ConfigurationStore = configurationStore;
         Statistics = statistics;
+        ConnectionAnalytics = connectionAnalytics;
         Quota = quota;
         Coordinator = coordinator;
     }
@@ -33,6 +37,8 @@ internal sealed class WindowsAppServices : IAsyncDisposable
     public TrafficMonitoringCoordinator Coordinator { get; }
 
     public TrafficStatisticsCoordinator Statistics { get; }
+
+    public ConnectionAnalyticsCoordinator ConnectionAnalytics { get; }
 
     public QuotaTrackingCoordinator Quota { get; }
 
@@ -48,8 +54,14 @@ internal sealed class WindowsAppServices : IAsyncDisposable
         var configurationStore = new ValidatedControllerConfigurationStore(
             new JsonControllerAddressStore(),
             new CredentialManagerSecretStore());
+        var trafficLedger = new SQLiteTrafficLedger(TrafficLedgerLocation.DefaultDatabasePath());
+        var connectionAnalytics = new ConnectionAnalyticsCoordinator(
+            new SQLiteConnectionAnalyticsLedger(
+                ConnectionAnalyticsLedgerLocation.DefaultDatabasePath()),
+            trafficLedger);
         var statistics = new TrafficStatisticsCoordinator(
-            new SQLiteTrafficLedger(TrafficLedgerLocation.DefaultDatabasePath()));
+            trafficLedger,
+            connectionAnalyticsHistory: connectionAnalytics);
         var quota = new QuotaTrackingCoordinator(
             new SQLiteQuotaLedger(QuotaLedgerLocation.DefaultDatabasePath()),
             controllerClient,
@@ -64,11 +76,13 @@ internal sealed class WindowsAppServices : IAsyncDisposable
             new ConnectionSnapshotCollector(),
             configurationStore,
             statisticsRecorder: statistics,
-            quotaTrackingLifecycle: quota);
+            quotaTrackingLifecycle: quota,
+            connectionAnalyticsRecorder: connectionAnalytics);
         return new WindowsAppServices(
             httpClient,
             configurationStore,
             statistics,
+            connectionAnalytics,
             quota,
             coordinator);
     }
@@ -77,6 +91,7 @@ internal sealed class WindowsAppServices : IAsyncDisposable
     {
         await Coordinator.DisposeAsync().ConfigureAwait(false);
         await Statistics.DisposeAsync().ConfigureAwait(false);
+        await ConnectionAnalytics.DisposeAsync().ConfigureAwait(false);
         await Quota.DisposeAsync().ConfigureAwait(false);
         _httpClient.Dispose();
     }

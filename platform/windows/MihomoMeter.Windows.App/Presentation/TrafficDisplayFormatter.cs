@@ -31,6 +31,11 @@ internal static class TrafficDisplayFormatter
         return value.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss");
     }
 
+    public static string Percentage(double? rate)
+    {
+        return rate is null ? "--" : $"{rate.Value * 100:0.0}%";
+    }
+
     public static string Duration(DateTimeOffset startedAt, DateTimeOffset endedAt)
     {
         var duration = endedAt > startedAt ? endedAt - startedAt : TimeSpan.Zero;

@@ -24,13 +24,16 @@ public sealed class TrafficMonitoringCoordinator : IAsyncDisposable
         MonitoringPolicy? policy = null,
         TimeProvider? timeProvider = null,
         ITrafficStatisticsRecorder? statisticsRecorder = null,
-        IQuotaTrackingLifecycle? quotaTrackingLifecycle = null)
+        IQuotaTrackingLifecycle? quotaTrackingLifecycle = null,
+        IConnectionAnalyticsRecorder? connectionAnalyticsRecorder = null)
     {
         var selectedPolicy = (policy ?? MonitoringPolicy.Production).Validate();
         _client = client;
         _configurationStore = configurationStore;
         _timeProvider = timeProvider ?? TimeProvider.System;
         _statisticsRecorder = statisticsRecorder ?? NullTrafficStatisticsRecorder.Instance;
+        var analyticsRecorder = new FaultIsolatedConnectionAnalyticsRecorder(
+            connectionAnalyticsRecorder ?? NullConnectionAnalyticsRecorder.Instance);
         _quotaTrackingLifecycle = new FaultIsolatedQuotaTrackingLifecycle(
             quotaTrackingLifecycle ?? NullQuotaTrackingLifecycle.Instance);
         _stream = new TrafficMonitoringStream(
@@ -38,7 +41,8 @@ public sealed class TrafficMonitoringCoordinator : IAsyncDisposable
             collector,
             selectedPolicy,
             _timeProvider,
-            _statisticsRecorder);
+            _statisticsRecorder,
+            analyticsRecorder);
     }
 
     public event Action<TrafficMonitorSnapshot>? SnapshotChanged;

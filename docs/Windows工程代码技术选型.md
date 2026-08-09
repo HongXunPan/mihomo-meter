@@ -2,7 +2,7 @@
 
 ## 1. 文档定位
 
-- 状态：W2D-0 已通过；W2D-1 已实现，待 CI 与 Win10 实机验收
+- 状态：W2D-0、W2D-1 已通过；W2D-2 已实现，待 CI 与 Win10 实机验收
 - 更新日期：2026-08-08
 - 上游边界：父工作区 `docs/Windows技术方案.md`、`docs/Windows阶段W2D连接分析技术方案.md`
 - 历史门禁：[Windows 阶段 W0 实机指南](Windows阶段W0实机指南.md)
@@ -43,13 +43,13 @@ platform/windows/
 │   ├── Lifecycle/
 │   ├── Infrastructure/Configuration/
 │   ├── Infrastructure/Credentials/
-│   ├── Infrastructure/Statistics/
+│   ├── Infrastructure/{Statistics,ConnectionAnalytics}/
 │   ├── Interop/
 │   └── Diagnostics/
 ├── MihomoMeter.Windows.Core/
 │   ├── Domain/
 │   ├── Application/
-│   └── Infrastructure/{Mihomo,Statistics}/
+│   └── Infrastructure/{Mihomo,Statistics,ConnectionAnalytics}/
 └── MihomoMeter.Windows.Tests/
 ```
 
@@ -59,7 +59,7 @@ platform/windows/
 - `Lifecycle` 与既有 `Interop` 继续只承载窗口、通知区域、悬浮入口和单实例能力，不接入网络或领域算法。
 - Windows 专属配置与凭据实现通过 Core 定义的窄接口注入，Core 不读取 `%LOCALAPPDATA%`，也不调用 Credential Manager。
 
-## 4. W1 至 W2D-1 实现契约
+## 4. W1 至 W2D-2 实现契约
 
 Controller 地址、Credential Target Name、设置路径、接口顺序、分类语义、stale、退避和人工验收以父工作区 `docs/Windows阶段W1实时纵切验收.md` 为上游唯一真相。源码实现需要保持以下边界：
 
@@ -94,7 +94,7 @@ Controller 地址、Credential Target Name、设置路径、接口顺序、分�
 29. 通知区域 Proxy/直连 Top 5 使用两个原生子菜单和固定五槽，菜单打开时只投影内存快照，不查询网络或数据库。
 30. 连接元数据、投影、菜单与隐私细节以[Windows 连接分析实现契约](Windows连接分析实现契约.md)为唯一详细真相源。
 
-W2D-1 不实现历史归因、诊断 ZIP、开机启动、安装器或自动更新。配额边界见[Windows 订阅配额实现契约](Windows订阅配额实现契约.md)，当前连接边界见[Windows 连接分析实现契约](Windows连接分析实现契约.md)。
+W2D-2 的独立账本、默认关闭、批量刷新、榜单、覆盖率和趋势边界由[Windows 连接分析实现契约](Windows连接分析实现契约.md)维护；仍不实现连接明细、诊断 ZIP、开机启动、安装器或自动更新。
 
 ## 5. 配置、凭据与隐私
 
@@ -105,7 +105,7 @@ W2D-1 不实现历史归因、诊断 ZIP、开机启动、安装器或自动更�
 - 共享 fixture 只包含合成版本、代理类型与连接累计；不得新增真实节点、规则、目标、进程路径、连接 ID 或 Secret。
 - `traffic.sqlite3` 只保存四类聚合、会话、运行状态和统计任务基线，不保存连接、节点、规则、目标、地址或 Secret。
 - W2C 不创建运行日志或诊断 ZIP；错误状态不得包含 Secret、原始订阅 URL 或 Provider 键。
-- W2D-1 不持久化覆盖率或连接明细；脱敏主机名和应用名称只进入当前内存快照与展示，连接 ID 只作会话差值和稳定行键，完整路径不得离开适配器。
+- W2D-2 只在独立数据库保存日期、脱敏应用/主机名和上下行聚合；不得保存连接 ID、路径、目标、节点、规则或连接时间。
 
 ## 6. 自动化验证
 
@@ -115,7 +115,7 @@ W2D-1 不实现历史归因、诊断 ZIP、开机启动、安装器或自动更�
 python3 scripts/validate_windows.py
 ```
 
-该检查校验固定 SDK、依赖白名单、全部 WinUI XAML、W0–W2D-1 必需文件、流量 schema v2、配额 schema v1、脱敏连接元数据、实时投影、原生菜单与隐私禁止项。非 Windows 主机执行成功只证明静态契约成立。
+该检查校验固定 SDK、依赖白名单、全部 WinUI XAML、W0–W2D-2 必需文件、三套独立 schema、连接投影、批量归因、趋势和隐私禁止项。非 Windows 主机执行成功只证明静态契约成立。
 
 Windows CI 和具备相同环境的 Windows 主机使用：
 
@@ -125,13 +125,13 @@ pwsh -File scripts/validate_windows.ps1
 
 固定顺序为静态检查、solution restore、Core 单元测试、App x64 Release 构建、非打包自包含 publish 和发布目录检查。CI 上传 W2D x64 预览 artifact，不连接真实 Controller，也不查询真实机场。
 
-测试在既有流量与配额矩阵外增加连接元数据解码、异常开始时间、IP 排除、单连接速率、Proxy/DIRECT 投影、分组搜索、固定五槽和 reset。真实 Windows 原生菜单与 WinUI 仍需实机验证。
+Core 测试在既有矩阵外覆盖归因默认关闭、批量与强制刷新、保留/基数、精确查询、覆盖率和趋势摘要；静态契约另锁定趋势请求代际与固定明细区。真实 Windows 原生菜单与 WinUI 仍需实机验证。
 
 ## 7. 人工验收与证据边界
 
-Windows 10 22H2 x64 标准用户按[Windows 阶段 W2D-1 实机指南](Windows阶段W2D1实机指南.md)验证实时连接、分组搜索、生命周期清理、原生 Top 5 和 W0–W2C 回归。
+Windows 10 22H2 x64 标准用户按[Windows 阶段 W2D-2 实机指南](Windows阶段W2D2实机指南.md)验证默认关闭、启停、榜单、覆盖率、趋势、清理和 W0–W2D-1 回归。
 
-GitHub Actions 成功不能表述为 Windows 10 实机、Credential Manager 或真实 Controller 已通过；macOS 静态检查成功也不能表述为 Windows 已编译。W1 通过后由父工作区保存带日期证据，源码仓只维护公开复现指南和自动化结果。
+GitHub Actions 成功不能表述为 Windows 10 实机、Credential Manager 或真实 Controller 已通过；macOS 静态检查成功也不能表述为 Windows 已编译。每个纵切通过后由父工作区保存带日期证据，源码仓只维护公开复现指南和自动化结果。
 
 ## 8. 停止条件
 

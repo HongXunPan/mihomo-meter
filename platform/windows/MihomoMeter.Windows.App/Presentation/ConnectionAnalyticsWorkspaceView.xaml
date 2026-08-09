@@ -1,0 +1,309 @@
+<UserControl
+    x:Class="MihomoMeter.Windows.App.Presentation.ConnectionAnalyticsWorkspaceView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:presentation="using:MihomoMeter.Windows.App.Presentation">
+
+    <Grid x:Name="Root">
+        <ScrollViewer>
+            <StackPanel Padding="32" Spacing="18">
+                <Grid ColumnSpacing="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Spacing="6">
+                        <TextBlock
+                            FontSize="30"
+                            FontWeight="SemiBold"
+                            Text="历史归因" />
+                        <TextBlock
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Text="查看最近 30 个本地自然日的 Proxy 应用与完整主机名聚合。"
+                            TextWrapping="Wrap" />
+                        <TextBlock
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Text="默认关闭；只在明确开启后记录新增流量。" />
+                    </StackPanel>
+
+                    <StackPanel
+                        Grid.Column="1"
+                        Orientation="Horizontal"
+                        Spacing="10"
+                        VerticalAlignment="Top">
+                        <ToggleSwitch
+                            x:Name="HistoryToggle"
+                            Header="记录日聚合"
+                            IsEnabled="{x:Bind ViewModel.CanOperate, Mode=OneWay}"
+                            IsOn="{x:Bind ViewModel.IsHistoryEnabled, Mode=OneWay}"
+                            Toggled="HistoryToggle_Toggled" />
+                        <Button
+                            Click="RefreshButton_Click"
+                            Content="刷新"
+                            IsEnabled="{x:Bind ViewModel.CanOperate, Mode=OneWay}"
+                            VerticalAlignment="Bottom" />
+                        <Button
+                            Click="ClearButton_Click"
+                            Content="清空归因历史"
+                            IsEnabled="{x:Bind ViewModel.CanClear, Mode=OneWay}"
+                            VerticalAlignment="Bottom" />
+                    </StackPanel>
+                </Grid>
+
+                <InfoBar
+                    IsClosable="False"
+                    IsOpen="True"
+                    Message="独立数据库只保存本地日期、应用名称、完整主机名和上下行聚合；不保存连接 ID、URL、IP、端口、进程路径、节点、规则、时间点或逐连接明细。"
+                    Severity="Informational"
+                    Title="隐私边界" />
+
+                <InfoBar
+                    IsClosable="False"
+                    IsOpen="{x:Bind ViewModel.IsNoticeOpen, Mode=OneWay}"
+                    Message="{x:Bind ViewModel.NoticeMessage, Mode=OneWay}"
+                    Severity="{x:Bind ViewModel.NoticeSeverity, Mode=OneWay}"
+                    Title="{x:Bind ViewModel.NoticeTitle, Mode=OneWay}" />
+
+                <StackPanel
+                    HorizontalAlignment="Center"
+                    Spacing="10"
+                    Visibility="{x:Bind ViewModel.LoadingVisibility, Mode=OneWay}">
+                    <ProgressRing IsActive="True" />
+                    <TextBlock Text="正在准备连接归因账本…" />
+                </StackPanel>
+
+                <StackPanel
+                    Spacing="18"
+                    Visibility="{x:Bind ViewModel.ContentVisibility, Mode=OneWay}">
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <Border
+                            Padding="16"
+                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            CornerRadius="10">
+                            <StackPanel Spacing="5">
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Text="归因记录覆盖" />
+                                <TextBlock
+                                    FontSize="22"
+                                    FontWeight="SemiBold"
+                                    Text="{x:Bind ViewModel.RecordingCoverageText, Mode=OneWay}" />
+                                <TextBlock
+                                    FontSize="11"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Text="{x:Bind ViewModel.RecordingCoverageDetail, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border
+                            Grid.Column="1"
+                            Padding="16"
+                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            CornerRadius="10">
+                            <StackPanel Spacing="5">
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Text="主机名流量覆盖" />
+                                <TextBlock
+                                    FontSize="22"
+                                    FontWeight="SemiBold"
+                                    Text="{x:Bind ViewModel.HostnameCoverageText, Mode=OneWay}" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border
+                            Grid.Column="2"
+                            Padding="16"
+                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            CornerRadius="10">
+                            <StackPanel Spacing="5">
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Text="应用流量覆盖" />
+                                <TextBlock
+                                    FontSize="22"
+                                    FontWeight="SemiBold"
+                                    Text="{x:Bind ViewModel.ApplicationCoverageText, Mode=OneWay}" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border
+                            Grid.Column="3"
+                            Padding="16"
+                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            CornerRadius="10">
+                            <StackPanel Spacing="5">
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Text="完整流量归因" />
+                                <TextBlock
+                                    FontSize="22"
+                                    FontWeight="SemiBold"
+                                    Text="{x:Bind ViewModel.FullyAttributedCoverageText, Mode=OneWay}" />
+                                <TextBlock
+                                    FontSize="11"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Text="{x:Bind ViewModel.AttributedTotalText, Mode=OneWay}" />
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="180" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <ComboBox
+                            DisplayMemberPath="Title"
+                            Header="统计日期"
+                            ItemsSource="{x:Bind ViewModel.DayOptions}"
+                            SelectedItem="{x:Bind ViewModel.SelectedDay, Mode=TwoWay}" />
+                        <ComboBox
+                            Grid.Column="1"
+                            DisplayMemberPath="Title"
+                            Header="应用筛选"
+                            ItemsSource="{x:Bind ViewModel.ApplicationOptions}"
+                            SelectedItem="{x:Bind ViewModel.SelectedApplication, Mode=TwoWay}" />
+                        <ComboBox
+                            Grid.Column="2"
+                            DisplayMemberPath="Title"
+                            Header="域名筛选"
+                            ItemsSource="{x:Bind ViewModel.HostnameOptions}"
+                            SelectedItem="{x:Bind ViewModel.SelectedHostname, Mode=TwoWay}" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="14">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Spacing="8">
+                            <TextBlock
+                                FontSize="18"
+                                FontWeight="SemiBold"
+                                Text="应用榜" />
+                            <Grid Height="330">
+                                <ListView
+                                    IsItemClickEnabled="False"
+                                    ItemsSource="{x:Bind ViewModel.ApplicationRanking}"
+                                    SelectionMode="None">
+                                    <ListView.ItemTemplate>
+                                        <DataTemplate x:DataType="presentation:ConnectionAnalyticsRankingRowViewModel">
+                                            <Button
+                                                Margin="0,0,0,5"
+                                                Padding="12,8"
+                                                HorizontalAlignment="Stretch"
+                                                HorizontalContentAlignment="Stretch"
+                                                AutomationProperties.Name="{x:Bind AutomationName, Mode=OneWay}"
+                                                Click="RankingButton_Click"
+                                                Tag="{x:Bind}">
+                                                <Grid ColumnSpacing="10">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock
+                                                        FontWeight="SemiBold"
+                                                        Text="{x:Bind Name}"
+                                                        TextTrimming="CharacterEllipsis" />
+                                                    <StackPanel Grid.Column="1" HorizontalAlignment="Right">
+                                                        <TextBlock
+                                                            HorizontalAlignment="Right"
+                                                            FontWeight="SemiBold"
+                                                            Text="{x:Bind TotalText, Mode=OneWay}" />
+                                                        <TextBlock
+                                                            FontSize="11"
+                                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                            Text="{x:Bind DetailText, Mode=OneWay}" />
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Button>
+                                        </DataTemplate>
+                                    </ListView.ItemTemplate>
+                                </ListView>
+                                <TextBlock
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Text="该日期或筛选条件下暂无应用归因流量。"
+                                    Visibility="{x:Bind ViewModel.ApplicationEmptyVisibility, Mode=OneWay}" />
+                            </Grid>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="1" Spacing="8">
+                            <TextBlock
+                                FontSize="18"
+                                FontWeight="SemiBold"
+                                Text="域名榜" />
+                            <Grid Height="330">
+                                <ListView
+                                    IsItemClickEnabled="False"
+                                    ItemsSource="{x:Bind ViewModel.HostnameRanking}"
+                                    SelectionMode="None">
+                                    <ListView.ItemTemplate>
+                                        <DataTemplate x:DataType="presentation:ConnectionAnalyticsRankingRowViewModel">
+                                            <Button
+                                                Margin="0,0,0,5"
+                                                Padding="12,8"
+                                                HorizontalAlignment="Stretch"
+                                                HorizontalContentAlignment="Stretch"
+                                                AutomationProperties.Name="{x:Bind AutomationName, Mode=OneWay}"
+                                                Click="RankingButton_Click"
+                                                Tag="{x:Bind}">
+                                                <Grid ColumnSpacing="10">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock
+                                                        FontWeight="SemiBold"
+                                                        Text="{x:Bind Name}"
+                                                        TextTrimming="CharacterEllipsis" />
+                                                    <StackPanel Grid.Column="1" HorizontalAlignment="Right">
+                                                        <TextBlock
+                                                            HorizontalAlignment="Right"
+                                                            FontWeight="SemiBold"
+                                                            Text="{x:Bind TotalText, Mode=OneWay}" />
+                                                        <TextBlock
+                                                            FontSize="11"
+                                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                            Text="{x:Bind DetailText, Mode=OneWay}" />
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Button>
+                                        </DataTemplate>
+                                    </ListView.ItemTemplate>
+                                </ListView>
+                                <TextBlock
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Text="该日期或筛选条件下暂无域名归因流量。"
+                                    Visibility="{x:Bind ViewModel.HostnameEmptyVisibility, Mode=OneWay}" />
+                            </Grid>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>
