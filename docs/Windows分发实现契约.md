@@ -16,7 +16,7 @@ W3-2 在 W3-1 安装生命周期上增加人工更新检查、Windows 平台描�
 
 应用版本、构建号和新构建资产继续使用无前导零的 `X.Y.Z`；发布 Tag 使用 `vX.Y.Z`，表示一次稳定发布快照。工作流允许选择 `macos`、`windows` 或 `all`：本次构建平台的实际版本等于 Tag 版本，未构建平台继续引用较早正式版本，旧资产不得复制、改名或伪装为当前 Tag 版本。
 
-PR 与 `main` push 的 Windows 预览仍回退为 `0.0.0`；手动 Windows 预览 workflow 只上传 artifact。只有统一 Release workflow 可以创建 Tag 与 Release，且固定接收版本、目标平台和 `draft` / `stable` 模式。首次建立平台描述文件的稳定版本必须选择 `all`；后续单平台发布才允许继承另一平台描述。
+PR 与 `main` push 的 Windows 预览仍回退为 `0.0.0`；手动 Windows 预览 workflow 只上传 artifact。只有统一 Release workflow 可以创建 Tag 与 Release，且固定接收版本、目标平台和 `draft` / `stable` 模式。当前首个含双平台描述的快照允许只构建 Windows：macOS 实际版本继续停留在 `0.5.1`，不因 Windows 发版抬升版本或触发更新。
 
 ## 3. Windows 构建与打包职责
 
@@ -39,7 +39,7 @@ SHA256SUMS
 
 `appcast.xml` 继续只服务 Sparkle。两个 JSON 均使用 schema v1，分别记录平台、实际版本、来源 Tag、原始 Release 页面，以及带固定中文用途、文件名、HTTPS 下载地址和小写 SHA-256 的资产列表。macOS 固定列出 Apple Silicon、Intel 与通用 DMG；Windows 固定列出 x64 安装版与便携版。
 
-本次构建平台必须从当前产物生成新描述，文件名中的版本、内嵌版本、来源 Tag 和描述版本必须一致。未构建平台只复制上一正式 Release 的小型描述文件；其中的下载地址必须继续指向原 Release，不下载、复制或重新上传旧二进制。仅构建 Windows 时还要沿用上一正式 `appcast.xml`，保证既有 macOS Sparkle 固定 Latest 地址可用。
+本次构建平台必须从当前产物生成新描述，文件名中的版本、内嵌版本、来源 Tag 和描述版本必须一致。未构建平台优先复制上一正式 Release 的小型描述文件；其中的下载地址必须继续指向原 Release，不下载、复制或重新上传旧二进制。若上一正式版本早于平台描述契约，工作流只允许根据该 Release 的资产清单和 `SHA256SUMS` 严格补建描述；固定资产缺失、校验和格式异常或来源不一致时立即失败。仅构建 Windows 时还要原样沿用上一正式 `appcast.xml`，保证既有 macOS Sparkle 固定 Latest 地址继续提供相同版本，不向 Mac 用户推送本次 Windows 更新。
 
 Release 正文顶部必须由两个 JSON 确定性生成下载矩阵，链接文字固定面向普通用户说明“Apple Silicon Mac（M 系列芯片）”“Intel Mac”“通用 Mac（不确定机型时选择）”“Windows x64 安装版”和“Windows x64 便携版”。用户不需要展开 Assets 或从 `arm64`、`x86_64` 文件名判断下载项；未更新平台要明确显示“沿用来源 Tag 的稳定版本”。
 
@@ -69,8 +69,8 @@ Windows 安装器固定 `RequestExecutionLevel user`、当前用户 Shell/注册
 
 非 Windows 主机执行 `python3 scripts/validate_windows.py`、平台描述脚本单元测试、发布脚本语法检查、工作流定向静态门禁和 `git diff --check`。Windows CI 继续执行完整 PowerShell 门禁，并验证新增 Core 测试、App x64 Release 构建、描述文件生成、ZIP、安装器与 SHA-256。
 
-W3-2 采用两段式门禁。首发前必须以 `all` 完成 draft 演练，确认两个平台新描述、appcast、下载矩阵、全部新资产和 draft 不进入 Latest，并在 Win10 22H2 x64 标准用户下验证当前版本展示、固定描述暂不可用时的故障隔离、重复点击、安装、覆盖升级、通知区域、单实例和 W0-W2D 回归。前置结果记录且用户明确确认后，才允许触发首个全平台 stable；发布后立即验证同版本显示和打开正确页面。低版本发现更新延后到下一次 Windows 稳定发布作为发布后门禁，不增加可替换更新地址或创建后删除临时稳定 Release。
+W3-2 采用两段式门禁。首发前以 `platform=windows` 完成 draft 演练，确认 Windows 新描述和资产、从 `v0.5.1` 元数据补建的 macOS 描述、原样沿用的 appcast、跨平台下载矩阵，以及 draft 不进入 Latest；候选不得包含旧 DMG。Win10 22H2 x64 标准用户还要验证当前版本展示、固定描述暂不可用时的故障隔离、重复点击、安装、覆盖升级、通知区域、单实例和 W0-W2D 回归。前置结果记录且用户明确确认后，才允许原样提升同版本 Windows-only stable；发布后立即验证同版本显示和打开正确页面。低版本发现更新延后到下一次 Windows 稳定发布作为发布后门禁，不增加可替换更新地址或创建后删除临时稳定 Release。
 
 ## 8. 停止条件
 
-出现以下任一情况立即停止并重新规划：更新检查影响监控；客户端按 Latest Tag 而非 Windows 描述判断；描述允许非本仓库或非 HTTPS 地址；旧二进制被复制、改名或重新上传；下载矩阵与描述不一致；本次新资产的内嵌版本、文件名和平台描述不一致；首次稳定版本不是全平台；Release workflow 请求个人 Token 或把写权限授予构建任务；安装、升级或卸载需要提权；用户数据、凭据或敏感内容进入描述、日志或 Release；前置门禁未记录或用户未确认便触发首个稳定发布。
+出现以下任一情况立即停止并重新规划：更新检查影响监控；客户端按 Latest Tag 而非 Windows 描述判断；描述允许非本仓库或非 HTTPS 地址；旧二进制被复制、改名或重新上传；macOS 实际版本被错误抬升或 appcast 宣告本次 Windows 版本；旧 Release 元数据不足仍继续继承；下载矩阵与描述不一致；本次新资产的内嵌版本、文件名和平台描述不一致；Release workflow 请求个人 Token 或把写权限授予构建任务；安装、升级或卸载需要提权；用户数据、凭据或敏感内容进入描述、日志或 Release；前置门禁未记录或用户未确认便触发首个稳定发布。

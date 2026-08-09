@@ -89,7 +89,11 @@ def sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def generate_descriptor(platform: str, version: str, asset_directory: Path) -> dict[str, Any]:
+def descriptor_from_hashes(
+    platform: str,
+    version: str,
+    asset_hashes: dict[str, str],
+) -> dict[str, Any]:
     require_version(version)
     if platform not in PLATFORM_ASSETS:
         raise DescriptorError(f"不支持的平台：{platform}")
@@ -98,9 +102,9 @@ def generate_descriptor(platform: str, version: str, asset_directory: Path) -> d
     assets = []
     for spec in PLATFORM_ASSETS[platform]:
         file_name = spec.file_name(version)
-        path = asset_directory / file_name
-        if not path.is_file():
-            raise DescriptorError(f"缺少平台资产：{path}")
+        asset_hash = asset_hashes.get(file_name)
+        if asset_hash is None:
+            raise DescriptorError(f"缺少平台资产 SHA-256：{file_name}")
         assets.append(
             {
                 "kind": spec.kind,
@@ -108,7 +112,7 @@ def generate_descriptor(platform: str, version: str, asset_directory: Path) -> d
                 "label": spec.label,
                 "fileName": file_name,
                 "downloadUrl": f"{REPOSITORY_URL}/releases/download/{tag}/{file_name}",
-                "sha256": sha256(path),
+                "sha256": asset_hash,
             }
         )
 
@@ -122,6 +126,19 @@ def generate_descriptor(platform: str, version: str, asset_directory: Path) -> d
     }
     validate_descriptor(descriptor, platform)
     return descriptor
+
+
+def generate_descriptor(platform: str, version: str, asset_directory: Path) -> dict[str, Any]:
+    if platform not in PLATFORM_ASSETS:
+        raise DescriptorError(f"不支持的平台：{platform}")
+    asset_hashes = {}
+    for spec in PLATFORM_ASSETS[platform]:
+        file_name = spec.file_name(version)
+        path = asset_directory / file_name
+        if not path.is_file():
+            raise DescriptorError(f"缺少平台资产：{path}")
+        asset_hashes[file_name] = sha256(path)
+    return descriptor_from_hashes(platform, version, asset_hashes)
 
 
 def require_exact_keys(value: dict[str, Any], expected: set[str], context: str) -> None:

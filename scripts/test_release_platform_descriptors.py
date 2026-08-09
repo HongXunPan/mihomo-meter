@@ -8,6 +8,7 @@ import shutil
 import unittest
 from pathlib import Path
 
+from inherited_release_descriptor import generate_inherited_descriptor
 from release_platform_descriptors import (
     DescriptorError,
     PLATFORM_ASSETS,
@@ -42,6 +43,21 @@ class ReleasePlatformDescriptorTests(unittest.TestCase):
                 f"{platform}-{version}-{index}".encode()
             )
         return directory
+
+    def create_release_metadata(self, platform: str, version: str) -> tuple[Path, Path]:
+        metadata = TEST_ROOT / f"{platform}-metadata"
+        metadata.mkdir()
+        checksum_lines = []
+        asset_names = ["appcast.xml", "SHA256SUMS"]
+        for index, spec in enumerate(PLATFORM_ASSETS[platform], start=1):
+            file_name = spec.file_name(version)
+            checksum_lines.append(f"{str(index) * 64}  ./{file_name}")
+            asset_names.append(file_name)
+        checksums = metadata / "SHA256SUMS"
+        checksums.write_text("\n".join(checksum_lines) + "\n", encoding="utf-8")
+        asset_list = metadata / "assets.txt"
+        asset_list.write_text("\n".join(asset_names) + "\n", encoding="utf-8")
+        return checksums, asset_list
 
     def test_generates_strict_platform_descriptors(self) -> None:
         macos = generate_descriptor("macos", "1.2.3", self.create_assets("macos", "1.2.3"))
@@ -127,17 +143,49 @@ class ReleasePlatformDescriptorTests(unittest.TestCase):
         with self.assertRaises(DescriptorError):
             verify_descriptor_assets(descriptor, directory)
 
+    def test_generatesInheritedDescriptorFromLegacyReleaseMetadata(self) -> None:
+        checksums, asset_list = self.create_release_metadata("macos", "0.5.1")
+
+        descriptor = generate_inherited_descriptor(
+            "macos",
+            "0.5.1",
+            checksums,
+            asset_list,
+        )
+
+        self.assertEqual("v0.5.1", descriptor["sourceTag"])
+        self.assertEqual("1" * 64, descriptor["assets"][0]["sha256"])
+        self.assertIn("/releases/download/v0.5.1/", descriptor["assets"][0]["downloadUrl"])
+
+    def test_rejectsIncompleteOrUnsafeLegacyReleaseMetadata(self) -> None:
+        checksums, asset_list = self.create_release_metadata("macos", "0.5.1")
+        valid_checksums = checksums.read_text(encoding="utf-8")
+        valid_asset_list = asset_list.read_text(encoding="utf-8")
+        asset_list.write_text("appcast.xml\nSHA256SUMS\n", encoding="utf-8")
+        with self.assertRaises(DescriptorError):
+            generate_inherited_descriptor("macos", "0.5.1", checksums, asset_list)
+
+        asset_list.write_text(valid_asset_list, encoding="utf-8")
+        checksums.write_text(
+            f"{'a' * 64}  ../Mihomo-Meter-0.5.1-macos-arm64.dmg\n",
+            encoding="utf-8",
+        )
+        with self.assertRaises(DescriptorError):
+            generate_inherited_descriptor("macos", "0.5.1", checksums, asset_list)
+
+        first_line = valid_checksums.splitlines()[0]
+        checksums.write_text(f"{first_line}\n{first_line}\n", encoding="utf-8")
+        with self.assertRaises(DescriptorError):
+            generate_inherited_descriptor("macos", "0.5.1", checksums, asset_list)
+
     def test_validatesInheritedCandidateWithoutCopiedOldBinaries(self) -> None:
         candidate = TEST_ROOT / "candidate"
         candidate.mkdir()
         windows_assets = self.create_assets("windows", "1.2.4")
         for path in windows_assets.iterdir():
             shutil.copy2(path, candidate / path.name)
-        macos = generate_descriptor(
-            "macos",
-            "1.2.3",
-            self.create_assets("macos", "1.2.3"),
-        )
+        checksums, asset_list = self.create_release_metadata("macos", "1.2.3")
+        macos = generate_inherited_descriptor("macos", "1.2.3", checksums, asset_list)
         windows = generate_descriptor("windows", "1.2.4", windows_assets)
         write_descriptor(candidate / "macos-release.json", macos)
         write_descriptor(candidate / "windows-release.json", windows)

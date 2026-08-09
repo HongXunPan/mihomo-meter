@@ -85,17 +85,41 @@ jobs:
 
             if [[ "${PLATFORM}" != "all" ]]; then
               mkdir -p "${RUNNER_TEMP}/release-baseline"
-              gh release download \
-                --pattern appcast.xml \
-                --pattern macos-release.json \
-                --pattern windows-release.json \
-                --dir "${RUNNER_TEMP}/release-baseline"
               baseline_tag="$(gh release view --json tagName --jq .tagName)"
               baseline_version="${baseline_tag#v}"
-              python3 scripts/release_platform_descriptors.py validate \
-                --release-version "${baseline_version}" \
-                --macos "${RUNNER_TEMP}/release-baseline/macos-release.json" \
-                --windows "${RUNNER_TEMP}/release-baseline/windows-release.json"
+              gh release view "${baseline_tag}" --json assets --jq '.assets[].name' \
+                >"${RUNNER_TEMP}/release-baseline/assets.txt"
+              if [[ "${PLATFORM}" == "windows" ]]; then
+                gh release download "${baseline_tag}" \
+                  --pattern appcast.xml \
+                  --dir "${RUNNER_TEMP}/release-baseline"
+                if grep -Fxq macos-release.json \
+                  "${RUNNER_TEMP}/release-baseline/assets.txt"; then
+                  gh release download "${baseline_tag}" \
+                    --pattern macos-release.json \
+                    --dir "${RUNNER_TEMP}/release-baseline"
+                else
+                  gh release download "${baseline_tag}" \
+                    --pattern SHA256SUMS \
+                    --dir "${RUNNER_TEMP}/release-baseline"
+                  python3 scripts/inherited_release_descriptor.py generate \
+                    --platform macos \
+                    --version "${baseline_version}" \
+                    --checksums "${RUNNER_TEMP}/release-baseline/SHA256SUMS" \
+                    --asset-list "${RUNNER_TEMP}/release-baseline/assets.txt" \
+                    --output "${RUNNER_TEMP}/release-baseline/macos-release.json"
+                fi
+                python3 scripts/inherited_release_descriptor.py validate \
+                  --platform macos \
+                  --descriptor "${RUNNER_TEMP}/release-baseline/macos-release.json"
+              else
+                gh release download "${baseline_tag}" \
+                  --pattern windows-release.json \
+                  --dir "${RUNNER_TEMP}/release-baseline"
+                python3 scripts/inherited_release_descriptor.py validate \
+                  --platform windows \
+                  --descriptor "${RUNNER_TEMP}/release-baseline/windows-release.json"
+              fi
             fi
           else
             if [[ "$(gh release view "v${VERSION}" --json isDraft --jq .isDraft)" != "true" ]]; then
@@ -425,15 +449,37 @@ jobs:
           GH_PROMPT_DISABLED: "1"
         run: |
           set -euo pipefail
+          if [[ "${PLATFORM}" == "all" ]]; then
+            exit 0
+          fi
+          baseline_tag="$(gh release view --json tagName --jq .tagName)"
+          baseline_version="${baseline_tag#v}"
+          mkdir -p dist/inherited-metadata
+          gh release view "${baseline_tag}" --json assets --jq '.assets[].name' \
+            >dist/inherited-metadata/assets.txt
           if [[ "${PLATFORM}" == "windows" ]]; then
             mkdir -p dist/inherited-macos
-            gh release download \
+            gh release download "${baseline_tag}" \
               --pattern appcast.xml \
-              --pattern macos-release.json \
               --dir dist/inherited-macos
+            if grep -Fxq macos-release.json dist/inherited-metadata/assets.txt; then
+              gh release download "${baseline_tag}" \
+                --pattern macos-release.json \
+                --dir dist/inherited-macos
+            else
+              gh release download "${baseline_tag}" \
+                --pattern SHA256SUMS \
+                --dir dist/inherited-macos
+              python3 scripts/inherited_release_descriptor.py generate \
+                --platform macos \
+                --version "${baseline_version}" \
+                --checksums dist/inherited-macos/SHA256SUMS \
+                --asset-list dist/inherited-metadata/assets.txt \
+                --output dist/inherited-macos/macos-release.json
+            fi
           elif [[ "${PLATFORM}" == "macos" ]]; then
             mkdir -p dist/inherited-windows
-            gh release download \
+            gh release download "${baseline_tag}" \
               --pattern windows-release.json \
               --dir dist/inherited-windows
           fi
