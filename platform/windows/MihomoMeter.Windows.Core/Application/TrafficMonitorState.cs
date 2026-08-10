@@ -13,6 +13,16 @@ public enum MonitorConnectionState
     Unsupported,
 }
 
+public sealed record MihomoRuntimeConfiguration(
+    string? Mode,
+    bool? IsTunEnabled,
+    string? TunStack,
+    bool? AutomaticallyRoutesTraffic,
+    bool? IsIPv6Enabled,
+    bool? AllowsLan,
+    int? MixedPort,
+    MihomoProcessMatchingMode? ProcessMatchingMode);
+
 public sealed record TrafficMonitorSnapshot(
     MonitorConnectionState State,
     string Message,
@@ -23,13 +33,22 @@ public sealed record TrafficMonitorSnapshot(
     ConnectionAttributionCoverage AttributionCoverage = default,
     IReadOnlyList<LiveTrafficConnection>? ProxyConnections = null,
     IReadOnlyList<LiveTrafficConnection>? DirectConnections = null,
-    MihomoProcessMatchingMode? ProcessMatchingMode = null)
+    MihomoProcessMatchingMode? ProcessMatchingMode = null,
+    IReadOnlyList<string>? ProxyLeaves = null,
+    IReadOnlyList<string>? RuleTypes = null,
+    MihomoRuntimeConfiguration? RuntimeConfiguration = null)
 {
     public IReadOnlyList<LiveTrafficConnection> LiveProxyConnections =>
         ProxyConnections ?? Array.Empty<LiveTrafficConnection>();
 
     public IReadOnlyList<LiveTrafficConnection> LiveDirectConnections =>
         DirectConnections ?? Array.Empty<LiveTrafficConnection>();
+
+    public IReadOnlyList<string> ActiveProxyLeaves =>
+        ProxyLeaves ?? Array.Empty<string>();
+
+    public IReadOnlyList<string> ActiveRuleTypes =>
+        RuleTypes ?? Array.Empty<string>();
 
     public static TrafficMonitorSnapshot Disconnected => new(
         MonitorConnectionState.Disconnected,

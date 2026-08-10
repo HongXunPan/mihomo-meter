@@ -1,0 +1,32 @@
+<UserControl
+    x:Class="MihomoMeter.Windows.App.Presentation.SettingsWorkspaceView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <NavigationView
+        x:Name="SettingsNavigation"
+        AlwaysShowHeader="False"
+        IsBackButtonVisible="Collapsed"
+        IsSettingsVisible="False"
+        OpenPaneLength="190"
+        PaneDisplayMode="Left"
+        PaneTitle="设置"
+        SelectionChanged="SettingsNavigation_SelectionChanged">
+        <NavigationView.MenuItems>
+            <NavigationViewItem x:Name="ConnectionItem" Content="Mihomo 连接" Tag="connection">
+                <NavigationViewItem.Icon>
+                    <SymbolIcon Symbol="Link" />
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
+            <NavigationViewItem x:Name="UpdateItem" Content="关于与更新" Tag="update">
+                <NavigationViewItem.Icon>
+                    <SymbolIcon Symbol="Download" />
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
+        </NavigationView.MenuItems>
+        <ContentControl
+            x:Name="SettingsContent"
+            HorizontalContentAlignment="Stretch"
+            VerticalContentAlignment="Stretch" />
+    </NavigationView>
+</UserControl>

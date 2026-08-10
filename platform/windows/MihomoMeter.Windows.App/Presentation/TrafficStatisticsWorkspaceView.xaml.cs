@@ -1,71 +1,40 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using MihomoMeter.Windows.Core.Application;
 
 namespace MihomoMeter.Windows.App.Presentation;
 
 public sealed partial class TrafficStatisticsWorkspaceView : UserControl
 {
     private bool _isDialogOpen;
+    private Guid? _editingIntervalId;
 
     internal TrafficStatisticsWorkspaceView(TrafficStatisticsWorkspaceViewModel viewModel)
     {
         ViewModel = viewModel;
         InitializeComponent();
         DailyChartHost.Content = new ProxyDailyTrafficChartView(viewModel);
+        IntervalFilterButtons.SelectedIndex = 0;
     }
 
     public TrafficStatisticsWorkspaceViewModel ViewModel { get; }
 
-    private async void StartIntervalButton_Click(object sender, RoutedEventArgs args)
+    private void StartIntervalButton_Click(object sender, RoutedEventArgs args)
     {
-        var nameBox = new TextBox
-        {
-            Header = "任务名称",
-            Text = ViewModel.SuggestedName,
-        };
-        var noteBox = new TextBox
-        {
-            AcceptsReturn = true,
-            Header = "备注（可选）",
-            TextWrapping = TextWrapping.Wrap,
-        };
-        var validation = new TextBlock
-        {
-            TextWrapping = TextWrapping.Wrap,
-        };
-        var content = new StackPanel { Spacing = 10 };
-        content.Children.Add(nameBox);
-        content.Children.Add(noteBox);
-        content.Children.Add(validation);
-        var dialog = CreateDialog("新建统计任务", "开始", content);
-        dialog.PrimaryButtonClick += (_, eventArgs) =>
-        {
-            if (!string.IsNullOrWhiteSpace(nameBox.Text))
-            {
-                return;
-            }
-
-            validation.Text = "统计任务名称不能为空。";
-            eventArgs.Cancel = true;
-        };
-
-        if (await ShowDialogAsync(dialog) == ContentDialogResult.Primary)
-        {
-            await ViewModel.StartIntervalAsync(nameBox.Text, noteBox.Text);
-        }
+        ShowIntervalEditor(null, ViewModel.SuggestedName);
     }
 
     private async void StopIntervalButton_Click(object sender, RoutedEventArgs args)
     {
-        if (sender is Button { Tag: Guid id })
+        if (sender is FrameworkElement { Tag: Guid id })
         {
             await ViewModel.StopIntervalAsync(id);
         }
     }
 
-    private async void RenameIntervalButton_Click(object sender, RoutedEventArgs args)
+    private void RenameIntervalButton_Click(object sender, RoutedEventArgs args)
     {
-        if (sender is not Button { Tag: Guid id })
+        if (sender is not FrameworkElement { Tag: Guid id })
         {
             return;
         }
@@ -76,39 +45,12 @@ public sealed partial class TrafficStatisticsWorkspaceView : UserControl
             return;
         }
 
-        var nameBox = new TextBox
-        {
-            Header = "任务名称",
-            Text = interval.Name,
-        };
-        var validation = new TextBlock
-        {
-            TextWrapping = TextWrapping.Wrap,
-        };
-        var content = new StackPanel { Spacing = 10 };
-        content.Children.Add(nameBox);
-        content.Children.Add(validation);
-        var dialog = CreateDialog($"重命名“{interval.Name}”", "保存", content);
-        dialog.PrimaryButtonClick += (_, eventArgs) =>
-        {
-            if (!string.IsNullOrWhiteSpace(nameBox.Text))
-            {
-                return;
-            }
-
-            validation.Text = "统计任务名称不能为空。";
-            eventArgs.Cancel = true;
-        };
-
-        if (await ShowDialogAsync(dialog) == ContentDialogResult.Primary)
-        {
-            await ViewModel.RenameIntervalAsync(id, nameBox.Text);
-        }
+        ShowIntervalEditor(id, interval.Name);
     }
 
     private async void DeleteIntervalButton_Click(object sender, RoutedEventArgs args)
     {
-        if (sender is not Button { Tag: Guid id })
+        if (sender is not FrameworkElement { Tag: Guid id })
         {
             return;
         }
@@ -140,6 +82,66 @@ public sealed partial class TrafficStatisticsWorkspaceView : UserControl
         {
             await ViewModel.ClearAsync();
         }
+    }
+
+    private async void SaveIntervalEditorButton_Click(object sender, RoutedEventArgs args)
+    {
+        var name = IntervalNameBox.Text.Trim();
+        if (name.Length == 0)
+        {
+            IntervalEditorValidation.Text = "统计任务名称不能为空。";
+            return;
+        }
+
+        if (_editingIntervalId is Guid id)
+        {
+            await ViewModel.RenameIntervalAsync(id, name);
+        }
+        else
+        {
+            await ViewModel.StartIntervalAsync(name, null);
+            ViewModel.SelectedFilter = ViewModel.FilterOptions.First(option =>
+                option.Filter == TrafficStatisticsIntervalFilter.Active);
+            IntervalFilterButtons.SelectedIndex = 1;
+        }
+        HideIntervalEditor();
+    }
+
+    private void CancelIntervalEditorButton_Click(object sender, RoutedEventArgs args)
+    {
+        HideIntervalEditor();
+    }
+
+    private void IntervalFilterButtons_SelectionChanged(
+        object sender,
+        SelectionChangedEventArgs args)
+    {
+        var filter = IntervalFilterButtons.SelectedIndex switch
+        {
+            1 => TrafficStatisticsIntervalFilter.Active,
+            2 => TrafficStatisticsIntervalFilter.History,
+            _ => TrafficStatisticsIntervalFilter.All,
+        };
+        ViewModel.SelectedFilter = ViewModel.FilterOptions.First(option =>
+            option.Filter == filter);
+    }
+
+    private void ShowIntervalEditor(Guid? intervalId, string name)
+    {
+        _editingIntervalId = intervalId;
+        IntervalEditorTitle.Text = intervalId is null ? "新建统计任务" : "重命名统计任务";
+        IntervalNameBox.Text = name;
+        IntervalEditorValidation.Text = string.Empty;
+        IntervalEditor.Visibility = Visibility.Visible;
+        IntervalNameBox.Focus(FocusState.Programmatic);
+        IntervalNameBox.SelectAll();
+    }
+
+    private void HideIntervalEditor()
+    {
+        _editingIntervalId = null;
+        IntervalEditor.Visibility = Visibility.Collapsed;
+        IntervalEditorValidation.Text = string.Empty;
     }
 
     private ContentDialog CreateDialog(string title, string primaryButtonText, object content)

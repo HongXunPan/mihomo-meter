@@ -1,0 +1,27 @@
+<UserControl
+    x:Class="MihomoMeter.Windows.App.Presentation.QuotaTrendDetailView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:presentation="using:MihomoMeter.Windows.App.Presentation">
+
+    <ScrollViewer>
+        <StackPanel Padding="28" Spacing="18">
+            <StackPanel Spacing="4">
+                <TextBlock
+                    FontSize="28"
+                    FontWeight="SemiBold"
+                    Text="{x:Bind Model.Name, Mode=OneWay}" />
+                <TextBlock
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Text="{x:Bind Model.IdentityText, Mode=OneWay}" />
+            </StackPanel>
+            <InfoBar
+                IsClosable="False"
+                IsOpen="True"
+                Message="图表只连接同一连续周期内的真实快照；跨周期或累计回退会断线。可用鼠标或方向键查看实际时间与增量。"
+                Severity="Informational"
+                Title="累计趋势" />
+            <presentation:QuotaTrendChartView Model="{x:Bind Model.ChartModel, Mode=OneWay}" />
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

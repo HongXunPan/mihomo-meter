@@ -24,7 +24,6 @@ internal sealed partial class NotificationAreaController : IDisposable
     private const uint WindowMessageLeftButtonDoubleClick = 0x0203;
     private const uint NotifyIconSelect = 0x0400;
     private const uint NotifyIconKeySelect = 0x0401;
-    private const int DefaultApplicationIcon = 32512;
     private static readonly nuint WindowSubclassId = 0x4D4D4E41;
 
     private static readonly Guid NotificationIconGuid = new(
@@ -34,6 +33,9 @@ internal sealed partial class NotificationAreaController : IDisposable
     private readonly Action _showWindow;
     private readonly Action _showStatisticsWorkspace;
     private readonly Action _showQuotaWorkspace;
+    private readonly Action _showConnectionAnalyticsWorkspace;
+    private readonly Action _showControllerSettings;
+    private readonly Action _showUpdates;
     private readonly Action _toggleFloatingWidget;
     private readonly Func<bool> _isFloatingWidgetVisible;
     private readonly Func<NotificationAreaStatisticsMenuSnapshot> _captureStatisticsSnapshot;
@@ -48,6 +50,9 @@ internal sealed partial class NotificationAreaController : IDisposable
     private readonly NotificationAreaMenu _menu;
     private readonly uint _taskbarCreatedMessage;
     private ShellNativeMethods.NotifyIconData _iconData;
+    private NotificationAreaRealtimeMenuSnapshot _realtimeSnapshot =
+        NotificationAreaRealtimeMenuSnapshot.Disconnected;
+    private nint _iconHandle;
     private string _toolTip = "Mihomo Meter · 未连接";
     private bool _iconAdded;
     private bool _disposed;
@@ -57,6 +62,9 @@ internal sealed partial class NotificationAreaController : IDisposable
         Action showWindow,
         Action showStatisticsWorkspace,
         Action showQuotaWorkspace,
+        Action showConnectionAnalyticsWorkspace,
+        Action showControllerSettings,
+        Action showUpdates,
         Action toggleFloatingWidget,
         Func<bool> isFloatingWidgetVisible,
         Func<NotificationAreaStatisticsMenuSnapshot> captureStatisticsSnapshot,
@@ -79,6 +87,11 @@ internal sealed partial class NotificationAreaController : IDisposable
             ?? throw new ArgumentNullException(nameof(showStatisticsWorkspace));
         _showQuotaWorkspace = showQuotaWorkspace
             ?? throw new ArgumentNullException(nameof(showQuotaWorkspace));
+        _showConnectionAnalyticsWorkspace = showConnectionAnalyticsWorkspace
+            ?? throw new ArgumentNullException(nameof(showConnectionAnalyticsWorkspace));
+        _showControllerSettings = showControllerSettings
+            ?? throw new ArgumentNullException(nameof(showControllerSettings));
+        _showUpdates = showUpdates ?? throw new ArgumentNullException(nameof(showUpdates));
         _toggleFloatingWidget = toggleFloatingWidget
             ?? throw new ArgumentNullException(nameof(toggleFloatingWidget));
         _isFloatingWidgetVisible = isFloatingWidgetVisible
@@ -120,6 +133,11 @@ internal sealed partial class NotificationAreaController : IDisposable
         }
         catch
         {
+            if (_iconHandle != 0)
+            {
+                ShellNativeMethods.DestroyIcon(_iconHandle);
+                _iconHandle = 0;
+            }
             ShellNativeMethods.RemoveWindowSubclass(
                 _windowHandle,
                 _subclassProcedure,
@@ -137,6 +155,11 @@ internal sealed partial class NotificationAreaController : IDisposable
 
         _disposed = true;
         DeleteIcon();
+        if (_iconHandle != 0)
+        {
+            ShellNativeMethods.DestroyIcon(_iconHandle);
+            _iconHandle = 0;
+        }
         ShellNativeMethods.RemoveWindowSubclass(
             _windowHandle,
             _subclassProcedure,
@@ -170,12 +193,18 @@ internal sealed partial class NotificationAreaController : IDisposable
         _iconData.Flags = originalFlags;
     }
 
+    public void UpdateRealtimeSnapshot(NotificationAreaRealtimeMenuSnapshot snapshot)
+    {
+        ArgumentNullException.ThrowIfNull(snapshot);
+        _realtimeSnapshot = snapshot;
+        UpdateToolTip(snapshot.ToolTip);
+    }
+
     private void AddIcon()
     {
-        var iconHandle = ShellNativeMethods.LoadIcon(0, (nint)DefaultApplicationIcon);
-        if (iconHandle == 0)
+        if (_iconHandle == 0)
         {
-            throw new Win32Exception(Marshal.GetLastWin32Error());
+            _iconHandle = LoadApplicationIcon();
         }
 
         _iconData = new ShellNativeMethods.NotifyIconData
@@ -188,7 +217,7 @@ internal sealed partial class NotificationAreaController : IDisposable
                 | NotifyIconFlagTip
                 | NotifyIconFlagGuid,
             CallbackMessage = NotificationCallbackMessage,
-            IconHandle = iconHandle,
+            IconHandle = _iconHandle,
             ToolTip = _toolTip,
             Info = string.Empty,
             InfoTitle = string.Empty,
@@ -216,6 +245,21 @@ internal sealed partial class NotificationAreaController : IDisposable
         }
 
         StartupConsoleReporter.Stage("notification_area_icon_added");
+    }
+
+    private static nint LoadApplicationIcon()
+    {
+        var iconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "MihomoMeter.ico");
+        var iconHandle = ShellNativeMethods.LoadImage(
+            0,
+            iconPath,
+            ShellNativeMethods.ImageIcon,
+            0,
+            0,
+            ShellNativeMethods.LoadImageFromFile | ShellNativeMethods.LoadImageDefaultSize);
+        return iconHandle != 0
+            ? iconHandle
+            : throw new Win32Exception(Marshal.GetLastWin32Error());
     }
 
     private void DeleteIcon()

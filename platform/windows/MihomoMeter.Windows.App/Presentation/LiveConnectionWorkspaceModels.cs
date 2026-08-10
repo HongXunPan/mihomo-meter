@@ -16,7 +16,8 @@ public sealed class LiveConnectionRowViewModel : INotifyPropertyChanged
 {
     private string _hostname;
     private string _applicationName;
-    private string _rateText;
+    private string _downloadRateText;
+    private string _uploadRateText;
     private string _cumulativeText;
     private string _durationText;
     private string _automationName;
@@ -25,7 +26,8 @@ public sealed class LiveConnectionRowViewModel : INotifyPropertyChanged
         string id,
         string hostname,
         string applicationName,
-        string rateText,
+        string downloadRateText,
+        string uploadRateText,
         string cumulativeText,
         string durationText,
         string automationName)
@@ -33,7 +35,8 @@ public sealed class LiveConnectionRowViewModel : INotifyPropertyChanged
         Id = id;
         _hostname = hostname;
         _applicationName = applicationName;
-        _rateText = rateText;
+        _downloadRateText = downloadRateText;
+        _uploadRateText = uploadRateText;
         _cumulativeText = cumulativeText;
         _durationText = durationText;
         _automationName = automationName;
@@ -47,7 +50,9 @@ public sealed class LiveConnectionRowViewModel : INotifyPropertyChanged
 
     public string ApplicationName => _applicationName;
 
-    public string RateText => _rateText;
+    public string DownloadRateText => _downloadRateText;
+
+    public string UploadRateText => _uploadRateText;
 
     public string CumulativeText => _cumulativeText;
 
@@ -64,7 +69,11 @@ public sealed class LiveConnectionRowViewModel : INotifyPropertyChanged
 
         SetField(ref _hostname, snapshot.Hostname, nameof(Hostname));
         SetField(ref _applicationName, snapshot.ApplicationName, nameof(ApplicationName));
-        SetField(ref _rateText, snapshot.RateText, nameof(RateText));
+        SetField(
+            ref _downloadRateText,
+            snapshot.DownloadRateText,
+            nameof(DownloadRateText));
+        SetField(ref _uploadRateText, snapshot.UploadRateText, nameof(UploadRateText));
         SetField(ref _cumulativeText, snapshot.CumulativeText, nameof(CumulativeText));
         SetField(ref _durationText, snapshot.DurationText, nameof(DurationText));
         SetField(ref _automationName, snapshot.AutomationName, nameof(AutomationName));
@@ -85,23 +94,29 @@ public sealed class LiveConnectionRowViewModel : INotifyPropertyChanged
 public sealed class LiveConnectionGroupRowViewModel : INotifyPropertyChanged
 {
     private string _name;
-    private string _relationText;
-    private string _rateText;
+    private string _relatedCountText;
+    private string _connectionCountText;
+    private string _downloadRateText;
+    private string _uploadRateText;
     private string _cumulativeText;
     private string _automationName;
 
     internal LiveConnectionGroupRowViewModel(
         string id,
         string name,
-        string relationText,
-        string rateText,
+        string relatedCountText,
+        string connectionCountText,
+        string downloadRateText,
+        string uploadRateText,
         string cumulativeText,
         string automationName)
     {
         Id = id;
         _name = name;
-        _relationText = relationText;
-        _rateText = rateText;
+        _relatedCountText = relatedCountText;
+        _connectionCountText = connectionCountText;
+        _downloadRateText = downloadRateText;
+        _uploadRateText = uploadRateText;
         _cumulativeText = cumulativeText;
         _automationName = automationName;
     }
@@ -112,9 +127,13 @@ public sealed class LiveConnectionGroupRowViewModel : INotifyPropertyChanged
 
     public string Name => _name;
 
-    public string RelationText => _relationText;
+    public string RelatedCountText => _relatedCountText;
 
-    public string RateText => _rateText;
+    public string ConnectionCountText => _connectionCountText;
+
+    public string DownloadRateText => _downloadRateText;
+
+    public string UploadRateText => _uploadRateText;
 
     public string CumulativeText => _cumulativeText;
 
@@ -128,8 +147,19 @@ public sealed class LiveConnectionGroupRowViewModel : INotifyPropertyChanged
         }
 
         SetField(ref _name, snapshot.Name, nameof(Name));
-        SetField(ref _relationText, snapshot.RelationText, nameof(RelationText));
-        SetField(ref _rateText, snapshot.RateText, nameof(RateText));
+        SetField(
+            ref _relatedCountText,
+            snapshot.RelatedCountText,
+            nameof(RelatedCountText));
+        SetField(
+            ref _connectionCountText,
+            snapshot.ConnectionCountText,
+            nameof(ConnectionCountText));
+        SetField(
+            ref _downloadRateText,
+            snapshot.DownloadRateText,
+            nameof(DownloadRateText));
+        SetField(ref _uploadRateText, snapshot.UploadRateText, nameof(UploadRateText));
         SetField(ref _cumulativeText, snapshot.CumulativeText, nameof(CumulativeText));
         SetField(ref _automationName, snapshot.AutomationName, nameof(AutomationName));
     }

@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using MihomoMeter.Windows.App.Interop;
+using MihomoMeter.Windows.App.Presentation;
 
 namespace MihomoMeter.Windows.App.Lifecycle;
 
@@ -12,8 +13,8 @@ internal static class FloatingWidgetPainter
     private const uint DrawTextVerticalCenter = 0x0004;
     private const uint DrawTextSingleLine = 0x0020;
     private const uint DrawTextNoPrefix = 0x0800;
-    private const uint BackgroundColor = 0x00FF8426;
-    private const uint ForegroundColor = 0x00FFFFFF;
+    private const int SystemColorWindow = 5;
+    private const int SystemColorWindowText = 8;
 
     public static void ApplyRoundRegion(nint windowHandle, int size)
     {
@@ -30,7 +31,10 @@ internal static class FloatingWidgetPainter
         }
     }
 
-    public static void Paint(nint windowHandle, int size)
+    public static void Paint(
+        nint windowHandle,
+        int size,
+        FloatingWidgetDisplaySnapshot snapshot)
     {
         var deviceContext = FloatingWidgetNativeMethods.BeginPaint(windowHandle, out var paint);
         if (deviceContext == 0)
@@ -41,7 +45,7 @@ internal static class FloatingWidgetPainter
         try
         {
             PaintBackground(deviceContext, size);
-            PaintGlyph(deviceContext, windowHandle, size);
+            PaintRates(deviceContext, windowHandle, size, snapshot);
         }
         finally
         {
@@ -51,7 +55,8 @@ internal static class FloatingWidgetPainter
 
     private static void PaintBackground(nint deviceContext, int size)
     {
-        var brush = FloatingWidgetNativeMethods.CreateSolidBrush(BackgroundColor);
+        var brush = FloatingWidgetNativeMethods.CreateSolidBrush(
+            FloatingWidgetNativeMethods.GetSysColor(SystemColorWindowText));
         if (brush == 0)
         {
             throw new Win32Exception(Marshal.GetLastWin32Error());
@@ -67,11 +72,15 @@ internal static class FloatingWidgetPainter
         FloatingWidgetNativeMethods.DeleteObject(brush);
     }
 
-    private static void PaintGlyph(nint deviceContext, nint windowHandle, int size)
+    private static void PaintRates(
+        nint deviceContext,
+        nint windowHandle,
+        int size,
+        FloatingWidgetDisplaySnapshot snapshot)
     {
         var dpi = FloatingWidgetNativeMethods.GetDpiForWindow(windowHandle);
         var font = FloatingWidgetNativeMethods.CreateFont(
-            -FloatingWidgetPlacement.Scale(22, dpi),
+            -FloatingWidgetPlacement.Scale(9, dpi),
             0,
             0,
             0,
@@ -92,17 +101,32 @@ internal static class FloatingWidgetPainter
 
         var oldFont = FloatingWidgetNativeMethods.SelectObject(deviceContext, font);
         FloatingWidgetNativeMethods.SetBkMode(deviceContext, TransparentBackground);
-        FloatingWidgetNativeMethods.SetTextColor(deviceContext, ForegroundColor);
-        var rectangle = new FloatingWidgetNativeMethods.Rect
+        FloatingWidgetNativeMethods.SetTextColor(
+            deviceContext,
+            FloatingWidgetNativeMethods.GetSysColor(SystemColorWindow));
+        var firstLine = new FloatingWidgetNativeMethods.Rect
         {
+            Top = size / 8,
             Right = size,
-            Bottom = size,
+            Bottom = size / 2 + 1,
         };
         FloatingWidgetNativeMethods.DrawText(
             deviceContext,
-            "M",
-            1,
-            ref rectangle,
+            snapshot.FirstLine,
+            snapshot.FirstLine.Length,
+            ref firstLine,
+            DrawTextCenter | DrawTextVerticalCenter | DrawTextSingleLine | DrawTextNoPrefix);
+        var secondLine = new FloatingWidgetNativeMethods.Rect
+        {
+            Top = size / 2 - 1,
+            Right = size,
+            Bottom = size * 7 / 8,
+        };
+        FloatingWidgetNativeMethods.DrawText(
+            deviceContext,
+            snapshot.SecondLine,
+            snapshot.SecondLine.Length,
+            ref secondLine,
             DrawTextCenter | DrawTextVerticalCenter | DrawTextSingleLine | DrawTextNoPrefix);
         FloatingWidgetNativeMethods.SelectObject(deviceContext, oldFont);
         FloatingWidgetNativeMethods.DeleteObject(font);

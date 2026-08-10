@@ -17,7 +17,7 @@
                         <TextBlock
                             FontSize="30"
                             FontWeight="SemiBold"
-                            Text="历史归因" />
+                            Text="连接分析" />
                         <TextBlock
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                             Text="查看最近 30 个本地自然日的 Proxy 应用与完整主机名聚合。"

@@ -17,6 +17,10 @@ internal sealed partial class NotificationAreaMenu
     private const uint OpenProxyConnectionsCommand = 4001;
     private const uint OpenDirectConnectionsCommand = 4002;
 
+    private const uint OpenConnectionAnalyticsCommand = 5001;
+    private const uint OpenSettingsCommand = 5002;
+    private const uint CheckUpdatesCommand = 5003;
+
     private static void RegisterCommand(
         IDictionary<uint, NotificationAreaCommand> commands,
         uint commandId,

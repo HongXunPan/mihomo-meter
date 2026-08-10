@@ -17,10 +17,10 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     private string _message = "尚未连接 Mihomo Controller。";
     private string _versionText = "Mihomo 版本：--";
     private string _coverageText = "分类覆盖率：--";
-    private string _proxyRateText = "↑ --  ·  ↓ --";
-    private string _directRateText = "↑ --  ·  ↓ --";
-    private string _rejectRateText = "↑ --  ·  ↓ --";
-    private string _unknownRateText = "↑ --  ·  ↓ --";
+    private string _proxyRateText = "↓ --  ·  ↑ --";
+    private string _directRateText = "↓ --  ·  ↑ --";
+    private string _rejectRateText = "↓ --  ·  ↑ --";
+    private string _unknownRateText = "↓ --  ·  ↑ --";
     private string _proxyConnectionSampleText = "0 条";
     private string _hostnameIdentifiedText = "0 条 · --";
     private string _applicationIdentifiedText = "0 条 · --";
@@ -39,7 +39,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    public event Action<string>? StatusSummaryChanged;
+    public event Action? ConfigurationValidated;
 
     public string Address
     {
@@ -170,6 +170,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         await _coordinator
             .StartAsync(Address, resolvedSecret, true, cancellationToken)
             .ConfigureAwait(true);
+        ConfigurationValidated?.Invoke();
     }
 
     internal Task DisconnectAsync(CancellationToken cancellationToken = default)
@@ -237,7 +238,6 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(CanConnect));
         OnPropertyChanged(nameof(CanDisconnect));
         OnPropertyChanged(nameof(ConnectButtonText));
-        StatusSummaryChanged?.Invoke(StateTitle);
     }
 
     private static string TitleFor(MonitorConnectionState state)

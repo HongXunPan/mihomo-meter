@@ -95,6 +95,20 @@ internal static class FloatingWidgetNativeMethods
     [return: MarshalAs(UnmanagedType.Bool)]
     internal static extern bool DestroyWindow(nint windowHandle);
 
+    [DllImport("user32.dll", EntryPoint = "SetWindowTextW", CharSet = CharSet.Unicode, SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    internal static extern bool SetWindowText(nint windowHandle, string text);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    internal static extern bool InvalidateRect(
+        nint windowHandle,
+        nint rectangle,
+        [MarshalAs(UnmanagedType.Bool)] bool erase);
+
+    [DllImport("user32.dll")]
+    internal static extern uint GetSysColor(int colorIndex);
+
     [DllImport("user32.dll", EntryPoint = "DefWindowProcW")]
     internal static extern nint DefWindowProc(
         nint windowHandle,

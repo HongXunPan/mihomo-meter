@@ -1,3 +1,4 @@
+using MihomoMeter.Windows.Core.Application;
 using MihomoMeter.Windows.Core.Domain;
 
 namespace MihomoMeter.Windows.App.Presentation;
@@ -7,23 +8,19 @@ internal static class TrafficDisplayFormatter
     public static string Rate(TrafficRate? rate)
     {
         return rate is null
-            ? "↑ --  ·  ↓ --"
-            : $"↑ {ByteCount(rate.Value.UploadBytesPerSecond)}/s  ·  "
-                + $"↓ {ByteCount(rate.Value.DownloadBytesPerSecond)}/s";
+            ? "↓ --  ·  ↑ --"
+            : $"↓ {ByteCount(rate.Value.DownloadBytesPerSecond)}/s  ·  "
+                + $"↑ {ByteCount(rate.Value.UploadBytesPerSecond)}/s";
     }
 
     public static string ByteCount(ulong bytes)
     {
-        const double kibibyte = 1_024;
-        const double mebibyte = 1_024 * 1_024;
-        const double gibibyte = 1_024 * 1_024 * 1_024;
-        return bytes switch
-        {
-            >= (ulong)gibibyte => $"{bytes / gibibyte:0.0} GiB",
-            >= (ulong)mebibyte => $"{bytes / mebibyte:0.0} MiB",
-            >= (ulong)kibibyte => $"{bytes / kibibyte:0.0} KiB",
-            _ => $"{bytes} B",
-        };
+        return TrafficDisplayUnits.ByteCount(bytes);
+    }
+
+    public static string RateValue(ulong bytesPerSecond)
+    {
+        return $"{ByteCount(bytesPerSecond)}/s";
     }
 
     public static string DateTime(DateTimeOffset value)
@@ -33,15 +30,30 @@ internal static class TrafficDisplayFormatter
 
     public static string Percentage(double? rate)
     {
-        return rate is null ? "--" : $"{rate.Value * 100:0.0}%";
+        return rate is null || !double.IsFinite(rate.Value)
+            ? "--"
+            : $"{Math.Clamp(rate.Value, 0, 1) * 100:0.00}%";
     }
 
     public static string Duration(DateTimeOffset startedAt, DateTimeOffset endedAt)
     {
         var duration = endedAt > startedAt ? endedAt - startedAt : TimeSpan.Zero;
-        return duration.TotalDays >= 1
-            ? $"{(int)duration.TotalDays}天 {duration:hh\\:mm\\:ss}"
-            : duration.ToString("hh\\:mm\\:ss");
+        var totalSeconds = Math.Max((long)duration.TotalSeconds, 0);
+        var days = totalSeconds / 86_400;
+        var hours = totalSeconds % 86_400 / 3_600;
+        var minutes = totalSeconds % 3_600 / 60;
+        var seconds = totalSeconds % 60;
+        if (days > 0)
+        {
+            return $"{days} 天 {hours} 小时";
+        }
+        if (hours > 0)
+        {
+            return $"{hours} 小时 {minutes} 分";
+        }
+        return minutes > 0
+            ? $"{minutes} 分 {seconds} 秒"
+            : $"{seconds} 秒";
     }
 
     public static string IntervalTime(TrafficInterval interval, DateTimeOffset now)

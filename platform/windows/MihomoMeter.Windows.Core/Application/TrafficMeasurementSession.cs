@@ -11,7 +11,9 @@ public sealed record TrafficMeasurementResult(
     ConnectionAttributionCoverage AttributionCoverage = default,
     IReadOnlyList<LiveTrafficConnection>? ProxyConnections = null,
     IReadOnlyList<LiveTrafficConnection>? DirectConnections = null,
-    IReadOnlyList<ConnectionAttributionDelta>? AttributionDeltas = null)
+    IReadOnlyList<ConnectionAttributionDelta>? AttributionDeltas = null,
+    IReadOnlyList<string>? ProxyLeaves = null,
+    IReadOnlyList<string>? RuleTypes = null)
 {
     public IReadOnlyList<LiveTrafficConnection> LiveProxyConnections =>
         ProxyConnections ?? Array.Empty<LiveTrafficConnection>();
@@ -21,6 +23,12 @@ public sealed record TrafficMeasurementResult(
 
     public IReadOnlyList<ConnectionAttributionDelta> ConnectionAttributionDeltas =>
         AttributionDeltas ?? Array.Empty<ConnectionAttributionDelta>();
+
+    public IReadOnlyList<string> ActiveProxyLeaves =>
+        ProxyLeaves ?? Array.Empty<string>();
+
+    public IReadOnlyList<string> ActiveRuleTypes =>
+        RuleTypes ?? Array.Empty<string>();
 }
 
 public sealed class TrafficMeasurementSession
@@ -65,6 +73,20 @@ public sealed class TrafficMeasurementSession
             .Where(item => item.Classification.Category == TrafficCategory.Direct)
             .Select(item => item.Connection)
             .ToArray();
+        var activeProxyLeaves = proxyConnections
+            .Select(connection => connection.Chains.FirstOrDefault()?.Trim())
+            .Where(value => !string.IsNullOrEmpty(value))
+            .Select(value => value!)
+            .Distinct(StringComparer.Ordinal)
+            .OrderBy(value => value, StringComparer.Ordinal)
+            .ToArray();
+        var activeRuleTypes = trafficSnapshot.Connections
+            .Select(connection => connection.Rule?.Trim())
+            .Where(value => !string.IsNullOrEmpty(value))
+            .Select(value => value!)
+            .Distinct(StringComparer.Ordinal)
+            .OrderBy(value => value, StringComparer.Ordinal)
+            .ToArray();
         var attributionCoverage = _attributionCoverageTracker.Consume(proxyConnections);
 
         var now = _timeProvider.GetTimestamp();
@@ -89,7 +111,9 @@ public sealed class TrafficMeasurementSession
                         new TrafficLedgerBaselineEstablished()),
                     attributionCoverage,
                     _proxyConnectionRates.LiveConnections,
-                    _directConnectionRates.LiveConnections);
+                    _directConnectionRates.LiveConnections,
+                    ProxyLeaves: activeProxyLeaves,
+                    RuleTypes: activeRuleTypes);
             case ConnectionDeltaStatus.CountersReset:
                 _rateAggregator.Reset();
                 _proxyConnectionRates.Reset();
@@ -105,7 +129,9 @@ public sealed class TrafficMeasurementSession
                         new TrafficLedgerCountersReset()),
                     ConnectionAttributionCoverage.Empty,
                     Array.Empty<LiveTrafficConnection>(),
-                    Array.Empty<LiveTrafficConnection>());
+                    Array.Empty<LiveTrafficConnection>(),
+                    ProxyLeaves: activeProxyLeaves,
+                    RuleTypes: activeRuleTypes);
             case ConnectionDeltaStatus.Delta when transition.Batch is not null:
                 var rateWindow = elapsedSeconds is null
                     ? null
@@ -143,7 +169,9 @@ public sealed class TrafficMeasurementSession
                     attributionCoverage,
                     liveProxyConnections,
                     liveDirectConnections,
-                    attributionDeltas);
+                    attributionDeltas,
+                    activeProxyLeaves,
+                    activeRuleTypes);
             default:
                 throw new InvalidOperationException("连接差值状态缺少对应账本观测。");
         }

@@ -1,0 +1,81 @@
+<UserControl
+    x:Class="MihomoMeter.Windows.App.Presentation.ControllerSettingsView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <ScrollViewer>
+        <StackPanel
+            MaxWidth="680"
+            Padding="32"
+            HorizontalAlignment="Left"
+            Spacing="20">
+            <Grid ColumnSpacing="16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Spacing="4">
+                    <TextBlock
+                        FontSize="28"
+                        FontWeight="SemiBold"
+                        Text="Mihomo 连接" />
+                    <TextBlock
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="{x:Bind ViewModel.Message, Mode=OneWay}"
+                        TextWrapping="Wrap" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" HorizontalAlignment="Right" Spacing="4">
+                    <TextBlock
+                        HorizontalAlignment="Right"
+                        FontWeight="SemiBold"
+                        Text="{x:Bind ViewModel.StateTitle, Mode=OneWay}" />
+                    <TextBlock
+                        HorizontalAlignment="Right"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="{x:Bind ViewModel.VersionText, Mode=OneWay}" />
+                </StackPanel>
+            </Grid>
+
+            <InfoBar
+                IsClosable="False"
+                IsOpen="True"
+                Message="服务地址和访问密钥来自代理客户端的“外部控制器”，不是订阅链接、机场密码或节点密码。"
+                Severity="Informational"
+                Title="连接信息" />
+
+            <TextBox
+                Header="服务地址"
+                PlaceholderText="127.0.0.1:9090"
+                Text="{x:Bind ViewModel.Address, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            <PasswordBox
+                x:Name="SecretPasswordBox"
+                Header="访问密钥（Secret）"
+                PlaceholderText="留空时复用同地址已保存的密钥"
+                PasswordRevealMode="Peek" />
+            <CheckBox
+                x:Name="ForceEmptySecretCheckBox"
+                Content="本次明确不使用 Secret；验证成功后删除已保存凭据" />
+
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <Button
+                    AutomationProperties.HelpText="验证本机 Mihomo Controller 并安全保存连接信息"
+                    Click="ConnectButton_Click"
+                    Content="{x:Bind ViewModel.ConnectButtonText, Mode=OneWay}"
+                    IsEnabled="{x:Bind ViewModel.CanConnect, Mode=OneWay}"
+                    Style="{StaticResource AccentButtonStyle}" />
+                <Button
+                    Click="DisconnectButton_Click"
+                    Content="断开"
+                    IsEnabled="{x:Bind ViewModel.CanDisconnect, Mode=OneWay}" />
+                <HyperlinkButton
+                    Content="查看零基础教程"
+                    NavigateUri="https://github.com/HongXunPan/mihomo-meter/wiki/%E5%87%86%E5%A4%87-Mihomo" />
+            </StackPanel>
+
+            <TextBlock
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Text="仅连接本机回环地址；验证成功后，Secret 只保存至 Windows Credential Manager。应用只读监控，不修改 Mihomo 或系统代理。"
+                TextWrapping="Wrap" />
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

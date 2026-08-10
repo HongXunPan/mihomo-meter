@@ -17,8 +17,12 @@ internal sealed class WindowLifecycleController : IDisposable
     private readonly nint _windowHandle;
     private readonly FloatingWidgetController _floatingWidget;
     private readonly NotificationAreaController _notificationArea;
+    private readonly NotificationAreaRealtimeController _realtimeController;
     private readonly Action _showStatisticsWorkspace;
     private readonly Action _showQuotaWorkspace;
+    private readonly Action _showConnectionAnalyticsWorkspace;
+    private readonly Action _showControllerSettings;
+    private readonly Action _showUpdates;
     private readonly Action<LiveConnectionRoute> _showLiveConnectionsWorkspace;
     private readonly Func<Task> _startStatistics;
     private readonly Func<Guid, Task> _stopStatistics;
@@ -33,8 +37,12 @@ internal sealed class WindowLifecycleController : IDisposable
         Func<NotificationAreaStatisticsMenuSnapshot> captureStatisticsSnapshot,
         Func<NotificationAreaQuotaMenuSnapshot> captureQuotaSnapshot,
         Func<NotificationAreaConnectionsMenuSnapshot> captureConnectionsSnapshot,
+        NotificationAreaRealtimeController realtimeController,
         Action showStatisticsWorkspace,
         Action showQuotaWorkspace,
+        Action showConnectionAnalyticsWorkspace,
+        Action showControllerSettings,
+        Action showUpdates,
         Action<LiveConnectionRoute> showLiveConnectionsWorkspace,
         Func<Task> startStatistics,
         Func<Guid, Task> stopStatistics,
@@ -45,10 +53,17 @@ internal sealed class WindowLifecycleController : IDisposable
         ArgumentNullException.ThrowIfNull(captureStatisticsSnapshot);
         ArgumentNullException.ThrowIfNull(captureQuotaSnapshot);
         ArgumentNullException.ThrowIfNull(captureConnectionsSnapshot);
+        _realtimeController = realtimeController
+            ?? throw new ArgumentNullException(nameof(realtimeController));
         _showStatisticsWorkspace = showStatisticsWorkspace
             ?? throw new ArgumentNullException(nameof(showStatisticsWorkspace));
         _showQuotaWorkspace = showQuotaWorkspace
             ?? throw new ArgumentNullException(nameof(showQuotaWorkspace));
+        _showConnectionAnalyticsWorkspace = showConnectionAnalyticsWorkspace
+            ?? throw new ArgumentNullException(nameof(showConnectionAnalyticsWorkspace));
+        _showControllerSettings = showControllerSettings
+            ?? throw new ArgumentNullException(nameof(showControllerSettings));
+        _showUpdates = showUpdates ?? throw new ArgumentNullException(nameof(showUpdates));
         _showLiveConnectionsWorkspace = showLiveConnectionsWorkspace
             ?? throw new ArgumentNullException(nameof(showLiveConnectionsWorkspace));
         _startStatistics = startStatistics
@@ -73,6 +88,9 @@ internal sealed class WindowLifecycleController : IDisposable
                 QueueShowMainWindow,
                 QueueShowStatisticsWorkspace,
                 QueueShowQuotaWorkspace,
+                QueueShowConnectionAnalyticsWorkspace,
+                QueueShowControllerSettings,
+                QueueShowUpdates,
                 QueueToggleFloatingWidget,
                 () => _floatingWidget.IsVisible,
                 captureStatisticsSnapshot,
@@ -91,12 +109,28 @@ internal sealed class WindowLifecycleController : IDisposable
             throw;
         }
 
+        _realtimeController.SnapshotChanged += ApplyRealtimeSnapshot;
+        ApplyRealtimeSnapshot(_realtimeController.CaptureSnapshot());
+
         StartupConsoleReporter.Stage("window_lifecycle_ready");
     }
 
-    public void SetStatusText(string statusText)
+    private void ApplyRealtimeSnapshot(NotificationAreaRealtimeMenuSnapshot snapshot)
     {
-        _notificationArea.UpdateToolTip($"Mihomo Meter · {statusText}");
+        if (_disposed)
+        {
+            return;
+        }
+
+        try
+        {
+            _notificationArea.UpdateRealtimeSnapshot(snapshot);
+            _floatingWidget.UpdateSnapshot(snapshot.Widget);
+        }
+        catch (Exception exception)
+        {
+            StartupConsoleReporter.Failure("notification_area_realtime_update", exception);
+        }
     }
 
     public void ShowMainWindow()
@@ -120,6 +154,7 @@ internal sealed class WindowLifecycleController : IDisposable
 
         _disposed = true;
         _appWindow.Closing -= AppWindow_Closing;
+        _realtimeController.SnapshotChanged -= ApplyRealtimeSnapshot;
         _floatingWidget.Dispose();
         _notificationArea.Dispose();
     }
@@ -188,6 +223,34 @@ internal sealed class WindowLifecycleController : IDisposable
             }))
         {
             ReportDispatcherFailure("quota_workspace_show_dispatch");
+        }
+    }
+
+    private void QueueShowConnectionAnalyticsWorkspace()
+    {
+        if (!_window.DispatcherQueue.TryEnqueue(() =>
+            {
+                _showConnectionAnalyticsWorkspace();
+                ShowMainWindow();
+            }))
+        {
+            ReportDispatcherFailure("connection_analytics_workspace_show_dispatch");
+        }
+    }
+
+    private void QueueShowControllerSettings()
+    {
+        if (!_window.DispatcherQueue.TryEnqueue(_showControllerSettings))
+        {
+            ReportDispatcherFailure("controller_settings_show_dispatch");
+        }
+    }
+
+    private void QueueShowUpdates()
+    {
+        if (!_window.DispatcherQueue.TryEnqueue(_showUpdates))
+        {
+            ReportDispatcherFailure("updates_show_dispatch");
         }
     }
 

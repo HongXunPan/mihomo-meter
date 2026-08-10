@@ -134,6 +134,30 @@ public sealed class TrafficMeasurementSessionTests
         Assert.AreEqual(0, reset.LiveDirectConnections.Count);
     }
 
+    [TestMethod]
+    public void PublishesSortedActiveProxyLeavesAndRuleTypes()
+    {
+        var session = new TrafficMeasurementSession(new ProxyCatalog(
+            new Dictionary<string, string>
+            {
+                ["Alpha Proxy"] = "Vmess",
+                ["Zulu Proxy"] = "Trojan",
+                ["DIRECT"] = "Direct",
+            }));
+
+        var baseline = session.Consume(Snapshot(
+            Connection("zulu", "Zulu Proxy", true, true, "MATCH"),
+            Connection("alpha", "Alpha Proxy", true, true, "DOMAIN-SUFFIX"),
+            Connection("direct", "DIRECT", true, true, "MATCH")));
+
+        CollectionAssert.AreEqual(
+            new[] { "Alpha Proxy", "Zulu Proxy" },
+            baseline.ActiveProxyLeaves.ToArray());
+        CollectionAssert.AreEqual(
+            new[] { "DOMAIN-SUFFIX", "MATCH" },
+            baseline.ActiveRuleTypes.ToArray());
+    }
+
     private static MihomoConnectionsSnapshot Snapshot(params MihomoConnectionResponse[] connections)
     {
         return new MihomoConnectionsSnapshot
@@ -148,7 +172,8 @@ public sealed class TrafficMeasurementSessionTests
         string id,
         string chain,
         bool hasHostname,
-        bool hasApplication)
+        bool hasApplication,
+        string? rule = null)
     {
         return new MihomoConnectionResponse
         {
@@ -156,6 +181,7 @@ public sealed class TrafficMeasurementSessionTests
             Upload = 1,
             Download = 1,
             Chains = [chain],
+            Rule = rule,
             Metadata = new ConnectionMetadata(
                 hasHostname ? "example.test" : null,
                 hasApplication ? "Synthetic" : null),

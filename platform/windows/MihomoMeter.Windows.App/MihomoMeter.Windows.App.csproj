@@ -6,6 +6,7 @@
     <AssemblyName>MihomoMeter.Windows.App</AssemblyName>
     <RootNamespace>MihomoMeter.Windows.App</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\MihomoMeter.ico</ApplicationIcon>
     <Platforms>x64</Platforms>
     <PlatformTarget>x64</PlatformTarget>
     <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
@@ -30,6 +31,13 @@
 
   <ItemGroup>
     <ProjectReference Include="../MihomoMeter.Windows.Core/MihomoMeter.Windows.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Assets\MihomoMeter.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

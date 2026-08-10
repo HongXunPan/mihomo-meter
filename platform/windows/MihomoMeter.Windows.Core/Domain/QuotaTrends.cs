@@ -69,6 +69,9 @@ public sealed record QuotaLedgerSnapshot(
 
 public static class QuotaTrendEngine
 {
+    public const int MinimumPointCount = 2;
+    public const int MaximumPointCount = 30;
+    public const double PreferredPointSpacing = 40;
     public static readonly TimeSpan MinimumObservationSpan = TimeSpan.FromHours(6);
 
     public static QuotaTrend Calculate(
@@ -181,7 +184,11 @@ public static class QuotaTrendEngine
         int targetCount)
     {
         var all = segments.SelectMany(segment => segment.Points).OrderBy(point => point.Date).ToArray();
-        if (all.Length <= targetCount || targetCount < 2)
+        var requestedCount = Math.Clamp(
+            targetCount,
+            MinimumPointCount,
+            MaximumPointCount);
+        if (all.Length <= requestedCount)
         {
             return all;
         }
@@ -198,13 +205,25 @@ public static class QuotaTrendEngine
             selected[segment.Points[^1].Id] = segment.Points[^1];
         }
 
+        var desiredCount = Math.Min(Math.Max(requestedCount, selected.Count), all.Length);
+        if (selected.Count >= desiredCount)
+        {
+            return selected.Values.OrderBy(point => point.Date).ToArray();
+        }
+
         var firstDate = all[0].Date;
         var duration = all[^1].Date - firstDate;
-        for (var index = 0; index < targetCount; index += 1)
+        var additionalCount = desiredCount - selected.Count;
+        for (var index = 1; index <= additionalCount; index += 1)
         {
-            var ratio = targetCount == 1 ? 0 : (double)index / (targetCount - 1);
+            var ratio = (double)index / (additionalCount + 1);
             var targetDate = firstDate + TimeSpan.FromTicks((long)(duration.Ticks * ratio));
-            var closest = all.MinBy(point => Math.Abs((point.Date - targetDate).Ticks));
+            var closest = all
+                .Where(point => !selected.ContainsKey(point.Id))
+                .OrderBy(point => Math.Abs((point.Date - targetDate).Ticks))
+                .ThenBy(point => point.Date)
+                .ThenBy(point => point.Id)
+                .FirstOrDefault();
             if (closest is not null)
             {
                 selected[closest.Id] = closest;
@@ -212,6 +231,14 @@ public static class QuotaTrendEngine
         }
 
         return selected.Values.OrderBy(point => point.Date).ToArray();
+    }
+
+    public static int TargetPointCount(double plotWidth)
+    {
+        var estimatedCount = double.IsFinite(plotWidth)
+            ? (int)Math.Floor(Math.Max(plotWidth, 0) / PreferredPointSpacing)
+            : MinimumPointCount;
+        return Math.Clamp(estimatedCount, MinimumPointCount, MaximumPointCount);
     }
 
     public static DateTimeOffset StartDate(QuotaTrendWindow window, DateTimeOffset now)

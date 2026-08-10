@@ -12,6 +12,9 @@ internal enum NotificationAreaCommandKind
     OpenStatistics,
     OpenLiveConnections,
     OpenQuota,
+    OpenConnectionAnalytics,
+    OpenSettings,
+    CheckUpdates,
     StartStatistics,
     StopStatistics,
     RefreshQuota,
@@ -47,20 +50,26 @@ internal sealed partial class NotificationAreaMenu
         bool floatingWidgetVisible,
         NotificationAreaStatisticsMenuSnapshot statisticsSnapshot,
         NotificationAreaQuotaMenuSnapshot quotaSnapshot,
-        NotificationAreaConnectionsMenuSnapshot connectionsSnapshot)
+        NotificationAreaConnectionsMenuSnapshot connectionsSnapshot,
+        NotificationAreaRealtimeMenuSnapshot realtimeSnapshot)
     {
         var menuHandle = CreateMenu();
         var commands = new Dictionary<uint, NotificationAreaCommand>();
         try
         {
+            AppendMenuItem(menuHandle, 0, realtimeSnapshot.StateText, isEnabled: false);
+            AppendMenuItem(menuHandle, 0, realtimeSnapshot.ProxyRateText, isEnabled: false);
+            AppendMenuItem(menuHandle, 0, realtimeSnapshot.CoverageText, isEnabled: false);
+            AppendSeparator(menuHandle);
             AppendMenuItem(menuHandle, OpenCommand, "打开 Mihomo Meter");
             RegisterCommand(
                 commands,
                 OpenCommand,
                 new NotificationAreaCommand(NotificationAreaCommandKind.Open));
-            AppendQuotaMenu(menuHandle, quotaSnapshot, commands);
-            AppendStatisticsMenu(menuHandle, statisticsSnapshot, commands);
+            AppendRealtimeMenus(menuHandle, realtimeSnapshot);
             AppendConnectionsMenu(menuHandle, connectionsSnapshot, commands);
+            AppendStatisticsMenu(menuHandle, statisticsSnapshot, commands);
+            AppendQuotaMenu(menuHandle, quotaSnapshot, commands);
             AppendMenuItem(
                 menuHandle,
                 ToggleFloatingWidgetCommand,
@@ -70,6 +79,22 @@ internal sealed partial class NotificationAreaMenu
                 commands,
                 ToggleFloatingWidgetCommand,
                 new NotificationAreaCommand(NotificationAreaCommandKind.ToggleFloatingWidget));
+            AppendSeparator(menuHandle);
+            AppendMenuItem(menuHandle, OpenConnectionAnalyticsCommand, "连接分析…");
+            RegisterCommand(
+                commands,
+                OpenConnectionAnalyticsCommand,
+                new NotificationAreaCommand(NotificationAreaCommandKind.OpenConnectionAnalytics));
+            AppendMenuItem(menuHandle, OpenSettingsCommand, "设置…");
+            RegisterCommand(
+                commands,
+                OpenSettingsCommand,
+                new NotificationAreaCommand(NotificationAreaCommandKind.OpenSettings));
+            AppendMenuItem(menuHandle, CheckUpdatesCommand, "检查更新…");
+            RegisterCommand(
+                commands,
+                CheckUpdatesCommand,
+                new NotificationAreaCommand(NotificationAreaCommandKind.CheckUpdates));
             AppendSeparator(menuHandle);
             AppendMenuItem(menuHandle, ExitCommand, "退出 Mihomo Meter");
             RegisterCommand(

@@ -4,7 +4,8 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <Grid
-        MinWidth="720"
+        MinWidth="900"
+        MinHeight="560"
         Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
@@ -20,19 +21,19 @@
             PaneTitle="Mihomo Meter">
             <NavigationView.MenuItems>
                 <NavigationViewItem
-                    x:Name="RealtimeNavigationItem"
-                    Content="实时监控"
-                    Tag="realtime">
-                    <NavigationViewItem.Icon>
-                        <SymbolIcon Symbol="Sync" />
-                    </NavigationViewItem.Icon>
-                </NavigationViewItem>
-                <NavigationViewItem
                     x:Name="StatisticsNavigationItem"
                     Content="Proxy 流量"
                     Tag="statistics">
                     <NavigationViewItem.Icon>
                         <SymbolIcon Symbol="Clock" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem
+                    x:Name="ConnectionAnalyticsNavigationItem"
+                    Content="连接分析"
+                    Tag="connectionAnalytics">
+                    <NavigationViewItem.Icon>
+                        <SymbolIcon Symbol="Link" />
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
                 <NavigationViewItem
@@ -64,7 +65,7 @@
                 </Grid.ColumnDefinitions>
                 <TextBlock
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                    Text="关闭窗口后继续在通知区域运行；请从通知区域菜单明确退出。"
+                    Text="关闭窗口后仍会在通知区域继续监控；需要结束应用时请使用通知区域的“退出”。"
                     TextWrapping="Wrap" />
                 <TextBlock
                     x:Name="FloatingWidgetStateText"

@@ -48,24 +48,23 @@
                     <Ellipse
                         Width="8"
                         Height="8"
-                        Fill="{ThemeResource AccentFillColorDefaultBrush}" />
+                        Fill="{ThemeResource MihomoTrafficDownloadBrush}" />
                     <TextBlock Text="下载" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Spacing="5">
                     <Ellipse
                         Width="8"
                         Height="8"
-                        Fill="{ThemeResource SystemFillColorCautionBrush}" />
+                        Fill="{ThemeResource MihomoTrafficUploadBrush}" />
                     <TextBlock Text="上传" />
                 </StackPanel>
             </StackPanel>
 
             <Grid
-                HorizontalAlignment="Center"
                 ColumnSpacing="8">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="64" />
-                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
                 <Grid
@@ -109,7 +108,7 @@
                     Grid.Column="1"
                     Spacing="4">
                     <Grid
-                        Width="510"
+                        MinWidth="480"
                         Height="120">
                         <Border
                             VerticalAlignment="Top"
@@ -134,16 +133,18 @@
                             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                             BorderThickness="0,1,0,0" />
 
-                        <ItemsControl ItemsSource="{x:Bind ViewModel.ChartPoints, Mode=OneWay}">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <StackPanel Orientation="Horizontal" />
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate>
+                        <ItemsRepeater ItemsSource="{x:Bind ViewModel.ChartPoints, Mode=OneWay}">
+                            <ItemsRepeater.Layout>
+                                <UniformGridLayout
+                                    ItemsJustification="SpaceAround"
+                                    MaximumRowsOrColumns="30"
+                                    MinItemHeight="120"
+                                    MinItemWidth="12"
+                                    Orientation="Horizontal" />
+                            </ItemsRepeater.Layout>
+                            <ItemsRepeater.ItemTemplate>
                                 <DataTemplate x:DataType="presentation:TrafficDailyChartPointViewModel">
                                     <Grid
-                                        Width="17"
                                         Height="120"
                                         AutomationProperties.Name="{x:Bind AutomationName, Mode=OneWay}">
                                         <StackPanel
@@ -153,31 +154,33 @@
                                             <Border
                                                 Width="8"
                                                 Height="{x:Bind UploadHeight, Mode=OneWay}"
-                                                Background="{ThemeResource SystemFillColorCautionBrush}" />
+                                                Background="{ThemeResource MihomoTrafficUploadBrush}" />
                                             <Border
                                                 Width="8"
                                                 Height="{x:Bind DownloadHeight, Mode=OneWay}"
-                                                Background="{ThemeResource AccentFillColorDefaultBrush}" />
+                                                Background="{ThemeResource MihomoTrafficDownloadBrush}" />
                                         </StackPanel>
                                     </Grid>
                                 </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
+                            </ItemsRepeater.ItemTemplate>
+                        </ItemsRepeater>
                     </Grid>
 
-                    <ItemsControl
-                        Width="510"
+                    <ItemsRepeater
+                        MinWidth="480"
                         Height="28"
                         ItemsSource="{x:Bind ViewModel.ChartPoints, Mode=OneWay}">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <StackPanel Orientation="Horizontal" />
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
+                        <ItemsRepeater.Layout>
+                            <UniformGridLayout
+                                ItemsJustification="SpaceAround"
+                                MaximumRowsOrColumns="30"
+                                MinItemHeight="28"
+                                MinItemWidth="12"
+                                Orientation="Horizontal" />
+                        </ItemsRepeater.Layout>
+                        <ItemsRepeater.ItemTemplate>
                             <DataTemplate x:DataType="presentation:TrafficDailyChartPointViewModel">
                                 <Grid
-                                    Width="17"
                                     Height="28">
                                     <Border
                                         Width="1"
@@ -197,8 +200,8 @@
                                         Visibility="{x:Bind AxisLabelVisibility, Mode=OneWay}" />
                                 </Grid>
                             </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
+                        </ItemsRepeater.ItemTemplate>
+                    </ItemsRepeater>
                 </StackPanel>
             </Grid>
         </StackPanel>
