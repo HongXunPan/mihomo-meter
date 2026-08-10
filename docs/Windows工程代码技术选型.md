@@ -56,7 +56,7 @@ platform/windows/
 - `MihomoMeter.Windows.App`：WinUI 进程入口、工作台壳层、独立实时监控/Proxy 流量视图与 ViewModel、W0 壳层、Windows Credential Manager、本机设置路径和应用装配。
 - `MihomoMeter.Windows.Core`：不依赖 WinUI 或 Win32 的领域模型、分类/差值/速率、连接状态机与流量账本契约，以及 Mihomo HTTP/WebSocket、SQLite 适配器。
 - `MihomoMeter.Windows.Tests`：只引用 Core，链接仓库既有 `Tests/Fixtures/` 脱敏 JSON，不复制第二套 fixture。
-- `Lifecycle` 与既有 `Interop` 继续只承载窗口、通知区域、悬浮入口和单实例能力，不接入网络或领域算法。
+- `Lifecycle` 与既有 `Interop` 只承载窗口、通知区域、悬浮入口和单实例能力；单实例使用固定会话 Mutex 与仅限当前用户的 Named Pipe，不依赖安装路径、版本或 AppInstance 身份。
 - Windows 专属配置与凭据实现通过 Core 定义的窄接口注入，Core 不读取 `%LOCALAPPDATA%`，也不调用 Credential Manager。
 
 ## 4. W1 至 W2D-2 实现契约
