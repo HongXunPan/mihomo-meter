@@ -5,6 +5,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 APP_ROOT = ROOT / "platform" / "windows" / "MihomoMeter.Windows.App"
+WINDOWS_WORKFLOW = ROOT / ".github" / "workflows" / "windows.yml"
 
 SINGLE_INSTANCE_REQUIRED_REPOSITORY_FILES = (
     "scripts/windows_validation_single_instance_contract.py",
@@ -15,6 +16,9 @@ SINGLE_INSTANCE_REQUIRED_APP_FILES = (
 )
 
 SINGLE_INSTANCE_REQUIRED_CODE_MARKERS = {
+    WINDOWS_WORKFLOW: (
+        '"scripts/windows_validation_single_instance_contract.py"',
+    ),
     APP_ROOT / "Program.cs": (
         "SingleInstanceCoordinator.CreateForCurrentSession",
         "instanceCoordinator.StartListening",
