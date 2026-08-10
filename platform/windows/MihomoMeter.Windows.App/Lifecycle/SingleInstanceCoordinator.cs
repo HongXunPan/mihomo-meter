@@ -64,7 +64,7 @@ internal sealed class SingleInstanceCoordinator : IAsyncDisposable
     }
 
     public async Task RedirectActivationAsync(
-        Action<int> beforeActivation,
+        Action<uint> beforeActivation,
         CancellationToken cancellationToken = default)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
@@ -86,10 +86,10 @@ internal sealed class SingleInstanceCoordinator : IAsyncDisposable
             PipeOptions.Asynchronous);
         await client.ConnectAsync(timeoutToken);
 
-        var processIdBuffer = new byte[sizeof(int)];
+        var processIdBuffer = new byte[sizeof(uint)];
         await client.ReadExactlyAsync(processIdBuffer, timeoutToken);
-        var primaryProcessId = BinaryPrimitives.ReadInt32LittleEndian(processIdBuffer);
-        if (primaryProcessId <= 0)
+        var primaryProcessId = BinaryPrimitives.ReadUInt32LittleEndian(processIdBuffer);
+        if (primaryProcessId == 0)
         {
             throw new InvalidDataException("主实例返回了无效进程标识。");
         }
@@ -171,8 +171,10 @@ internal sealed class SingleInstanceCoordinator : IAsyncDisposable
         Action activationRequested,
         CancellationToken cancellationToken)
     {
-        var processIdBuffer = new byte[sizeof(int)];
-        BinaryPrimitives.WriteInt32LittleEndian(processIdBuffer, Environment.ProcessId);
+        var processIdBuffer = new byte[sizeof(uint)];
+        BinaryPrimitives.WriteUInt32LittleEndian(
+            processIdBuffer,
+            checked((uint)Environment.ProcessId));
         await server.WriteAsync(processIdBuffer, cancellationToken);
         await server.FlushAsync(cancellationToken);
 

@@ -58,7 +58,7 @@ internal static class Program
         ActivationRouter.RequestMainWindowActivation();
     }
 
-    private static void AllowForegroundActivation(int processId)
+    private static void AllowForegroundActivation(uint processId)
     {
         if (!ShellNativeMethods.AllowSetForegroundWindow(processId))
         {
