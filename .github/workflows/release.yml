@@ -121,20 +121,6 @@ jobs:
                   --descriptor "${RUNNER_TEMP}/release-baseline/windows-release.json"
               fi
             fi
-          else
-            if [[ "$(gh release view "v${VERSION}" --json isDraft --jq .isDraft)" != "true" ]]; then
-              echo "stable 模式只允许提升同版本 draft Release。" >&2
-              exit 1
-            fi
-            if [[ "$(gh release view "v${VERSION}" --json isPrerelease --jq .isPrerelease)" != "false" ]]; then
-              echo "候选 Release 不得标记为 prerelease。" >&2
-              exit 1
-            fi
-            draft_target="$(gh release view "v${VERSION}" --json targetCommitish --jq .targetCommitish)"
-            if ! git merge-base --is-ancestor "${draft_target}" "${GITHUB_SHA}"; then
-              echo "候选 Release 目标 ${draft_target} 不属于当前 main 历史。" >&2
-              exit 1
-            fi
           fi
 
   macos:
@@ -585,7 +571,7 @@ jobs:
             --fail-on-no-commits \
             --draft
 
-      - name: 下载并校验候选 Release
+      - name: 复核并下载候选 Release
         if: ${{ inputs.release_mode == 'stable' }}
         env:
           VERSION: ${{ inputs.version }}
@@ -594,6 +580,29 @@ jobs:
           GH_PROMPT_DISABLED: "1"
         run: |
           set -euo pipefail
+          if ! release_metadata="$(
+            gh release view "v${VERSION}" \
+              --json isDraft,isPrerelease,targetCommitish \
+              --jq '[.isDraft, .isPrerelease, .targetCommitish] | @tsv'
+          )"; then
+            echo "stable 模式只允许提升同版本 draft Release。" >&2
+            exit 1
+          fi
+          IFS=$'\t' read -r is_draft is_prerelease draft_target \
+            <<<"${release_metadata}"
+          if [[ "${is_draft}" != "true" ]]; then
+            echo "stable 模式只允许提升同版本 draft Release。" >&2
+            exit 1
+          fi
+          if [[ "${is_prerelease}" != "false" ]]; then
+            echo "候选 Release 不得标记为 prerelease。" >&2
+            exit 1
+          fi
+          if ! git merge-base --is-ancestor "${draft_target}" "${GITHUB_SHA}"; then
+            echo "候选 Release 目标 ${draft_target} 不属于当前 main 历史。" >&2
+            exit 1
+          fi
+
           promotion_root=".codex-tmp/release-promotion"
           asset_root="${promotion_root}/assets"
           rm -rf "${promotion_root}"
