@@ -141,6 +141,17 @@ def validate_release_contract(errors: list[str]) -> None:
     if "permissions:\n  contents: read" not in workflow:
         errors.append("正式发布工作流默认权限必须为 contents: read。")
 
+    workflow_sections = workflow.split("\n  publish:", maxsplit=1)
+    if len(workflow_sections) != 2:
+        errors.append("正式发布工作流必须保留独立的最终发布任务。")
+    else:
+        preflight_workflow, publish_workflow = workflow_sections
+        release_state_markers = ("isDraft", "isPrerelease", "targetCommitish")
+        if any(marker in preflight_workflow for marker in release_state_markers):
+            errors.append("Draft Release 状态不得由只读预检任务查询。")
+        if any(marker not in publish_workflow for marker in release_state_markers):
+            errors.append("Draft Release 状态与目标提交必须由最终发布任务复核。")
+
     windows_workflow = (ROOT / ".github/workflows/windows.yml").read_text(encoding="utf-8")
     if windows_workflow.count('"scripts/inherited_release_descriptor.py"') != 2:
         errors.append("旧 Release 描述引导脚本必须同时触发 Windows PR 与 main 门禁。")

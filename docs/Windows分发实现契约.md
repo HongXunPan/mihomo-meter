@@ -57,7 +57,7 @@ https://github.com/HongXunPan/mihomo-meter/releases/latest/download/windows-rele
 
 `.github/workflows/release.yml` 是唯一正式发布入口，固定拆分为预检、按需 macOS 构建、按需 Windows 构建和最终发布任务。工作流级权限默认为 `contents: read`，只有最终发布任务使用 `contents: write`；签名 Secrets 只进入 macOS 构建任务，不进入 Windows 或发布正文。
 
-预检拒绝非 `main`、非法版本和不支持的模式。draft 模式还拒绝既有 Tag/Release，平台任务并行复用既有测试与打包入口，最终创建候选 Release；stable 模式必须命中同版本 draft 且其目标提交仍属于当前 `main` 历史，只下载复核资产清单、两个描述、下载矩阵和 SHA-256，再原样提升为 Latest，不重新构建、上传或替换资产。工作流只使用仓库 `GITHUB_TOKEN`，不使用个人 Token。
+只读预检拒绝非 `main`、非法版本和不支持的模式；draft 模式还拒绝既有 Tag/Release，平台任务并行复用既有测试与打包入口，最终创建候选 Release。Draft Release 仅对拥有发布写权限的任务可见，因此 stable 模式的 Draft、prerelease 和目标提交检查固定放在唯一的最终发布任务，并在下载候选前执行；通过后才复核资产清单、两个描述、下载矩阵和 SHA-256，再原样提升为 Latest，不重新构建、上传或替换资产。工作流只使用仓库 `GITHUB_TOKEN`，不使用个人 Token。
 
 ## 6. 安装、隐私与信任边界
 
