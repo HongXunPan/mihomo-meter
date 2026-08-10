@@ -25,6 +25,9 @@ SINGLE_INSTANCE_REQUIRED_CODE_MARKERS = {
         "instanceCoordinator.RedirectActivationAsync",
         "ActivationRouter.RequestMainWindowActivation",
         "AllowSetForegroundWindow",
+        "previousSynchronizationContext",
+        "instanceCoordinator.DisposeAsync().ConfigureAwait(false)",
+        'StartupConsoleReporter.Stage("single_instance_shutdown_completed")',
     ),
     APP_ROOT / "Lifecycle/SingleInstanceCoordinator.cs": (
         r"Local\com.HongXunPan.MihomoMeter.SingleInstance",
@@ -40,4 +43,5 @@ SINGLE_INSTANCE_REQUIRED_CODE_MARKERS = {
 SINGLE_INSTANCE_FORBIDDEN_CODE_MARKERS = (
     "FindOrRegisterForKey",
     "RedirectActivationToAsync",
+    "await using var instanceCoordinator",
 )

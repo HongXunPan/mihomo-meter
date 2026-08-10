@@ -107,10 +107,10 @@ internal sealed class SingleInstanceCoordinator : IAsyncDisposable
         }
 
         _disposed = true;
-        await _listenerCancellation.CancelAsync();
+        await _listenerCancellation.CancelAsync().ConfigureAwait(false);
         if (_listenerTask is not null)
         {
-            await _listenerTask;
+            await _listenerTask.ConfigureAwait(false);
         }
 
         _listenerCancellation.Dispose();

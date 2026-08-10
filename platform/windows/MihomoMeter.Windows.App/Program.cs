@@ -26,30 +26,46 @@ internal static class Program
     private static async Task RunAsync()
     {
         StartupConsoleReporter.Stage("single_instance_registration_started");
-        await using var instanceCoordinator =
-            SingleInstanceCoordinator.CreateForCurrentSession();
-        if (!instanceCoordinator.IsPrimary)
+        var instanceCoordinator = SingleInstanceCoordinator.CreateForCurrentSession();
+        try
         {
-            StartupConsoleReporter.Stage("single_instance_redirect_started");
-            await instanceCoordinator.RedirectActivationAsync(AllowForegroundActivation);
-            StartupConsoleReporter.Stage("single_instance_redirect_completed");
-            return;
-        }
+            if (!instanceCoordinator.IsPrimary)
+            {
+                StartupConsoleReporter.Stage("single_instance_redirect_started");
+                await instanceCoordinator.RedirectActivationAsync(AllowForegroundActivation);
+                StartupConsoleReporter.Stage("single_instance_redirect_completed");
+                return;
+            }
 
-        instanceCoordinator.StartListening(
-            HandleActivationRequest,
-            exception => StartupConsoleReporter.Failure(
-                "single_instance_listener",
-                exception));
-        WinRT.ComWrappersSupport.InitializeComWrappers();
-        StartupConsoleReporter.Stage("single_instance_primary_ready");
-        Application.Start(initialization =>
+            instanceCoordinator.StartListening(
+                HandleActivationRequest,
+                exception => StartupConsoleReporter.Failure(
+                    "single_instance_listener",
+                    exception));
+            WinRT.ComWrappersSupport.InitializeComWrappers();
+            StartupConsoleReporter.Stage("single_instance_primary_ready");
+            var previousSynchronizationContext = SynchronizationContext.Current;
+            try
+            {
+                Application.Start(initialization =>
+                {
+                    var context = new DispatcherQueueSynchronizationContext(
+                        DispatcherQueue.GetForCurrentThread());
+                    SynchronizationContext.SetSynchronizationContext(context);
+                    _ = new App();
+                });
+            }
+            finally
+            {
+                SynchronizationContext.SetSynchronizationContext(
+                    previousSynchronizationContext);
+            }
+        }
+        finally
         {
-            var context = new DispatcherQueueSynchronizationContext(
-                DispatcherQueue.GetForCurrentThread());
-            SynchronizationContext.SetSynchronizationContext(context);
-            _ = new App();
-        });
+            await instanceCoordinator.DisposeAsync().ConfigureAwait(false);
+            StartupConsoleReporter.Stage("single_instance_shutdown_completed");
+        }
     }
 
     private static void HandleActivationRequest()
