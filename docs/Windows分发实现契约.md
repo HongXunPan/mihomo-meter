@@ -12,7 +12,7 @@
 
 ## 2. W3-2 范围与版本
 
-W3-2 在 W3-1 安装生命周期上增加人工更新检查、Windows 平台描述文件、Latest Release 下载指引和统一正式发布工作流，不修改业务模型、数据目录、Credential Manager Target Name、单实例身份或安装范围。应用只比较 Windows 实际版本并打开原始 Release 页面，不自动下载、安装、退出或重启。
+W3-2 在 W3-1 安装生命周期上增加人工更新检查、Windows 平台描述文件、Latest Release 下载指引和统一正式发布工作流，不修改业务模型、数据目录、Credential Manager Target Name 或安装范围。`v0.6.1` 单实例热修复只把依赖非打包应用路径的 AppInstance 注册替换为固定会话 Mutex 与当前用户 Named Pipe；应用仍只比较 Windows 实际版本并打开原始 Release 页面，不自动下载、安装、退出或重启。
 
 应用版本、构建号和新构建资产继续使用无前导零的 `X.Y.Z`；发布 Tag 使用 `vX.Y.Z`，表示一次稳定发布快照。工作流允许选择 `macos`、`windows` 或 `all`：本次构建平台的实际版本等于 Tag 版本，未构建平台继续引用较早正式版本，旧资产不得复制、改名或伪装为当前 Tag 版本。
 
@@ -69,7 +69,7 @@ Windows 安装器固定 `RequestExecutionLevel user`、当前用户 Shell/注册
 
 非 Windows 主机执行 `python3 scripts/validate_windows.py`、平台描述脚本单元测试、发布脚本语法检查、工作流定向静态门禁和 `git diff --check`。Windows CI 继续执行完整 PowerShell 门禁，并验证新增 Core 测试、App x64 Release 构建、描述文件生成、ZIP、安装器与 SHA-256。
 
-W3-2 采用两段式门禁。首发前以 `platform=windows` 完成 draft 演练，确认 Windows 新描述和资产、从 `v0.5.1` 元数据补建的 macOS 描述、原样沿用的 appcast、跨平台下载矩阵，以及 draft 不进入 Latest；候选不得包含旧 DMG。Win10 22H2 x64 标准用户还要验证当前版本展示、固定描述暂不可用时的故障隔离、重复点击、安装、覆盖升级、通知区域、单实例和 W0-W2D 回归。前置结果记录且用户明确确认后，才允许原样提升同版本 Windows-only stable；发布后立即验证同版本显示和打开正确页面。低版本发现更新延后到下一次 Windows 稳定发布作为发布后门禁，不增加可替换更新地址或创建后删除临时稳定 Release。
+W3-2 采用两段式门禁。首发前以 `platform=windows` 完成 draft 演练，确认 Windows 新描述和资产、从 `v0.5.1` 元数据补建的 macOS 描述、原样沿用的 appcast、跨平台下载矩阵，以及 draft 不进入 Latest；候选不得包含旧 DMG。Win10 22H2 x64 标准用户还要验证当前版本展示、固定描述暂不可用时的故障隔离、重复点击、安装、覆盖升级、通知区域、单实例和 W0-W2D 回归。单实例必须双向覆盖安装版、便携版及不同便携目录，第二次启动恢复既有窗口且不建立第二个进程。前置结果记录且用户明确确认后，才允许原样提升同版本 Windows-only stable；发布后立即验证同版本显示和打开正确页面。低版本发现更新延后到下一次 Windows 稳定发布作为发布后门禁，不增加可替换更新地址或创建后删除临时稳定 Release。
 
 ## 8. 停止条件
 

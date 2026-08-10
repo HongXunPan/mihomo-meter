@@ -28,6 +28,7 @@ from windows_validation_release_contract import (
     RELEASE_REQUIRED_REPOSITORY_FILES,
     RELEASE_REQUIRED_TEST_FILES,
 )
+import windows_validation_single_instance_contract as single_instance
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -53,6 +54,7 @@ REQUIRED_REPOSITORY_FILES = (
 REQUIRED_REPOSITORY_FILES += CONNECTION_REQUIRED_REPOSITORY_FILES
 REQUIRED_REPOSITORY_FILES += DISTRIBUTION_REQUIRED_REPOSITORY_FILES
 REQUIRED_REPOSITORY_FILES += RELEASE_REQUIRED_REPOSITORY_FILES
+REQUIRED_REPOSITORY_FILES += single_instance.SINGLE_INSTANCE_REQUIRED_REPOSITORY_FILES
 
 EXPECTED_APP_PROPERTIES = {
     "TargetFramework": "net10.0-windows10.0.19041.0",
@@ -128,6 +130,7 @@ REQUIRED_APP_FILES = (
 ) + QUOTA_REQUIRED_APP_FILES
 REQUIRED_APP_FILES += CONNECTION_REQUIRED_APP_FILES
 REQUIRED_APP_FILES += RELEASE_REQUIRED_APP_FILES
+REQUIRED_APP_FILES += single_instance.SINGLE_INSTANCE_REQUIRED_APP_FILES
 
 REQUIRED_CORE_FILES = (
     "Domain/ControllerEndpoint.cs",
@@ -215,7 +218,6 @@ REQUIRED_CODE_MARKERS = {
         "ShowQuotaWorkspace",
         "WorkspaceNavigation_SelectionChanged",
     ),
-    APP_ROOT / "Program.cs": ("FindOrRegisterForKey", "RedirectActivationToAsync"),
     APP_ROOT / "Lifecycle/WindowLifecycleController.cs": (
         "args.Cancel = true",
         "sender.Hide()",
@@ -431,6 +433,7 @@ REQUIRED_CODE_MARKERS = {
     **DISTRIBUTION_REQUIRED_CODE_MARKERS,
 }
 REQUIRED_CODE_MARKERS.update(RELEASE_REQUIRED_CODE_MARKERS)
+REQUIRED_CODE_MARKERS.update(single_instance.SINGLE_INSTANCE_REQUIRED_CODE_MARKERS)
 
 FORBIDDEN_PROJECT_MARKERS = (
     "Microsoft.EntityFrameworkCore",
@@ -445,4 +448,4 @@ FORBIDDEN_CODE_MARKERS = (
     "Clash Verge",
     "W0ConsoleReporter",
     "record ControllerConfiguration",
-)
+) + single_instance.SINGLE_INSTANCE_FORBIDDEN_CODE_MARKERS

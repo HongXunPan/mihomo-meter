@@ -1,6 +1,5 @@
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
-using Microsoft.Windows.AppLifecycle;
 using MihomoMeter.Windows.App.Diagnostics;
 using MihomoMeter.Windows.App.Interop;
 using MihomoMeter.Windows.App.Lifecycle;
@@ -9,8 +8,6 @@ namespace MihomoMeter.Windows.App;
 
 internal static class Program
 {
-    private const string MainInstanceKey = "MihomoMeter.Windows.App.Main";
-
     [STAThread]
     public static async Task Main()
     {
@@ -29,43 +26,43 @@ internal static class Program
     private static async Task RunAsync()
     {
         StartupConsoleReporter.Stage("single_instance_registration_started");
-        WinRT.ComWrappersSupport.InitializeComWrappers();
-        var activationArguments = AppInstance.GetCurrent().GetActivatedEventArgs();
-        var mainInstance = AppInstance.FindOrRegisterForKey(MainInstanceKey);
-        if (!mainInstance.IsCurrent)
+        await using var instanceCoordinator =
+            SingleInstanceCoordinator.CreateForCurrentSession();
+        if (!instanceCoordinator.IsPrimary)
         {
             StartupConsoleReporter.Stage("single_instance_redirect_started");
-            if (!ShellNativeMethods.AllowSetForegroundWindow(mainInstance.ProcessId))
-            {
-                StartupConsoleReporter.Stage("single_instance_foreground_handoff_unavailable");
-            }
-
-            await mainInstance.RedirectActivationToAsync(activationArguments);
+            await instanceCoordinator.RedirectActivationAsync(AllowForegroundActivation);
             StartupConsoleReporter.Stage("single_instance_redirect_completed");
             return;
         }
 
-        mainInstance.Activated += MainInstance_Activated;
-        try
+        instanceCoordinator.StartListening(
+            HandleActivationRequest,
+            exception => StartupConsoleReporter.Failure(
+                "single_instance_listener",
+                exception));
+        WinRT.ComWrappersSupport.InitializeComWrappers();
+        StartupConsoleReporter.Stage("single_instance_primary_ready");
+        Application.Start(initialization =>
         {
-            StartupConsoleReporter.Stage("single_instance_primary_ready");
-            Application.Start(initialization =>
-            {
-                var context = new DispatcherQueueSynchronizationContext(
-                    DispatcherQueue.GetForCurrentThread());
-                SynchronizationContext.SetSynchronizationContext(context);
-                _ = new App();
-            });
-        }
-        finally
-        {
-            mainInstance.Activated -= MainInstance_Activated;
-        }
+            var context = new DispatcherQueueSynchronizationContext(
+                DispatcherQueue.GetForCurrentThread());
+            SynchronizationContext.SetSynchronizationContext(context);
+            _ = new App();
+        });
     }
 
-    private static void MainInstance_Activated(object? sender, AppActivationArguments args)
+    private static void HandleActivationRequest()
     {
         StartupConsoleReporter.Stage("single_instance_activation_received");
         ActivationRouter.RequestMainWindowActivation();
+    }
+
+    private static void AllowForegroundActivation(int processId)
+    {
+        if (!ShellNativeMethods.AllowSetForegroundWindow(processId))
+        {
+            StartupConsoleReporter.Stage("single_instance_foreground_handoff_unavailable");
+        }
     }
 }
