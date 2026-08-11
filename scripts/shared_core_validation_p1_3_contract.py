@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 REQUIRED_MARKERS = {
     "docs/跨平台共享核心P1.3受保护主路径技术方案.md": (
-        "状态：P1.3-2 字节数受保护主路径已启用",
+        "状态：P1.3-3 完整速率受保护主路径已启用",
         "受保护主路径仅在共享文本与原生文本完全一致时返回共享文本",
         "ABI 不匹配、动态库调用失败、未知单位、不支持的小数位、文本不一致或其他未知错误",
         "不增加用户开关、持久化模式或可远程修改的配置",
@@ -22,14 +22,14 @@ REQUIRED_MARKERS = {
         "不删除原生格式化实现",
         "每个平台至少连续连接 30 分钟",
         "只回滚该格式的调用点",
-        "`rate` 与 `compact_rate` 仍调用影子路径",
+        "`compact_rate` 仍调用影子路径",
     ),
     "docs/跨平台共享核心技术方案.md": (
-        "状态：P1.3-2 字节数受保护主路径已启用",
+        "状态：P1.3-3 字节数与完整速率受保护主路径已启用",
         "跨平台共享核心P1.3受保护主路径技术方案.md",
     ),
     "docs/架构概览.md": (
-        "P1.3-2 已按",
+        "P1.3-3 已按",
         "跨平台共享核心P1.3受保护主路径技术方案.md",
     ),
     "Sources/Application/SharedCoreTrafficRouter.swift": (
@@ -101,8 +101,8 @@ METHOD_MARKERS = {
         (
             "static func string(",
             "private static func nativeCompactString(",
-            ("SharedCoreTrafficShadow.observe(", "format: .rate"),
-            ("SharedCoreTrafficRoute.resolve(",),
+            ("SharedCoreTrafficRoute.resolve(", "format: .rate"),
+            ("SharedCoreTrafficShadow.observe(",),
         ),
     ),
     "platform/windows/MihomoMeter.Windows.App/Presentation/TrafficDisplayFormatter.cs": (
@@ -115,8 +115,8 @@ METHOD_MARKERS = {
         (
             "public static string RateValue(",
             "public static string CompactRate(",
-            ("SharedCoreTrafficShadow.Observe(", "SharedCoreTrafficFormat.Rate"),
-            ("SharedCoreTrafficRoute.Resolve(",),
+            ("SharedCoreTrafficRoute.Resolve(", "SharedCoreTrafficFormat.Rate"),
+            ("SharedCoreTrafficShadow.Observe(",),
         ),
         (
             "public static string CompactRate(",
