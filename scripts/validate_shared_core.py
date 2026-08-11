@@ -6,6 +6,9 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from shared_core_validation_acceptance_contract import (
+    validate_shared_core_acceptance,
+)
 from shared_core_validation_contract import FORBIDDEN_MARKERS, REQUIRED_MARKERS
 
 
@@ -159,6 +162,7 @@ def main() -> int:
                 failures.append(f"{relative_path} 包含禁止标记：{marker}")
 
     validate_traffic_vectors(failures)
+    validate_shared_core_acceptance(failures)
 
     xcode_project = ROOT / "MihomoMeter.xcodeproj/project.pbxproj"
     if xcode_project.is_file() and xcode_project.read_text(encoding="utf-8").count(
