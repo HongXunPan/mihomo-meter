@@ -350,6 +350,10 @@ jobs:
         with:
           global-json-file: platform/windows/global.json
 
+      - name: 安装固定 Rust 工具链
+        shell: pwsh
+        run: rustup toolchain install 1.97.1 --profile minimal --target x86_64-pc-windows-msvc
+
       - name: 安装固定 NSIS
         shell: pwsh
         run: |

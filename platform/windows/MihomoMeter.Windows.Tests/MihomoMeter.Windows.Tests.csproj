@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <TestingExtensionsProfile>None</TestingExtensionsProfile>
+    <SharedCoreLibraryPath>$(MSBuildProjectDirectory)\..\..\..\.build\shared-core\x86_64-pc-windows-msvc\release\mihomo_meter_shared_core.dll</SharedCoreLibraryPath>
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,5 +21,13 @@
     <None Include="../../../Tests/Fixtures/*.json"
           Link="Fixtures/%(Filename)%(Extension)"
           CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="$(SharedCoreLibraryPath)"
+             Link="mihomo_meter_shared_core.dll"
+             CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
+
+  <Target Name="RequireSharedCoreLibrary" BeforeTargets="Build">
+    <Error Condition="!Exists('$(SharedCoreLibraryPath)')"
+           Text="缺少 Windows 共享核心 DLL，请先运行 scripts/build_shared_core_windows.ps1。" />
+  </Target>
 </Project>

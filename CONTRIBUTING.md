@@ -14,6 +14,8 @@ macOS 工程需要：
 
 Windows 工程需要 Windows 10 22H2 x64 或更高版本、.NET SDK 10.0.302、Windows 10 SDK 10.0.19041.0 或更高版本，以及 NSIS 3.12.0；`makensis.exe` 可以从 `PATH` 解析，也可以通过 `-MakeNsisPath` 显式传入。W2C 使用 `Microsoft.Data.Sqlite.Core` 10.0.10、系统 `winsqlite3.dll` 和仅用于 `profiles.yaml` 的 `YamlDotNet` 18.1.0，不引入图表库；`MSTest.Sdk` 4.3.2 只用于测试。非 Windows 主机只能运行静态契约检查。
 
+跨平台共享核心 P0 固定使用 Rust 1.97.1 和标准库，详细边界见[跨平台共享核心技术方案](docs/跨平台共享核心技术方案.md)。rustup 必须能提供仓库锁定的主机工具链；不得提交 `.build/`、`SharedCore/target/`、静态库或 DLL。
+
 项目固定依赖 Sparkle 2.9.4 处理应用内更新，并使用 Yams 6.2.2 类型化解析用户授权目录中的 `profiles.yaml`。Yams 不得扩展为通用配置加载入口。请勿为了局部功能继续引入未经讨论的框架、代码生成器或包管理脚本。
 
 ## 开始开发
@@ -52,6 +54,14 @@ Debug 构建失败时，脚本会在终端末尾重新输出真实错误上下�
 
 ```bash
 xcrun swift format lint --recursive --strict Sources Tests
+```
+
+共享核心或适配器变更还需执行：
+
+```bash
+python3 scripts/validate_shared_core.py
+scripts/test_shared_core_macos.sh
+xcrun swift format lint --recursive --strict SharedCore/Adapters/Swift
 ```
 
 该检查只证明代码格式符合规范，不代表应用已编译或测试已通过。涉及脚本、配置或文档时，还应执行与变更直接相关的语法检查和定向复核，不扩大到无关门禁。

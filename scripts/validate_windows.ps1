@@ -21,6 +21,13 @@ $TestProject = Join-Path $WindowsRoot "MihomoMeter.Windows.Tests/MihomoMeter.Win
 $OutputDirectory = Join-Path $RepositoryRoot ".codex-tmp/windows-publish"
 $PackageDirectory = Join-Path $RepositoryRoot ".codex-tmp/windows-package"
 
+python (Join-Path $PSScriptRoot "validate_shared_core.py")
+if ($LASTEXITCODE -ne 0) {
+    throw "跨平台共享核心静态契约检查失败。"
+}
+
+& (Join-Path $PSScriptRoot "build_shared_core_windows.ps1") -RunTests
+
 python (Join-Path $PSScriptRoot "validate_windows.py")
 if ($LASTEXITCODE -ne 0) {
     throw "Windows 静态契约检查失败。"
@@ -74,7 +81,8 @@ finally {
 }
 
 $RequiredFiles = @(
-    "MihomoMeter.Windows.App.exe"
+    "MihomoMeter.Windows.App.exe",
+    "mihomo_meter_shared_core.dll"
 )
 foreach ($RelativePath in $RequiredFiles) {
     $Path = Join-Path $OutputDirectory $RelativePath
