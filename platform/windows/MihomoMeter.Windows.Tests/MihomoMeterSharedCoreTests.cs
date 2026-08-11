@@ -12,7 +12,7 @@ public sealed class MihomoMeterSharedCoreTests
         Assert.AreEqual(1U, MihomoMeterSharedCore.AbiVersion);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(0UL, 0.0, SharedTrafficUnit.Bytes, 0U)]
     [DataRow(1_500UL, 1.5, SharedTrafficUnit.Kilobytes, 2U)]
     [DataRow(10_000UL, 10.0, SharedTrafficUnit.Kilobytes, 1U)]
