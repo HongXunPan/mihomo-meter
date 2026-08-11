@@ -223,6 +223,9 @@ trap cleanup EXIT
 
 cd "${project_root}"
 
+scripts/build_shared_core_macos.sh \
+  --architectures "${build_architectures}"
+
 xcodebuild \
   -quiet \
   -project MihomoMeter.xcodeproj \

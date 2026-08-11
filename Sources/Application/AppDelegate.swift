@@ -40,6 +40,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       return
     }
 
+    let sharedCoreRuntimeStatus = SharedCoreRuntimeProbe.run()
     let trafficLedger = SQLiteTrafficLedger(
       databaseURL: TrafficLedgerLocation.defaultDatabaseURL()
     )
@@ -120,6 +121,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     Task {
       await AppDiagnosticLogger.shared.record(
         .applicationLaunched(AppCodeSigningInspector.currentSummary())
+      )
+      await AppDiagnosticLogger.shared.record(
+        .sharedCoreRuntimeProbe(sharedCoreRuntimeStatus)
       )
       await statisticsController.prepare()
       await connectionAnalyticsController.prepare()

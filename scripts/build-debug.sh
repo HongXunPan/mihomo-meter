@@ -129,6 +129,7 @@ build_log_path="${diagnostic_log_directory}/build-debug-$(date '+%Y%m%d-%H%M%S')
 
 cd "${project_root}"
 mkdir -p "${diagnostic_log_directory}"
+scripts/build_shared_core_macos.sh --architectures "$(uname -m)"
 
 set +e
 xcodebuild \

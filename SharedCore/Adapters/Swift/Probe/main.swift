@@ -8,6 +8,9 @@ struct TrafficScaleFixture: Decodable {
 guard MihomoMeterSharedCoreAdapter.abiVersion == 1 else {
   fatalError("共享核心 ABI 版本不匹配。")
 }
+guard SharedCoreRuntimeProbe.run() == .ready else {
+  fatalError("共享核心生产启动探针未通过。")
+}
 
 guard CommandLine.arguments.count == 2 else {
   fatalError("必须传入统一流量缩放向量文件路径。")
