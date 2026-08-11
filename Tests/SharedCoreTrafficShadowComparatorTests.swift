@@ -90,6 +90,36 @@ final class SharedCoreTrafficShadowComparatorTests: XCTestCase {
     XCTAssertEqual(status, .unexpectedResult)
   }
 
+  func testObservationGateReportsEachFormatAndStatusOnce() {
+    var gate = SharedCoreTrafficShadowObservationGate()
+    let byteCountMatched = SharedCoreTrafficShadowObservation(
+      format: .byteCount,
+      status: .matched
+    )
+
+    XCTAssertTrue(gate.shouldReport(byteCountMatched))
+    XCTAssertFalse(gate.shouldReport(byteCountMatched))
+    XCTAssertTrue(
+      gate.shouldReport(
+        SharedCoreTrafficShadowObservation(
+          format: .byteCount,
+          status: .mismatch
+        )
+      )
+    )
+    XCTAssertTrue(
+      gate.shouldReport(
+        SharedCoreTrafficShadowObservation(
+          format: .rate,
+          status: .matched
+        )
+      )
+    )
+
+    gate.reset()
+    XCTAssertTrue(gate.shouldReport(byteCountMatched))
+  }
+
   private func compareThrowing(
     _ error: SharedCoreAdapterError
   ) -> SharedCoreTrafficShadowStatus {
