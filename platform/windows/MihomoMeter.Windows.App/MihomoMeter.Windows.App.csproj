@@ -21,6 +21,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <SharedCoreLibraryPath>$(MSBuildProjectDirectory)\..\..\..\.build\shared-core\x86_64-pc-windows-msvc\release\mihomo_meter_shared_core.dll</SharedCoreLibraryPath>
   </PropertyGroup>
 
   <ItemGroup>
@@ -38,6 +39,15 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
+    <Content Include="$(SharedCoreLibraryPath)" Link="mihomo_meter_shared_core.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
   </ItemGroup>
+
+  <Target Name="RequireSharedCoreLibrary" BeforeTargets="Build;Publish">
+    <Error Condition="!Exists('$(SharedCoreLibraryPath)')"
+           Text="缺少 Windows 共享核心 DLL，请先运行 scripts/build_shared_core_windows.ps1。" />
+  </Target>
 
 </Project>

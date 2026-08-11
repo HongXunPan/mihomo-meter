@@ -26,8 +26,20 @@ jobs:
           xcodebuild -version
           xcrun swift --version
 
+      - name: 安装固定 Rust 工具链
+        run: >-
+          rustup toolchain install 1.97.1 --profile minimal
+          --component rustfmt --component clippy
+
       - name: 检查 Swift 格式
-        run: xcrun swift format lint --recursive --strict Sources Tests
+        run: >-
+          xcrun swift format lint --recursive --strict
+          Sources Tests SharedCore/Adapters/Swift
+
+      - name: 检查并运行共享核心探针
+        run: |
+          python3 scripts/validate_shared_core.py
+          scripts/test_shared_core_macos.sh
 
       - name: 检查发布与统计脚本
         run: |
@@ -38,6 +50,7 @@ jobs:
             scripts/generate-release-notes.sh \
             scripts/sign-sparkle-framework.sh \
             scripts/smoke-test-release-launch.sh \
+            scripts/test_shared_core_macos.sh \
             scripts/test-generate-download-badge-json.sh \
             scripts/test-generate-release-notes.sh \
             scripts/verify-sparkle-release.sh

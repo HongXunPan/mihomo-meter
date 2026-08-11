@@ -1,0 +1,4 @@
+module MihomoMeterSharedCore [system] {
+  header "mihomo_meter_shared_core.h"
+  export *
+}

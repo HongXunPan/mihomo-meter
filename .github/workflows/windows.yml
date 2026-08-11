@@ -11,6 +11,10 @@ on:
   pull_request:
     paths:
       - "platform/windows/**"
+      - "SharedCore/**"
+      - "rust-toolchain.toml"
+      - "scripts/build_shared_core_windows.ps1"
+      - "scripts/validate_shared_core.py"
       - "scripts/validate_windows.py"
       - "scripts/windows_validation_contract.py"
       - "scripts/windows_validation_single_instance_contract.py"
@@ -27,6 +31,7 @@ on:
       - "scripts/build_windows_installer.ps1"
       - "platform/windows/installer/**"
       - "docs/Windows工程代码技术选型.md"
+      - "docs/跨平台共享核心技术方案.md"
       - "docs/Windows阶段W0实机指南.md"
       - "docs/Windows阶段W1实机指南.md"
       - "docs/Windows阶段W2A实机指南.md"
@@ -49,6 +54,10 @@ on:
     branches: [main]
     paths:
       - "platform/windows/**"
+      - "SharedCore/**"
+      - "rust-toolchain.toml"
+      - "scripts/build_shared_core_windows.ps1"
+      - "scripts/validate_shared_core.py"
       - "scripts/validate_windows.py"
       - "scripts/windows_validation_contract.py"
       - "scripts/windows_validation_single_instance_contract.py"
@@ -65,6 +74,7 @@ on:
       - "scripts/build_windows_installer.ps1"
       - "platform/windows/installer/**"
       - "docs/Windows工程代码技术选型.md"
+      - "docs/跨平台共享核心技术方案.md"
       - "docs/Windows阶段W0实机指南.md"
       - "docs/Windows阶段W1实机指南.md"
       - "docs/Windows阶段W2A实机指南.md"
@@ -110,6 +120,10 @@ jobs:
         uses: actions/setup-dotnet@v6
         with:
           global-json-file: platform/windows/global.json
+
+      - name: 安装固定 Rust 工具链
+        shell: pwsh
+        run: rustup toolchain install 1.97.1 --profile minimal --target x86_64-pc-windows-msvc
 
       - name: 安装固定 NSIS
         shell: pwsh
