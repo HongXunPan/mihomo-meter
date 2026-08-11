@@ -6,29 +6,43 @@ namespace MihomoMeter.Windows.App.Presentation;
 public sealed partial class SubscriptionQuotaWorkspaceView : UserControl
 {
     private readonly Window _window;
+    private readonly Action<SubscriptionQuotaCardViewModel> _showTrend;
     private bool _isDialogOpen;
 
     internal SubscriptionQuotaWorkspaceView(
         SubscriptionQuotaWorkspaceViewModel viewModel,
-        Window window)
+        Window window,
+        Action<SubscriptionQuotaCardViewModel> showTrend)
     {
         ViewModel = viewModel;
         _window = window;
+        _showTrend = showTrend ?? throw new ArgumentNullException(nameof(showTrend));
         InitializeComponent();
     }
 
     public SubscriptionQuotaWorkspaceViewModel ViewModel { get; }
 
-    private async void SelectDirectoryButton_Click(object sender, RoutedEventArgs args)
+    private void ShowTrendButton_Click(object sender, RoutedEventArgs args)
     {
-        var dialog = new ProfileDirectoryChoiceDialog();
-        await ShowDialogAsync(dialog);
-        if (!dialog.ShouldOpenPicker)
+        if (sender is FrameworkElement { Tag: SubscriptionQuotaCardViewModel card })
         {
-            return;
+            _showTrend(card);
         }
+    }
 
-        await PickProfileDirectoryAsync(dialog.SuggestedDirectoryPath);
+    private async void ManageProfilesButton_Click(object sender, RoutedEventArgs args)
+    {
+        var managementView = new SubscriptionProfileManagementView(
+            ViewModel,
+            () => PickProfileDirectoryAsync(null));
+        var dialog = new ContentDialog
+        {
+            Title = "管理追踪 Profile",
+            Content = managementView,
+            CloseButtonText = "完成",
+            DefaultButton = ContentDialogButton.Close,
+        };
+        await ShowDialogAsync(dialog);
     }
 
     private async Task PickProfileDirectoryAsync(string? suggestedDirectoryPath)
@@ -50,56 +64,6 @@ public sealed partial class SubscriptionQuotaWorkspaceView : UserControl
         if (folder is not null)
         {
             await ViewModel.SetProfileDirectoryAsync(folder.Path);
-        }
-    }
-
-    private async void StopDirectoryAccessButton_Click(object sender, RoutedEventArgs args)
-    {
-        var dialog = CreateDialog(
-            "停止访问 Profile 目录？",
-            "停止访问",
-            "目录观察会停止，已记录的配额历史会保留，相关 Profile 追踪会暂停。");
-        if (await ShowDialogAsync(dialog) == ContentDialogResult.Primary)
-        {
-            await ViewModel.ClearProfileDirectoryAsync();
-        }
-    }
-
-    private async void EnableRuntimeButton_Click(object sender, RoutedEventArgs args)
-    {
-        var dialog = CreateDialog(
-            "启用当前运行订阅追踪？",
-            "确认启用",
-            "Mihomo Meter 只会在唯一有效候选时记录累计配额；来源变化会自动暂停。"
-                + "机场配额不会与本机 Proxy 流量对账。");
-        if (await ShowDialogAsync(dialog) == ContentDialogResult.Primary)
-        {
-            await ViewModel.EnableRuntimeAsync();
-        }
-    }
-
-    private async void PauseRuntimeButton_Click(object sender, RoutedEventArgs args)
-    {
-        await ViewModel.PauseRuntimeAsync();
-    }
-
-    private async void ProfileTracking_Toggled(object sender, RoutedEventArgs args)
-    {
-        if (sender is ToggleSwitch { Tag: ProfileTrackingOptionViewModel profile } toggle
-            && toggle.IsOn != profile.IsTracked)
-        {
-            await ViewModel.SetProfileTrackingAsync(profile, toggle.IsOn);
-        }
-    }
-
-    private async void RefreshInterval_SelectionChanged(
-        object sender,
-        SelectionChangedEventArgs args)
-    {
-        if (sender is ComboBox { Tag: ProfileTrackingOptionViewModel profile }
-            && profile.IsTracked)
-        {
-            await ViewModel.SetRefreshIntervalAsync(profile);
         }
     }
 

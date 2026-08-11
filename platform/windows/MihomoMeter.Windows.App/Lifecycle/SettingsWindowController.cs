@@ -2,33 +2,37 @@ using Microsoft.UI;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using MihomoMeter.Windows.App.Presentation;
-using MihomoMeter.Windows.Core.Application;
 using Windows.Graphics;
 
 namespace MihomoMeter.Windows.App.Lifecycle;
 
-internal sealed class ConnectionAnalyticsTrendWindowController : IDisposable
+internal sealed class SettingsWindowController : IDisposable
 {
-    private readonly ConnectionAnalyticsTrendWindowViewModel _viewModel;
+    private readonly MainWindowViewModel _mainWindowViewModel;
+    private readonly WindowsUpdateWorkspaceViewModel _updateViewModel;
     private Window? _window;
-    private ConnectionAnalyticsTrendView? _view;
+    private SettingsWorkspaceView? _view;
     private bool _disposed;
 
-    public ConnectionAnalyticsTrendWindowController(
-        ConnectionAnalyticsCoordinator connectionAnalytics)
+    public SettingsWindowController(
+        MainWindowViewModel mainWindowViewModel,
+        WindowsUpdateWorkspaceViewModel updateViewModel)
     {
-        _viewModel = new ConnectionAnalyticsTrendWindowViewModel(connectionAnalytics);
+        _mainWindowViewModel = mainWindowViewModel;
+        _updateViewModel = updateViewModel;
     }
 
-    public void Show(ConnectionAnalyticsTrendTarget target)
+    public void ShowConnectionSettings()
     {
-        if (_disposed)
-        {
-            return;
-        }
-
         EnsureWindow();
-        _viewModel.Show(target);
+        _view?.ShowConnectionSettings();
+        _window?.Activate();
+    }
+
+    public void ShowUpdates()
+    {
+        EnsureWindow();
+        _view?.ShowUpdates();
         _window?.Activate();
     }
 
@@ -38,32 +42,31 @@ internal sealed class ConnectionAnalyticsTrendWindowController : IDisposable
         {
             return;
         }
+
         _disposed = true;
-        _viewModel.Reset();
         var window = _window;
         _window = null;
-        _view?.Detach();
         _view = null;
         window?.Close();
     }
 
     private void EnsureWindow()
     {
-        if (_window is not null)
+        if (_disposed || _window is not null)
         {
             return;
         }
 
-        var view = new ConnectionAnalyticsTrendView(_viewModel);
+        var view = new SettingsWorkspaceView(_mainWindowViewModel, _updateViewModel);
         var window = new Window
         {
-            Title = "Mihomo Meter · 连接分析趋势",
+            Title = "Mihomo Meter · 设置",
             Content = view,
         };
         window.Closed += Window_Closed;
         var windowHandle = WinRT.Interop.WindowNative.GetWindowHandle(window);
         var windowId = Win32Interop.GetWindowIdFromWindow(windowHandle);
-        AppWindow.GetFromWindowId(windowId)?.Resize(new SizeInt32(820, 610));
+        AppWindow.GetFromWindowId(windowId)?.Resize(new SizeInt32(780, 620));
         _view = view;
         _window = window;
     }
@@ -74,9 +77,8 @@ internal sealed class ConnectionAnalyticsTrendWindowController : IDisposable
         {
             window.Closed -= Window_Closed;
         }
-        _view?.Detach();
+
         _view = null;
         _window = null;
-        _viewModel.Reset();
     }
 }

@@ -33,7 +33,7 @@ internal sealed class TrafficMonitoringStream
         string secret,
         string version,
         ProxyCatalog catalog,
-        MihomoProcessMatchingMode? processMatchingMode,
+        MihomoRuntimeConfiguration? runtimeConfiguration,
         Action<TrafficMonitorSnapshot> publish,
         CancellationToken cancellationToken)
     {
@@ -102,7 +102,10 @@ internal sealed class TrafficMonitoringStream
                     AttributionCoverage: result.AttributionCoverage,
                     ProxyConnections: result.LiveProxyConnections,
                     DirectConnections: result.LiveDirectConnections,
-                    ProcessMatchingMode: processMatchingMode));
+                    ProcessMatchingMode: runtimeConfiguration?.ProcessMatchingMode,
+                    ProxyLeaves: result.ActiveProxyLeaves,
+                    RuleTypes: result.ActiveRuleTypes,
+                    RuntimeConfiguration: runtimeConfiguration));
 
                 if (result.RequiresCatalogRefresh && catalogRefreshTask is null)
                 {

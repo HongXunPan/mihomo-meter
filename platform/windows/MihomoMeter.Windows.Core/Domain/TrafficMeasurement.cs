@@ -51,7 +51,8 @@ public sealed record ConnectionTrafficSample(
     TrafficBytes Bytes,
     IReadOnlyList<string> Chains,
     ConnectionMetadata Metadata = default,
-    DateTimeOffset? StartedAt = null)
+    DateTimeOffset? StartedAt = null,
+    string? Rule = null)
 {
     public ConnectionMetadataAvailability MetadataAvailability => Metadata.Availability;
 }

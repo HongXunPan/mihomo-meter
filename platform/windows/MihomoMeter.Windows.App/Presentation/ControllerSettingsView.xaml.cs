@@ -3,9 +3,9 @@ using Microsoft.UI.Xaml.Controls;
 
 namespace MihomoMeter.Windows.App.Presentation;
 
-public sealed partial class RealtimeMonitoringView : UserControl
+public sealed partial class ControllerSettingsView : UserControl
 {
-    internal RealtimeMonitoringView(MainWindowViewModel viewModel)
+    internal ControllerSettingsView(MainWindowViewModel viewModel)
     {
         ViewModel = viewModel;
         InitializeComponent();

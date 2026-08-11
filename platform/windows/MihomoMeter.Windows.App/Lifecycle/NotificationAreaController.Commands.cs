@@ -14,7 +14,8 @@ internal sealed partial class NotificationAreaController
             _isFloatingWidgetVisible(),
             _captureStatisticsSnapshot(),
             _captureQuotaSnapshot(),
-            _captureConnectionsSnapshot());
+            _captureConnectionsSnapshot(),
+            _realtimeSnapshot);
         switch (command.Kind)
         {
             case NotificationAreaCommandKind.Open:
@@ -25,6 +26,15 @@ internal sealed partial class NotificationAreaController
                 break;
             case NotificationAreaCommandKind.OpenQuota:
                 _showQuotaWorkspace();
+                break;
+            case NotificationAreaCommandKind.OpenConnectionAnalytics:
+                _showConnectionAnalyticsWorkspace();
+                break;
+            case NotificationAreaCommandKind.OpenSettings:
+                _showControllerSettings();
+                break;
+            case NotificationAreaCommandKind.CheckUpdates:
+                _showUpdates();
                 break;
             case NotificationAreaCommandKind.OpenLiveConnections
                 when command.Route is LiveConnectionRoute route:

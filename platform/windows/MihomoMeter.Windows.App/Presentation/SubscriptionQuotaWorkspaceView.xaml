@@ -26,9 +26,24 @@
                         Grid.Column="1"
                         Orientation="Horizontal"
                         Spacing="10">
-                        <Button Click="SelectDirectoryButton_Click" Content="选择 Profile 目录" />
+                        <HyperlinkButton
+                            Content="配置指引"
+                            NavigateUri="https://github.com/HongXunPan/mihomo-meter/wiki/%E9%85%8D%E7%BD%AE%E8%AE%A2%E9%98%85%E5%9C%B0%E5%9D%80" />
+                        <Button Click="ManageProfilesButton_Click" Content="管理 Profile" />
                         <Button Click="RefreshAllButton_Click" Content="立即查询全部" IsEnabled="{x:Bind ViewModel.CanRefreshAll, Mode=OneWay}" />
-                        <Button Click="ClearButton_Click" Content="清空配额数据" IsEnabled="{x:Bind ViewModel.CanClear, Mode=OneWay}" />
+                        <Button AutomationProperties.Name="更多订阅余额操作">
+                            <Button.Content>
+                                <SymbolIcon Symbol="More" />
+                            </Button.Content>
+                            <Button.Flyout>
+                                <MenuFlyout>
+                                    <MenuFlyoutItem
+                                        Click="ClearButton_Click"
+                                        IsEnabled="{x:Bind ViewModel.CanClear, Mode=OneWay}"
+                                        Text="清空配额数据" />
+                                </MenuFlyout>
+                            </Button.Flyout>
+                        </Button>
                     </StackPanel>
                 </Grid>
 
@@ -50,106 +65,6 @@
                 <StackPanel
                     Spacing="20"
                     Visibility="{x:Bind ViewModel.ContentVisibility, Mode=OneWay}">
-                    <Border
-                        Padding="18"
-                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                        BorderThickness="1"
-                        CornerRadius="12">
-                        <Grid ColumnSpacing="16">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <StackPanel Spacing="6">
-                                <TextBlock FontSize="18" FontWeight="SemiBold" Text="当前运行订阅（轻量模式）" />
-                                <TextBlock Text="{x:Bind ViewModel.RuntimeStatusText, Mode=OneWay}" TextWrapping="Wrap" />
-                                <TextBlock
-                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                    Text="每 5 分钟只读观察 Mihomo Provider；只有唯一候选时才允许启用。"
-                                    TextWrapping="Wrap" />
-                            </StackPanel>
-                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
-                                <Button
-                                    Click="EnableRuntimeButton_Click"
-                                    Content="确认并启用"
-                                    IsEnabled="{x:Bind ViewModel.CanEnableRuntime, Mode=OneWay}"
-                                    Style="{StaticResource AccentButtonStyle}" />
-                                <Button
-                                    Click="PauseRuntimeButton_Click"
-                                    Content="暂停"
-                                    IsEnabled="{x:Bind ViewModel.CanPauseRuntime, Mode=OneWay}" />
-                            </StackPanel>
-                        </Grid>
-                    </Border>
-
-                    <Border
-                        Padding="18"
-                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                        BorderThickness="1"
-                        CornerRadius="12">
-                        <StackPanel Spacing="14">
-                            <Grid ColumnSpacing="12">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <StackPanel Spacing="4">
-                                    <TextBlock FontSize="18" FontWeight="SemiBold" Text="指定 Profile" />
-                                    <TextBlock
-                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                        Text="{x:Bind ViewModel.DirectoryStatusText, Mode=OneWay}"
-                                        TextWrapping="Wrap" />
-                                </StackPanel>
-                                <Button
-                                    Grid.Column="1"
-                                    Click="StopDirectoryAccessButton_Click"
-                                    Content="停止目录访问" />
-                            </Grid>
-
-                            <ListView
-                                IsItemClickEnabled="False"
-                                ItemsSource="{x:Bind ViewModel.Profiles, Mode=OneWay}"
-                                SelectionMode="None">
-                                <ListView.ItemTemplate>
-                                    <DataTemplate x:DataType="presentation:ProfileTrackingOptionViewModel">
-                                        <Grid Padding="4,8" ColumnSpacing="12">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="150" />
-                                                <ColumnDefinition Width="Auto" />
-                                            </Grid.ColumnDefinitions>
-                                            <StackPanel Spacing="3">
-                                                <TextBlock FontWeight="SemiBold" Text="{x:Bind Name, Mode=OneWay}" />
-                                                <TextBlock
-                                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                    Text="{x:Bind Detail, Mode=OneWay}"
-                                                    TextWrapping="Wrap" />
-                                            </StackPanel>
-                                            <ComboBox
-                                                Grid.Column="1"
-                                                DisplayMemberPath="Title"
-                                                IsEnabled="{x:Bind IsTracked, Mode=OneWay}"
-                                                ItemsSource="{x:Bind IntervalOptions}"
-                                                SelectedItem="{x:Bind SelectedInterval, Mode=TwoWay}"
-                                                SelectionChanged="RefreshInterval_SelectionChanged"
-                                                Tag="{x:Bind}" />
-                                            <ToggleSwitch
-                                                Grid.Column="2"
-                                                IsEnabled="{x:Bind IsSupported, Mode=OneWay}"
-                                                IsOn="{x:Bind IsTracked, Mode=OneWay}"
-                                                OffContent="未追踪"
-                                                OnContent="追踪中"
-                                                Tag="{x:Bind}"
-                                                Toggled="ProfileTracking_Toggled" />
-                                        </Grid>
-                                    </DataTemplate>
-                                </ListView.ItemTemplate>
-                            </ListView>
-                        </StackPanel>
-                    </Border>
-
                     <Grid ColumnSpacing="12">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
@@ -199,6 +114,10 @@
                                                 <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="{x:Bind IdentityText, Mode=OneWay}" />
                                             </StackPanel>
                                             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                                                <Button
+                                                    Click="ShowTrendButton_Click"
+                                                    Content="查看趋势"
+                                                    Tag="{x:Bind}" />
                                                 <Button
                                                     Click="RefreshProfileButton_Click"
                                                     Content="立即查询"

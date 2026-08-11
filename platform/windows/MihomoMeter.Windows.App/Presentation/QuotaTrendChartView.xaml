@@ -27,23 +27,37 @@
 
         <StackPanel Orientation="Horizontal" Spacing="14">
             <StackPanel Orientation="Horizontal" Spacing="6">
-                <Ellipse Width="8" Height="8" Fill="DodgerBlue" />
+                <Ellipse Width="8" Height="8" Fill="{ThemeResource MihomoTrafficDownloadBrush}" />
                 <TextBlock
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     Text="下载增量" />
             </StackPanel>
             <StackPanel Orientation="Horizontal" Spacing="6">
-                <Ellipse Width="8" Height="8" Fill="Orange" />
+                <Ellipse Width="8" Height="8" Fill="{ThemeResource MihomoTrafficUploadBrush}" />
                 <TextBlock
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     Text="上传增量" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="6">
+                <Rectangle
+                    Width="12"
+                    Height="2"
+                    VerticalAlignment="Center"
+                    Fill="{ThemeResource TextFillColorPrimaryBrush}" />
+                <TextBlock
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Text="总消耗" />
             </StackPanel>
         </StackPanel>
 
         <Grid Height="220">
             <Canvas
                 x:Name="ChartCanvas"
+                AutomationProperties.HelpText="使用左右方向键选择真实快照，Home 和 End 跳到首尾。"
+                AutomationProperties.Name="订阅累计趋势图"
                 Background="Transparent"
+                IsTabStop="True"
+                KeyDown="ChartCanvas_KeyDown"
                 PointerExited="ChartCanvas_PointerExited"
                 PointerMoved="ChartCanvas_PointerMoved"
                 SizeChanged="ChartCanvas_SizeChanged" />

@@ -1,5 +1,5 @@
-using Microsoft.UI;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
@@ -16,11 +16,14 @@ public sealed partial class QuotaTrendChartView : UserControl
     private const double TopInset = 12;
     private const double BottomInset = 30;
     private IReadOnlyList<RenderedQuotaPoint> _renderedPoints = [];
+    private Line? _selectionLine;
+    private int? _selectedIndex;
 
     public QuotaTrendChartView()
     {
         InitializeComponent();
         Loaded += (_, _) => Render();
+        ActualThemeChanged += (_, _) => Render();
     }
 
     public static DependencyProperty ModelProperty { get; } = DependencyProperty.Register(
@@ -39,7 +42,9 @@ public sealed partial class QuotaTrendChartView : UserControl
         DependencyObject dependencyObject,
         DependencyPropertyChangedEventArgs args)
     {
-        ((QuotaTrendChartView)dependencyObject).Render();
+        var view = (QuotaTrendChartView)dependencyObject;
+        view._selectedIndex = null;
+        view.Render();
     }
 
     private void ChartCanvas_SizeChanged(object sender, SizeChangedEventArgs args)
@@ -61,7 +66,7 @@ public sealed partial class QuotaTrendChartView : UserControl
             return;
         }
 
-        PointDetailText.Text = PointerDetail(point);
+        ShowPoint(IndexOfRenderedPoint(point));
     }
 
     private void ChartCanvas_PointerExited(object sender, PointerRoutedEventArgs args)
@@ -69,10 +74,40 @@ public sealed partial class QuotaTrendChartView : UserControl
         ShowLatestPoint();
     }
 
+    private void ChartCanvas_KeyDown(object sender, KeyRoutedEventArgs args)
+    {
+        if (_renderedPoints.Count == 0)
+        {
+            return;
+        }
+
+        var current = _selectedIndex ?? (_renderedPoints.Count - 1);
+        var next = args.Key switch
+        {
+            global::Windows.System.VirtualKey.Left => Math.Max(current - 1, 0),
+            global::Windows.System.VirtualKey.Right => Math.Min(
+                current + 1,
+                _renderedPoints.Count - 1),
+            global::Windows.System.VirtualKey.Home => 0,
+            global::Windows.System.VirtualKey.End => _renderedPoints.Count - 1,
+            _ => current,
+        };
+        if (next == current
+            && args.Key is not (global::Windows.System.VirtualKey.Home
+                or global::Windows.System.VirtualKey.End))
+        {
+            return;
+        }
+
+        ShowPoint(next);
+        args.Handled = true;
+    }
+
     private void Render()
     {
         ChartCanvas.Children.Clear();
         _renderedPoints = [];
+        _selectionLine = null;
         var model = Model;
         RangeUsageText.Text = model?.RangeUsageText ?? string.Empty;
         EmptyText.Text = model?.EmptyText ?? string.Empty;
@@ -85,7 +120,11 @@ public sealed partial class QuotaTrendChartView : UserControl
             return;
         }
 
-        var points = QuotaTrendEngine.Sample(model.Trend.Segments, 120);
+        var chartWidth = ChartCanvas.ActualWidth - LeftInset - RightInset;
+        var chartHeight = ChartCanvas.ActualHeight - TopInset - BottomInset;
+        var points = QuotaTrendEngine.Sample(
+            model.Trend.Segments,
+            QuotaTrendEngine.TargetPointCount(chartWidth));
         if (points.Count == 0)
         {
             EmptyText.Visibility = Visibility.Visible;
@@ -99,14 +138,13 @@ public sealed partial class QuotaTrendChartView : UserControl
         var maximum = points.Max(point => point.Traffic.UsedBytes);
         var minimum = points.Min(point => point.Traffic.UsedBytes);
         var spread = maximum > minimum ? maximum - minimum : Math.Max(maximum, 1UL);
-        var chartWidth = ChartCanvas.ActualWidth - LeftInset - RightInset;
-        var chartHeight = ChartCanvas.ActualHeight - TopInset - BottomInset;
         DrawAxes(start, end, minimum, maximum, chartWidth, chartHeight);
 
         var rendered = new List<RenderedQuotaPoint>();
+        var sampledIds = points.Select(point => point.Id).ToHashSet();
+        var latestPointId = points[^1].Id;
         foreach (var segment in model.Trend.Segments)
         {
-            var sampledIds = points.Select(point => point.Id).ToHashSet();
             var segmentPoints = segment.Points
                 .Where(point => sampledIds.Contains(point.Id))
                 .OrderBy(point => point.Date)
@@ -139,7 +177,7 @@ public sealed partial class QuotaTrendChartView : UserControl
             DrawStackedArea(segmentRendered, minimum, maximum, spread, chartHeight);
             var polyline = new Polyline
             {
-                Stroke = new SolidColorBrush(Colors.DodgerBlue),
+                Stroke = ResourceBrush("TextFillColorPrimaryBrush"),
                 StrokeThickness = 2,
             };
             foreach (var point in segmentRendered)
@@ -149,31 +187,83 @@ public sealed partial class QuotaTrendChartView : UserControl
 
             ChartCanvas.Children.Add(polyline);
             rendered.AddRange(segmentRendered);
-            foreach (var point in segmentRendered)
+            for (var index = 0; index < segmentRendered.Count; index += 1)
             {
+                var point = segmentRendered[index];
+                if (index != 0 && point.Point.Id != latestPointId)
+                {
+                    continue;
+                }
                 var marker = new Ellipse
                 {
-                    Width = 6,
-                    Height = 6,
-                    Fill = new SolidColorBrush(Colors.DodgerBlue),
+                    Width = 8,
+                    Height = 8,
+                    Fill = ResourceBrush("TextFillColorPrimaryBrush"),
                 };
-                Canvas.SetLeft(marker, point.Position.X - 3);
-                Canvas.SetTop(marker, point.Position.Y - 3);
+                Canvas.SetLeft(marker, point.Position.X - 4);
+                Canvas.SetTop(marker, point.Position.Y - 4);
                 ChartCanvas.Children.Add(marker);
+                if (index == 0 && point.Point.Id != latestPointId)
+                {
+                    var hollowCenter = new Ellipse
+                    {
+                        Width = 4,
+                        Height = 4,
+                        Fill = ResourceBrush("ApplicationPageBackgroundThemeBrush"),
+                    };
+                    Canvas.SetLeft(hollowCenter, point.Position.X - 2);
+                    Canvas.SetTop(hollowCenter, point.Position.Y - 2);
+                    ChartCanvas.Children.Add(hollowCenter);
+                }
             }
         }
 
         _renderedPoints = rendered.OrderBy(item => item.Position.X).ToArray();
-        ShowLatestPoint();
+        ShowPoint(Math.Clamp(
+            _selectedIndex ?? (_renderedPoints.Count - 1),
+            0,
+            _renderedPoints.Count - 1));
     }
 
     private void ShowLatestPoint()
     {
-        var latest = _renderedPoints.LastOrDefault();
-        PointDetailText.Text = latest is null
-            ? string.Empty
-            : $"最新：{FormatDate(latest.Point.Date)} · "
-                + $"累计 {SubscriptionQuotaFormatter.Bytes(latest.Point.Traffic.UsedBytes)}";
+        ShowPoint(_renderedPoints.Count - 1);
+    }
+
+    private void ShowPoint(int index)
+    {
+        if (index < 0 || index >= _renderedPoints.Count)
+        {
+            _selectedIndex = null;
+            PointDetailText.Text = string.Empty;
+            return;
+        }
+
+        _selectedIndex = index;
+        var point = _renderedPoints[index];
+        PointDetailText.Text = index == _renderedPoints.Count - 1
+            ? $"最新：{FormatDate(point.Point.Date)} · "
+                + $"累计 {SubscriptionQuotaFormatter.Bytes(point.Point.Traffic.UsedBytes)}"
+            : PointerDetail(point);
+        AutomationProperties.SetName(
+            ChartCanvas,
+            $"订阅累计趋势图，{PointDetailText.Text}");
+        if (_selectionLine is not null)
+        {
+            ChartCanvas.Children.Remove(_selectionLine);
+        }
+        _selectionLine = new Line
+        {
+            X1 = point.Position.X,
+            X2 = point.Position.X,
+            Y1 = TopInset,
+            Y2 = ChartCanvas.ActualHeight - BottomInset,
+            Stroke = ResourceBrush("TextFillColorSecondaryBrush"),
+            StrokeDashArray = new DoubleCollection { 3, 3 },
+            StrokeThickness = 1,
+            Opacity = 0.65,
+        };
+        ChartCanvas.Children.Add(_selectionLine);
     }
 
     private static string PointerDetail(RenderedQuotaPoint point)
@@ -219,8 +309,25 @@ public sealed partial class QuotaTrendChartView : UserControl
         return date.ToLocalTime().ToString("yyyy-MM-dd HH:mm");
     }
 
+    private int IndexOfRenderedPoint(RenderedQuotaPoint point)
+    {
+        for (var index = 0; index < _renderedPoints.Count; index += 1)
+        {
+            if (_renderedPoints[index] == point)
+            {
+                return index;
+            }
+        }
+        return -1;
+    }
+
     private sealed record RenderedQuotaPoint(
         QuotaTrendPoint Point,
         QuotaTrendPoint? Previous,
         Point Position);
+
+    private static Brush ResourceBrush(string key)
+    {
+        return (Brush)Application.Current.Resources[key];
+    }
 }

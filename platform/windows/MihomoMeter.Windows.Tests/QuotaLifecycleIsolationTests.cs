@@ -91,12 +91,12 @@ public sealed class QuotaLifecycleIsolationTests
             });
         }
 
-        public Task<MihomoProcessConfigurationResponse> FetchProcessConfigurationAsync(
+        public Task<MihomoRuntimeConfigurationResponse> FetchRuntimeConfigurationAsync(
             ControllerEndpoint endpoint,
             string secret,
             CancellationToken cancellationToken)
         {
-            return Task.FromResult(new MihomoProcessConfigurationResponse
+            return Task.FromResult(new MihomoRuntimeConfigurationResponse
             {
                 FindProcessMode = "strict",
             });

@@ -73,7 +73,7 @@ CONNECTION_REQUIRED_TEST_FILES = (
 
 CONNECTION_REQUIRED_CODE_MARKERS = {
     APP_ROOT / "MainWindow.xaml.cs": (
-        "new RealtimeMonitoringView",
+        "new FirstConnectionGuideView",
         "new TrafficStatisticsWorkspaceView",
         "new SubscriptionQuotaWorkspaceView",
         "NotificationAreaStatisticsController",
@@ -84,15 +84,8 @@ CONNECTION_REQUIRED_CODE_MARKERS = {
         "new ProxyTrafficWorkspaceView",
         "new ConnectionAnalyticsWorkspaceViewModel",
         "new ConnectionAnalyticsTrendWindowController",
+        "ShowConnectionAnalyticsWorkspace",
         "ShowLiveConnectionsWorkspace",
-    ),
-    APP_ROOT / "Presentation/RealtimeMonitoringView.xaml": (
-        "连接分析覆盖率",
-        "ProxyConnectionSampleText",
-        "HostnameIdentifiedText",
-        "ApplicationIdentifiedText",
-        "FullyIdentifiedText",
-        "实时页仅展示脱敏主机名与应用名称",
     ),
     APP_ROOT / "Presentation/MainWindowViewModel.cs": (
         "snapshot.AttributionCoverage",
@@ -137,6 +130,12 @@ CONNECTION_REQUIRED_CODE_MARKERS = {
         "connection.Metadata",
         "connection.StartedAt",
         "find-process-mode",
+        'JsonPropertyName("rule")',
+        'JsonPropertyName("allow-lan")',
+        'JsonPropertyName("ipv6")',
+        'JsonPropertyName("mixed-port")',
+        'JsonPropertyName("auto-route")',
+        "ToRuntimeConfiguration",
     ),
     CORE_ROOT / "Application/TrafficMeasurementSession.cs": (
         "ConnectionAttributionCoverageTracker",
@@ -145,6 +144,8 @@ CONNECTION_REQUIRED_CODE_MARKERS = {
         "_directConnectionRates",
         "_attributionCoverageTracker.Reset()",
         "ConnectionAttributionDelta",
+        "activeProxyLeaves",
+        "activeRuleTypes",
     ),
     CORE_ROOT / "Application/TrafficMonitoringStream.cs": (
         "MonitorConnectionState.Stale",
@@ -164,20 +165,22 @@ CONNECTION_REQUIRED_CODE_MARKERS = {
         "BeginMonitoringAsync",
         "InterruptMonitoringAsync",
         "FaultIsolatedQuotaTrackingLifecycle",
-        "TryFetchProcessMatchingModeAsync",
-        "FetchProcessConfigurationAsync",
+        "TryFetchRuntimeConfigurationAsync",
+        "FetchRuntimeConfigurationAsync",
         "FaultIsolatedConnectionAnalyticsRecorder",
     ),
     APP_ROOT / "Presentation/ProxyTrafficWorkspaceView.xaml": (
         "流量统计",
         "实时连接",
-        "归因历史",
         "WorkspaceContent",
     ),
     APP_ROOT / "Presentation/LiveConnectionWorkspaceView.xaml": (
         "ViewModel.ContextTitle",
         "搜索应用或域名",
-        "实时速率",
+        'Text="下载"',
+        'Text="上传"',
+        "MihomoTrafficDownloadBrush",
+        "MihomoTrafficUploadBrush",
         "不显示或持久化连接 ID、完整进程路径、目标 IP、端口、节点、规则和链路",
     ),
     APP_ROOT / "Presentation/LiveConnectionWorkspaceViewModel.Projection.cs": (
@@ -268,6 +271,10 @@ CONNECTION_REQUIRED_CODE_MARKERS = {
     APP_ROOT / "Presentation/ConnectionAnalyticsTrendChartView.xaml": (
         'Height="48"',
         "PointerMoved",
+        "KeyDown",
+        'IsTabStop="True"',
+        "MihomoTrafficDownloadBrush",
+        "MihomoTrafficUploadBrush",
         "PointDetailText",
     ),
 }

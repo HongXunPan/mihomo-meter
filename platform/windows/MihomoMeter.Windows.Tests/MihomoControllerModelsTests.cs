@@ -184,7 +184,7 @@ public sealed class MihomoControllerModelsTests
         string value,
         MihomoProcessMatchingMode expected)
     {
-        var response = MihomoJsonDecoder.Decode<MihomoProcessConfigurationResponse>(
+        var response = MihomoJsonDecoder.Decode<MihomoRuntimeConfigurationResponse>(
             Encoding.UTF8.GetBytes($$"""{"find-process-mode":"{{value}}"}"""));
 
         Assert.AreEqual(expected, response.ToProcessMatchingMode());
@@ -193,9 +193,53 @@ public sealed class MihomoControllerModelsTests
     [TestMethod]
     public void KeepsUnknownProcessMatchingModeUnavailable()
     {
-        var response = MihomoJsonDecoder.Decode<MihomoProcessConfigurationResponse>(
+        var response = MihomoJsonDecoder.Decode<MihomoRuntimeConfigurationResponse>(
             """{"find-process-mode":"future"}"""u8);
 
         Assert.IsNull(response.ToProcessMatchingMode());
+    }
+
+    [TestMethod]
+    public void DecodesRuleAndRuntimeConfiguration()
+    {
+        var connections = MihomoJsonDecoder.Decode<MihomoConnectionsSnapshot>(
+            """
+            {
+              "downloadTotal": 0,
+              "uploadTotal": 0,
+              "connections": [{
+                "id": "synthetic",
+                "upload": 0,
+                "download": 0,
+                "chains": ["Synthetic Proxy"],
+                "rule": "DOMAIN-SUFFIX"
+              }]
+            }
+            """u8);
+        var configuration = MihomoJsonDecoder.Decode<MihomoRuntimeConfigurationResponse>(
+            """
+            {
+              "mode": "rule",
+              "allow-lan": false,
+              "ipv6": true,
+              "mixed-port": 7890,
+              "find-process-mode": "strict",
+              "tun": {
+                "enable": true,
+                "stack": "system",
+                "auto-route": true
+              }
+            }
+            """u8).ToRuntimeConfiguration();
+
+        Assert.AreEqual("DOMAIN-SUFFIX", connections.ToTrafficSnapshot().Connections[0].Rule);
+        Assert.AreEqual("rule", configuration.Mode);
+        Assert.AreEqual(true, configuration.IsTunEnabled);
+        Assert.AreEqual("system", configuration.TunStack);
+        Assert.AreEqual(true, configuration.AutomaticallyRoutesTraffic);
+        Assert.AreEqual(true, configuration.IsIPv6Enabled);
+        Assert.AreEqual(false, configuration.AllowsLan);
+        Assert.AreEqual(7890, configuration.MixedPort);
+        Assert.AreEqual(MihomoProcessMatchingMode.Strict, configuration.ProcessMatchingMode);
     }
 }

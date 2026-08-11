@@ -81,12 +81,14 @@
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <TextBlock FontWeight="SemiBold" Text="域名" />
                 <TextBlock Grid.Column="1" FontWeight="SemiBold" Text="应用" />
-                <TextBlock Grid.Column="2" FontWeight="SemiBold" Text="实时速率" />
-                <TextBlock Grid.Column="3" FontWeight="SemiBold" Text="累计" />
-                <TextBlock Grid.Column="4" FontWeight="SemiBold" Text="时长" />
+                <TextBlock Grid.Column="2" FontWeight="SemiBold" Text="下载" />
+                <TextBlock Grid.Column="3" FontWeight="SemiBold" Text="上传" />
+                <TextBlock Grid.Column="4" FontWeight="SemiBold" Text="累计" />
+                <TextBlock Grid.Column="5" FontWeight="SemiBold" Text="时长" />
             </Grid>
 
             <ListView
@@ -97,13 +99,10 @@
                 <ListView.ItemTemplate>
                     <DataTemplate x:DataType="presentation:LiveConnectionRowViewModel">
                         <Border
-                            Margin="0,0,0,6"
-                            Padding="14"
+                            Padding="14,11"
                             AutomationProperties.Name="{x:Bind AutomationName, Mode=OneWay}"
-                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                            BorderThickness="1"
-                            CornerRadius="8">
+                            BorderThickness="0,0,0,1">
                             <Grid ColumnSpacing="14">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="2*" />
@@ -111,12 +110,14 @@
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Text="{x:Bind Hostname, Mode=OneWay}" TextTrimming="CharacterEllipsis" />
                                 <TextBlock Grid.Column="1" Text="{x:Bind ApplicationName, Mode=OneWay}" TextTrimming="CharacterEllipsis" />
-                                <TextBlock Grid.Column="2" Text="{x:Bind RateText, Mode=OneWay}" />
-                                <TextBlock Grid.Column="3" Text="{x:Bind CumulativeText, Mode=OneWay}" />
-                                <TextBlock Grid.Column="4" Text="{x:Bind DurationText, Mode=OneWay}" />
+                                <TextBlock Grid.Column="2" Foreground="{ThemeResource MihomoTrafficDownloadBrush}" Text="{x:Bind DownloadRateText, Mode=OneWay}" />
+                                <TextBlock Grid.Column="3" Foreground="{ThemeResource MihomoTrafficUploadBrush}" Text="{x:Bind UploadRateText, Mode=OneWay}" />
+                                <TextBlock Grid.Column="4" Text="{x:Bind CumulativeText, Mode=OneWay}" />
+                                <TextBlock Grid.Column="5" Text="{x:Bind DurationText, Mode=OneWay}" />
                             </Grid>
                         </Border>
                     </DataTemplate>
@@ -129,14 +130,18 @@
                 Visibility="{x:Bind ViewModel.GroupListVisibility, Mode=OneWay}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="2*" />
-                    <ColumnDefinition Width="2*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <TextBlock FontWeight="SemiBold" Text="{x:Bind ViewModel.PrimaryColumnTitle, Mode=OneWay}" />
                 <TextBlock Grid.Column="1" FontWeight="SemiBold" Text="{x:Bind ViewModel.RelationColumnTitle, Mode=OneWay}" />
-                <TextBlock Grid.Column="2" FontWeight="SemiBold" Text="实时速率" />
-                <TextBlock Grid.Column="3" FontWeight="SemiBold" Text="累计" />
+                <TextBlock Grid.Column="2" FontWeight="SemiBold" Text="连接数" />
+                <TextBlock Grid.Column="3" FontWeight="SemiBold" Text="下载" />
+                <TextBlock Grid.Column="4" FontWeight="SemiBold" Text="上传" />
+                <TextBlock Grid.Column="5" FontWeight="SemiBold" Text="活动累计" />
             </Grid>
 
             <ListView
@@ -147,24 +152,25 @@
                 <ListView.ItemTemplate>
                     <DataTemplate x:DataType="presentation:LiveConnectionGroupRowViewModel">
                         <Border
-                            Margin="0,0,0,6"
-                            Padding="14"
+                            Padding="14,11"
                             AutomationProperties.Name="{x:Bind AutomationName, Mode=OneWay}"
-                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                            BorderThickness="1"
-                            CornerRadius="8">
+                            BorderThickness="0,0,0,1">
                             <Grid ColumnSpacing="14">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="2*" />
-                                    <ColumnDefinition Width="2*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
                                 <TextBlock FontWeight="SemiBold" Text="{x:Bind Name, Mode=OneWay}" TextTrimming="CharacterEllipsis" />
-                                <TextBlock Grid.Column="1" Text="{x:Bind RelationText, Mode=OneWay}" />
-                                <TextBlock Grid.Column="2" Text="{x:Bind RateText, Mode=OneWay}" />
-                                <TextBlock Grid.Column="3" Text="{x:Bind CumulativeText, Mode=OneWay}" />
+                                <TextBlock Grid.Column="1" Text="{x:Bind RelatedCountText, Mode=OneWay}" />
+                                <TextBlock Grid.Column="2" Text="{x:Bind ConnectionCountText, Mode=OneWay}" />
+                                <TextBlock Grid.Column="3" Foreground="{ThemeResource MihomoTrafficDownloadBrush}" Text="{x:Bind DownloadRateText, Mode=OneWay}" />
+                                <TextBlock Grid.Column="4" Foreground="{ThemeResource MihomoTrafficUploadBrush}" Text="{x:Bind UploadRateText, Mode=OneWay}" />
+                                <TextBlock Grid.Column="5" Text="{x:Bind CumulativeText, Mode=OneWay}" />
                             </Grid>
                         </Border>
                     </DataTemplate>

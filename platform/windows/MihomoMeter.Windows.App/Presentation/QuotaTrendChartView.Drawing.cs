@@ -1,4 +1,3 @@
-using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
@@ -35,8 +34,7 @@ public sealed partial class QuotaTrendChartView
                 chartHeight))).ToArray();
         var downloadArea = new Polygon
         {
-            Fill = new SolidColorBrush(Colors.DodgerBlue),
-            Opacity = 0.18,
+            Fill = ResourceBrush("MihomoTrafficDownloadAreaBrush"),
         };
         foreach (var point in downloadBoundary)
         {
@@ -49,8 +47,7 @@ public sealed partial class QuotaTrendChartView
 
         var uploadArea = new Polygon
         {
-            Fill = new SolidColorBrush(Colors.Orange),
-            Opacity = 0.16,
+            Fill = ResourceBrush("MihomoTrafficUploadAreaBrush"),
         };
         foreach (var point in points)
         {
@@ -86,7 +83,7 @@ public sealed partial class QuotaTrendChartView
         double chartWidth,
         double chartHeight)
     {
-        var brush = new SolidColorBrush(Colors.Gray);
+        var brush = ResourceBrush("TextFillColorSecondaryBrush");
         AddLine(LeftInset, TopInset, LeftInset, TopInset + chartHeight, brush);
         AddLine(
             LeftInset,
@@ -140,7 +137,7 @@ public sealed partial class QuotaTrendChartView
         {
             Width = width,
             FontSize = 11,
-            Foreground = new SolidColorBrush(Colors.Gray),
+            Foreground = ResourceBrush("TextFillColorSecondaryBrush"),
             Text = text,
             TextAlignment = TextAlignment.Center,
         };

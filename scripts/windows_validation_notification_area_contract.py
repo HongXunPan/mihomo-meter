@@ -25,6 +25,9 @@ EXPECTED_COMMAND_IDS = {
     "RefreshQuotaCommand": 3002,
     "OpenProxyConnectionsCommand": 4001,
     "OpenDirectConnectionsCommand": 4002,
+    "OpenConnectionAnalyticsCommand": 5001,
+    "OpenSettingsCommand": 5002,
+    "CheckUpdatesCommand": 5003,
 }
 
 

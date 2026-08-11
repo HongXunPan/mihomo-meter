@@ -15,14 +15,16 @@ namespace MihomoMeter.Windows.App;
 public sealed partial class MainWindow : Window
 {
     private readonly WindowsAppServices _services;
-    private readonly RealtimeMonitoringView _realtimeView;
     private readonly TrafficStatisticsWorkspaceView _statisticsView;
     private readonly LiveConnectionWorkspaceView _liveConnectionView;
     private readonly ConnectionAnalyticsWorkspaceView _connectionAnalyticsView;
     private readonly ConnectionAnalyticsTrendWindowController _connectionTrendWindow;
+    private readonly QuotaTrendWindowController _quotaTrendWindow;
     private readonly ProxyTrafficWorkspaceView _proxyTrafficView;
     private readonly SubscriptionQuotaWorkspaceView _quotaView;
-    private readonly WindowsUpdateWorkspaceView _updateView;
+    private readonly SettingsWindowController _settingsWindow;
+    private readonly FirstConnectionGuideView _firstConnectionGuideView;
+    private NavigationViewItem? _selectedWorkspaceItem;
     private bool _stopped;
 
     internal MainWindow(WindowsAppServices services)
@@ -60,14 +62,16 @@ public sealed partial class MainWindow : Window
         NotificationAreaConnections = new NotificationAreaConnectionController(
             DispatcherQueue,
             services.Coordinator);
+        NotificationAreaRealtime = new NotificationAreaRealtimeController(
+            DispatcherQueue,
+            services.Coordinator);
         StartupConsoleReporter.Stage("main_window_xaml_initialize_started");
         InitializeComponent();
         if (WorkspaceNavigation.SettingsItem is NavigationViewItem settingsItem)
         {
-            settingsItem.Content = "关于与更新";
+            settingsItem.Content = "设置";
         }
         StartupConsoleReporter.Stage("main_window_xaml_initialize_completed");
-        _realtimeView = new RealtimeMonitoringView(ViewModel);
         _statisticsView = new TrafficStatisticsWorkspaceView(StatisticsViewModel);
         _liveConnectionView = new LiveConnectionWorkspaceView(LiveConnectionViewModel);
         _connectionTrendWindow = new ConnectionAnalyticsTrendWindowController(
@@ -77,15 +81,22 @@ public sealed partial class MainWindow : Window
             _connectionTrendWindow.Show);
         _proxyTrafficView = new ProxyTrafficWorkspaceView(
             _statisticsView,
-            _liveConnectionView,
-            _connectionAnalyticsView);
-        _quotaView = new SubscriptionQuotaWorkspaceView(QuotaViewModel, this);
-        _updateView = new WindowsUpdateWorkspaceView(UpdateViewModel);
+            _liveConnectionView);
+        _quotaTrendWindow = new QuotaTrendWindowController();
+        _quotaView = new SubscriptionQuotaWorkspaceView(
+            QuotaViewModel,
+            this,
+            _quotaTrendWindow.Show);
+        _settingsWindow = new SettingsWindowController(ViewModel, UpdateViewModel);
+        _firstConnectionGuideView = new FirstConnectionGuideView(
+            _settingsWindow.ShowConnectionSettings);
+        ViewModel.ConfigurationValidated += ViewModel_ConfigurationValidated;
         WorkspaceNavigation.SelectionChanged += WorkspaceNavigation_SelectionChanged;
-        WorkspaceNavigation.SelectedItem = RealtimeNavigationItem;
-        ShowWorkspace("realtime");
-        Title = "Mihomo Meter · Windows W3-2";
-        ResizeForPreview();
+        WorkspaceNavigation.SelectedItem = StatisticsNavigationItem;
+        _selectedWorkspaceItem = StatisticsNavigationItem;
+        ShowWorkspace("statistics");
+        Title = "Mihomo Meter";
+        ResizeWindow();
     }
 
     public MainWindowViewModel ViewModel { get; }
@@ -105,6 +116,8 @@ public sealed partial class MainWindow : Window
     internal NotificationAreaQuotaController NotificationAreaQuota { get; }
 
     internal NotificationAreaConnectionController NotificationAreaConnections { get; }
+
+    internal NotificationAreaRealtimeController NotificationAreaRealtime { get; }
 
     internal async Task<bool> InitializeAsync()
     {
@@ -127,10 +140,14 @@ public sealed partial class MainWindow : Window
         QuotaViewModel.Detach();
         LiveConnectionViewModel.Detach();
         ConnectionAnalyticsViewModel.Detach();
+        ViewModel.ConfigurationValidated -= ViewModel_ConfigurationValidated;
         _connectionTrendWindow.Dispose();
+        _quotaTrendWindow.Dispose();
+        _settingsWindow.Dispose();
         NotificationAreaStatistics.Dispose();
         NotificationAreaQuota.Dispose();
         NotificationAreaConnections.Dispose();
+        NotificationAreaRealtime.Dispose();
         await _services.DisposeAsync();
     }
 
@@ -159,16 +176,45 @@ public sealed partial class MainWindow : Window
         ShowWorkspace("quota");
     }
 
+    internal void ShowConnectionAnalyticsWorkspace()
+    {
+        WorkspaceNavigation.SelectedItem = ConnectionAnalyticsNavigationItem;
+        ShowWorkspace("connectionAnalytics");
+    }
+
+    internal void ShowControllerSettings()
+    {
+        _settingsWindow.ShowConnectionSettings();
+    }
+
+    internal void ShowUpdates()
+    {
+        _settingsWindow.ShowUpdates();
+    }
+
+    internal void ShowFirstConnectionGuide()
+    {
+        WorkspaceContent.Content = _firstConnectionGuideView;
+    }
+
     private void WorkspaceNavigation_SelectionChanged(
         NavigationView sender,
         NavigationViewSelectionChangedEventArgs args)
     {
         if (args.IsSettingsSelected)
         {
-            ShowWorkspace("updates");
+            _settingsWindow.ShowConnectionSettings();
+            if (_selectedWorkspaceItem is not null)
+            {
+                WorkspaceNavigation.SelectedItem = _selectedWorkspaceItem;
+            }
             return;
         }
 
+        if (args.SelectedItemContainer is NavigationViewItem selectedItem)
+        {
+            _selectedWorkspaceItem = selectedItem;
+        }
         ShowWorkspace(args.SelectedItemContainer?.Tag?.ToString());
     }
 
@@ -177,16 +223,22 @@ public sealed partial class MainWindow : Window
         WorkspaceContent.Content = section switch
         {
             "statistics" => _proxyTrafficView,
+            "connectionAnalytics" => _connectionAnalyticsView,
             "quota" => _quotaView,
-            "updates" => _updateView,
-            _ => _realtimeView,
+            _ => _proxyTrafficView,
         };
     }
 
-    private void ResizeForPreview()
+    private void ViewModel_ConfigurationValidated()
+    {
+        WorkspaceNavigation.SelectedItem = StatisticsNavigationItem;
+        ShowWorkspace("statistics");
+    }
+
+    private void ResizeWindow()
     {
         var windowHandle = WinRT.Interop.WindowNative.GetWindowHandle(this);
         var windowId = Win32Interop.GetWindowIdFromWindow(windowHandle);
-        AppWindow.GetFromWindowId(windowId)?.Resize(new SizeInt32(980, 720));
+        AppWindow.GetFromWindowId(windowId)?.Resize(new SizeInt32(1080, 680));
     }
 }

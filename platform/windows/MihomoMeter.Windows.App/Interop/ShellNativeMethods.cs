@@ -4,6 +4,10 @@ namespace MihomoMeter.Windows.App.Interop;
 
 internal static class ShellNativeMethods
 {
+    internal const uint ImageIcon = 1;
+    internal const uint LoadImageFromFile = 0x0010;
+    internal const uint LoadImageDefaultSize = 0x0040;
+
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     internal struct NotifyIconData
     {
@@ -53,8 +57,18 @@ internal static class ShellNativeMethods
     [return: MarshalAs(UnmanagedType.Bool)]
     internal static extern bool ShellNotifyIcon(uint message, ref NotifyIconData data);
 
-    [DllImport("user32.dll", EntryPoint = "LoadIconW", SetLastError = true)]
-    internal static extern nint LoadIcon(nint instanceHandle, nint iconName);
+    [DllImport("user32.dll", EntryPoint = "LoadImageW", CharSet = CharSet.Unicode, SetLastError = true)]
+    internal static extern nint LoadImage(
+        nint instanceHandle,
+        string name,
+        uint type,
+        int desiredWidth,
+        int desiredHeight,
+        uint loadFlags);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    internal static extern bool DestroyIcon(nint iconHandle);
 
     [DllImport("user32.dll", EntryPoint = "RegisterWindowMessageW", CharSet = CharSet.Unicode, SetLastError = true)]
     internal static extern uint RegisterWindowMessage(string messageName);

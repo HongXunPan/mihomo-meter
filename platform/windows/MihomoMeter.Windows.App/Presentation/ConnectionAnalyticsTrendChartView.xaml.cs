@@ -1,6 +1,6 @@
 using System.ComponentModel;
-using Microsoft.UI;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
@@ -25,6 +25,7 @@ public sealed partial class ConnectionAnalyticsTrendChartView : UserControl
         _viewModel = viewModel;
         InitializeComponent();
         _viewModel.PropertyChanged += ViewModel_PropertyChanged;
+        ActualThemeChanged += (_, _) => Render();
     }
 
     internal void Detach()
@@ -73,6 +74,35 @@ public sealed partial class ConnectionAnalyticsTrendChartView : UserControl
         Render();
     }
 
+    private void ChartCanvas_KeyDown(object sender, KeyRoutedEventArgs args)
+    {
+        var points = _viewModel.Trend?.Points;
+        if (points is null || points.Count == 0)
+        {
+            return;
+        }
+
+        var current = _selectedIndex ?? (points.Count - 1);
+        var next = args.Key switch
+        {
+            global::Windows.System.VirtualKey.Left => Math.Max(current - 1, 0),
+            global::Windows.System.VirtualKey.Right => Math.Min(current + 1, points.Count - 1),
+            global::Windows.System.VirtualKey.Home => 0,
+            global::Windows.System.VirtualKey.End => points.Count - 1,
+            _ => current,
+        };
+        if (next == current
+            && args.Key is not (global::Windows.System.VirtualKey.Home
+                or global::Windows.System.VirtualKey.End))
+        {
+            return;
+        }
+
+        _selectedIndex = next;
+        Render();
+        args.Handled = true;
+    }
+
     private void Render()
     {
         ChartCanvas.Children.Clear();
@@ -108,7 +138,7 @@ public sealed partial class ConnectionAnalyticsTrendChartView : UserControl
         double height,
         IReadOnlyList<ConnectionAnalyticsTrendPoint> points)
     {
-        var brush = new SolidColorBrush(Colors.Gray);
+        var brush = ResourceBrush("TextFillColorSecondaryBrush");
         var values = new[]
         {
             ticks.Maximum,
@@ -161,14 +191,14 @@ public sealed partial class ConnectionAnalyticsTrendChartView : UserControl
                 bottom - downloadHeight,
                 barWidth,
                 downloadHeight,
-                Colors.DodgerBlue,
+                ResourceBrush("MihomoTrafficDownloadBrush"),
                 0.9);
             AddRectangle(
                 x,
                 bottom - downloadHeight - uploadHeight,
                 barWidth,
                 uploadHeight,
-                Colors.Orange,
+                ResourceBrush("MihomoTrafficUploadBrush"),
                 0.9);
 
             if (_selectedIndex == index)
@@ -177,7 +207,7 @@ public sealed partial class ConnectionAnalyticsTrendChartView : UserControl
                 {
                     Width = Math.Max(step - 2, barWidth + 2),
                     Height = height,
-                    Fill = new SolidColorBrush(Colors.DodgerBlue),
+                    Fill = ResourceBrush("MihomoTrafficDownloadBrush"),
                     Opacity = 0.08,
                     RadiusX = 3,
                     RadiusY = 3,
@@ -193,7 +223,7 @@ public sealed partial class ConnectionAnalyticsTrendChartView : UserControl
     {
         if (_selectedIndex is not int index || index < 0 || index >= points.Count)
         {
-            PointDetailText.Text = "将鼠标移到柱图上查看每日上下行归因。";
+            PointDetailText.Text = "使用鼠标或方向键查看每日上下行归因。";
             return;
         }
         var point = points[index];
@@ -201,6 +231,9 @@ public sealed partial class ConnectionAnalyticsTrendChartView : UserControl
             + $"合计 {TrafficDisplayFormatter.ByteCount(point.Bytes.Total)} · "
             + $"↓ {TrafficDisplayFormatter.ByteCount(point.Bytes.Download)} · "
             + $"↑ {TrafficDisplayFormatter.ByteCount(point.Bytes.Upload)}";
+        AutomationProperties.SetName(
+            ChartCanvas,
+            $"最近三十天连接分析趋势图，{PointDetailText.Text}");
     }
 
     private int? DefaultSelectedIndex()
@@ -246,7 +279,7 @@ public sealed partial class ConnectionAnalyticsTrendChartView : UserControl
         {
             Width = width,
             FontSize = 11,
-            Foreground = new SolidColorBrush(Colors.Gray),
+            Foreground = ResourceBrush("TextFillColorSecondaryBrush"),
             Text = text,
             TextAlignment = TextAlignment.Center,
         };
@@ -260,7 +293,7 @@ public sealed partial class ConnectionAnalyticsTrendChartView : UserControl
         double top,
         double width,
         double height,
-        global::Windows.UI.Color color,
+        Brush brush,
         double opacity)
     {
         if (height <= 0)
@@ -271,11 +304,16 @@ public sealed partial class ConnectionAnalyticsTrendChartView : UserControl
         {
             Width = width,
             Height = Math.Max(height, 1),
-            Fill = new SolidColorBrush(color),
+            Fill = brush,
             Opacity = opacity,
         };
         Canvas.SetLeft(rectangle, left);
         Canvas.SetTop(rectangle, top);
         ChartCanvas.Children.Add(rectangle);
+    }
+
+    private static Brush ResourceBrush(string key)
+    {
+        return (Brush)Application.Current.Resources[key];
     }
 }

@@ -37,10 +37,19 @@
                             Content="开始统计"
                             IsEnabled="{x:Bind ViewModel.CanStartInterval, Mode=OneWay}"
                             Style="{StaticResource AccentButtonStyle}" />
-                        <Button
-                            Click="ClearButton_Click"
-                            Content="清空本地统计"
-                            IsEnabled="{x:Bind ViewModel.CanClear, Mode=OneWay}" />
+                        <Button AutomationProperties.Name="更多统计操作">
+                            <Button.Content>
+                                <SymbolIcon Symbol="More" />
+                            </Button.Content>
+                            <Button.Flyout>
+                                <MenuFlyout>
+                                    <MenuFlyoutItem
+                                        Click="ClearButton_Click"
+                                        IsEnabled="{x:Bind ViewModel.CanClear, Mode=OneWay}"
+                                        Text="清空本地统计" />
+                                </MenuFlyout>
+                            </Button.Flyout>
+                        </Button>
                     </StackPanel>
                 </Grid>
 
@@ -133,6 +142,43 @@
                         x:Name="DailyChartHost"
                         HorizontalContentAlignment="Stretch" />
 
+                    <Border
+                        x:Name="IntervalEditor"
+                        Padding="12"
+                        Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                        CornerRadius="8"
+                        Visibility="Collapsed">
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Spacing="4">
+                                <TextBlock x:Name="IntervalEditorTitle" FontWeight="SemiBold" />
+                                <TextBox
+                                    x:Name="IntervalNameBox"
+                                    AutomationProperties.Name="统计任务名称"
+                                    PlaceholderText="输入任务名称" />
+                                <TextBlock
+                                    x:Name="IntervalEditorValidation"
+                                    Foreground="{ThemeResource MihomoStatusDangerBrush}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+                            <Button
+                                Grid.Column="1"
+                                VerticalAlignment="Bottom"
+                                Click="SaveIntervalEditorButton_Click"
+                                Content="保存"
+                                Style="{StaticResource AccentButtonStyle}" />
+                            <Button
+                                Grid.Column="2"
+                                VerticalAlignment="Bottom"
+                                Click="CancelIntervalEditorButton_Click"
+                                Content="取消" />
+                        </Grid>
+                    </Border>
+
                     <Grid ColumnSpacing="12">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
@@ -142,12 +188,32 @@
                             FontSize="20"
                             FontWeight="SemiBold"
                             Text="统计任务" />
-                        <ComboBox
+                        <RadioButtons
+                            x:Name="IntervalFilterButtons"
                             Grid.Column="1"
-                            Width="150"
-                            DisplayMemberPath="Title"
-                            ItemsSource="{x:Bind ViewModel.FilterOptions}"
-                            SelectedItem="{x:Bind ViewModel.SelectedFilter, Mode=TwoWay}" />
+                            MaxColumns="3"
+                            SelectionChanged="IntervalFilterButtons_SelectionChanged">
+                            <x:String>全部</x:String>
+                            <x:String>进行中</x:String>
+                            <x:String>历史</x:String>
+                        </RadioButtons>
+                    </Grid>
+
+                    <Grid Padding="14,0" ColumnSpacing="14">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="2*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock FontWeight="SemiBold" Text="任务" />
+                        <TextBlock Grid.Column="1" FontWeight="SemiBold" Text="状态" />
+                        <TextBlock Grid.Column="2" FontWeight="SemiBold" Text="下载" />
+                        <TextBlock Grid.Column="3" FontWeight="SemiBold" Text="上传" />
+                        <TextBlock Grid.Column="4" FontWeight="SemiBold" Text="合计" />
+                        <TextBlock Grid.Column="5" FontWeight="SemiBold" Text="操作" />
                     </Grid>
 
                     <ListView
@@ -158,16 +224,16 @@
                         <ListView.ItemTemplate>
                             <DataTemplate x:DataType="presentation:TrafficIntervalRowViewModel">
                                 <Border
-                                    Margin="0,0,0,8"
-                                    Padding="14"
+                                    Padding="14,11"
                                     AutomationProperties.Name="{x:Bind AutomationName, Mode=OneWay}"
-                                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                                     BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                                    BorderThickness="1"
-                                    CornerRadius="10">
+                                    BorderThickness="0,0,0,1">
                                     <Grid ColumnSpacing="14">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="2*" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
                                             <ColumnDefinition Width="Auto" />
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
@@ -179,52 +245,37 @@
                                                 TextTrimming="CharacterEllipsis" />
                                             <TextBlock
                                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                Text="{x:Bind NoteText, Mode=OneWay}"
-                                                TextWrapping="Wrap"
-                                                Visibility="{x:Bind NoteVisibility, Mode=OneWay}" />
-                                            <TextBlock
-                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                                 Text="{x:Bind TimeText, Mode=OneWay}" />
                                         </StackPanel>
 
-                                        <StackPanel
+                                        <TextBlock
                                             Grid.Column="1"
                                             HorizontalAlignment="Right"
-                                            Spacing="4">
-                                            <TextBlock
-                                                HorizontalAlignment="Right"
-                                                FontWeight="SemiBold"
-                                                Text="{x:Bind StatusText, Mode=OneWay}" />
-                                            <TextBlock HorizontalAlignment="Right" Text="{x:Bind DownloadText, Mode=OneWay}" />
-                                            <TextBlock HorizontalAlignment="Right" Text="{x:Bind UploadText, Mode=OneWay}" />
-                                            <TextBlock
-                                                HorizontalAlignment="Right"
-                                                FontWeight="SemiBold"
-                                                Text="{x:Bind TotalText, Mode=OneWay}" />
-                                        </StackPanel>
-
-                                        <StackPanel
-                                            Grid.Column="2"
-                                            HorizontalAlignment="Right"
-                                            Orientation="Horizontal"
-                                            Spacing="6">
-                                            <Button
-                                                Click="StopIntervalButton_Click"
-                                                Content="停止"
-                                                IsEnabled="{x:Bind CanOperate, Mode=OneWay}"
-                                                Tag="{x:Bind Id}"
-                                                Visibility="{x:Bind StopVisibility, Mode=OneWay}" />
-                                            <Button
-                                                Click="RenameIntervalButton_Click"
-                                                Content="重命名"
-                                                IsEnabled="{x:Bind CanOperate, Mode=OneWay}"
-                                                Tag="{x:Bind Id}" />
-                                            <Button
-                                                Click="DeleteIntervalButton_Click"
-                                                Content="删除"
-                                                IsEnabled="{x:Bind CanOperate, Mode=OneWay}"
-                                                Tag="{x:Bind Id}" />
-                                        </StackPanel>
+                                            FontWeight="SemiBold"
+                                            Text="{x:Bind StatusText, Mode=OneWay}" />
+                                        <TextBlock Grid.Column="2" HorizontalAlignment="Right" Foreground="{ThemeResource MihomoTrafficDownloadBrush}" Text="{x:Bind DownloadText, Mode=OneWay}" />
+                                        <TextBlock Grid.Column="3" HorizontalAlignment="Right" Foreground="{ThemeResource MihomoTrafficUploadBrush}" Text="{x:Bind UploadText, Mode=OneWay}" />
+                                        <TextBlock Grid.Column="4" HorizontalAlignment="Right" FontWeight="SemiBold" Text="{x:Bind TotalText, Mode=OneWay}" />
+                                        <Button
+                                            Grid.Column="5"
+                                            AutomationProperties.Name="任务操作"
+                                            IsEnabled="{x:Bind CanOperate, Mode=OneWay}">
+                                            <Button.Content>
+                                                <SymbolIcon Symbol="More" />
+                                            </Button.Content>
+                                            <Button.Flyout>
+                                                <MenuFlyout>
+                                                    <MenuFlyoutItem
+                                                        Click="StopIntervalButton_Click"
+                                                        Tag="{x:Bind Id}"
+                                                        Text="停止"
+                                                        Visibility="{x:Bind StopVisibility, Mode=OneWay}" />
+                                                    <MenuFlyoutItem Click="RenameIntervalButton_Click" Tag="{x:Bind Id}" Text="重命名" />
+                                                    <MenuFlyoutSeparator />
+                                                    <MenuFlyoutItem Click="DeleteIntervalButton_Click" Tag="{x:Bind Id}" Text="删除" />
+                                                </MenuFlyout>
+                                            </Button.Flyout>
+                                        </Button>
                                     </Grid>
                                 </Border>
                             </DataTemplate>

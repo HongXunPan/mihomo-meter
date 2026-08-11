@@ -168,6 +168,16 @@ public sealed class QuotaDomainTests
     }
 
     [TestMethod]
+    public void TrendTargetPointCountFollowsAvailableWidthWithinMacBounds()
+    {
+        Assert.AreEqual(2, QuotaTrendEngine.TargetPointCount(0));
+        Assert.AreEqual(2, QuotaTrendEngine.TargetPointCount(79));
+        Assert.AreEqual(3, QuotaTrendEngine.TargetPointCount(120));
+        Assert.AreEqual(30, QuotaTrendEngine.TargetPointCount(1_200));
+        Assert.AreEqual(30, QuotaTrendEngine.TargetPointCount(10_000));
+    }
+
+    [TestMethod]
     public void ForecastRequiresConfirmedFreshCycleAndSixHourSpan()
     {
         var now = new DateTimeOffset(2026, 8, 8, 12, 0, 0, TimeSpan.Zero);

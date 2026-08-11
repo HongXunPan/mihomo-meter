@@ -73,8 +73,8 @@ public sealed partial class LiveConnectionWorkspaceViewModel
     };
 
     public string RelationColumnTitle => SelectedMode.Mode == LiveConnectionViewMode.Application
-        ? "相关域名 / 连接数"
-        : "相关应用 / 连接数";
+        ? "域名数"
+        : "应用数";
 
     private ApplicationIdentificationDiagnostic Diagnostic =>
         ApplicationIdentificationDiagnostic.Create(
@@ -107,7 +107,10 @@ public sealed partial class LiveConnectionWorkspaceViewModel
     {
         var hostname = LiveConnectionProjection.Hostname(connection);
         var application = LiveConnectionProjection.ApplicationName(connection);
-        var rate = TrafficDisplayFormatter.Rate(connection.Rate);
+        var downloadRate = TrafficDisplayFormatter.RateValue(
+            connection.Rate.DownloadBytesPerSecond);
+        var uploadRate = TrafficDisplayFormatter.RateValue(
+            connection.Rate.UploadBytesPerSecond);
         var cumulative = $"累计 {TrafficDisplayFormatter.ByteCount(
             connection.CumulativeBytes.Total)}";
         var duration = connection.StartedAt is DateTimeOffset startedAt
@@ -117,26 +120,35 @@ public sealed partial class LiveConnectionWorkspaceViewModel
             connection.Id,
             hostname,
             application,
-            rate,
+            downloadRate,
+            uploadRate,
             cumulative,
             duration,
-            $"{hostname}，{application}，{rate}，{cumulative}，{duration}");
+            $"{hostname}，{application}，下载 {downloadRate}，上传 {uploadRate}，"
+                + $"{cumulative}，{duration}");
     }
 
     private static LiveConnectionGroupRowViewModel CreateGroupRow(
         LiveConnectionGroupRow group)
     {
-        var relation = $"{group.RelatedCount} 个相关项 · {group.ConnectionCount} 条连接";
-        var rate = TrafficDisplayFormatter.Rate(group.Rate);
+        var relatedCount = $"{group.RelatedCount}";
+        var connectionCount = $"{group.ConnectionCount}";
+        var downloadRate = TrafficDisplayFormatter.RateValue(
+            group.Rate.DownloadBytesPerSecond);
+        var uploadRate = TrafficDisplayFormatter.RateValue(
+            group.Rate.UploadBytesPerSecond);
         var cumulative = $"累计 {TrafficDisplayFormatter.ByteCount(
             group.CumulativeBytes.Total)}";
         return new LiveConnectionGroupRowViewModel(
             group.Id,
             group.Name,
-            relation,
-            rate,
+            relatedCount,
+            connectionCount,
+            downloadRate,
+            uploadRate,
             cumulative,
-            $"{group.Name}，{relation}，{rate}，{cumulative}");
+            $"{group.Name}，相关项 {relatedCount}，连接 {connectionCount}，"
+                + $"下载 {downloadRate}，上传 {uploadRate}，{cumulative}");
     }
 
     private void ReconcileConnections(IReadOnlyList<LiveConnectionRowViewModel> desired)

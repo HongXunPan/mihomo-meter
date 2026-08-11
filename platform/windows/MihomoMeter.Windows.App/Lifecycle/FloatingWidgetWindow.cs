@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Runtime.InteropServices;
 using MihomoMeter.Windows.App.Diagnostics;
 using MihomoMeter.Windows.App.Interop;
+using MihomoMeter.Windows.App.Presentation;
 
 namespace MihomoMeter.Windows.App.Lifecycle;
 
@@ -38,14 +39,17 @@ internal sealed class FloatingWidgetWindow : IDisposable
     private bool _dragged;
     private FloatingWidgetNativeMethods.Point _pointerOrigin;
     private FloatingWidgetPosition _windowOrigin;
+    private FloatingWidgetDisplaySnapshot _snapshot;
     private bool _disposed;
 
     public FloatingWidgetWindow(
         FloatingWidgetPosition? initialPosition,
-        Action activateMainWindow)
+        Action activateMainWindow,
+        FloatingWidgetDisplaySnapshot snapshot)
     {
         _activateMainWindow = activateMainWindow
             ?? throw new ArgumentNullException(nameof(activateMainWindow));
+        _snapshot = snapshot ?? throw new ArgumentNullException(nameof(snapshot));
         _className = $"MihomoMeter.Windows.FloatingWidget.{Environment.ProcessId}";
         _instanceHandle = FloatingWidgetNativeMethods.GetModuleHandle(null);
         if (_instanceHandle == 0)
@@ -68,7 +72,7 @@ internal sealed class FloatingWidgetWindow : IDisposable
                     | WindowStyleExtendedToolWindow
                     | WindowStyleExtendedNoActivate,
                 _className,
-                "Mihomo Meter 悬浮图标",
+                _snapshot.AccessibleText,
                 WindowStylePopup,
                 _position.X,
                 _position.Y,
@@ -98,6 +102,22 @@ internal sealed class FloatingWidgetWindow : IDisposable
     }
 
     public FloatingWidgetPosition Position => _position;
+
+    public void UpdateSnapshot(FloatingWidgetDisplaySnapshot snapshot)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        _snapshot = snapshot ?? throw new ArgumentNullException(nameof(snapshot));
+        if (!FloatingWidgetNativeMethods.SetWindowText(
+                _windowHandle,
+                _snapshot.AccessibleText))
+        {
+            throw new Win32Exception(Marshal.GetLastWin32Error());
+        }
+        if (!FloatingWidgetNativeMethods.InvalidateRect(_windowHandle, 0, true))
+        {
+            throw new Win32Exception(Marshal.GetLastWin32Error());
+        }
+    }
 
     public void Dispose()
     {
@@ -150,7 +170,7 @@ internal sealed class FloatingWidgetWindow : IDisposable
             switch (message)
             {
                 case WindowMessagePaint:
-                    FloatingWidgetPainter.Paint(windowHandle, _size);
+                    FloatingWidgetPainter.Paint(windowHandle, _size, _snapshot);
                     return 0;
                 case WindowMessageEraseBackground:
                     return 1;

@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using MihomoMeter.Windows.Core.Application;
 using MihomoMeter.Windows.Core.Domain;
 
 namespace MihomoMeter.Windows.Core.Infrastructure.Mihomo;
@@ -56,7 +57,8 @@ public sealed record MihomoConnectionsSnapshot
                 new TrafficBytes(connection.Upload, connection.Download),
                 connection.Chains,
                 connection.Metadata,
-                connection.StartedAt)).ToArray());
+                connection.StartedAt,
+                connection.Rule)).ToArray());
     }
 }
 
@@ -74,6 +76,9 @@ public sealed record MihomoConnectionResponse
     [JsonPropertyName("chains")]
     public required List<string> Chains { get; init; }
 
+    [JsonPropertyName("rule")]
+    public string? Rule { get; init; }
+
     [JsonPropertyName("metadata")]
     [JsonConverter(typeof(ConnectionMetadataJsonConverter))]
     public ConnectionMetadata Metadata { get; init; } = ConnectionMetadata.Unavailable;
@@ -83,10 +88,25 @@ public sealed record MihomoConnectionResponse
     public DateTimeOffset? StartedAt { get; init; }
 }
 
-public sealed record MihomoProcessConfigurationResponse
+public sealed record MihomoRuntimeConfigurationResponse
 {
     [JsonPropertyName("find-process-mode")]
     public string? FindProcessMode { get; init; }
+
+    [JsonPropertyName("mode")]
+    public string? Mode { get; init; }
+
+    [JsonPropertyName("allow-lan")]
+    public bool? AllowLan { get; init; }
+
+    [JsonPropertyName("ipv6")]
+    public bool? Ipv6 { get; init; }
+
+    [JsonPropertyName("mixed-port")]
+    public int? MixedPort { get; init; }
+
+    [JsonPropertyName("tun")]
+    public MihomoTunConfigurationResponse? Tun { get; init; }
 
     public MihomoProcessMatchingMode? ToProcessMatchingMode()
     {
@@ -98,6 +118,32 @@ public sealed record MihomoProcessConfigurationResponse
             _ => null,
         };
     }
+
+    public MihomoRuntimeConfiguration ToRuntimeConfiguration()
+    {
+        var normalizedMode = string.IsNullOrWhiteSpace(Mode) ? null : Mode.Trim();
+        return new MihomoRuntimeConfiguration(
+            normalizedMode,
+            Tun?.Enable,
+            Tun?.Stack,
+            Tun?.AutoRoute,
+            Ipv6,
+            AllowLan,
+            MixedPort,
+            ToProcessMatchingMode());
+    }
+}
+
+public sealed record MihomoTunConfigurationResponse
+{
+    [JsonPropertyName("enable")]
+    public bool? Enable { get; init; }
+
+    [JsonPropertyName("stack")]
+    public string? Stack { get; init; }
+
+    [JsonPropertyName("auto-route")]
+    public bool? AutoRoute { get; init; }
 }
 
 public static class MihomoJsonDecoder

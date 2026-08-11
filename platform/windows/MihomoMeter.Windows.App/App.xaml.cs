@@ -41,18 +41,22 @@ public partial class App : Application
                 window.NotificationAreaStatistics.CaptureSnapshot,
                 window.NotificationAreaQuota.CaptureSnapshot,
                 window.NotificationAreaConnections.CaptureSnapshot,
+                window.NotificationAreaRealtime,
                 window.ShowStatisticsWorkspace,
                 window.ShowQuotaWorkspace,
+                window.ShowConnectionAnalyticsWorkspace,
+                window.ShowControllerSettings,
+                window.ShowUpdates,
                 window.ShowLiveConnectionsWorkspace,
                 window.NotificationAreaStatistics.StartSuggestedIntervalAsync,
                 window.NotificationAreaStatistics.StopIntervalAsync,
                 window.NotificationAreaQuota.RefreshAllAsync,
                 window.StopForApplicationTerminationAsync);
-            window.ViewModel.StatusSummaryChanged += _windowLifecycle.SetStatusText;
             ActivationRouter.Register(HandleRedirectedActivation);
             var hasStoredConfiguration = await window.InitializeAsync();
             if (!hasStoredConfiguration)
             {
+                window.ShowFirstConnectionGuide();
                 _windowLifecycle.ShowMainWindow();
             }
 

@@ -70,13 +70,13 @@ public sealed class TrafficMonitoringCoordinatorTests
     }
 
     [TestMethod]
-    public async Task ProcessConfigurationFailureDoesNotBlockMonitoringStream()
+    public async Task RuntimeConfigurationFailureDoesNotBlockMonitoringStream()
     {
         var sequence = new List<string>();
         var collector = new TestSnapshotCollector(sequence);
         var client = new TestControllerClient(sequence)
         {
-            ProcessConfigurationFailure = new MihomoControllerException(
+            RuntimeConfigurationFailure = new MihomoControllerException(
                 MihomoControllerError.UnsupportedResponse),
         };
         await using var coordinator = new TrafficMonitoringCoordinator(
@@ -90,6 +90,40 @@ public sealed class TrafficMonitoringCoordinatorTests
         CollectionAssert.AreEqual(
             new[] { "version", "proxies", "configs", "stream" },
             sequence);
+    }
+
+    [TestMethod]
+    public async Task PublishesRuntimeConfigurationWithConnectedSnapshot()
+    {
+        var sequence = new List<string>();
+        var connected = new TaskCompletionSource<TrafficMonitorSnapshot>(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+        await using var coordinator = new TrafficMonitoringCoordinator(
+            new TestControllerClient(sequence),
+            new TestSnapshotCollector(sequence),
+            new TestConfigurationStore(sequence));
+        coordinator.SnapshotChanged += snapshot =>
+        {
+            if (snapshot.State == MonitorConnectionState.Connected)
+            {
+                connected.TrySetResult(snapshot);
+            }
+        };
+
+        await coordinator.StartAsync("127.0.0.1:9090", string.Empty, false);
+        var snapshot = await connected.Task.WaitAsync(TimeSpan.FromSeconds(2));
+
+        Assert.IsNotNull(snapshot.RuntimeConfiguration);
+        Assert.AreEqual("rule", snapshot.RuntimeConfiguration.Mode);
+        Assert.AreEqual(true, snapshot.RuntimeConfiguration.IsTunEnabled);
+        Assert.AreEqual("system", snapshot.RuntimeConfiguration.TunStack);
+        Assert.AreEqual(true, snapshot.RuntimeConfiguration.AutomaticallyRoutesTraffic);
+        Assert.AreEqual(true, snapshot.RuntimeConfiguration.IsIPv6Enabled);
+        Assert.AreEqual(false, snapshot.RuntimeConfiguration.AllowsLan);
+        Assert.AreEqual(7890, snapshot.RuntimeConfiguration.MixedPort);
+        Assert.AreEqual(
+            MihomoProcessMatchingMode.Strict,
+            snapshot.RuntimeConfiguration.ProcessMatchingMode);
     }
 
     [TestMethod]
@@ -252,7 +286,7 @@ public sealed class TrafficMonitoringCoordinatorTests
 
         public Exception? VersionFailure { get; init; }
 
-        public Exception? ProcessConfigurationFailure { get; init; }
+        public Exception? RuntimeConfigurationFailure { get; init; }
 
         public Task<MihomoVersionResponse> FetchVersionAsync(
             ControllerEndpoint endpoint,
@@ -288,19 +322,29 @@ public sealed class TrafficMonitoringCoordinatorTests
             });
         }
 
-        public Task<MihomoProcessConfigurationResponse> FetchProcessConfigurationAsync(
+        public Task<MihomoRuntimeConfigurationResponse> FetchRuntimeConfigurationAsync(
             ControllerEndpoint endpoint,
             string secret,
             CancellationToken cancellationToken)
         {
             _sequence.Add("configs");
-            return ProcessConfigurationFailure is null
-                ? Task.FromResult(new MihomoProcessConfigurationResponse
+            return RuntimeConfigurationFailure is null
+                ? Task.FromResult(new MihomoRuntimeConfigurationResponse
                 {
                     FindProcessMode = "strict",
+                    Mode = "rule",
+                    AllowLan = false,
+                    Ipv6 = true,
+                    MixedPort = 7890,
+                    Tun = new MihomoTunConfigurationResponse
+                    {
+                        Enable = true,
+                        Stack = "system",
+                        AutoRoute = true,
+                    },
                 })
-                : Task.FromException<MihomoProcessConfigurationResponse>(
-                    ProcessConfigurationFailure);
+                : Task.FromException<MihomoRuntimeConfigurationResponse>(
+                    RuntimeConfigurationFailure);
         }
     }
 

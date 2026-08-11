@@ -16,11 +16,11 @@
 
         <StackPanel Orientation="Horizontal" Spacing="14">
             <StackPanel Orientation="Horizontal" Spacing="6">
-                <Ellipse Width="8" Height="8" Fill="DodgerBlue" />
+                <Ellipse Width="8" Height="8" Fill="{ThemeResource MihomoTrafficDownloadBrush}" />
                 <TextBlock Text="下载" />
             </StackPanel>
             <StackPanel Orientation="Horizontal" Spacing="6">
-                <Ellipse Width="8" Height="8" Fill="Orange" />
+                <Ellipse Width="8" Height="8" Fill="{ThemeResource MihomoTrafficUploadBrush}" />
                 <TextBlock Text="上传" />
             </StackPanel>
         </StackPanel>
@@ -28,7 +28,11 @@
         <Grid Height="260">
             <Canvas
                 x:Name="ChartCanvas"
+                AutomationProperties.HelpText="使用左右方向键选择日期，Home 和 End 跳到首尾。"
+                AutomationProperties.Name="最近三十天连接分析趋势图"
                 Background="Transparent"
+                IsTabStop="True"
+                KeyDown="ChartCanvas_KeyDown"
                 PointerExited="ChartCanvas_PointerExited"
                 PointerMoved="ChartCanvas_PointerMoved"
                 SizeChanged="ChartCanvas_SizeChanged" />

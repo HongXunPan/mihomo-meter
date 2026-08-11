@@ -50,9 +50,14 @@ RELEASE_REQUIRED_CODE_MARKERS = {
     ),
     APP_ROOT / "MainWindow.xaml.cs": (
         "WindowsUpdateWorkspaceViewModel",
-        'settingsItem.Content = "关于与更新"',
-        '"updates" => _updateView',
-        "Mihomo Meter · Windows W3-2",
+        "new SettingsWindowController",
+        'settingsItem.Content = "设置"',
+        "ShowUpdates",
+        'Title = "Mihomo Meter"',
+    ),
+    APP_ROOT / "Presentation/SettingsWorkspaceView.xaml": (
+        'Content="关于与更新"',
+        'Tag="update"',
     ),
     APP_ROOT / "Infrastructure/WindowsAppServices.cs": (
         "controllerHttpClient",
