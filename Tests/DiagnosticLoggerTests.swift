@@ -41,6 +41,24 @@ final class DiagnosticLoggerTests: XCTestCase {
       )
     )
     await logger.record(
+      .sharedCoreTrafficRoute(
+        SharedCoreTrafficRouteObservation(
+          format: .byteCount,
+          source: .sharedPrimary,
+          status: .matched
+        )
+      )
+    )
+    await logger.record(
+      .sharedCoreTrafficRoute(
+        SharedCoreTrafficRouteObservation(
+          format: .rate,
+          source: .nativeFallback,
+          status: .abiMismatch
+        )
+      )
+    )
+    await logger.record(
       .sharedCoreTrafficShadow(
         SharedCoreTrafficShadowObservation(
           format: .compactRate,
@@ -120,6 +138,18 @@ final class DiagnosticLoggerTests: XCTestCase {
     XCTAssertTrue(
       contents.contains(
         "event=shared_core.traffic_shadow format=compact_rate result=mismatch"
+      )
+    )
+    XCTAssertTrue(
+      contents.contains(
+        "event=shared_core.traffic_route format=byte_count "
+          + "result=shared_primary status=matched"
+      )
+    )
+    XCTAssertTrue(
+      contents.contains(
+        "event=shared_core.traffic_route format=rate "
+          + "result=native_fallback status=abi_mismatch"
       )
     )
     XCTAssertTrue(contents.contains("signing=adhoc"))

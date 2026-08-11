@@ -80,6 +80,16 @@ internal static class StartupConsoleReporter
         }
     }
 
+    public static void TrafficRoute(string format, string result, string status)
+    {
+        if (_enabled)
+        {
+            Console.WriteLine(
+                $"WINDOWS_DIAGNOSTIC event=shared_core.traffic_route "
+                + $"format={format} result={result} status={status}");
+        }
+    }
+
     [DllImport("kernel32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool AttachConsole(uint processId);

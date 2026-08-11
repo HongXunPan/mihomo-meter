@@ -2,12 +2,20 @@ using MihomoMeter.Windows.Core.Application;
 
 namespace MihomoMeter.Windows.App.Diagnostics;
 
-internal static class SharedCoreTrafficShadowReporter
+internal static class SharedCoreTrafficDiagnosticReporter
 {
-    public static void Report(SharedCoreTrafficShadowObservation observation)
+    public static void ReportShadow(SharedCoreTrafficShadowObservation observation)
     {
         StartupConsoleReporter.TrafficShadow(
             FormatText(observation.Format),
+            StatusText(observation.Status));
+    }
+
+    public static void ReportRoute(SharedCoreTrafficRouteObservation observation)
+    {
+        StartupConsoleReporter.TrafficRoute(
+            FormatText(observation.Format),
+            SourceText(observation.Source),
             StatusText(observation.Status));
     }
 
@@ -18,6 +26,16 @@ internal static class SharedCoreTrafficShadowReporter
             SharedCoreTrafficFormat.ByteCount => "byte_count",
             SharedCoreTrafficFormat.Rate => "rate",
             SharedCoreTrafficFormat.CompactRate => "compact_rate",
+            _ => "unknown",
+        };
+    }
+
+    private static string SourceText(SharedCoreTrafficRouteSource source)
+    {
+        return source switch
+        {
+            SharedCoreTrafficRouteSource.SharedPrimary => "shared_primary",
+            SharedCoreTrafficRouteSource.NativeFallback => "native_fallback",
             _ => "unknown",
         };
     }

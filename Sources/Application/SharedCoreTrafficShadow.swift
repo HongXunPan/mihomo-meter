@@ -20,16 +20,19 @@ enum SharedCoreTrafficShadow {
   static func observe(
     bytes: UInt64,
     nativeText: String,
-    format: SharedCoreTrafficFormat
+    format: SharedCoreTrafficFormat,
+    scaleTraffic: (UInt64) throws -> SharedTrafficScale =
+      MihomoMeterSharedCoreAdapter.scaleTraffic(bytes:)
   ) -> String {
-    let status = SharedCoreTrafficShadowComparator.compare(
+    let result = SharedCoreTrafficRouter.route(
       bytes: bytes,
       nativeText: nativeText,
-      format: format
+      format: format,
+      scaleTraffic: scaleTraffic
     )
     let observation = SharedCoreTrafficShadowObservation(
       format: format,
-      status: status
+      status: result.status
     )
     let reporter = stateLock.withLock { state -> Reporter? in
       guard let reporter = state.reporter,
