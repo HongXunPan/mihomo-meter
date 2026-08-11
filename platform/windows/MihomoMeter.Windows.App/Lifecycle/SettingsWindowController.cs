@@ -1,6 +1,7 @@
 using Microsoft.UI;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
+using MihomoMeter.Windows.App.Interop;
 using MihomoMeter.Windows.App.Presentation;
 using Windows.Graphics;
 
@@ -12,6 +13,7 @@ internal sealed class SettingsWindowController : IDisposable
     private readonly WindowsUpdateWorkspaceViewModel _updateViewModel;
     private Window? _window;
     private SettingsWorkspaceView? _view;
+    private nint _windowHandle;
     private bool _disposed;
 
     public SettingsWindowController(
@@ -26,14 +28,14 @@ internal sealed class SettingsWindowController : IDisposable
     {
         EnsureWindow();
         _view?.ShowConnectionSettings();
-        _window?.Activate();
+        ActivateWindow();
     }
 
     public void ShowUpdates()
     {
         EnsureWindow();
         _view?.ShowUpdates();
-        _window?.Activate();
+        ActivateWindow();
     }
 
     public void Dispose()
@@ -47,6 +49,7 @@ internal sealed class SettingsWindowController : IDisposable
         var window = _window;
         _window = null;
         _view = null;
+        _windowHandle = nint.Zero;
         window?.Close();
     }
 
@@ -69,6 +72,22 @@ internal sealed class SettingsWindowController : IDisposable
         AppWindow.GetFromWindowId(windowId)?.Resize(new SizeInt32(780, 620));
         _view = view;
         _window = window;
+        _windowHandle = windowHandle;
+    }
+
+    private void ActivateWindow()
+    {
+        var window = _window;
+        if (window is null)
+        {
+            return;
+        }
+
+        window.Activate();
+        if (_windowHandle != nint.Zero)
+        {
+            ShellNativeMethods.SetForegroundWindow(_windowHandle);
+        }
     }
 
     private void Window_Closed(object sender, WindowEventArgs args)
@@ -80,5 +99,6 @@ internal sealed class SettingsWindowController : IDisposable
 
         _view = null;
         _window = null;
+        _windowHandle = nint.Zero;
     }
 }
