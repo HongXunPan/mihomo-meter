@@ -23,7 +23,7 @@ REQUIRED_MARKERS = {
     "Config.xcconfig": (
         "MIHOMO_METER_SHARED_CORE_TARGET[arch=arm64] = aarch64-apple-darwin",
         "MIHOMO_METER_SHARED_CORE_TARGET[arch=x86_64] = x86_64-apple-darwin",
-        "-lmihomo_meter_shared_core",
+        'OTHER_LDFLAGS = $(inherited) "$(SRCROOT)/.build/shared-core/$(MIHOMO_METER_SHARED_CORE_TARGET)/release/libmihomo_meter_shared_core.a"',
     ),
     "MihomoMeter.xcodeproj/project.pbxproj": (
         "MihomoMeterSharedCoreAdapter.swift in Sources",
@@ -174,6 +174,9 @@ REQUIRED_MARKERS = {
     "scripts/test_shared_core_macos.sh": (
         'source "${script_directory}/shared_core_macos_toolchain.sh"',
         'fixture_path="${project_root}/SharedCore/TestVectors/traffic_scale.json"',
+        '"${library_path}"',
+        'probe_linkage="$(/usr/bin/otool -L "${probe_path}")"',
+        "macOS 共享核心探针不得动态依赖 Rust dylib",
         '"${project_root}/Sources/Domain/SharedCoreRuntimeStatus.swift"',
         '"${project_root}/Sources/Domain/SharedCoreTrafficShadowObservation.swift"',
         '"${project_root}/SharedCore/Adapters/Swift/SharedCoreTrafficDisplayFormatter.swift"',
@@ -191,6 +194,8 @@ REQUIRED_MARKERS = {
     ),
     "scripts/build-debug.sh": (
         'scripts/build_shared_core_macos.sh --architectures "$(uname -m)"',
+        "verify_shared_core_static_link",
+        "MihomoMeter.debug.dylib",
     ),
     "scripts/build-release-dmg.sh": (
         "scripts/build_shared_core_macos.sh",
@@ -231,6 +236,8 @@ REQUIRED_MARKERS = {
         "按“格式类型 + 粗粒度状态”在单次进程生命周期内去重",
         "正常时三类格式各记录一次 `matched`",
         "跨平台共享核心P1.2b运行态验收指南.md",
+        "显式链接对应 `.a` 归档",
+        "不得通过 `-l` 搜索选择同名 dylib",
         "P1.2b 不提供运行时切换开关",
     ),
     "docs/跨平台共享核心P1.2b运行态验收指南.md": (
@@ -239,5 +246,15 @@ REQUIRED_MARKERS = {
         "不得把完整诊断日志、Controller Secret、订阅地址、节点、路径、连接目标或真实响应写入验收记录",
         "缺少任一正向事件属于证据不完整",
         "立即停止 P1.3",
+    ),
+}
+
+FORBIDDEN_MARKERS = {
+    "Config.xcconfig": (
+        'LIBRARY_SEARCH_PATHS = $(inherited) "$(SRCROOT)/.build/shared-core/',
+        "-lmihomo_meter_shared_core",
+    ),
+    "scripts/test_shared_core_macos.sh": (
+        "-lmihomo_meter_shared_core",
     ),
 }

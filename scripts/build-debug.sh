@@ -70,6 +70,29 @@ EOF
   fi
 }
 
+verify_shared_core_static_link() {
+  local target_app_path="$1"
+  local executable_directory="${target_app_path}/Contents/MacOS"
+  local binary_path
+  local linkage_output
+  local binary_paths=("${executable_directory}/MihomoMeter")
+
+  if [[ -f "${executable_directory}/MihomoMeter.debug.dylib" ]]; then
+    binary_paths+=("${executable_directory}/MihomoMeter.debug.dylib")
+  fi
+
+  for binary_path in "${binary_paths[@]}"; do
+    if ! linkage_output="$(/usr/bin/otool -L "${binary_path}" 2>&1)"; then
+      echo "无法读取 Debug 应用链接信息：${linkage_output}" >&2
+      return 1
+    fi
+    if grep -Fq "libmihomo_meter_shared_core.dylib" <<<"${linkage_output}"; then
+      echo "Debug 应用错误地动态依赖 Rust 共享核心：${binary_path}" >&2
+      return 1
+    fi
+  done
+}
+
 run_after_build=0
 case "${1:-}" in
   "")
@@ -176,6 +199,9 @@ fi
 rm -f "${build_log_path}"
 
 if ! verify_app_entitlements "${app_path}"; then
+  exit 1
+fi
+if ! verify_shared_core_static_link "${app_path}"; then
   exit 1
 fi
 
