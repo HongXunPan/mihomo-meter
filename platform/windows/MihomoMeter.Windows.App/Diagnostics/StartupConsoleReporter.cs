@@ -70,6 +70,16 @@ internal static class StartupConsoleReporter
             + $"type={exceptionType} hresult=0x{unchecked((uint)exception.HResult):X8}");
     }
 
+    public static void TrafficShadow(string format, string result)
+    {
+        if (_enabled)
+        {
+            Console.WriteLine(
+                $"WINDOWS_DIAGNOSTIC event=shared_core.traffic_shadow "
+                + $"format={format} result={result}");
+        }
+    }
+
     [DllImport("kernel32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool AttachConsole(uint processId);

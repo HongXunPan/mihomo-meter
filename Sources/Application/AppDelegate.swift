@@ -40,6 +40,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       return
     }
 
+    SharedCoreTrafficShadow.configure(
+      reporter: SharedCoreTrafficShadowDiagnosticReporter.report
+    )
     let sharedCoreRuntimeStatus = SharedCoreRuntimeProbe.run()
     let trafficLedger = SQLiteTrafficLedger(
       databaseURL: TrafficLedgerLocation.defaultDatabaseURL()

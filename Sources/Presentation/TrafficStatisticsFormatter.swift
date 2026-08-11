@@ -4,6 +4,15 @@ enum TrafficStatisticsFormatter {
   private static let units = ["B", "KB", "MB", "GB", "TB"]
 
   static func bytes(_ value: UInt64) -> String {
+    let nativeText = nativeBytes(value)
+    return SharedCoreTrafficShadow.observe(
+      bytes: value,
+      nativeText: nativeText,
+      format: .byteCount
+    )
+  }
+
+  private static func nativeBytes(_ value: UInt64) -> String {
     guard value >= 1_000 else {
       return "\(value) B"
     }

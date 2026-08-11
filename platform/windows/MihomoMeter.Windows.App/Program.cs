@@ -46,6 +46,8 @@ internal static class Program
             WinRT.ComWrappersSupport.InitializeComWrappers();
             StartupConsoleReporter.Stage("single_instance_primary_ready");
             ReportSharedCoreRuntimeStatus();
+            SharedCoreTrafficShadow.ConfigureReporter(
+                SharedCoreTrafficShadowReporter.Report);
             var previousSynchronizationContext = SynchronizationContext.Current;
             try
             {

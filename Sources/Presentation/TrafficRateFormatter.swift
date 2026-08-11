@@ -17,6 +17,24 @@ enum TrafficRateFormatter {
   }
 
   static func compactString(from bytesPerSecond: UInt64) -> String {
+    let nativeText = nativeCompactString(from: bytesPerSecond)
+    return SharedCoreTrafficShadow.observe(
+      bytes: bytesPerSecond,
+      nativeText: nativeText,
+      format: .compactRate
+    )
+  }
+
+  static func string(from bytesPerSecond: UInt64) -> String {
+    let nativeText = nativeString(from: bytesPerSecond)
+    return SharedCoreTrafficShadow.observe(
+      bytes: bytesPerSecond,
+      nativeText: nativeText,
+      format: .rate
+    )
+  }
+
+  private static func nativeCompactString(from bytesPerSecond: UInt64) -> String {
     guard bytesPerSecond >= 1_000 else {
       return "\(bytesPerSecond)B/s"
     }
@@ -25,7 +43,7 @@ enum TrafficRateFormatter {
     return "\(formattedNumber(from: scaled.value))\(compactUnits[scaled.unitIndex])"
   }
 
-  static func string(from bytesPerSecond: UInt64) -> String {
+  private static func nativeString(from bytesPerSecond: UInt64) -> String {
     guard bytesPerSecond >= 1_000 else {
       return "\(bytesPerSecond) B/s"
     }

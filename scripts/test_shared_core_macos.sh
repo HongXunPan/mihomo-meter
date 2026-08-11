@@ -65,6 +65,10 @@ xcrun swiftc \
   -L "${library_directory}" \
   -lmihomo_meter_shared_core \
   "${project_root}/SharedCore/Adapters/Swift/MihomoMeterSharedCoreAdapter.swift" \
+  "${project_root}/Sources/Domain/SharedCoreTrafficShadowObservation.swift" \
+  "${project_root}/SharedCore/Adapters/Swift/SharedCoreTrafficDisplayFormatter.swift" \
+  "${project_root}/Sources/Application/SharedCoreTrafficShadowComparator.swift" \
+  "${project_root}/Sources/Application/SharedCoreTrafficShadow.swift" \
   "${project_root}/Sources/Domain/SharedCoreRuntimeStatus.swift" \
   "${project_root}/Sources/Application/SharedCoreRuntimeProbe.swift" \
   "${project_root}/Sources/Domain/TrafficRate.swift" \

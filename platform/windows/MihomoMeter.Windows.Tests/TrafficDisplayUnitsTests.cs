@@ -19,4 +19,30 @@ public sealed class TrafficDisplayUnitsTests
     {
         Assert.AreEqual(expected, TrafficDisplayUnits.ByteCount(bytes));
     }
+
+    [TestMethod]
+    [DataRow(0UL, "0 B/s")]
+    [DataRow(1_500UL, "1.50 KB/s")]
+    [DataRow(10_000UL, "10.0 KB/s")]
+    [DataRow(100_000UL, "100 KB/s")]
+    public void RateUsesDecimalUnitsAndMacPrecision(ulong bytes, string expected)
+    {
+        Assert.AreEqual(expected, TrafficDisplayUnits.Rate(bytes));
+    }
+
+    [TestMethod]
+    [DataRow(0UL, "0B/s")]
+    [DataRow(1_500UL, "1.50K/s")]
+    [DataRow(10_000UL, "10.0K/s")]
+    [DataRow(100_000UL, "100K/s")]
+    public void CompactRateUsesShortUnitsAndMacPrecision(ulong bytes, string expected)
+    {
+        Assert.AreEqual(expected, TrafficDisplayUnits.CompactRate(bytes));
+    }
+
+    [TestMethod]
+    public void CompactRateUsesPlaceholderForMissingValue()
+    {
+        Assert.AreEqual("--", TrafficDisplayUnits.CompactRate(null));
+    }
 }

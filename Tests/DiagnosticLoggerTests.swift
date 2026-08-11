@@ -32,6 +32,14 @@ final class DiagnosticLoggerTests: XCTestCase {
       )
     )
     await logger.record(.sharedCoreRuntimeProbe(.abiMismatch))
+    await logger.record(
+      .sharedCoreTrafficShadow(
+        SharedCoreTrafficShadowObservation(
+          format: .compactRate,
+          status: .mismatch
+        )
+      )
+    )
     await logger.record(.keychainOperationStarted(keychainContext))
     await logger.record(
       .keychainOperationFinished(
@@ -96,6 +104,11 @@ final class DiagnosticLoggerTests: XCTestCase {
 
     XCTAssertTrue(contents.contains("event=application.launched"))
     XCTAssertTrue(contents.contains("event=shared_core.runtime_probe result=abi_mismatch"))
+    XCTAssertTrue(
+      contents.contains(
+        "event=shared_core.traffic_shadow format=compact_rate result=mismatch"
+      )
+    )
     XCTAssertTrue(contents.contains("signing=adhoc"))
     XCTAssertTrue(contents.contains("team_id=none"))
     XCTAssertTrue(contents.contains("operation=load"))
@@ -121,6 +134,8 @@ final class DiagnosticLoggerTests: XCTestCase {
     XCTAssertFalse(contents.contains("abcdef0123456789abcdef0123456789"))
     XCTAssertFalse(contents.contains(NSHomeDirectory()))
     XCTAssertFalse(contents.contains("synthetic-secret"))
+    XCTAssertFalse(contents.contains("native_text="))
+    XCTAssertFalse(contents.contains("shared_text="))
   }
 
   func testRotatesLogBeforeExceedingSizeBudget() async throws {
