@@ -203,11 +203,11 @@ public sealed partial class MainWindow : Window
     {
         if (args.IsSettingsSelected)
         {
-            _settingsWindow.ShowConnectionSettings();
             if (_selectedWorkspaceItem is not null)
             {
                 WorkspaceNavigation.SelectedItem = _selectedWorkspaceItem;
             }
+            _settingsWindow.ShowConnectionSettings();
             return;
         }
 

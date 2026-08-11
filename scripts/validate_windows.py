@@ -36,6 +36,9 @@ from windows_validation_notification_area_contract import (
 )
 from windows_validation_distribution_contract import validate_distribution_contract
 from windows_validation_release_contract import validate_release_contract
+from windows_validation_window_activation_contract import (
+    validate_window_activation_contract,
+)
 
 
 def configure_console_encoding() -> None:
@@ -276,6 +279,7 @@ def main() -> int:
         validate_xaml()
         validate_files_and_code(errors)
         validate_notification_area_command_ids(errors)
+        validate_window_activation_contract(errors)
         validate_distribution_contract(errors)
         validate_release_contract(errors)
     except (OSError, ET.ParseError, json.JSONDecodeError) as exception:

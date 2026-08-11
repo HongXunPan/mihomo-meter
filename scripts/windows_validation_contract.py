@@ -57,6 +57,7 @@ REQUIRED_REPOSITORY_FILES = (
     "scripts/validate_windows.ps1",
     "scripts/windows_validation_contract.py",
     "scripts/windows_validation_notification_area_contract.py",
+    "scripts/windows_validation_window_activation_contract.py",
 ) + QUOTA_REQUIRED_REPOSITORY_FILES
 REQUIRED_REPOSITORY_FILES += CONNECTION_REQUIRED_REPOSITORY_FILES
 REQUIRED_REPOSITORY_FILES += DISTRIBUTION_REQUIRED_REPOSITORY_FILES
