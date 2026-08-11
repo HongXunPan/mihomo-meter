@@ -34,6 +34,7 @@ REQUIRED_FILES = (
     "Sources/Presentation/TrafficStatisticsFormatter.swift",
     "Tests/SharedCoreRuntimeProbeTests.swift",
     "Tests/SharedCoreTrafficShadowComparatorTests.swift",
+    "Tests/DiagnosticLoggerTests.swift",
     "platform/windows/MihomoMeter.Windows.Core/Application/MihomoMeterSharedCore.cs",
     "platform/windows/MihomoMeter.Windows.Core/Application/SharedCoreRuntimeProbe.cs",
     "platform/windows/MihomoMeter.Windows.Core/Application/SharedCoreTrafficDisplayFormatter.cs",
@@ -57,6 +58,7 @@ REQUIRED_FILES = (
     "scripts/windows_validation_shared_core_contract.py",
     "CONTRIBUTING.md",
     "docs/架构概览.md",
+    "docs/跨平台共享核心P1.2b运行态验收指南.md",
     "docs/跨平台共享核心技术方案.md",
 )
 

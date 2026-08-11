@@ -3,11 +3,17 @@ import os
 enum SharedCoreTrafficShadow {
   typealias Reporter = @Sendable (SharedCoreTrafficShadowObservation) -> Void
 
-  private static let reporterLock = OSAllocatedUnfairLock<Reporter?>(initialState: nil)
+  private struct State {
+    var reporter: Reporter?
+    var observationGate = SharedCoreTrafficShadowObservationGate()
+  }
+
+  private static let stateLock = OSAllocatedUnfairLock(initialState: State())
 
   static func configure(reporter: Reporter?) {
-    reporterLock.withLock { currentReporter in
-      currentReporter = reporter
+    stateLock.withLock { state in
+      state.reporter = reporter
+      state.observationGate.reset()
     }
   }
 
@@ -21,15 +27,18 @@ enum SharedCoreTrafficShadow {
       nativeText: nativeText,
       format: format
     )
-    guard status != .matched else {
-      return nativeText
-    }
-
     let observation = SharedCoreTrafficShadowObservation(
       format: format,
       status: status
     )
-    let reporter = reporterLock.withLock { $0 }
+    let reporter = stateLock.withLock { state -> Reporter? in
+      guard let reporter = state.reporter,
+        state.observationGate.shouldReport(observation)
+      else {
+        return nil
+      }
+      return reporter
+    }
     reporter?(observation)
     return nativeText
   }

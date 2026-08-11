@@ -96,6 +96,58 @@ public sealed class SharedCoreTrafficShadowComparatorTests
     }
 
     [TestMethod]
+    public void ObservationGateReportsEachFormatAndStatusOnce()
+    {
+        var gate = new SharedCoreTrafficShadowObservationGate();
+        var byteCountMatched = new SharedCoreTrafficShadowObservation(
+            SharedCoreTrafficFormat.ByteCount,
+            SharedCoreTrafficShadowStatus.Matched);
+
+        Assert.IsTrue(gate.ShouldReport(byteCountMatched));
+        Assert.IsFalse(gate.ShouldReport(byteCountMatched));
+        Assert.IsTrue(gate.ShouldReport(new SharedCoreTrafficShadowObservation(
+            SharedCoreTrafficFormat.ByteCount,
+            SharedCoreTrafficShadowStatus.Mismatch)));
+        Assert.IsTrue(gate.ShouldReport(new SharedCoreTrafficShadowObservation(
+            SharedCoreTrafficFormat.Rate,
+            SharedCoreTrafficShadowStatus.Matched)));
+
+        gate.Reset();
+        Assert.IsTrue(gate.ShouldReport(byteCountMatched));
+    }
+
+    [TestMethod]
+    public void ShadowReportsMatchedObservationOnce()
+    {
+        var observations = new List<SharedCoreTrafficShadowObservation>();
+        SharedCoreTrafficShadow.ConfigureReporter(observations.Add);
+        try
+        {
+            _ = SharedCoreTrafficShadow.Observe(
+                1_500,
+                "1.50 KB",
+                SharedCoreTrafficFormat.ByteCount);
+            _ = SharedCoreTrafficShadow.Observe(
+                1_500,
+                "1.50 KB",
+                SharedCoreTrafficFormat.ByteCount);
+
+            CollectionAssert.AreEqual(
+                new[]
+                {
+                    new SharedCoreTrafficShadowObservation(
+                        SharedCoreTrafficFormat.ByteCount,
+                        SharedCoreTrafficShadowStatus.Matched),
+                },
+                observations);
+        }
+        finally
+        {
+            SharedCoreTrafficShadow.ConfigureReporter(null);
+        }
+    }
+
+    [TestMethod]
     public void ShadowReturnsNativeTextWhenDiagnosticReporterFails()
     {
         SharedCoreTrafficShadow.ConfigureReporter(_ => throw new InvalidOperationException(

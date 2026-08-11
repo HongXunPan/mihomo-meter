@@ -46,8 +46,7 @@ SHARED_CORE_REQUIRED_CODE_MARKERS = {
         'event=shared_core.traffic_shadow',
     ),
     APP_ROOT / "Diagnostics/SharedCoreTrafficShadowReporter.cs": (
-        "HashSet<SharedCoreTrafficShadowObservation>",
-        "ReportedObservations.Add(observation)",
+        'SharedCoreTrafficShadowStatus.Matched => "matched"',
         "StartupConsoleReporter.TrafficShadow(",
     ),
     APP_ROOT / "Presentation/NotificationAreaRealtimeController.cs": (
@@ -78,6 +77,9 @@ SHARED_CORE_REQUIRED_CODE_MARKERS = {
     ),
     CORE_ROOT / "Application/SharedCoreTrafficShadow.cs": (
         "public static void ConfigureReporter(",
+        "SharedCoreTrafficShadowObservationGate",
+        "ObservationGate.Reset()",
+        "ObservationGate.ShouldReport(observation)",
         "SharedCoreTrafficShadowComparator.Compare(",
         "影子诊断不得影响仍由原生算法决定的生产输出",
         "return nativeText;",
@@ -91,6 +93,8 @@ SHARED_CORE_REQUIRED_CODE_MARKERS = {
         "ComparatorMatchesEveryProductionFormat",
         "ComparatorStopsBeforeScalingForAbiMismatch",
         "ComparatorReportsMismatchWithoutReturningSharedText",
+        "ObservationGateReportsEachFormatAndStatusOnce",
+        "ShadowReportsMatchedObservationOnce",
         "ShadowReturnsNativeTextWhenDiagnosticReporterFails",
     ),
     TEST_ROOT / "MihomoMeterSharedCoreTests.cs": (

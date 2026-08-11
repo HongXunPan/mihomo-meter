@@ -21,17 +21,34 @@ public readonly record struct SharedCoreTrafficShadowObservation(
     SharedCoreTrafficFormat Format,
     SharedCoreTrafficShadowStatus Status);
 
+internal sealed class SharedCoreTrafficShadowObservationGate
+{
+    private readonly HashSet<SharedCoreTrafficShadowObservation> _reportedObservations = [];
+
+    public bool ShouldReport(SharedCoreTrafficShadowObservation observation)
+    {
+        return _reportedObservations.Add(observation);
+    }
+
+    public void Reset()
+    {
+        _reportedObservations.Clear();
+    }
+}
+
 public static class SharedCoreTrafficShadow
 {
-    private static readonly object ReporterLock = new();
+    private static readonly object StateLock = new();
+    private static readonly SharedCoreTrafficShadowObservationGate ObservationGate = new();
     private static Action<SharedCoreTrafficShadowObservation>? _reporter;
 
     public static void ConfigureReporter(
         Action<SharedCoreTrafficShadowObservation>? reporter)
     {
-        lock (ReporterLock)
+        lock (StateLock)
         {
             _reporter = reporter;
+            ObservationGate.Reset();
         }
     }
 
@@ -44,19 +61,17 @@ public static class SharedCoreTrafficShadow
             bytes,
             nativeText,
             format);
-        if (status == SharedCoreTrafficShadowStatus.Matched)
-        {
-            return nativeText;
-        }
-
+        var observation = new SharedCoreTrafficShadowObservation(format, status);
         Action<SharedCoreTrafficShadowObservation>? reporter;
-        lock (ReporterLock)
+        lock (StateLock)
         {
-            reporter = _reporter;
+            reporter = _reporter is not null && ObservationGate.ShouldReport(observation)
+                ? _reporter
+                : null;
         }
         try
         {
-            reporter?.Invoke(new SharedCoreTrafficShadowObservation(format, status));
+            reporter?.Invoke(observation);
         }
         catch
         {

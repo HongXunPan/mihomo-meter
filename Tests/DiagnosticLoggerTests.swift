@@ -35,6 +35,14 @@ final class DiagnosticLoggerTests: XCTestCase {
     await logger.record(
       .sharedCoreTrafficShadow(
         SharedCoreTrafficShadowObservation(
+          format: .byteCount,
+          status: .matched
+        )
+      )
+    )
+    await logger.record(
+      .sharedCoreTrafficShadow(
+        SharedCoreTrafficShadowObservation(
           format: .compactRate,
           status: .mismatch
         )
@@ -104,6 +112,11 @@ final class DiagnosticLoggerTests: XCTestCase {
 
     XCTAssertTrue(contents.contains("event=application.launched"))
     XCTAssertTrue(contents.contains("event=shared_core.runtime_probe result=abi_mismatch"))
+    XCTAssertTrue(
+      contents.contains(
+        "event=shared_core.traffic_shadow format=byte_count result=matched"
+      )
+    )
     XCTAssertTrue(
       contents.contains(
         "event=shared_core.traffic_shadow format=compact_rate result=mismatch"

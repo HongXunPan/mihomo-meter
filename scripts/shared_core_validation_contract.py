@@ -64,7 +64,9 @@ REQUIRED_MARKERS = {
     ),
     "Sources/Application/SharedCoreTrafficShadow.swift": (
         "SharedCoreTrafficShadowComparator.compare(",
-        "guard status != .matched else",
+        "SharedCoreTrafficShadowObservationGate()",
+        "state.observationGate.reset()",
+        "state.observationGate.shouldReport(observation)",
         "return nativeText",
     ),
     "Sources/Application/SharedCoreTrafficShadowComparator.swift": (
@@ -72,9 +74,12 @@ REQUIRED_MARKERS = {
         "return sharedText == nativeText ? .matched : .mismatch",
         "return .nativeCallFailed",
     ),
+    "Sources/Domain/SharedCoreTrafficShadowObservation.swift": (
+        "struct SharedCoreTrafficShadowObservationGate: Sendable",
+        "reportedObservations.insert(observation).inserted",
+        "reportedObservations.removeAll(keepingCapacity: true)",
+    ),
     "Sources/Infrastructure/Diagnostics/SharedCoreTrafficShadowDiagnosticReporter.swift": (
-        "Set<SharedCoreTrafficShadowObservation>()",
-        "observations.insert(observation).inserted",
         ".sharedCoreTrafficShadow(observation)",
     ),
     "Tests/SharedCoreRuntimeProbeTests.swift": (
@@ -86,6 +91,10 @@ REQUIRED_MARKERS = {
         "testComparatorMatchesAllProductionFormats",
         "testComparatorReportsMismatchWithoutChangingNativeText",
         "testComparatorMapsAdapterFailuresToCoarseStatuses",
+        "testObservationGateReportsEachFormatAndStatusOnce",
+    ),
+    "Tests/DiagnosticLoggerTests.swift": (
+        "event=shared_core.traffic_shadow format=byte_count result=matched",
     ),
     "platform/windows/MihomoMeter.Windows.Core/Application/MihomoMeterSharedCore.cs": (
         'EntryPoint = "mm_core_abi_version"',
@@ -105,8 +114,7 @@ REQUIRED_MARKERS = {
         '"shared_core_runtime_native_call_failed"',
     ),
     "platform/windows/MihomoMeter.Windows.App/Diagnostics/SharedCoreTrafficShadowReporter.cs": (
-        "HashSet<SharedCoreTrafficShadowObservation>",
-        "ReportedObservations.Add(observation)",
+        'SharedCoreTrafficShadowStatus.Matched => "matched"',
         "StartupConsoleReporter.TrafficShadow(",
     ),
     "platform/windows/MihomoMeter.Windows.App/Presentation/TrafficDisplayFormatter.cs": (
@@ -120,6 +128,9 @@ REQUIRED_MARKERS = {
         "public static string CompactRate(ulong? bytesPerSecond)",
     ),
     "platform/windows/MihomoMeter.Windows.Core/Application/SharedCoreTrafficShadow.cs": (
+        "SharedCoreTrafficShadowObservationGate",
+        "ObservationGate.Reset()",
+        "ObservationGate.ShouldReport(observation)",
         "SharedCoreTrafficShadowComparator.Compare(",
         "影子诊断不得影响仍由原生算法决定的生产输出",
         "return nativeText;",
@@ -127,6 +138,11 @@ REQUIRED_MARKERS = {
     "platform/windows/MihomoMeter.Windows.Tests/SharedCoreRuntimeProbeTests.cs": (
         "ProductionRuntimeProbeLoadsSharedCore",
         "RuntimeProbeContainsNativeLoadFailure",
+    ),
+    "platform/windows/MihomoMeter.Windows.Tests/SharedCoreTrafficShadowComparatorTests.cs": (
+        "ObservationGateReportsEachFormatAndStatusOnce",
+        "ShadowReportsMatchedObservationOnce",
+        "ShadowReturnsNativeTextWhenDiagnosticReporterFails",
     ),
     "platform/windows/MihomoMeter.Windows.App/MihomoMeter.Windows.App.csproj": (
         "<SharedCoreLibraryPath>",
@@ -203,6 +219,7 @@ REQUIRED_MARKERS = {
     "CONTRIBUTING.md": (
         "跨平台共享核心 P1.2b",
         "最终输出仍由原生算法决定",
+        "跨平台共享核心P1.2b运行态验收指南.md",
     ),
     "docs/架构概览.md": (
         "P1.2b 生产影子比较",
@@ -212,6 +229,15 @@ REQUIRED_MARKERS = {
         "状态：P1.2b 生产影子比较",
         "返回值始终是原生结果",
         "按“格式类型 + 粗粒度状态”在单次进程生命周期内去重",
+        "正常时三类格式各记录一次 `matched`",
+        "跨平台共享核心P1.2b运行态验收指南.md",
         "P1.2b 不提供运行时切换开关",
+    ),
+    "docs/跨平台共享核心P1.2b运行态验收指南.md": (
+        "状态：待双端实机执行",
+        "分别执行至少两次独立启动",
+        "不得把完整诊断日志、Controller Secret、订阅地址、节点、路径、连接目标或真实响应写入验收记录",
+        "缺少任一正向事件属于证据不完整",
+        "立即停止 P1.3",
     ),
 }
