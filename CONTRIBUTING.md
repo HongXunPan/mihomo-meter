@@ -29,7 +29,7 @@ Windows 工程需要 Windows 10 22H2 x64 或更高版本、.NET SDK 10.0.302、W
 
 ## 本地签名与诊断
 
-- 在仓库根目录创建被 Git 忽略的 `Config.local.xcconfig`，填写 `DEVELOPMENT_TEAM = 你的 Apple Developer Team ID`；Xcode 通过公共 `Config.xcconfig` 加载本机配置。
+- 在仓库根目录创建被 Git 忽略的 `Config.local.xcconfig`，填写 `DEVELOPMENT_TEAM = 你的 Apple Developer Team ID`；应用与测试 Target 均通过公共 `Config.xcconfig` 加载共享核心和本机配置。
 - 不要把个人 Team ID 写入或提交到 `MihomoMeter.xcodeproj/project.pbxproj`，其他用户级 Xcode 配置同样不得提交。
 - `MihomoMeter` Target 不启用 Keychain Sharing，也不得添加跨应用共享组；Controller Secret 只保存到当前用户的登录钥匙串。
 - 不要将 macOS 签名身份强制设为 `-`；传统钥匙串根据应用代码签名控制访问，切换开发团队或签名身份后可能需要授权或重新填写一次 Secret。

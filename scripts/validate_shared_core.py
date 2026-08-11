@@ -256,6 +256,12 @@ def main() -> int:
 
     validate_traffic_vectors(failures)
 
+    xcode_project = ROOT / "MihomoMeter.xcodeproj/project.pbxproj"
+    if xcode_project.is_file() and xcode_project.read_text(encoding="utf-8").count(
+        "baseConfigurationReference = AM0000000000000000000101"
+    ) < 4:
+        failures.append("应用与测试 Target 必须同时加载共享核心公共配置。")
+
     cargo_manifest = ROOT / "SharedCore/Cargo.toml"
     if cargo_manifest.is_file() and "[dependencies]" in cargo_manifest.read_text(
         encoding="utf-8"

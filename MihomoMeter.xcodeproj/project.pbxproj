@@ -1537,6 +1537,7 @@
 		};
 		A10000000000000000000505 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = AM0000000000000000000101 /* Config.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
@@ -1557,6 +1558,7 @@
 		};
 		A10000000000000000000506 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = AM0000000000000000000101 /* Config.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
