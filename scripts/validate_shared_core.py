@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""校验跨平台共享核心 P1.2b 的静态工程契约。"""
+"""校验跨平台共享核心当前阶段的静态工程契约。"""
 
 from __future__ import annotations
 
@@ -10,6 +10,7 @@ from shared_core_validation_acceptance_contract import (
     validate_shared_core_acceptance,
 )
 from shared_core_validation_contract import FORBIDDEN_MARKERS, REQUIRED_MARKERS
+from shared_core_validation_p1_3_contract import validate_shared_core_p1_3
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -163,6 +164,7 @@ def main() -> int:
 
     validate_traffic_vectors(failures)
     validate_shared_core_acceptance(failures)
+    validate_shared_core_p1_3(failures)
 
     xcode_project = ROOT / "MihomoMeter.xcodeproj/project.pbxproj"
     if xcode_project.is_file() and xcode_project.read_text(encoding="utf-8").count(
@@ -187,7 +189,7 @@ def main() -> int:
             print(f"错误：{failure}")
         return 1
 
-    print("跨平台共享核心 P1.2b 静态契约检查通过。")
+    print("跨平台共享核心静态契约检查通过。")
     return 0
 
 
