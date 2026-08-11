@@ -3,6 +3,5 @@
 
 MIHOMO_METER_SHARED_CORE_TARGET[arch=arm64] = aarch64-apple-darwin
 MIHOMO_METER_SHARED_CORE_TARGET[arch=x86_64] = x86_64-apple-darwin
-LIBRARY_SEARCH_PATHS = $(inherited) "$(SRCROOT)/.build/shared-core/$(MIHOMO_METER_SHARED_CORE_TARGET)/release"
 SWIFT_INCLUDE_PATHS = $(inherited) "$(SRCROOT)/SharedCore/include"
-OTHER_LDFLAGS = $(inherited) -lmihomo_meter_shared_core
+OTHER_LDFLAGS = $(inherited) "$(SRCROOT)/.build/shared-core/$(MIHOMO_METER_SHARED_CORE_TARGET)/release/libmihomo_meter_shared_core.a"

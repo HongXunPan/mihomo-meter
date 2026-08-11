@@ -20,8 +20,7 @@ require_shared_core_macos_target "${rust_target}"
 export CARGO_TARGET_DIR="${project_root}/.build/shared-core"
 manifest_path="${project_root}/SharedCore/Cargo.toml"
 fixture_path="${project_root}/SharedCore/TestVectors/traffic_scale.json"
-library_directory="${CARGO_TARGET_DIR}/${rust_target}/release"
-library_path="${library_directory}/libmihomo_meter_shared_core.a"
+library_path="${CARGO_TARGET_DIR}/${rust_target}/release/libmihomo_meter_shared_core.a"
 probe_directory="${project_root}/.codex-tmp/shared-core-probe"
 probe_path="${probe_directory}/mihomo-meter-shared-core-probe"
 module_cache_path="${probe_directory}/module-cache"
@@ -62,8 +61,6 @@ mkdir -p "${probe_directory}"
 xcrun swiftc \
   -module-cache-path "${module_cache_path}" \
   -I "${project_root}/SharedCore/include" \
-  -L "${library_directory}" \
-  -lmihomo_meter_shared_core \
   "${project_root}/SharedCore/Adapters/Swift/MihomoMeterSharedCoreAdapter.swift" \
   "${project_root}/Sources/Domain/SharedCoreTrafficShadowObservation.swift" \
   "${project_root}/SharedCore/Adapters/Swift/SharedCoreTrafficDisplayFormatter.swift" \
@@ -75,6 +72,13 @@ xcrun swiftc \
   "${project_root}/Sources/Presentation/TrafficRateFormatter.swift" \
   "${project_root}/Sources/Presentation/TrafficStatisticsFormatter.swift" \
   "${project_root}/SharedCore/Adapters/Swift/Probe/main.swift" \
+  "${library_path}" \
   -o "${probe_path}"
+
+probe_linkage="$(/usr/bin/otool -L "${probe_path}")"
+if grep -Fq "libmihomo_meter_shared_core.dylib" <<<"${probe_linkage}"; then
+  echo "macOS 共享核心探针不得动态依赖 Rust dylib。" >&2
+  exit 1
+fi
 
 "${probe_path}" "${fixture_path}"

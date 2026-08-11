@@ -6,7 +6,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from shared_core_validation_contract import REQUIRED_MARKERS
+from shared_core_validation_contract import FORBIDDEN_MARKERS, REQUIRED_MARKERS
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -148,6 +148,15 @@ def main() -> int:
         for marker in markers:
             if marker not in content:
                 failures.append(f"{relative_path} 缺少标记：{marker}")
+
+    for relative_path, markers in FORBIDDEN_MARKERS.items():
+        path = ROOT / relative_path
+        if not path.is_file():
+            continue
+        content = path.read_text(encoding="utf-8")
+        for marker in markers:
+            if marker in content:
+                failures.append(f"{relative_path} 包含禁止标记：{marker}")
 
     validate_traffic_vectors(failures)
 
