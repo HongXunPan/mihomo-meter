@@ -27,7 +27,7 @@ enum TrafficRateFormatter {
 
   static func string(from bytesPerSecond: UInt64) -> String {
     let nativeText = nativeString(from: bytesPerSecond)
-    return SharedCoreTrafficShadow.observe(
+    return SharedCoreTrafficRoute.resolve(
       bytes: bytesPerSecond,
       nativeText: nativeText,
       format: .rate
