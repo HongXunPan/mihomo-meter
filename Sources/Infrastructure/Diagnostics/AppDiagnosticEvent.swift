@@ -111,6 +111,7 @@ struct AppCodeSigningSummary: Equatable, Sendable {
 enum AppDiagnosticEvent: Equatable, Sendable {
   case applicationLaunched(AppCodeSigningSummary)
   case sharedCoreRuntimeProbe(SharedCoreRuntimeStatus)
+  case sharedCoreTrafficShadow(SharedCoreTrafficShadowObservation)
   case keychainOperationStarted(KeychainDiagnosticContext)
   case keychainOperationFinished(
     KeychainDiagnosticContext,
@@ -158,6 +159,12 @@ enum AppDiagnosticEvent: Equatable, Sendable {
       ].joined(separator: " ")
     case .sharedCoreRuntimeProbe(let status):
       return "event=shared_core.runtime_probe result=\(status.rawValue)"
+    case .sharedCoreTrafficShadow(let observation):
+      return [
+        "event=shared_core.traffic_shadow",
+        "format=\(observation.format.rawValue)",
+        "result=\(observation.status.rawValue)",
+      ].joined(separator: " ")
     case .keychainOperationStarted(let context):
       return "event=keychain.operation.started \(context.logFields)"
     case .keychainOperationFinished(let context, let outcome, let elapsedMilliseconds):

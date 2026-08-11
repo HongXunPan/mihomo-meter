@@ -260,6 +260,12 @@
 		D35100000000000000000201 /* SharedCoreRuntimeStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35100000000000000000101 /* SharedCoreRuntimeStatus.swift */; };
 		D35200000000000000000201 /* SharedCoreRuntimeProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35200000000000000000101 /* SharedCoreRuntimeProbe.swift */; };
 		D35300000000000000000201 /* SharedCoreRuntimeProbeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35300000000000000000101 /* SharedCoreRuntimeProbeTests.swift */; };
+		D35400000000000000000201 /* SharedCoreTrafficDisplayFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35400000000000000000101 /* SharedCoreTrafficDisplayFormatter.swift */; };
+		D35500000000000000000201 /* SharedCoreTrafficShadowObservation.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35500000000000000000101 /* SharedCoreTrafficShadowObservation.swift */; };
+		D35600000000000000000201 /* SharedCoreTrafficShadowComparator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35600000000000000000101 /* SharedCoreTrafficShadowComparator.swift */; };
+		D35700000000000000000201 /* SharedCoreTrafficShadow.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35700000000000000000101 /* SharedCoreTrafficShadow.swift */; };
+		D35800000000000000000201 /* SharedCoreTrafficShadowDiagnosticReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35800000000000000000101 /* SharedCoreTrafficShadowDiagnosticReporter.swift */; };
+		D35900000000000000000201 /* SharedCoreTrafficShadowComparatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35900000000000000000101 /* SharedCoreTrafficShadowComparatorTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -529,6 +535,12 @@
 		D35100000000000000000101 /* SharedCoreRuntimeStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedCoreRuntimeStatus.swift; sourceTree = "<group>"; };
 		D35200000000000000000101 /* SharedCoreRuntimeProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedCoreRuntimeProbe.swift; sourceTree = "<group>"; };
 		D35300000000000000000101 /* SharedCoreRuntimeProbeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedCoreRuntimeProbeTests.swift; sourceTree = "<group>"; };
+		D35400000000000000000101 /* SharedCoreTrafficDisplayFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Adapters/Swift/SharedCoreTrafficDisplayFormatter.swift; sourceTree = "<group>"; };
+		D35500000000000000000101 /* SharedCoreTrafficShadowObservation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedCoreTrafficShadowObservation.swift; sourceTree = "<group>"; };
+		D35600000000000000000101 /* SharedCoreTrafficShadowComparator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedCoreTrafficShadowComparator.swift; sourceTree = "<group>"; };
+		D35700000000000000000101 /* SharedCoreTrafficShadow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedCoreTrafficShadow.swift; sourceTree = "<group>"; };
+		D35800000000000000000101 /* SharedCoreTrafficShadowDiagnosticReporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedCoreTrafficShadowDiagnosticReporter.swift; sourceTree = "<group>"; };
+		D35900000000000000000101 /* SharedCoreTrafficShadowComparatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedCoreTrafficShadowComparatorTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -630,6 +642,8 @@
 				BR0000000000000000000106 /* RuntimeQuotaTrackingController.swift */,
 				BR0000000000000000000102 /* RuntimeQuotaTrackingSnapshot.swift */,
 				D35200000000000000000101 /* SharedCoreRuntimeProbe.swift */,
+				D35700000000000000000101 /* SharedCoreTrafficShadow.swift */,
+				D35600000000000000000101 /* SharedCoreTrafficShadowComparator.swift */,
 				CC0000000000000000000104 /* SubscriptionQuotaDataController.swift */,
 				BC0000000000000000000101 /* TrafficLedgerStoring.swift */,
 				BC0000000000000000000102 /* TrafficStatisticsController.swift */,
@@ -668,6 +682,7 @@
 				CC0000000000000000000102 /* SubscriptionQuotaAnalysis.swift */,
 				BR0000000000000000000101 /* RuntimeQuotaCandidate.swift */,
 				D35100000000000000000101 /* SharedCoreRuntimeStatus.swift */,
+				D35500000000000000000101 /* SharedCoreTrafficShadowObservation.swift */,
 				A30000000000000000000101 /* TrafficMeasurement.swift */,
 				AC0000000000000000000101 /* TrafficMeasurementSession.swift */,
 				BC0000000000000000000104 /* TrafficIntervalInput.swift */,
@@ -783,6 +798,7 @@
 				A20000000000000000000105 /* FixtureLoader.swift */,
 				A20000000000000000000107 /* MihomoControllerModelsTests.swift */,
 				D35300000000000000000101 /* SharedCoreRuntimeProbeTests.swift */,
+				D35900000000000000000101 /* SharedCoreTrafficShadowComparatorTests.swift */,
 				BR0000000000000000000108 /* MihomoProxyProviderModelsTests.swift */,
 				BW0000000000000000000106 /* MihomoLocalProxyTests.swift */,
 				AD0000000000000000000102 /* MihomoMonitoringSessionTests.swift */,
@@ -852,6 +868,7 @@
 			isa = PBXGroup;
 			children = (
 				D35000000000000000000101 /* MihomoMeterSharedCoreAdapter.swift */,
+				D35400000000000000000101 /* SharedCoreTrafficDisplayFormatter.swift */,
 			);
 			path = SharedCore;
 			sourceTree = "<group>";
@@ -905,6 +922,7 @@
 				AA00000000000000000000101 /* AppDiagnosticLogger.swift */,
 				AA00000000000000000000104 /* ConnectionDiagnosticReason.swift */,
 				AA00000000000000000000105 /* ProfileQuotaDiagnosticEvent.swift */,
+				D35800000000000000000101 /* SharedCoreTrafficShadowDiagnosticReporter.swift */,
 			);
 			path = Diagnostics;
 			sourceTree = "<group>";
@@ -1082,6 +1100,7 @@
 				BW0000000000000000000201 /* ActiveQuotaQueryResult.swift in Sources */,
 				A10000000000000000000202 /* AppDelegate.swift in Sources */,
 				D35000000000000000000201 /* MihomoMeterSharedCoreAdapter.swift in Sources */,
+				D35400000000000000000201 /* SharedCoreTrafficDisplayFormatter.swift in Sources */,
 				C10000000000000000000201 /* AppPresentationCoordinator.swift in Sources */,
 				AA00000000000000000000203 /* AppDiagnosticEvent.swift in Sources */,
 				AA00000000000000000000201 /* AppDiagnosticLogger.swift in Sources */,
@@ -1218,6 +1237,10 @@
 				BR0000000000000000000202 /* RuntimeQuotaTrackingSnapshot.swift in Sources */,
 				D35200000000000000000201 /* SharedCoreRuntimeProbe.swift in Sources */,
 				D35100000000000000000201 /* SharedCoreRuntimeStatus.swift in Sources */,
+				D35700000000000000000201 /* SharedCoreTrafficShadow.swift in Sources */,
+				D35600000000000000000201 /* SharedCoreTrafficShadowComparator.swift in Sources */,
+				D35800000000000000000201 /* SharedCoreTrafficShadowDiagnosticReporter.swift in Sources */,
+				D35500000000000000000201 /* SharedCoreTrafficShadowObservation.swift in Sources */,
 				CC0000000000000000000204 /* SubscriptionQuotaDataController.swift in Sources */,
 				BR0000000000000000000207 /* MihomoProxyProviderModels.swift in Sources */,
 				CV0000000000000000000202 /* QuotaCumulativeTrendChart.swift in Sources */,
@@ -1295,6 +1318,7 @@
 				A20000000000000000000205 /* FixtureLoader.swift in Sources */,
 				A20000000000000000000207 /* MihomoControllerModelsTests.swift in Sources */,
 				D35300000000000000000201 /* SharedCoreRuntimeProbeTests.swift in Sources */,
+				D35900000000000000000201 /* SharedCoreTrafficShadowComparatorTests.swift in Sources */,
 				BR0000000000000000000208 /* MihomoProxyProviderModelsTests.swift in Sources */,
 				BW0000000000000000000206 /* MihomoLocalProxyTests.swift in Sources */,
 				AD0000000000000000000202 /* MihomoMonitoringSessionTests.swift in Sources */,

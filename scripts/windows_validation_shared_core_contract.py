@@ -1,0 +1,102 @@
+"""定义 Windows 共享核心影子格式化静态契约。"""
+
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[1]
+WINDOWS_ROOT = ROOT / "platform/windows"
+APP_ROOT = WINDOWS_ROOT / "MihomoMeter.Windows.App"
+CORE_ROOT = WINDOWS_ROOT / "MihomoMeter.Windows.Core"
+TEST_ROOT = WINDOWS_ROOT / "MihomoMeter.Windows.Tests"
+
+SHARED_CORE_REQUIRED_REPOSITORY_FILES = (
+    "scripts/windows_validation_shared_core_contract.py",
+)
+
+SHARED_CORE_REQUIRED_APP_FILES = (
+    "Diagnostics/SharedCoreTrafficShadowReporter.cs",
+    "Presentation/NotificationAreaRealtimeController.cs",
+    "Presentation/TrafficDisplayFormatter.cs",
+)
+
+SHARED_CORE_REQUIRED_CORE_FILES = (
+    "Application/MihomoMeterSharedCore.cs",
+    "Application/SharedCoreRuntimeProbe.cs",
+    "Application/SharedCoreTrafficDisplayFormatter.cs",
+    "Application/SharedCoreTrafficShadow.cs",
+    "Application/SharedCoreTrafficShadowComparator.cs",
+    "Application/TrafficDisplayUnits.cs",
+)
+
+SHARED_CORE_REQUIRED_TEST_FILES = (
+    "MihomoMeterSharedCoreTests.cs",
+    "SharedCoreRuntimeProbeTests.cs",
+    "SharedCoreTrafficShadowComparatorTests.cs",
+    "TrafficDisplayUnitsTests.cs",
+)
+
+SHARED_CORE_REQUIRED_CODE_MARKERS = {
+    APP_ROOT / "Program.cs": (
+        "ReportSharedCoreRuntimeStatus();",
+        "SharedCoreTrafficShadow.ConfigureReporter(",
+        "SharedCoreTrafficShadowReporter.Report",
+    ),
+    APP_ROOT / "Diagnostics/StartupConsoleReporter.cs": (
+        "public static void TrafficShadow(string format, string result)",
+        'event=shared_core.traffic_shadow',
+    ),
+    APP_ROOT / "Diagnostics/SharedCoreTrafficShadowReporter.cs": (
+        "HashSet<SharedCoreTrafficShadowObservation>",
+        "ReportedObservations.Add(observation)",
+        "StartupConsoleReporter.TrafficShadow(",
+    ),
+    APP_ROOT / "Presentation/NotificationAreaRealtimeController.cs": (
+        "TrafficDisplayFormatter.CompactRate(",
+        "RoutingStatusPresentation",
+        "TUN Stack",
+        "自动路由",
+        "局域网访问",
+        "Mixed Port",
+        "SnapshotChanged",
+    ),
+    APP_ROOT / "Presentation/TrafficDisplayFormatter.cs": (
+        "SharedCoreTrafficShadow.Observe(",
+        "SharedCoreTrafficFormat.ByteCount",
+        "SharedCoreTrafficFormat.Rate",
+        "SharedCoreTrafficFormat.CompactRate",
+    ),
+    CORE_ROOT / "Application/TrafficDisplayUnits.cs": (
+        "public static string ByteCount(ulong bytes)",
+        "public static string Rate(ulong bytesPerSecond)",
+        "public static string CompactRate(ulong? bytesPerSecond)",
+        "CultureInfo.InvariantCulture",
+    ),
+    CORE_ROOT / "Application/SharedCoreTrafficDisplayFormatter.cs": (
+        "SharedCoreTrafficFormat.ByteCount",
+        "SharedCoreTrafficFormat.Rate",
+        "SharedCoreTrafficFormat.CompactRate",
+    ),
+    CORE_ROOT / "Application/SharedCoreTrafficShadow.cs": (
+        "public static void ConfigureReporter(",
+        "SharedCoreTrafficShadowComparator.Compare(",
+        "影子诊断不得影响仍由原生算法决定的生产输出",
+        "return nativeText;",
+    ),
+    CORE_ROOT / "Application/SharedCoreTrafficShadowComparator.cs": (
+        "SharedCoreTrafficDisplayFormatter.Format(",
+        "SharedCoreTrafficShadowStatus.Mismatch",
+        "SharedCoreTrafficShadowStatus.NativeCallFailed",
+    ),
+    TEST_ROOT / "SharedCoreTrafficShadowComparatorTests.cs": (
+        "ComparatorMatchesEveryProductionFormat",
+        "ComparatorStopsBeforeScalingForAbiMismatch",
+        "ComparatorReportsMismatchWithoutReturningSharedText",
+        "ShadowReturnsNativeTextWhenDiagnosticReporterFails",
+    ),
+    TEST_ROOT / "MihomoMeterSharedCoreTests.cs": (
+        "TrafficDisplayUnits.ByteCount(bytes)",
+        "TrafficDisplayUnits.Rate(bytes)",
+        "TrafficDisplayUnits.CompactRate(bytes)",
+        "SharedCoreTrafficDisplayFormatter.Format(",
+    ),
+}

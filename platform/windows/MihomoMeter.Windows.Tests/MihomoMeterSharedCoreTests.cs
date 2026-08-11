@@ -35,7 +35,7 @@ public sealed class MihomoMeterSharedCoreTests
     }
 
     [TestMethod]
-    public void TrafficScalingMatchesProductionFormatterForCanonicalVectors()
+    public void TrafficScalingMatchesProductionFormattersForCanonicalVectors()
     {
         var fixturePath = Path.Combine(
             AppContext.BaseDirectory,
@@ -58,35 +58,26 @@ public sealed class MihomoMeterSharedCoreTests
                     out var bytes),
                 $"统一流量缩放向量包含无效字节值：{rawValue}。");
 
-            var productionText = TrafficDisplayUnits.ByteCount(bytes);
-            var sharedText = FormatByteCount(MihomoMeterSharedCore.ScaleTraffic(bytes));
+            var sharedScale = MihomoMeterSharedCore.ScaleTraffic(bytes);
             Assert.AreEqual(
-                productionText,
-                sharedText,
+                TrafficDisplayUnits.ByteCount(bytes),
+                SharedCoreTrafficDisplayFormatter.Format(
+                    sharedScale,
+                    SharedCoreTrafficFormat.ByteCount),
                 $"Windows 累计流量格式化差分不一致：{rawValue}。");
+            Assert.AreEqual(
+                TrafficDisplayUnits.Rate(bytes),
+                SharedCoreTrafficDisplayFormatter.Format(
+                    sharedScale,
+                    SharedCoreTrafficFormat.Rate),
+                $"Windows 完整速率格式化差分不一致：{rawValue}。");
+            Assert.AreEqual(
+                TrafficDisplayUnits.CompactRate(bytes),
+                SharedCoreTrafficDisplayFormatter.Format(
+                    sharedScale,
+                    SharedCoreTrafficFormat.CompactRate),
+                $"Windows 紧凑速率格式化差分不一致：{rawValue}。");
         }
-    }
-
-    private static string FormatByteCount(SharedTrafficScale scale)
-    {
-        var format = scale.DecimalPlaces switch
-        {
-            0 => "0",
-            1 => "0.0",
-            2 => "0.00",
-            _ => throw new InvalidOperationException(
-                $"共享核心返回了不支持的小数位数：{scale.DecimalPlaces}。"),
-        };
-        var unit = scale.Unit switch
-        {
-            SharedTrafficUnit.Bytes => "B",
-            SharedTrafficUnit.Kilobytes => "KB",
-            SharedTrafficUnit.Megabytes => "MB",
-            SharedTrafficUnit.Gigabytes => "GB",
-            SharedTrafficUnit.Terabytes => "TB",
-            _ => throw new InvalidOperationException($"共享核心返回未知流量单位：{scale.Unit}。"),
-        };
-        return $"{scale.Value.ToString(format, CultureInfo.InvariantCulture)} {unit}";
     }
 
     private sealed class TrafficScaleFixture

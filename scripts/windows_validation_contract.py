@@ -28,6 +28,13 @@ from windows_validation_release_contract import (
     RELEASE_REQUIRED_REPOSITORY_FILES,
     RELEASE_REQUIRED_TEST_FILES,
 )
+from windows_validation_shared_core_contract import (
+    SHARED_CORE_REQUIRED_APP_FILES,
+    SHARED_CORE_REQUIRED_CODE_MARKERS,
+    SHARED_CORE_REQUIRED_CORE_FILES,
+    SHARED_CORE_REQUIRED_REPOSITORY_FILES,
+    SHARED_CORE_REQUIRED_TEST_FILES,
+)
 import windows_validation_single_instance_contract as single_instance
 
 
@@ -55,6 +62,7 @@ REQUIRED_REPOSITORY_FILES += CONNECTION_REQUIRED_REPOSITORY_FILES
 REQUIRED_REPOSITORY_FILES += DISTRIBUTION_REQUIRED_REPOSITORY_FILES
 REQUIRED_REPOSITORY_FILES += RELEASE_REQUIRED_REPOSITORY_FILES
 REQUIRED_REPOSITORY_FILES += single_instance.SINGLE_INSTANCE_REQUIRED_REPOSITORY_FILES
+REQUIRED_REPOSITORY_FILES += SHARED_CORE_REQUIRED_REPOSITORY_FILES
 
 EXPECTED_APP_PROPERTIES = {
     "TargetFramework": "net10.0-windows10.0.19041.0",
@@ -121,7 +129,6 @@ REQUIRED_APP_FILES = (
     "Assets/MihomoMeter.ico",
     "Presentation/MainWindowViewModel.cs",
     "Presentation/NotificationAreaStatisticsController.cs",
-    "Presentation/NotificationAreaRealtimeController.cs",
     "Presentation/ProxyDailyTrafficChartView.xaml",
     "Presentation/ProxyDailyTrafficChartView.xaml.cs",
     "Presentation/ControllerSettingsView.xaml",
@@ -131,7 +138,6 @@ REQUIRED_APP_FILES = (
     "Presentation/MihomoThemeResources.xaml",
     "Presentation/SettingsWorkspaceView.xaml",
     "Presentation/SettingsWorkspaceView.xaml.cs",
-    "Presentation/TrafficDisplayFormatter.cs",
     "Presentation/TrafficStatisticsWorkspaceModels.cs",
     "Presentation/TrafficStatisticsWorkspaceView.xaml",
     "Presentation/TrafficStatisticsWorkspaceView.xaml.cs",
@@ -141,6 +147,7 @@ REQUIRED_APP_FILES = (
 REQUIRED_APP_FILES += CONNECTION_REQUIRED_APP_FILES
 REQUIRED_APP_FILES += RELEASE_REQUIRED_APP_FILES
 REQUIRED_APP_FILES += single_instance.SINGLE_INSTANCE_REQUIRED_APP_FILES
+REQUIRED_APP_FILES += SHARED_CORE_REQUIRED_APP_FILES
 
 REQUIRED_CORE_FILES = (
     "Domain/ControllerEndpoint.cs",
@@ -154,7 +161,6 @@ REQUIRED_CORE_FILES = (
     "Application/ReconnectBackoff.cs",
     "Application/ControllerConfiguration.cs",
     "Application/TrafficMeasurementSession.cs",
-    "Application/TrafficDisplayUnits.cs",
     "Application/TrafficRateDisplayState.cs",
     "Application/TrafficMonitorState.cs",
     "Application/TrafficMonitoringCoordinator.cs",
@@ -183,6 +189,7 @@ REQUIRED_CORE_FILES = (
 ) + QUOTA_REQUIRED_CORE_FILES
 REQUIRED_CORE_FILES += CONNECTION_REQUIRED_CORE_FILES
 REQUIRED_CORE_FILES += RELEASE_REQUIRED_CORE_FILES
+REQUIRED_CORE_FILES += SHARED_CORE_REQUIRED_CORE_FILES
 
 REQUIRED_TEST_FILES = (
     "ControllerEndpointTests.cs",
@@ -195,7 +202,6 @@ REQUIRED_TEST_FILES = (
     "TrafficRateAggregatorTests.cs",
     "ReconnectBackoffTests.cs",
     "TrafficMeasurementSessionTests.cs",
-    "TrafficDisplayUnitsTests.cs",
     "TrafficRateDisplayStateTests.cs",
     "TrafficMonitoringCoordinatorTests.cs",
     "SQLiteTrafficLedgerTests.cs",
@@ -210,6 +216,7 @@ REQUIRED_TEST_FILES = (
 ) + QUOTA_REQUIRED_TEST_FILES
 REQUIRED_TEST_FILES += CONNECTION_REQUIRED_TEST_FILES
 REQUIRED_TEST_FILES += RELEASE_REQUIRED_TEST_FILES
+REQUIRED_TEST_FILES += SHARED_CORE_REQUIRED_TEST_FILES
 
 REQUIRED_CODE_MARKERS = {
     APP_ROOT / "MainWindow.xaml": (
@@ -314,15 +321,6 @@ REQUIRED_CODE_MARKERS = {
         "UpdateSnapshot",
         "InvalidateRect",
     ),
-    APP_ROOT / "Presentation/NotificationAreaRealtimeController.cs": (
-        "CompactRate",
-        "RoutingStatusPresentation",
-        "TUN Stack",
-        "自动路由",
-        "局域网访问",
-        "Mixed Port",
-        "SnapshotChanged",
-    ),
     CORE_ROOT / "Domain/ControllerEndpoint.cs": (
         "127.0.0.1",
         "::1",
@@ -414,18 +412,6 @@ REQUIRED_CODE_MARKERS = {
         "AdditionalCount",
         "Array.AsReadOnly",
     ),
-    CORE_ROOT / "Application/TrafficDisplayUnits.cs": (
-        "1_000",
-        '"KB"',
-        '"MB"',
-        '"GB"',
-        '"TB"',
-        "CultureInfo.InvariantCulture",
-    ),
-    APP_ROOT / "Presentation/TrafficDisplayFormatter.cs": (
-        '$"↓ {ByteCount(rate.Value.DownloadBytesPerSecond)}/s',
-        '$"↑ {ByteCount(rate.Value.UploadBytesPerSecond)}/s',
-    ),
     APP_ROOT / "Presentation/NotificationAreaStatisticsController.cs": (
         "TrafficStatisticsQuickTaskProjection.Project",
         "CaptureSnapshot",
@@ -508,6 +494,7 @@ REQUIRED_CODE_MARKERS = {
 }
 REQUIRED_CODE_MARKERS.update(RELEASE_REQUIRED_CODE_MARKERS)
 REQUIRED_CODE_MARKERS.update(single_instance.SINGLE_INSTANCE_REQUIRED_CODE_MARKERS)
+REQUIRED_CODE_MARKERS.update(SHARED_CORE_REQUIRED_CODE_MARKERS)
 
 FORBIDDEN_PROJECT_MARKERS = (
     "Microsoft.EntityFrameworkCore",

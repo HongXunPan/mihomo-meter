@@ -33,8 +33,10 @@ internal sealed record NotificationAreaRealtimeMenuSnapshot(
     {
         var stateText = StateTitle(snapshot.State);
         var proxyRate = snapshot.Rates?.Proxy;
-        var compactDownload = CompactRate(proxyRate?.DownloadBytesPerSecond);
-        var compactUpload = CompactRate(proxyRate?.UploadBytesPerSecond);
+        var compactDownload = TrafficDisplayFormatter.CompactRate(
+            proxyRate?.DownloadBytesPerSecond);
+        var compactUpload = TrafficDisplayFormatter.CompactRate(
+            proxyRate?.UploadBytesPerSecond);
         var routing = new RoutingStatusPresentation(
             snapshot.ActiveProxyLeaves,
             snapshot.ActiveRuleTypes,
@@ -71,33 +73,6 @@ internal sealed record NotificationAreaRealtimeMenuSnapshot(
             routing.RuntimeSummary,
             routing.RuntimeDetails,
             widget);
-    }
-
-    private static string CompactRate(ulong? bytesPerSecond)
-    {
-        if (bytesPerSecond is null)
-        {
-            return "--";
-        }
-
-        var value = (double)bytesPerSecond.Value;
-        var units = new[] { "B/s", "K/s", "M/s", "G/s", "T/s" };
-        var unitIndex = 0;
-        while (value >= 1_000 && unitIndex < units.Length - 1)
-        {
-            value /= 1_000;
-            unitIndex += 1;
-        }
-
-        var number = unitIndex == 0
-            ? bytesPerSecond.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)
-            : value switch
-            {
-                >= 100 => value.ToString("0", System.Globalization.CultureInfo.InvariantCulture),
-                >= 10 => value.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture),
-                _ => value.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture),
-            };
-        return $"{number}{units[unitIndex]}";
     }
 
     private static string StateTitle(MonitorConnectionState state)

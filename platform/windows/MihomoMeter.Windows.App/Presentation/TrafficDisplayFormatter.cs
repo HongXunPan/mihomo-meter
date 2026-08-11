@@ -9,18 +9,37 @@ internal static class TrafficDisplayFormatter
     {
         return rate is null
             ? "↓ --  ·  ↑ --"
-            : $"↓ {ByteCount(rate.Value.DownloadBytesPerSecond)}/s  ·  "
-                + $"↑ {ByteCount(rate.Value.UploadBytesPerSecond)}/s";
+            : $"↓ {RateValue(rate.Value.DownloadBytesPerSecond)}  ·  "
+                + $"↑ {RateValue(rate.Value.UploadBytesPerSecond)}";
     }
 
     public static string ByteCount(ulong bytes)
     {
-        return TrafficDisplayUnits.ByteCount(bytes);
+        var nativeText = TrafficDisplayUnits.ByteCount(bytes);
+        return SharedCoreTrafficShadow.Observe(
+            bytes,
+            nativeText,
+            SharedCoreTrafficFormat.ByteCount);
     }
 
     public static string RateValue(ulong bytesPerSecond)
     {
-        return $"{ByteCount(bytesPerSecond)}/s";
+        var nativeText = TrafficDisplayUnits.Rate(bytesPerSecond);
+        return SharedCoreTrafficShadow.Observe(
+            bytesPerSecond,
+            nativeText,
+            SharedCoreTrafficFormat.Rate);
+    }
+
+    public static string CompactRate(ulong? bytesPerSecond)
+    {
+        var nativeText = TrafficDisplayUnits.CompactRate(bytesPerSecond);
+        return bytesPerSecond is null
+            ? nativeText
+            : SharedCoreTrafficShadow.Observe(
+                bytesPerSecond.Value,
+                nativeText,
+                SharedCoreTrafficFormat.CompactRate);
     }
 
     public static string DateTime(DateTimeOffset value)
