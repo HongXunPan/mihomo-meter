@@ -58,6 +58,7 @@ fi
 
 export CARGO_TARGET_DIR="${project_root}/.build/shared-core"
 manifest_path="${project_root}/SharedCore/Cargo.toml"
+fixture_path="${project_root}/SharedCore/TestVectors/traffic_scale.json"
 library_directory="${CARGO_TARGET_DIR}/${rust_target}/release"
 library_path="${library_directory}/libmihomo_meter_shared_core.a"
 probe_directory="${project_root}/.codex-tmp/shared-core-probe"
@@ -91,6 +92,10 @@ if [[ ! -f "${library_path}" ]]; then
   echo "共享核心静态库不存在：${library_path}" >&2
   exit 1
 fi
+if [[ ! -f "${fixture_path}" ]]; then
+  echo "统一流量缩放向量不存在：${fixture_path}" >&2
+  exit 1
+fi
 
 mkdir -p "${probe_directory}"
 xcrun swiftc \
@@ -99,7 +104,10 @@ xcrun swiftc \
   -L "${library_directory}" \
   -lmihomo_meter_shared_core \
   "${project_root}/SharedCore/Adapters/Swift/MihomoMeterSharedCoreAdapter.swift" \
+  "${project_root}/Sources/Domain/TrafficRate.swift" \
+  "${project_root}/Sources/Presentation/TrafficRateFormatter.swift" \
+  "${project_root}/Sources/Presentation/TrafficStatisticsFormatter.swift" \
   "${project_root}/SharedCore/Adapters/Swift/Probe/main.swift" \
   -o "${probe_path}"
 
-"${probe_path}"
+"${probe_path}" "${fixture_path}"

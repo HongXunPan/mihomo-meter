@@ -21,6 +21,9 @@
     <None Include="../../../Tests/Fixtures/*.json"
           Link="Fixtures/%(Filename)%(Extension)"
           CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="../../../SharedCore/TestVectors/traffic_scale.json"
+             Link="Fixtures/shared-core-traffic-scale.json"
+             CopyToOutputDirectory="PreserveNewest" />
     <Content Include="$(SharedCoreLibraryPath)"
              Link="mihomo_meter_shared_core.dll"
              CopyToOutputDirectory="PreserveNewest" />
