@@ -36,7 +36,7 @@ internal static class TrafficDisplayFormatter
         var nativeText = TrafficDisplayUnits.CompactRate(bytesPerSecond);
         return bytesPerSecond is null
             ? nativeText
-            : SharedCoreTrafficShadow.Observe(
+            : SharedCoreTrafficRoute.Resolve(
                 bytesPerSecond.Value,
                 nativeText,
                 SharedCoreTrafficFormat.CompactRate);

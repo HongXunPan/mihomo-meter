@@ -61,7 +61,7 @@ REQUIRED_MARKERS = {
         "format: .byteCount",
     ),
     "Sources/Presentation/TrafficRateFormatter.swift": (
-        "SharedCoreTrafficShadow.observe(",
+        "SharedCoreTrafficRoute.resolve(",
         "format: .rate",
         "format: .compactRate",
     ),
@@ -121,7 +121,7 @@ REQUIRED_MARKERS = {
         "StartupConsoleReporter.TrafficShadow(",
     ),
     "platform/windows/MihomoMeter.Windows.App/Presentation/TrafficDisplayFormatter.cs": (
-        "SharedCoreTrafficShadow.Observe(",
+        "SharedCoreTrafficRoute.Resolve(",
         "SharedCoreTrafficFormat.ByteCount",
         "SharedCoreTrafficFormat.Rate",
         "SharedCoreTrafficFormat.CompactRate",
@@ -228,15 +228,15 @@ REQUIRED_MARKERS = {
     ),
     "CONTRIBUTING.md": (
         "P1.2b 双端运行态门禁已于 2026-08-11 通过",
-        "P1.3-3 已启用双端字节数与完整速率受保护主路径",
-        "紧凑速率仍保持影子模式",
+        "P1.3-4 已启用双端三类流量格式受保护主路径",
+        "等待双端实机验收",
     ),
     "docs/架构概览.md": (
         "P1.2b 运行态门禁已通过",
-        "P1.3-3 已按",
+        "P1.3-4 已按",
     ),
     "docs/跨平台共享核心技术方案.md": (
-        "状态：P1.3-3 字节数与完整速率受保护主路径已启用",
+        "状态：P1.3-4 三类流量格式受保护主路径已启用",
         "任何异常仍逐次回退原生文本",
         "按“格式类型 + 粗粒度状态”在单次进程生命周期内去重",
         "正常时三类格式各记录一次 `matched`",

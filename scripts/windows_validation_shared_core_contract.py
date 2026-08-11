@@ -62,7 +62,7 @@ SHARED_CORE_REQUIRED_CODE_MARKERS = {
         "SnapshotChanged",
     ),
     APP_ROOT / "Presentation/TrafficDisplayFormatter.cs": (
-        "SharedCoreTrafficShadow.Observe(",
+        "SharedCoreTrafficRoute.Resolve(",
         "SharedCoreTrafficFormat.ByteCount",
         "SharedCoreTrafficFormat.Rate",
         "SharedCoreTrafficFormat.CompactRate",
