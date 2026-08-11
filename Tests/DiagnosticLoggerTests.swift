@@ -31,6 +31,7 @@ final class DiagnosticLoggerTests: XCTestCase {
         )
       )
     )
+    await logger.record(.sharedCoreRuntimeProbe(.abiMismatch))
     await logger.record(.keychainOperationStarted(keychainContext))
     await logger.record(
       .keychainOperationFinished(
@@ -94,6 +95,7 @@ final class DiagnosticLoggerTests: XCTestCase {
     )
 
     XCTAssertTrue(contents.contains("event=application.launched"))
+    XCTAssertTrue(contents.contains("event=shared_core.runtime_probe result=abi_mismatch"))
     XCTAssertTrue(contents.contains("signing=adhoc"))
     XCTAssertTrue(contents.contains("team_id=none"))
     XCTAssertTrue(contents.contains("operation=load"))

@@ -1,2 +1,8 @@
-// 公共签名配置只提供本地覆盖入口，不包含个人开发团队。
+// 公共工程配置统一提供共享核心链接和本地签名覆盖入口，不包含个人开发团队。
 #include? "Config.local.xcconfig"
+
+MIHOMO_METER_SHARED_CORE_TARGET[arch=arm64] = aarch64-apple-darwin
+MIHOMO_METER_SHARED_CORE_TARGET[arch=x86_64] = x86_64-apple-darwin
+LIBRARY_SEARCH_PATHS = $(inherited) "$(SRCROOT)/.build/shared-core/$(MIHOMO_METER_SHARED_CORE_TARGET)/release"
+SWIFT_INCLUDE_PATHS = $(inherited) "$(SRCROOT)/SharedCore/include"
+OTHER_LDFLAGS = $(inherited) -lmihomo_meter_shared_core

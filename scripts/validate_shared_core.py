@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""校验跨平台共享核心 P1.1 的静态工程契约。"""
+"""校验跨平台共享核心 P1.2a 的静态工程契约。"""
 
 from __future__ import annotations
 
@@ -19,9 +19,16 @@ REQUIRED_FILES = (
     "SharedCore/Adapters/Swift/MihomoMeterSharedCoreAdapter.swift",
     "SharedCore/Adapters/Swift/Probe/main.swift",
     "SharedCore/TestVectors/traffic_scale.json",
+    "Sources/Application/SharedCoreRuntimeProbe.swift",
+    "Sources/Domain/SharedCoreRuntimeStatus.swift",
+    "Tests/SharedCoreRuntimeProbeTests.swift",
     "platform/windows/MihomoMeter.Windows.Core/Application/MihomoMeterSharedCore.cs",
+    "platform/windows/MihomoMeter.Windows.Core/Application/SharedCoreRuntimeProbe.cs",
     "platform/windows/MihomoMeter.Windows.Tests/MihomoMeterSharedCoreTests.cs",
+    "platform/windows/MihomoMeter.Windows.Tests/SharedCoreRuntimeProbeTests.cs",
     "platform/windows/MihomoMeter.Windows.Tests/MihomoMeter.Windows.Tests.csproj",
+    "scripts/shared_core_macos_toolchain.sh",
+    "scripts/build_shared_core_macos.sh",
     "scripts/test_shared_core_macos.sh",
     "scripts/build_shared_core_windows.ps1",
     "docs/跨平台共享核心技术方案.md",
@@ -47,10 +54,52 @@ REQUIRED_MARKERS = {
         "uint32_t mm_core_abi_version(void);",
         "int32_t mm_scale_traffic(uint64_t bytes, mm_scaled_traffic_t *output);",
     ),
+    "Config.xcconfig": (
+        "MIHOMO_METER_SHARED_CORE_TARGET[arch=arm64] = aarch64-apple-darwin",
+        "MIHOMO_METER_SHARED_CORE_TARGET[arch=x86_64] = x86_64-apple-darwin",
+        "-lmihomo_meter_shared_core",
+    ),
+    "MihomoMeter.xcodeproj/project.pbxproj": (
+        "MihomoMeterSharedCoreAdapter.swift in Sources",
+        "SharedCoreRuntimeProbe.swift in Sources",
+        "SharedCoreRuntimeProbeTests.swift in Sources",
+    ),
+    "Sources/Application/AppDelegate.swift": (
+        "SharedCoreRuntimeProbe.run()",
+        ".sharedCoreRuntimeProbe(sharedCoreRuntimeStatus)",
+    ),
+    "Sources/Application/SharedCoreRuntimeProbe.swift": (
+        "MihomoMeterSharedCoreAdapter.abiVersion",
+        "MihomoMeterSharedCoreAdapter.scaleTraffic(bytes:)",
+        "return .unexpectedResult",
+    ),
+    "Sources/Infrastructure/Diagnostics/AppDiagnosticEvent.swift": (
+        "case sharedCoreRuntimeProbe(SharedCoreRuntimeStatus)",
+        '"event=shared_core.runtime_probe result=\\(status.rawValue)"',
+    ),
+    "Tests/SharedCoreRuntimeProbeTests.swift": (
+        "testProductionRuntimeProbeLoadsSharedCore",
+        "testRuntimeProbeStopsBeforeNativeCallForABIMismatch",
+        "testRuntimeProbeMapsAdapterFailureWithoutThrowing",
+    ),
     "platform/windows/MihomoMeter.Windows.Core/Application/MihomoMeterSharedCore.cs": (
         'EntryPoint = "mm_core_abi_version"',
         'EntryPoint = "mm_scale_traffic"',
         "CallingConvention = CallingConvention.Cdecl",
+    ),
+    "platform/windows/MihomoMeter.Windows.Core/Application/SharedCoreRuntimeProbe.cs": (
+        "public static SharedCoreRuntimeStatus Run()",
+        "DllNotFoundException",
+        "EntryPointNotFoundException",
+        "BadImageFormatException",
+    ),
+    "platform/windows/MihomoMeter.Windows.App/Program.cs": (
+        "ReportSharedCoreRuntimeStatus();",
+        '"shared_core_runtime_native_call_failed"',
+    ),
+    "platform/windows/MihomoMeter.Windows.Tests/SharedCoreRuntimeProbeTests.cs": (
+        "ProductionRuntimeProbeLoadsSharedCore",
+        "RuntimeProbeContainsNativeLoadFailure",
     ),
     "platform/windows/MihomoMeter.Windows.App/MihomoMeter.Windows.App.csproj": (
         "<SharedCoreLibraryPath>",
@@ -65,6 +114,7 @@ REQUIRED_MARKERS = {
         'Link="Fixtures/shared-core-traffic-scale.json"',
     ),
     "SharedCore/Adapters/Swift/Probe/main.swift": (
+        "SharedCoreRuntimeProbe.run() == .ready",
         "TrafficStatisticsFormatter.bytes(bytes)",
         "TrafficRateFormatter.string(from: bytes)",
         "TrafficRateFormatter.compactString(from: bytes)",
@@ -75,10 +125,25 @@ REQUIRED_MARKERS = {
         '"shared-core-traffic-scale.json"',
     ),
     "scripts/test_shared_core_macos.sh": (
+        'source "${script_directory}/shared_core_macos_toolchain.sh"',
         'fixture_path="${project_root}/SharedCore/TestVectors/traffic_scale.json"',
+        '"${project_root}/Sources/Domain/SharedCoreRuntimeStatus.swift"',
+        '"${project_root}/Sources/Application/SharedCoreRuntimeProbe.swift"',
         '"${project_root}/Sources/Presentation/TrafficRateFormatter.swift"',
         '"${project_root}/Sources/Presentation/TrafficStatisticsFormatter.swift"',
         '"${probe_path}" "${fixture_path}"',
+    ),
+    "scripts/build_shared_core_macos.sh": (
+        'source "${script_directory}/shared_core_macos_toolchain.sh"',
+        "--architectures",
+        "libmihomo_meter_shared_core.a",
+    ),
+    "scripts/build-debug.sh": (
+        'scripts/build_shared_core_macos.sh --architectures "$(uname -m)"',
+    ),
+    "scripts/build-release-dmg.sh": (
+        "scripts/build_shared_core_macos.sh",
+        '--architectures "${build_architectures}"',
     ),
     "scripts/validate_windows.ps1": (
         '"build_shared_core_windows.ps1"',
@@ -94,6 +159,9 @@ REQUIRED_MARKERS = {
         "rustup toolchain install 1.97.1 --profile minimal --target x86_64-pc-windows-msvc",
     ),
     ".github/workflows/release.yml": (
+        "--target aarch64-apple-darwin",
+        "--target x86_64-apple-darwin",
+        "scripts/test_shared_core_macos.sh",
         "rustup toolchain install 1.97.1 --profile minimal --target x86_64-pc-windows-msvc",
         "pwsh -File scripts/validate_windows.ps1",
     ),
@@ -188,24 +256,30 @@ def main() -> int:
 
     validate_traffic_vectors(failures)
 
+    xcode_project = ROOT / "MihomoMeter.xcodeproj/project.pbxproj"
+    if xcode_project.is_file() and xcode_project.read_text(encoding="utf-8").count(
+        "baseConfigurationReference = AM0000000000000000000101"
+    ) < 4:
+        failures.append("应用与测试 Target 必须同时加载共享核心公共配置。")
+
     cargo_manifest = ROOT / "SharedCore/Cargo.toml"
     if cargo_manifest.is_file() and "[dependencies]" in cargo_manifest.read_text(
         encoding="utf-8"
     ):
-        failures.append("共享核心 P1.1 不得引入 Cargo 依赖。")
+        failures.append("共享核心 P1.2a 不得引入 Cargo 依赖。")
 
     cargo_lock = ROOT / "SharedCore/Cargo.lock"
     if cargo_lock.is_file():
         lock_content = cargo_lock.read_text(encoding="utf-8")
         if "source =" in lock_content or "checksum =" in lock_content:
-            failures.append("共享核心 P1.1 的 Cargo.lock 不得包含外部包。")
+            failures.append("共享核心 P1.2a 的 Cargo.lock 不得包含外部包。")
 
     if failures:
         for failure in failures:
             print(f"错误：{failure}")
         return 1
 
-    print("跨平台共享核心 P1.1 静态契约检查通过。")
+    print("跨平台共享核心 P1.2a 静态契约检查通过。")
     return 0
 
 

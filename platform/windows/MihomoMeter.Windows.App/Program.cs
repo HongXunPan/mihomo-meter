@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml;
 using MihomoMeter.Windows.App.Diagnostics;
 using MihomoMeter.Windows.App.Interop;
 using MihomoMeter.Windows.App.Lifecycle;
+using MihomoMeter.Windows.Core.Application;
 
 namespace MihomoMeter.Windows.App;
 
@@ -44,6 +45,7 @@ internal static class Program
                     exception));
             WinRT.ComWrappersSupport.InitializeComWrappers();
             StartupConsoleReporter.Stage("single_instance_primary_ready");
+            ReportSharedCoreRuntimeStatus();
             var previousSynchronizationContext = SynchronizationContext.Current;
             try
             {
@@ -72,6 +74,20 @@ internal static class Program
     {
         StartupConsoleReporter.Stage("single_instance_activation_received");
         ActivationRouter.RequestMainWindowActivation();
+    }
+
+    private static void ReportSharedCoreRuntimeStatus()
+    {
+        var status = SharedCoreRuntimeProbe.Run();
+        var stage = status switch
+        {
+            SharedCoreRuntimeStatus.Ready => "shared_core_runtime_ready",
+            SharedCoreRuntimeStatus.AbiMismatch => "shared_core_runtime_abi_mismatch",
+            SharedCoreRuntimeStatus.NativeCallFailed => "shared_core_runtime_native_call_failed",
+            SharedCoreRuntimeStatus.UnexpectedResult => "shared_core_runtime_unexpected_result",
+            _ => "shared_core_runtime_unknown_failure",
+        };
+        StartupConsoleReporter.Stage(stage);
     }
 
     private static void AllowForegroundActivation(uint processId)

@@ -14,7 +14,7 @@ macOS 工程需要：
 
 Windows 工程需要 Windows 10 22H2 x64 或更高版本、.NET SDK 10.0.302、Windows 10 SDK 10.0.19041.0 或更高版本，以及 NSIS 3.12.0；`makensis.exe` 可以从 `PATH` 解析，也可以通过 `-MakeNsisPath` 显式传入。W2C 使用 `Microsoft.Data.Sqlite.Core` 10.0.10、系统 `winsqlite3.dll` 和仅用于 `profiles.yaml` 的 `YamlDotNet` 18.1.0，不引入图表库；`MSTest.Sdk` 4.3.2 只用于测试。非 Windows 主机只能运行静态契约检查。
 
-跨平台共享核心 P1.1 固定使用 Rust 1.97.1 和标准库，以统一向量执行测试/CI 差分且不切换生产算法，详细边界见[跨平台共享核心技术方案](docs/跨平台共享核心技术方案.md)。rustup 必须能提供仓库锁定的主机工具链；不得提交 `.build/`、`SharedCore/target/`、静态库或 DLL。
+跨平台共享核心 P1.2a 固定使用 Rust 1.97.1 和标准库，接入双端生产构建与一次性启动探针但不切换生产算法，详细边界见[跨平台共享核心技术方案](docs/跨平台共享核心技术方案.md)。rustup 必须能提供仓库锁定的主机工具链和目标架构；不得提交 `.build/`、`SharedCore/target/`、静态库或 DLL。
 
 项目固定依赖 Sparkle 2.9.4 处理应用内更新，并使用 Yams 6.2.2 类型化解析用户授权目录中的 `profiles.yaml`。Yams 不得扩展为通用配置加载入口。请勿为了局部功能继续引入未经讨论的框架、代码生成器或包管理脚本。
 
@@ -29,7 +29,7 @@ Windows 工程需要 Windows 10 22H2 x64 或更高版本、.NET SDK 10.0.302、W
 
 ## 本地签名与诊断
 
-- 在仓库根目录创建被 Git 忽略的 `Config.local.xcconfig`，填写 `DEVELOPMENT_TEAM = 你的 Apple Developer Team ID`；Xcode 通过公共 `Config.xcconfig` 加载本机配置。
+- 在仓库根目录创建被 Git 忽略的 `Config.local.xcconfig`，填写 `DEVELOPMENT_TEAM = 你的 Apple Developer Team ID`；应用与测试 Target 均通过公共 `Config.xcconfig` 加载共享核心和本机配置。
 - 不要把个人 Team ID 写入或提交到 `MihomoMeter.xcodeproj/project.pbxproj`，其他用户级 Xcode 配置同样不得提交。
 - `MihomoMeter` Target 不启用 Keychain Sharing，也不得添加跨应用共享组；Controller Secret 只保存到当前用户的登录钥匙串。
 - 不要将 macOS 签名身份强制设为 `-`；传统钥匙串根据应用代码签名控制访问，切换开发团队或签名身份后可能需要授权或重新填写一次 Secret。
@@ -47,6 +47,8 @@ scripts/build-debug.sh --run
 ```
 
 Debug 构建失败时，脚本会在终端末尾重新输出真实错误上下文，并将完整构建日志保留到 `.build/Diagnostics/`，可供脱敏后复制反馈。构建成功时不保留该次诊断日志。
+
+直接从 Xcode GUI 构建前，先运行 `scripts/build_shared_core_macos.sh` 生成当前宿主架构静态库；`scripts/build-debug.sh` 已自动执行这一步。构建 universal 正式包时必须同时提供 `arm64 x86_64`，不得复用单架构产物。
 
 `--run` 会直接以前台进程执行 `.app` 内的可执行文件，不通过 `open` 脱离 Shell；应用退出后命令才返回，按 `Ctrl-C` 或关闭当前终端也会终止本次 Debug 应用。需要脱离终端运行时，先执行不带参数的构建命令，再按输出的 `open` 命令启动。
 

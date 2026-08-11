@@ -139,8 +139,22 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: 安装固定 Rust 工具链
+        run: >-
+          rustup toolchain install 1.97.1 --profile minimal
+          --component rustfmt --component clippy
+          --target aarch64-apple-darwin
+          --target x86_64-apple-darwin
+
       - name: 检查 Swift 格式
-        run: xcrun swift format lint --recursive --strict Sources Tests
+        run: >-
+          xcrun swift format lint --recursive --strict
+          Sources Tests SharedCore/Adapters/Swift
+
+      - name: 检查并构建共享核心
+        run: |
+          python3 scripts/validate_shared_core.py
+          scripts/test_shared_core_macos.sh
 
       - name: 构建并运行测试
         run: |

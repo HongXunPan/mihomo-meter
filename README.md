@@ -160,7 +160,7 @@ open MihomoMeter.xcodeproj
 DEVELOPMENT_TEAM = 你的 Apple Developer Team ID
 ```
 
-Xcode 的 Debug 和 Release 配置会通过公共 `Config.xcconfig` 读取本机 Team ID；不要把个人团队写回 `project.pbxproj`。然后在 Xcode 中选择 `MihomoMeter` Scheme 运行。Controller Secret 保存到登录钥匙串，并由 macOS 根据应用签名控制读取权限；切换开发团队或签名身份后，可能需要授权或重新填写一次 Secret。
+首次使用 Xcode 前先运行 `scripts/build_shared_core_macos.sh`；Debug 和 Release 仍通过公共 `Config.xcconfig` 读取本机 Team ID，禁止把个人团队写回工程。Controller Secret 只保存到登录钥匙串；切换签名身份后可能需要重新授权或填写。
 
 首次运行：
 
