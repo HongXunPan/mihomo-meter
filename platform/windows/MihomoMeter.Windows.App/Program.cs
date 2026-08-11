@@ -47,7 +47,9 @@ internal static class Program
             StartupConsoleReporter.Stage("single_instance_primary_ready");
             ReportSharedCoreRuntimeStatus();
             SharedCoreTrafficShadow.ConfigureReporter(
-                SharedCoreTrafficShadowReporter.Report);
+                SharedCoreTrafficDiagnosticReporter.ReportShadow);
+            SharedCoreTrafficRoute.ConfigureReporter(
+                SharedCoreTrafficDiagnosticReporter.ReportRoute);
             var previousSynchronizationContext = SynchronizationContext.Current;
             try
             {

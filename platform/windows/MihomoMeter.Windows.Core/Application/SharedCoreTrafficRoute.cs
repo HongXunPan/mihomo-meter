@@ -1,31 +1,15 @@
 namespace MihomoMeter.Windows.Core.Application;
 
-public enum SharedCoreTrafficFormat
-{
-    ByteCount,
-    Rate,
-    CompactRate,
-}
-
-public enum SharedCoreTrafficShadowStatus
-{
-    Matched,
-    AbiMismatch,
-    NativeCallFailed,
-    UnexpectedResult,
-    Mismatch,
-    UnknownFailure,
-}
-
-public readonly record struct SharedCoreTrafficShadowObservation(
+public readonly record struct SharedCoreTrafficRouteObservation(
     SharedCoreTrafficFormat Format,
+    SharedCoreTrafficRouteSource Source,
     SharedCoreTrafficShadowStatus Status);
 
-internal sealed class SharedCoreTrafficShadowObservationGate
+internal sealed class SharedCoreTrafficRouteObservationGate
 {
-    private readonly HashSet<SharedCoreTrafficShadowObservation> _reportedObservations = [];
+    private readonly HashSet<SharedCoreTrafficRouteObservation> _reportedObservations = [];
 
-    public bool ShouldReport(SharedCoreTrafficShadowObservation observation)
+    public bool ShouldReport(SharedCoreTrafficRouteObservation observation)
     {
         return _reportedObservations.Add(observation);
     }
@@ -36,14 +20,14 @@ internal sealed class SharedCoreTrafficShadowObservationGate
     }
 }
 
-public static class SharedCoreTrafficShadow
+public static class SharedCoreTrafficRoute
 {
     private static readonly object StateLock = new();
-    private static readonly SharedCoreTrafficShadowObservationGate ObservationGate = new();
-    private static Action<SharedCoreTrafficShadowObservation>? _reporter;
+    private static readonly SharedCoreTrafficRouteObservationGate ObservationGate = new();
+    private static Action<SharedCoreTrafficRouteObservation>? _reporter;
 
     public static void ConfigureReporter(
-        Action<SharedCoreTrafficShadowObservation>? reporter)
+        Action<SharedCoreTrafficRouteObservation>? reporter)
     {
         lock (StateLock)
         {
@@ -52,12 +36,12 @@ public static class SharedCoreTrafficShadow
         }
     }
 
-    public static string Observe(
+    public static string Resolve(
         ulong bytes,
         string nativeText,
         SharedCoreTrafficFormat format)
     {
-        return Observe(
+        return Resolve(
             bytes,
             nativeText,
             format,
@@ -65,7 +49,7 @@ public static class SharedCoreTrafficShadow
             MihomoMeterSharedCore.ScaleTraffic);
     }
 
-    internal static string Observe(
+    internal static string Resolve(
         ulong bytes,
         string nativeText,
         SharedCoreTrafficFormat format,
@@ -78,8 +62,11 @@ public static class SharedCoreTrafficShadow
             format,
             abiVersion,
             scaleTraffic);
-        var observation = new SharedCoreTrafficShadowObservation(format, result.Status);
-        Action<SharedCoreTrafficShadowObservation>? reporter;
+        var observation = new SharedCoreTrafficRouteObservation(
+            format,
+            result.Source,
+            result.Status);
+        Action<SharedCoreTrafficRouteObservation>? reporter;
         lock (StateLock)
         {
             reporter = _reporter is not null && ObservationGate.ShouldReport(observation)
@@ -92,8 +79,8 @@ public static class SharedCoreTrafficShadow
         }
         catch
         {
-            // 影子诊断不得影响仍由原生算法决定的生产输出。
+            // 路由诊断不得改变共享主路径或原生回退结果。
         }
-        return nativeText;
+        return result.Text;
     }
 }

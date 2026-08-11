@@ -1,4 +1,5 @@
 import XCTest
+import os
 
 @testable import MihomoMeter
 
@@ -90,6 +91,117 @@ final class SharedCoreTrafficShadowComparatorTests: XCTestCase {
     XCTAssertEqual(status, .unexpectedResult)
   }
 
+  func testRouterReturnsSharedTextOnlyForExactMatch() {
+    let result = SharedCoreTrafficRouter.route(
+      bytes: 1_500,
+      nativeText: "1.50 KB",
+      format: .byteCount,
+      scaleTraffic: { _ in
+        SharedTrafficScale(
+          value: 1.5,
+          unit: .kilobytes,
+          decimalPlaces: 2
+        )
+      }
+    )
+
+    XCTAssertEqual(result.text, "1.50 KB")
+    XCTAssertEqual(result.source, .sharedPrimary)
+    XCTAssertEqual(result.status, .matched)
+  }
+
+  func testRouterFallsBackToNativeTextForMismatchAndSharedFailures() {
+    let mismatch = SharedCoreTrafficRouter.route(
+      bytes: 1_500,
+      nativeText: "原生输出",
+      format: .byteCount,
+      scaleTraffic: { _ in
+        SharedTrafficScale(
+          value: 1.5,
+          unit: .kilobytes,
+          decimalPlaces: 2
+        )
+      }
+    )
+    let abiMismatch = routeThrowing(.unsupportedABIVersion(2))
+    let nativeCallFailed = routeThrowing(.nativeCallFailed(-1))
+    let unsupportedUnit = routeThrowing(.unsupportedTrafficUnit(99))
+    let unexpectedResult = SharedCoreTrafficRouter.route(
+      bytes: 1_500,
+      nativeText: "原生输出",
+      format: .byteCount,
+      scaleTraffic: { _ in
+        SharedTrafficScale(
+          value: 1.5,
+          unit: .kilobytes,
+          decimalPlaces: 3
+        )
+      }
+    )
+    let unknownFailure = routeThrowingUnknown(SyntheticError())
+
+    XCTAssertEqual(mismatch.text, "原生输出")
+    XCTAssertEqual(mismatch.source, .nativeFallback)
+    XCTAssertEqual(mismatch.status, .mismatch)
+    XCTAssertEqual(abiMismatch.status, .abiMismatch)
+    XCTAssertEqual(nativeCallFailed.status, .nativeCallFailed)
+    XCTAssertEqual(unsupportedUnit.status, .unsupportedTrafficUnit)
+    XCTAssertEqual(unexpectedResult.status, .unexpectedResult)
+    XCTAssertEqual(unknownFailure.status, .unknownFailure)
+    XCTAssertTrue(
+      [abiMismatch, nativeCallFailed, unsupportedUnit, unexpectedResult, unknownFailure]
+        .allSatisfy {
+          $0.text == "原生输出" && $0.source == .nativeFallback
+        }
+    )
+  }
+
+  func testShadowAlwaysReturnsNativeTextWithInjectedSharedCandidate() {
+    let text = SharedCoreTrafficShadow.observe(
+      bytes: 1_500,
+      nativeText: "原生输出",
+      format: .byteCount,
+      scaleTraffic: { _ in
+        SharedTrafficScale(
+          value: 1.5,
+          unit: .kilobytes,
+          decimalPlaces: 2
+        )
+      }
+    )
+
+    XCTAssertEqual(text, "原生输出")
+  }
+
+  func testRouteDeduplicatesObservationsAndIgnoresReporterFailure() {
+    let observations = OSAllocatedUnfairLock(
+      initialState: [SharedCoreTrafficRouteObservation]()
+    )
+    SharedCoreTrafficRoute.configure { observation in
+      observations.withLock { $0.append(observation) }
+      throw SyntheticError()
+    }
+    defer {
+      SharedCoreTrafficRoute.configure(reporter: nil)
+    }
+
+    let firstText = resolveMatchingRoute()
+    let secondText = resolveMatchingRoute()
+
+    XCTAssertEqual(firstText, "1.50 KB")
+    XCTAssertEqual(secondText, "1.50 KB")
+    XCTAssertEqual(
+      observations.withLock { $0 },
+      [
+        SharedCoreTrafficRouteObservation(
+          format: .byteCount,
+          source: .sharedPrimary,
+          status: .matched
+        )
+      ]
+    )
+  }
+
   func testObservationGateReportsEachFormatAndStatusOnce() {
     var gate = SharedCoreTrafficShadowObservationGate()
     let byteCountMatched = SharedCoreTrafficShadowObservation(
@@ -130,4 +242,43 @@ final class SharedCoreTrafficShadowComparatorTests: XCTestCase {
       scaleTraffic: { _ in throw error }
     )
   }
+
+  private func routeThrowing(
+    _ error: SharedCoreAdapterError
+  ) -> SharedCoreTrafficRouteResult {
+    SharedCoreTrafficRouter.route(
+      bytes: 1_500,
+      nativeText: "原生输出",
+      format: .byteCount,
+      scaleTraffic: { _ in throw error }
+    )
+  }
+
+  private func routeThrowingUnknown(
+    _ error: any Error
+  ) -> SharedCoreTrafficRouteResult {
+    SharedCoreTrafficRouter.route(
+      bytes: 1_500,
+      nativeText: "原生输出",
+      format: .byteCount,
+      scaleTraffic: { _ in throw error }
+    )
+  }
+
+  private func resolveMatchingRoute() -> String {
+    SharedCoreTrafficRoute.resolve(
+      bytes: 1_500,
+      nativeText: "1.50 KB",
+      format: .byteCount,
+      scaleTraffic: { _ in
+        SharedTrafficScale(
+          value: 1.5,
+          unit: .kilobytes,
+          decimalPlaces: 2
+        )
+      }
+    )
+  }
 }
+
+private struct SyntheticError: Error {}
