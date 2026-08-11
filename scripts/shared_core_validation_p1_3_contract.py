@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 REQUIRED_MARKERS = {
     "docs/跨平台共享核心P1.3受保护主路径技术方案.md": (
-        "状态：P1.3-3 完整速率受保护主路径已启用",
+        "状态：P1.3-4 三类流量格式受保护主路径已启用",
         "受保护主路径仅在共享文本与原生文本完全一致时返回共享文本",
         "ABI 不匹配、动态库调用失败、未知单位、不支持的小数位、文本不一致或其他未知错误",
         "不增加用户开关、持久化模式或可远程修改的配置",
@@ -22,14 +22,14 @@ REQUIRED_MARKERS = {
         "不删除原生格式化实现",
         "每个平台至少连续连接 30 分钟",
         "只回滚该格式的调用点",
-        "`compact_rate` 仍调用影子路径",
+        "三类流量格式受保护主路径",
     ),
     "docs/跨平台共享核心技术方案.md": (
-        "状态：P1.3-3 字节数与完整速率受保护主路径已启用",
+        "状态：P1.3-4 三类流量格式受保护主路径已启用",
         "跨平台共享核心P1.3受保护主路径技术方案.md",
     ),
     "docs/架构概览.md": (
-        "P1.3-3 已按",
+        "P1.3-4 已按",
         "跨平台共享核心P1.3受保护主路径技术方案.md",
     ),
     "Sources/Application/SharedCoreTrafficRouter.swift": (
@@ -95,8 +95,8 @@ METHOD_MARKERS = {
         (
             "static func compactString(",
             "static func string(",
-            ("SharedCoreTrafficShadow.observe(", "format: .compactRate"),
-            ("SharedCoreTrafficRoute.resolve(",),
+            ("SharedCoreTrafficRoute.resolve(", "format: .compactRate"),
+            ("SharedCoreTrafficShadow.observe(",),
         ),
         (
             "static func string(",
@@ -121,8 +121,8 @@ METHOD_MARKERS = {
         (
             "public static string CompactRate(",
             "public static string DateTime(",
-            ("SharedCoreTrafficShadow.Observe(", "SharedCoreTrafficFormat.CompactRate"),
-            ("SharedCoreTrafficRoute.Resolve(",),
+            ("SharedCoreTrafficRoute.Resolve(", "SharedCoreTrafficFormat.CompactRate"),
+            ("SharedCoreTrafficShadow.Observe(",),
         ),
     ),
 }
