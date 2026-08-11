@@ -138,7 +138,7 @@ final class SharedCoreTrafficShadowComparatorTests: XCTestCase {
         )
       }
     )
-    let unknownFailure = routeThrowing(SyntheticError())
+    let unknownFailure = routeThrowingUnknown(SyntheticError())
 
     XCTAssertEqual(mismatch.text, "原生输出")
     XCTAssertEqual(mismatch.source, .nativeFallback)
@@ -244,6 +244,17 @@ final class SharedCoreTrafficShadowComparatorTests: XCTestCase {
   }
 
   private func routeThrowing(
+    _ error: SharedCoreAdapterError
+  ) -> SharedCoreTrafficRouteResult {
+    SharedCoreTrafficRouter.route(
+      bytes: 1_500,
+      nativeText: "原生输出",
+      format: .byteCount,
+      scaleTraffic: { _ in throw error }
+    )
+  }
+
+  private func routeThrowingUnknown(
     _ error: any Error
   ) -> SharedCoreTrafficRouteResult {
     SharedCoreTrafficRouter.route(
