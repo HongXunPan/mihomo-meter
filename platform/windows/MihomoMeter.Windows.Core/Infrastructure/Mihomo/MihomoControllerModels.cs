@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using MihomoMeter.Windows.Core.Application;
 using MihomoMeter.Windows.Core.Domain;
 
 namespace MihomoMeter.Windows.Core.Infrastructure.Mihomo;

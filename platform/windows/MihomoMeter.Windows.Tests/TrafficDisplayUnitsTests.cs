@@ -6,7 +6,7 @@ namespace MihomoMeter.Windows.Tests;
 [TestClass]
 public sealed class TrafficDisplayUnitsTests
 {
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(0UL, "0 B")]
     [DataRow(999UL, "999 B")]
     [DataRow(1_000UL, "1.00 KB")]

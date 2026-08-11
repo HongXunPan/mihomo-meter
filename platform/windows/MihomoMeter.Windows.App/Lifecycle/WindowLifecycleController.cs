@@ -240,7 +240,7 @@ internal sealed class WindowLifecycleController : IDisposable
 
     private void QueueShowControllerSettings()
     {
-        if (!_window.DispatcherQueue.TryEnqueue(_showControllerSettings))
+        if (!_window.DispatcherQueue.TryEnqueue(() => _showControllerSettings()))
         {
             ReportDispatcherFailure("controller_settings_show_dispatch");
         }
@@ -248,7 +248,7 @@ internal sealed class WindowLifecycleController : IDisposable
 
     private void QueueShowUpdates()
     {
-        if (!_window.DispatcherQueue.TryEnqueue(_showUpdates))
+        if (!_window.DispatcherQueue.TryEnqueue(() => _showUpdates()))
         {
             ReportDispatcherFailure("updates_show_dispatch");
         }
