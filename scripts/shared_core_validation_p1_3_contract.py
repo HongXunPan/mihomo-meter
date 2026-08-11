@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 REQUIRED_MARKERS = {
     "docs/跨平台共享核心P1.3受保护主路径技术方案.md": (
-        "状态：P1.3-1 路由基础设施已完成，尚未启用共享主路径",
+        "状态：P1.3-2 字节数受保护主路径已启用",
         "受保护主路径仅在共享文本与原生文本完全一致时返回共享文本",
         "ABI 不匹配、动态库调用失败、未知单位、不支持的小数位、文本不一致或其他未知错误",
         "不增加用户开关、持久化模式或可远程修改的配置",
@@ -22,14 +22,14 @@ REQUIRED_MARKERS = {
         "不删除原生格式化实现",
         "每个平台至少连续连接 30 分钟",
         "只回滚该格式的调用点",
-        "三类生产格式器仍全部调用影子路径",
+        "`rate` 与 `compact_rate` 仍调用影子路径",
     ),
     "docs/跨平台共享核心技术方案.md": (
-        "状态：P1.3-1 路由基础设施已完成",
+        "状态：P1.3-2 字节数受保护主路径已启用",
         "跨平台共享核心P1.3受保护主路径技术方案.md",
     ),
     "docs/架构概览.md": (
-        "P1.3-1 已按",
+        "P1.3-2 已按",
         "跨平台共享核心P1.3受保护主路径技术方案.md",
     ),
     "Sources/Application/SharedCoreTrafficRouter.swift": (
@@ -80,26 +80,50 @@ REQUIRED_MARKERS = {
         "RouterFallsBackToNativeTextForMismatchAndSharedFailures",
         "RouteDeduplicatesObservationsAndIgnoresReporterFailure",
     ),
-    "Sources/Presentation/TrafficStatisticsFormatter.swift": (
-        "SharedCoreTrafficShadow.observe(",
-    ),
-    "Sources/Presentation/TrafficRateFormatter.swift": (
-        "SharedCoreTrafficShadow.observe(",
-    ),
-    "platform/windows/MihomoMeter.Windows.App/Presentation/TrafficDisplayFormatter.cs": (
-        "SharedCoreTrafficShadow.Observe(",
-    ),
 }
 
-FORBIDDEN_MARKERS = {
+METHOD_MARKERS = {
     "Sources/Presentation/TrafficStatisticsFormatter.swift": (
-        "SharedCoreTrafficRoute.resolve(",
+        (
+            "static func bytes(",
+            "private static func nativeBytes(",
+            ("SharedCoreTrafficRoute.resolve(", "format: .byteCount"),
+            ("SharedCoreTrafficShadow.observe(",),
+        ),
     ),
     "Sources/Presentation/TrafficRateFormatter.swift": (
-        "SharedCoreTrafficRoute.resolve(",
+        (
+            "static func compactString(",
+            "static func string(",
+            ("SharedCoreTrafficShadow.observe(", "format: .compactRate"),
+            ("SharedCoreTrafficRoute.resolve(",),
+        ),
+        (
+            "static func string(",
+            "private static func nativeCompactString(",
+            ("SharedCoreTrafficShadow.observe(", "format: .rate"),
+            ("SharedCoreTrafficRoute.resolve(",),
+        ),
     ),
     "platform/windows/MihomoMeter.Windows.App/Presentation/TrafficDisplayFormatter.cs": (
-        "SharedCoreTrafficRoute.Resolve(",
+        (
+            "public static string ByteCount(",
+            "public static string RateValue(",
+            ("SharedCoreTrafficRoute.Resolve(", "SharedCoreTrafficFormat.ByteCount"),
+            ("SharedCoreTrafficShadow.Observe(",),
+        ),
+        (
+            "public static string RateValue(",
+            "public static string CompactRate(",
+            ("SharedCoreTrafficShadow.Observe(", "SharedCoreTrafficFormat.Rate"),
+            ("SharedCoreTrafficRoute.Resolve(",),
+        ),
+        (
+            "public static string CompactRate(",
+            "public static string DateTime(",
+            ("SharedCoreTrafficShadow.Observe(", "SharedCoreTrafficFormat.CompactRate"),
+            ("SharedCoreTrafficRoute.Resolve(",),
+        ),
     ),
 }
 
@@ -116,8 +140,18 @@ def validate_shared_core_p1_3(failures: list[str]) -> None:
             if marker not in content:
                 failures.append(f"{relative_path} 缺少 P1.3 标记：{marker}")
 
-    for relative_path, markers in FORBIDDEN_MARKERS.items():
+    for relative_path, contracts in METHOD_MARKERS.items():
         content = (ROOT / relative_path).read_text(encoding="utf-8")
-        for marker in markers:
-            if marker in content:
-                failures.append(f"{relative_path} 提前启用 P1.3 主路径：{marker}")
+        for start_marker, end_marker, required, forbidden in contracts:
+            start_index = content.find(start_marker)
+            end_index = content.find(end_marker, start_index + len(start_marker))
+            if start_index < 0 or end_index < 0:
+                failures.append(f"{relative_path} 无法定位 P1.3 调用点：{start_marker}")
+                continue
+            section = content[start_index:end_index]
+            for marker in required:
+                if marker not in section:
+                    failures.append(f"{relative_path} 调用点缺少 P1.3 标记：{marker}")
+            for marker in forbidden:
+                if marker in section:
+                    failures.append(f"{relative_path} 调用点模式冲突：{marker}")

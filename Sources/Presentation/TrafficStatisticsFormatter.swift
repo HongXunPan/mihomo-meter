@@ -5,7 +5,7 @@ enum TrafficStatisticsFormatter {
 
   static func bytes(_ value: UInt64) -> String {
     let nativeText = nativeBytes(value)
-    return SharedCoreTrafficShadow.observe(
+    return SharedCoreTrafficRoute.resolve(
       bytes: value,
       nativeText: nativeText,
       format: .byteCount

@@ -57,7 +57,7 @@ REQUIRED_MARKERS = {
         '"event=shared_core.traffic_shadow"',
     ),
     "Sources/Presentation/TrafficStatisticsFormatter.swift": (
-        "SharedCoreTrafficShadow.observe(",
+        "private static func nativeBytes(",
         "format: .byteCount",
     ),
     "Sources/Presentation/TrafficRateFormatter.swift": (
@@ -184,6 +184,7 @@ REQUIRED_MARKERS = {
         '"${project_root}/Sources/Domain/SharedCoreTrafficShadowObservation.swift"',
         '"${project_root}/SharedCore/Adapters/Swift/SharedCoreTrafficDisplayFormatter.swift"',
         '"${project_root}/Sources/Application/SharedCoreTrafficRouter.swift"',
+        '"${project_root}/Sources/Application/SharedCoreTrafficRoute.swift"',
         '"${project_root}/Sources/Application/SharedCoreTrafficShadowComparator.swift"',
         '"${project_root}/Sources/Application/SharedCoreTrafficShadow.swift"',
         '"${project_root}/Sources/Application/SharedCoreRuntimeProbe.swift"',
@@ -227,16 +228,16 @@ REQUIRED_MARKERS = {
     ),
     "CONTRIBUTING.md": (
         "P1.2b 双端运行态门禁已于 2026-08-11 通过",
-        "P1.3-1 已建立受保护主路径路由、自动回退与诊断基础设施",
-        "三类生产格式器仍保持影子模式",
+        "P1.3-2 已启用双端字节数受保护主路径",
+        "完整与紧凑速率仍保持影子模式",
     ),
     "docs/架构概览.md": (
         "P1.2b 运行态门禁已通过",
-        "当前字节数与速率格式化仍返回原生结果",
+        "P1.3-2 已按",
     ),
     "docs/跨平台共享核心技术方案.md": (
-        "状态：P1.3-1 路由基础设施已完成",
-        "三类生产返回值仍全部由原生算法决定",
+        "状态：P1.3-2 字节数受保护主路径已启用",
+        "任何异常仍逐次回退原生文本",
         "按“格式类型 + 粗粒度状态”在单次进程生命周期内去重",
         "正常时三类格式各记录一次 `matched`",
         "跨平台共享核心P1.2b运行态验收指南.md",
