@@ -38,6 +38,32 @@ enum SharedCoreProxyTypeRouter {
     }
   }
 
+  static func routeLazy(
+    rawType: String,
+    nativeFallback: () -> ProxyClassification,
+    classifyProxyType: (String) throws -> SharedProxyTypeClassification =
+      MihomoMeterSharedCoreAdapter.classifyProxyType
+  ) -> SharedCoreProxyTypeRouteResult {
+    do {
+      let sharedClassification = try classifyProxyType(rawType)
+      guard let candidate = platformClassification(from: sharedClassification) else {
+        return lazyFallback(nativeFallback: nativeFallback, status: .unrecognized)
+      }
+      return SharedCoreProxyTypeRouteResult(
+        classification: candidate,
+        source: .sharedPrimary,
+        status: .succeeded
+      )
+    } catch let error as SharedProxyTypeAdapterError {
+      return lazyFallback(
+        nativeFallback: nativeFallback,
+        status: status(for: error)
+      )
+    } catch {
+      return lazyFallback(nativeFallback: nativeFallback, status: .unknownFailure)
+    }
+  }
+
   private static func platformClassification(
     from sharedClassification: SharedProxyTypeClassification
   ) -> ProxyClassification? {
@@ -59,6 +85,17 @@ enum SharedCoreProxyTypeRouter {
   ) -> SharedCoreProxyTypeRouteResult {
     SharedCoreProxyTypeRouteResult(
       classification: nativeClassification,
+      source: .nativeFallback,
+      status: status
+    )
+  }
+
+  private static func lazyFallback(
+    nativeFallback: () -> ProxyClassification,
+    status: SharedCoreProxyTypeRouteStatus
+  ) -> SharedCoreProxyTypeRouteResult {
+    SharedCoreProxyTypeRouteResult(
+      classification: nativeFallback(),
       source: .nativeFallback,
       status: status
     )

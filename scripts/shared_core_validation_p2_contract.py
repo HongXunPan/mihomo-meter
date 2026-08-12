@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 REQUIRED_MARKERS = {
     "docs/跨平台共享核心P2代理分类技术方案.md": (
-        "状态：P2-5 双端受保护主路径门禁已通过",
+        "状态：P2-6 共享优先、原生懒回退已实现",
         "P2-F0 已先修正双端原生基线",
         "不超过 64 字节的 ASCII 输入",
         "0 | `unrecognized`",
@@ -23,6 +23,7 @@ REQUIRED_MARKERS = {
         "跨平台共享核心P2-3验收记录-2026-08-12.md",
         "跨平台共享核心P2-5运行态验收指南.md",
         "跨平台共享核心P2-5验收记录-2026-08-12.md",
+        "跨平台共享核心P2-7运行态验收指南.md",
         "DIRECT、REJECT 或未知被并入 Proxy",
     ),
     "docs/跨平台共享核心P2-3运行态验收指南.md": (
@@ -65,46 +66,63 @@ REQUIRED_MARKERS = {
         "禁止回退状态 | 无 | 无",
         "P2-6 共享优先、原生懒回退",
     ),
+    "docs/跨平台共享核心P2-7运行态验收指南.md": (
+        "状态：待双端实机验收",
+        "两次独立启动",
+        "连续连接 30 分钟",
+        "Proxy、DIRECT 与空闲切换",
+        "event=shared_core.proxy_type_route",
+        "source=shared_primary status=succeeded",
+        "source=native_fallback status=unrecognized",
+        "回滚到 P2-4 受保护路由",
+    ),
     "docs/跨平台共享核心技术方案.md": (
         "跨平台共享核心P2代理分类技术方案.md",
         "未识别类型必须回退原生分类",
     ),
     "docs/架构概览.md": (
-        "P2-6",
+        "P2-7",
         "跨平台共享核心P2代理分类技术方案.md",
     ),
     "docs/数据与隐私.md": (
-        "代理分类影子或受保护路由的粗粒度来源和状态",
+        "代理分类影子、受保护或懒回退路由的粗粒度来源和状态",
         "原始代理类型",
     ),
     "CONTRIBUTING.md": (
         "跨平台共享核心P2代理分类技术方案.md",
         "P2-5 受保护主路径双端门禁均已于 2026-08-12 通过",
         "跨平台共享核心P2-5验收记录-2026-08-12.md",
+        "跨平台共享核心P2-7运行态验收指南.md",
     ),
     "Sources/Domain/ProxyClassifier.swift": (
         ".filter { $0.isLetter || $0.isNumber }",
         '"hysteria2"',
         '"socks5"',
         "resolveProxyType(rawType, nativeClassification)",
+        "typealias LazyProxyTypeResolver",
+        "resolveProxyTypeLazily",
     ),
     "Tests/ProxyClassifierTests.swift": (
         "testClassifiesEverySupportedConcreteProxyType",
         "testInvokesInjectedResolverOnlyAfterCatalogHitWithNativeClassification",
         '"Hysteria2"',
         '"Socks5"',
+        "testLazyResolverControlsWhetherNativeClassificationIsEvaluated",
     ),
     "platform/windows/MihomoMeter.Windows.Core/Domain/ProxyClassifier.cs": (
         "char.IsLetter(character) || char.IsNumber(character)",
         '"hysteria2"',
         '"socks5"',
-        "_resolveProxyType(rawType, nativeClassification)",
+        "_resolveProxyType!(rawType, nativeClassification)",
+        "public delegate ProxyClassification LazyProxyTypeResolver",
+        "_resolveProxyTypeLazily(rawType, () => ClassifyNatively(rawType))",
     ),
     "platform/windows/MihomoMeter.Windows.Tests/ProxyClassifierTests.cs": (
         "ClassifiesEverySupportedConcreteProxyType",
         "InvokesInjectedResolverOnlyAfterCatalogHitWithNativeClassification",
         '"Hysteria2"',
         '"Socks5"',
+        "LazyResolverControlsWhetherNativeClassificationIsEvaluated",
     ),
     "SharedCore/src/lib.rs": (
         "pub unsafe extern \"C\" fn mm_classify_proxy_type(",
@@ -159,6 +177,7 @@ REQUIRED_MARKERS = {
         'case sharedShadow = "shared_shadow"',
         'case sharedPrimary = "shared_primary"',
         'case nativeFallback = "native_fallback"',
+        "case succeeded",
         "case unrecognized",
         "SharedCoreProxyTypeShadowObservationGate",
     ),
@@ -168,12 +187,16 @@ REQUIRED_MARKERS = {
         "SharedProxyTypeAdapterError",
         "source: .sharedPrimary",
         "source: .nativeFallback",
+        "static func routeLazy(",
+        "status: .succeeded",
     ),
     "Sources/Application/SharedCoreProxyTypeRoute.swift": (
         "enum SharedCoreProxyTypeRoute",
         "SharedCoreProxyTypeRouteObservationGate",
         "state.observationGate.shouldReport(observation)",
         "SharedCoreProxyTypeRouter.route(",
+        "static func resolveLazy(",
+        "SharedCoreProxyTypeRouter.routeLazy(",
         "return result.classification",
     ),
     "Sources/Application/SharedCoreProxyTypeShadow.swift": (
@@ -184,10 +207,11 @@ REQUIRED_MARKERS = {
     ),
     "Sources/Domain/TrafficMeasurementSession.swift": (
         "resolveProxyType: @escaping ProxyTypeResolver",
-        "ProxyClassifier(catalog: catalog, resolveProxyType: resolveProxyType)",
+        "init(resolveProxyTypeLazily: @escaping LazyProxyTypeResolver)",
+        "makeClassifier = { catalog in",
     ),
     "Sources/Application/TrafficMonitoringRun.swift": (
-        "resolveProxyType: SharedCoreProxyTypeRoute.resolve",
+        "resolveProxyTypeLazily: SharedCoreProxyTypeRoute.resolveLazy",
     ),
     "Sources/Application/AppDelegate.swift": (
         "SharedCoreProxyTypeShadow.configure(",
@@ -210,18 +234,27 @@ REQUIRED_MARKERS = {
         "testShadowDeduplicatesSourceAndStatusAndIgnoresReporterFailure",
         "testObservationGateKeysBySourceAndStatus",
     ),
+    "Tests/SharedCoreProxyTypeLazyRouteTests.swift": (
+        "testLazyRouterDoesNotEvaluateFallbackOnSharedSuccess",
+        "testLazyRouterEvaluatesFallbackExactlyOnceForUnrecognizedAndSharedFailures",
+        "testLazyRouteIgnoresReporterFailureWithoutEvaluatingFallback",
+        "status: .succeeded",
+    ),
     "MihomoMeter.xcodeproj/project.pbxproj": (
         "SharedCoreProxyTypeShadowObservation.swift in Sources",
         "SharedCoreProxyTypeRouter.swift in Sources",
         "SharedCoreProxyTypeShadow.swift in Sources",
         "SharedCoreProxyTypeRoute.swift in Sources",
         "SharedCoreProxyTypeShadowTests.swift in Sources",
+        "SharedCoreProxyTypeLazyRouteTests.swift in Sources",
     ),
     "platform/windows/MihomoMeter.Windows.Core/Application/SharedCoreProxyTypeRouter.cs": (
         "internal static class SharedCoreProxyTypeRouter",
         "SharedCoreProxyTypeRouteSource.SharedPrimary",
         "SharedCoreProxyTypeRouteSource.NativeFallback",
         "SharedProxyTypeAdapterException",
+        "RouteLazy(",
+        "SharedCoreProxyTypeRouteStatus.Succeeded",
     ),
     "platform/windows/MihomoMeter.Windows.Core/Application/SharedCoreProxyTypeShadow.cs": (
         "public enum SharedCoreProxyTypeShadowSource",
@@ -235,16 +268,21 @@ REQUIRED_MARKERS = {
         "SharedCoreProxyTypeRouteObservationGate",
         "ObservationGate.ShouldReport(observation)",
         "SharedCoreProxyTypeRouter.Route(",
+        "public static ProxyClassification ResolveLazy(",
+        "SharedCoreProxyTypeRouter.RouteLazy(",
         "return result.Classification;",
     ),
     "platform/windows/MihomoMeter.Windows.Core/Application/TrafficMonitoringStream.cs": (
-        "SharedCoreProxyTypeRoute.Resolve",
+        "SharedCoreProxyTypeRoute.ResolveLazy",
     ),
     "platform/windows/MihomoMeter.Windows.App/Program.cs": (
         "SharedCoreProxyTypeShadow.ConfigureReporter(",
         "SharedCoreProxyTypeRoute.ConfigureReporter(",
         "SharedCoreTrafficDiagnosticReporter.ReportProxyTypeShadow",
         "SharedCoreTrafficDiagnosticReporter.ReportProxyTypeRoute",
+    ),
+    "platform/windows/MihomoMeter.Windows.App/Diagnostics/SharedCoreTrafficDiagnosticReporter.cs": (
+        'SharedCoreProxyTypeRouteStatus.Succeeded => "succeeded"',
     ),
     "platform/windows/MihomoMeter.Windows.App/Diagnostics/StartupConsoleReporter.cs": (
         'event=shared_core.proxy_type_shadow',
@@ -257,6 +295,12 @@ REQUIRED_MARKERS = {
         "RouteDeduplicatesSourceAndStatusAndIgnoresReporterFailure",
         "ShadowDeduplicatesSourceAndStatusAndIgnoresReporterFailure",
         "ObservationGateKeysBySourceAndStatus",
+    ),
+    "platform/windows/MihomoMeter.Windows.Tests/SharedCoreProxyTypeLazyRouteTests.cs": (
+        "LazyRouterDoesNotEvaluateFallbackOnSharedSuccess",
+        "LazyRouterEvaluatesFallbackExactlyOnceForUnrecognizedAndSharedFailures",
+        "LazyRouteIgnoresReporterFailureWithoutEvaluatingFallback",
+        "SharedCoreProxyTypeRouteStatus.Succeeded",
     ),
 }
 

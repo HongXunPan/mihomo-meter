@@ -48,6 +48,7 @@ REQUIRED_FILES = (
     "Sources/Presentation/TrafficStatisticsFormatter.swift",
     "Tests/SharedCoreRuntimeProbeTests.swift",
     "Tests/SharedCoreProxyTypeShadowTests.swift",
+    "Tests/SharedCoreProxyTypeLazyRouteTests.swift",
     "Tests/SharedCoreTrafficLazyRouteTests.swift",
     "Tests/SharedCoreTrafficShadowComparatorTests.swift",
     "Tests/DiagnosticLoggerTests.swift",
@@ -69,6 +70,7 @@ REQUIRED_FILES = (
     "platform/windows/MihomoMeter.Windows.App/Program.cs",
     "platform/windows/MihomoMeter.Windows.Tests/MihomoMeterSharedCoreTests.cs",
     "platform/windows/MihomoMeter.Windows.Tests/SharedCoreProxyTypeShadowTests.cs",
+    "platform/windows/MihomoMeter.Windows.Tests/SharedCoreProxyTypeLazyRouteTests.cs",
     "platform/windows/MihomoMeter.Windows.Tests/SharedCoreRuntimeProbeTests.cs",
     "platform/windows/MihomoMeter.Windows.Tests/SharedCoreTrafficLazyRouteTests.cs",
     "platform/windows/MihomoMeter.Windows.Tests/SharedCoreTrafficRouterTests.cs",
@@ -91,6 +93,7 @@ REQUIRED_FILES = (
     "docs/跨平台共享核心P2-3验收记录-2026-08-12.md",
     "docs/跨平台共享核心P2-5运行态验收指南.md",
     "docs/跨平台共享核心P2-5验收记录-2026-08-12.md",
+    "docs/跨平台共享核心P2-7运行态验收指南.md",
 )
 
 REQUIRED_TRAFFIC_VALUES = {

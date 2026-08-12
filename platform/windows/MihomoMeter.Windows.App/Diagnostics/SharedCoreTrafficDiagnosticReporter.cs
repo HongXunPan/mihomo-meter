@@ -79,6 +79,7 @@ internal static class SharedCoreTrafficDiagnosticReporter
         return status switch
         {
             SharedCoreProxyTypeRouteStatus.Matched => "matched",
+            SharedCoreProxyTypeRouteStatus.Succeeded => "succeeded",
             SharedCoreProxyTypeRouteStatus.Unrecognized => "unrecognized",
             SharedCoreProxyTypeRouteStatus.AbiMismatch => "abi_mismatch",
             SharedCoreProxyTypeRouteStatus.NativeCallFailed => "native_call_failed",

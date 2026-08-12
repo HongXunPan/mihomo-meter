@@ -109,4 +109,36 @@ public sealed class ProxyClassifierTests
             new ProxyClassification(TrafficCategory.Proxy),
             invocations[0].Classification);
     }
+
+    [TestMethod]
+    public void LazyResolverControlsWhetherNativeClassificationIsEvaluated()
+    {
+        var invocations = new List<string>();
+        var sharedClassifier = new ProxyClassifier(
+            new ProxyCatalog(new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                ["Synthetic"] = "Selector",
+            }),
+            (LazyProxyTypeResolver)((rawType, _) =>
+            {
+                invocations.Add(rawType);
+                return new ProxyClassification(TrafficCategory.Proxy);
+            }));
+        Assert.AreEqual(
+            new ProxyClassification(TrafficCategory.Proxy),
+            sharedClassifier.Classify(["Synthetic"]));
+
+        var fallbackClassifier = new ProxyClassifier(
+            new ProxyCatalog(new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                ["Synthetic"] = "Selector",
+            }),
+            (LazyProxyTypeResolver)((_, nativeFallback) => nativeFallback()));
+        Assert.AreEqual(
+            new ProxyClassification(
+                TrafficCategory.Unknown,
+                UnknownTrafficReason.AmbiguousProxyType),
+            fallbackClassifier.Classify(["Synthetic"]));
+        CollectionAssert.AreEqual(new[] { "Selector" }, invocations);
+    }
 }

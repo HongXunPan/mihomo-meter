@@ -21,6 +21,12 @@ typealias ProxyTypeResolver =
     _ nativeClassification: ProxyClassification
   ) -> ProxyClassification
 
+typealias LazyProxyTypeResolver =
+  @Sendable (
+    _ rawType: String,
+    _ nativeFallback: @Sendable () -> ProxyClassification
+  ) -> ProxyClassification
+
 enum UnknownTrafficReason: String, Equatable, Sendable {
   case emptyChain
   case missingCatalogEntry
@@ -28,6 +34,11 @@ enum UnknownTrafficReason: String, Equatable, Sendable {
 }
 
 struct ProxyClassifier: Sendable {
+  private enum ResolutionStrategy: Sendable {
+    case eager(ProxyTypeResolver)
+    case lazy(LazyProxyTypeResolver)
+  }
+
   private static let concreteProxyTypes: Set<String> = [
     "anytls",
     "http",
@@ -46,7 +57,7 @@ struct ProxyClassifier: Sendable {
   ]
 
   private let catalog: ProxyCatalog
-  private let resolveProxyType: ProxyTypeResolver
+  private let resolutionStrategy: ResolutionStrategy
 
   init(
     catalog: ProxyCatalog,
@@ -55,7 +66,15 @@ struct ProxyClassifier: Sendable {
     }
   ) {
     self.catalog = catalog
-    self.resolveProxyType = resolveProxyType
+    resolutionStrategy = .eager(resolveProxyType)
+  }
+
+  init(
+    catalog: ProxyCatalog,
+    resolveProxyTypeLazily: @escaping LazyProxyTypeResolver
+  ) {
+    self.catalog = catalog
+    resolutionStrategy = .lazy(resolveProxyTypeLazily)
   }
 
   func classify(chains: [String]) -> ProxyClassification {
@@ -67,8 +86,15 @@ struct ProxyClassifier: Sendable {
       return ProxyClassification(category: .unknown, unknownReason: .missingCatalogEntry)
     }
 
-    let nativeClassification = Self.classifyNatively(rawType: rawType)
-    return resolveProxyType(rawType, nativeClassification)
+    switch resolutionStrategy {
+    case .eager(let resolveProxyType):
+      let nativeClassification = Self.classifyNatively(rawType: rawType)
+      return resolveProxyType(rawType, nativeClassification)
+    case .lazy(let resolveProxyType):
+      return resolveProxyType(rawType) {
+        Self.classifyNatively(rawType: rawType)
+      }
+    }
   }
 
   private static func classifyNatively(rawType: String) -> ProxyClassification {

@@ -36,6 +36,7 @@ SHARED_CORE_REQUIRED_CORE_FILES = (
 SHARED_CORE_REQUIRED_TEST_FILES = (
     "MihomoMeterSharedCoreTests.cs",
     "SharedCoreProxyTypeShadowTests.cs",
+    "SharedCoreProxyTypeLazyRouteTests.cs",
     "SharedCoreRuntimeProbeTests.cs",
     "SharedCoreTrafficLazyRouteTests.cs",
     "SharedCoreTrafficRouterTests.cs",
@@ -65,6 +66,7 @@ SHARED_CORE_REQUIRED_CODE_MARKERS = {
         "ReportProxyTypeShadow(SharedCoreProxyTypeShadowObservation observation)",
         "ReportProxyTypeRoute(SharedCoreProxyTypeRouteObservation observation)",
         'SharedCoreProxyTypeRouteStatus.Unrecognized => "unrecognized"',
+        'SharedCoreProxyTypeRouteStatus.Succeeded => "succeeded"',
         "StartupConsoleReporter.ProxyTypeShadow(",
         'SharedCoreTrafficShadowStatus.Matched => "matched"',
         "StartupConsoleReporter.TrafficShadow(",
@@ -97,19 +99,24 @@ SHARED_CORE_REQUIRED_CODE_MARKERS = {
     ),
     CORE_ROOT / "Domain/ProxyClassifier.cs": (
         "Func<string, ProxyClassification, ProxyClassification>? resolveProxyType",
-        "_resolveProxyType(rawType, nativeClassification)",
+        "public delegate ProxyClassification LazyProxyTypeResolver",
+        "_resolveProxyType!(rawType, nativeClassification)",
+        "_resolveProxyTypeLazily(rawType, () => ClassifyNatively(rawType))",
     ),
     CORE_ROOT / "Application/TrafficMeasurementSession.cs": (
         "Func<string, ProxyClassification, ProxyClassification>? resolveProxyType",
-        "new ProxyClassifier(catalog, _resolveProxyType)",
+        "LazyProxyTypeResolver resolveProxyTypeLazily",
+        "new ProxyClassifier(nextCatalog, resolveProxyTypeLazily)",
     ),
     CORE_ROOT / "Application/TrafficMonitoringStream.cs": (
-        "SharedCoreProxyTypeRoute.Resolve",
+        "SharedCoreProxyTypeRoute.ResolveLazy",
     ),
     CORE_ROOT / "Application/SharedCoreProxyTypeRouter.cs": (
         "SharedCoreProxyTypeRouteSource.SharedPrimary",
         "SharedCoreProxyTypeRouteSource.NativeFallback",
         "SharedCoreProxyTypeRouteStatus.Unrecognized",
+        "SharedCoreProxyTypeRouteStatus.Succeeded",
+        "RouteLazy(",
         "SharedProxyTypeAdapterException",
         "nativeClassification",
     ),
@@ -125,6 +132,8 @@ SHARED_CORE_REQUIRED_CODE_MARKERS = {
         "SharedCoreProxyTypeRouteObservationGate",
         "ObservationGate.ShouldReport(observation)",
         "SharedCoreProxyTypeRouter.Route(",
+        "public static ProxyClassification ResolveLazy(",
+        "SharedCoreProxyTypeRouter.RouteLazy(",
         "return result.Classification;",
     ),
     CORE_ROOT / "Application/SharedCoreTrafficShadow.cs": (
@@ -181,5 +190,11 @@ SHARED_CORE_REQUIRED_CODE_MARKERS = {
         "RouteDeduplicatesSourceAndStatusAndIgnoresReporterFailure",
         "ShadowDeduplicatesSourceAndStatusAndIgnoresReporterFailure",
         "ObservationGateKeysBySourceAndStatus",
+    ),
+    TEST_ROOT / "SharedCoreProxyTypeLazyRouteTests.cs": (
+        "LazyRouterDoesNotEvaluateFallbackOnSharedSuccess",
+        "LazyRouterEvaluatesFallbackExactlyOnceForUnrecognizedAndSharedFailures",
+        "LazyRouteIgnoresReporterFailureWithoutEvaluatingFallback",
+        "SharedCoreProxyTypeRouteStatus.Succeeded",
     ),
 }
