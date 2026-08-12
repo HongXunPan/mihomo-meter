@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "cases": [
+    { "rawType": "", "expected": "unrecognized" },
+    { "rawType": "AnyTLS", "expected": "proxy" },
+    { "rawType": "Http", "expected": "proxy" },
+    { "rawType": "Hysteria", "expected": "proxy" },
+    { "rawType": "Hysteria2", "expected": "proxy" },
+    { "rawType": "Shadowsocks", "expected": "proxy" },
+    { "rawType": "ShadowsocksR", "expected": "proxy" },
+    { "rawType": "Snell", "expected": "proxy" },
+    { "rawType": "Socks5", "expected": "proxy" },
+    { "rawType": "Ssh", "expected": "proxy" },
+    { "rawType": "Trojan", "expected": "proxy" },
+    { "rawType": "Tuic", "expected": "proxy" },
+    { "rawType": "Vless", "expected": "proxy" },
+    { "rawType": "Vmess", "expected": "proxy" },
+    { "rawType": "WireGuard", "expected": "proxy" },
+    { "rawType": "  Any_TLS  ", "expected": "proxy" },
+    { "rawType": "Hysteria-2", "expected": "proxy" },
+    { "rawType": "SOCKS_5", "expected": "proxy" },
+    { "rawType": "D-I_R E C T", "expected": "direct" },
+    { "rawType": "Reject", "expected": "reject" },
+    { "rawType": "Reject-Drop", "expected": "reject" },
+    { "rawType": "Selector", "expected": "unrecognized" },
+    { "rawType": "FutureProxy2026", "expected": "unrecognized" },
+    {
+      "rawType": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "expected": "unrecognized"
+    },
+    { "rawType": "Vméss", "expected": "unsupported_input" },
+    {
+      "rawType": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "expected": "input_too_long"
+    }
+  ]
+}

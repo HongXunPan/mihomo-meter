@@ -24,6 +24,9 @@
     <Content Include="../../../SharedCore/TestVectors/traffic_scale.json"
              Link="Fixtures/shared-core-traffic-scale.json"
              CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="../../../SharedCore/TestVectors/proxy_type_classification.json"
+             Link="Fixtures/shared-core-proxy-type-classification.json"
+             CopyToOutputDirectory="PreserveNewest" />
     <Content Include="$(SharedCoreLibraryPath)"
              Link="mihomo_meter_shared_core.dll"
              CopyToOutputDirectory="PreserveNewest" />

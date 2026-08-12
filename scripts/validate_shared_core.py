@@ -27,6 +27,7 @@ REQUIRED_FILES = (
     "SharedCore/Adapters/Swift/MihomoMeterSharedCoreAdapter.swift",
     "SharedCore/Adapters/Swift/SharedCoreTrafficDisplayFormatter.swift",
     "SharedCore/Adapters/Swift/Probe/main.swift",
+    "SharedCore/TestVectors/proxy_type_classification.json",
     "SharedCore/TestVectors/traffic_scale.json",
     "Sources/Application/AppDelegate.swift",
     "Sources/Application/SharedCoreRuntimeProbe.swift",
@@ -103,6 +104,23 @@ REQUIRED_TRAFFIC_VALUES = {
     (1 << 64) - 1,
 }
 
+CONCRETE_PROXY_TYPES = {
+    "anytls",
+    "http",
+    "hysteria",
+    "hysteria2",
+    "shadowsocks",
+    "shadowsocksr",
+    "snell",
+    "socks5",
+    "ssh",
+    "trojan",
+    "tuic",
+    "vless",
+    "vmess",
+    "wireguard",
+}
+
 
 def validate_traffic_vectors(failures: list[str]) -> None:
     path = ROOT / "SharedCore/TestVectors/traffic_scale.json"
@@ -151,6 +169,98 @@ def validate_traffic_vectors(failures: list[str]) -> None:
         failures.append(f"统一流量缩放向量缺少关键边界值：{missing_values}")
 
 
+def validate_proxy_type_vectors(failures: list[str]) -> None:
+    path = ROOT / "SharedCore/TestVectors/proxy_type_classification.json"
+    if not path.is_file():
+        return
+
+    try:
+        document = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        failures.append(f"统一代理类型分类向量不是有效 JSON：{error}")
+        return
+
+    if not isinstance(document, dict):
+        failures.append("统一代理类型分类向量顶层必须为 JSON 对象。")
+        return
+    if type(document.get("schemaVersion")) is not int or document["schemaVersion"] != 1:
+        failures.append("统一代理类型分类向量 schemaVersion 必须为整数 1。")
+
+    cases = document.get("cases")
+    if not isinstance(cases, list) or not cases:
+        failures.append("统一代理类型分类向量 cases 必须为非空数组。")
+        return
+
+    raw_types: list[str] = []
+    covered_proxy_types: set[str] = set()
+    covered_results: set[str] = set()
+    for index, case in enumerate(cases):
+        if not isinstance(case, dict) or set(case) != {"rawType", "expected"}:
+            failures.append(f"统一代理类型分类向量第 {index + 1} 项字段无效。")
+            continue
+        raw_type = case["rawType"]
+        expected = case["expected"]
+        if not isinstance(raw_type, str) or not isinstance(expected, str):
+            failures.append(f"统一代理类型分类向量第 {index + 1} 项必须使用字符串。")
+            continue
+
+        raw_types.append(raw_type)
+        covered_results.add(expected)
+        encoded_length = len(raw_type.encode("utf-8"))
+        if encoded_length > 64:
+            reference_result = "input_too_long"
+            normalized = ""
+        elif not raw_type.isascii():
+            reference_result = "unsupported_input"
+            normalized = ""
+        else:
+            normalized = "".join(
+                character.lower()
+                for character in raw_type
+                if character.isascii() and character.isalnum()
+            )
+            if normalized == "direct":
+                reference_result = "direct"
+            elif normalized in {"reject", "rejectdrop"}:
+                reference_result = "reject"
+            elif normalized in CONCRETE_PROXY_TYPES:
+                reference_result = "proxy"
+                covered_proxy_types.add(normalized)
+            else:
+                reference_result = "unrecognized"
+
+        if expected != reference_result:
+            failures.append(
+                "统一代理类型分类向量预期与契约不一致："
+                f"第 {index + 1} 项应为 {reference_result}。"
+            )
+
+    if len(raw_types) != len(set(raw_types)):
+        failures.append("统一代理类型分类向量 rawType 不得重复。")
+
+    missing_proxy_types = sorted(CONCRETE_PROXY_TYPES.difference(covered_proxy_types))
+    if missing_proxy_types:
+        failures.append(f"统一代理类型分类向量缺少现行协议：{missing_proxy_types}")
+
+    required_results = {
+        "proxy",
+        "direct",
+        "reject",
+        "unrecognized",
+        "unsupported_input",
+        "input_too_long",
+    }
+    missing_results = sorted(required_results.difference(covered_results))
+    if missing_results:
+        failures.append(f"统一代理类型分类向量缺少结果类型：{missing_results}")
+
+    encoded_lengths = {len(raw_type.encode("utf-8")) for raw_type in raw_types}
+    if 64 not in encoded_lengths or 65 not in encoded_lengths:
+        failures.append("统一代理类型分类向量必须同时覆盖 64 与 65 字节边界。")
+    if "" not in raw_types:
+        failures.append("统一代理类型分类向量必须覆盖空输入。")
+
+
 def main() -> int:
     failures: list[str] = []
     for relative_path in REQUIRED_FILES:
@@ -176,6 +286,7 @@ def main() -> int:
                 failures.append(f"{relative_path} 包含禁止标记：{marker}")
 
     validate_traffic_vectors(failures)
+    validate_proxy_type_vectors(failures)
     validate_shared_core_acceptance(failures)
     validate_shared_core_p1_3(failures)
     validate_shared_core_p1_4(failures)

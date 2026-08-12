@@ -19,7 +19,8 @@ require_shared_core_macos_target "${rust_target}"
 
 export CARGO_TARGET_DIR="${project_root}/.build/shared-core"
 manifest_path="${project_root}/SharedCore/Cargo.toml"
-fixture_path="${project_root}/SharedCore/TestVectors/traffic_scale.json"
+traffic_fixture_path="${project_root}/SharedCore/TestVectors/traffic_scale.json"
+proxy_fixture_path="${project_root}/SharedCore/TestVectors/proxy_type_classification.json"
 library_path="${CARGO_TARGET_DIR}/${rust_target}/release/libmihomo_meter_shared_core.a"
 probe_directory="${project_root}/.codex-tmp/shared-core-probe"
 probe_path="${probe_directory}/mihomo-meter-shared-core-probe"
@@ -52,8 +53,12 @@ if [[ ! -f "${library_path}" ]]; then
   echo "共享核心静态库不存在：${library_path}" >&2
   exit 1
 fi
-if [[ ! -f "${fixture_path}" ]]; then
-  echo "统一流量缩放向量不存在：${fixture_path}" >&2
+if [[ ! -f "${traffic_fixture_path}" ]]; then
+  echo "统一流量缩放向量不存在：${traffic_fixture_path}" >&2
+  exit 1
+fi
+if [[ ! -f "${proxy_fixture_path}" ]]; then
+  echo "统一代理类型分类向量不存在：${proxy_fixture_path}" >&2
   exit 1
 fi
 
@@ -70,6 +75,9 @@ xcrun swiftc \
   "${project_root}/Sources/Application/SharedCoreTrafficShadow.swift" \
   "${project_root}/Sources/Domain/SharedCoreRuntimeStatus.swift" \
   "${project_root}/Sources/Application/SharedCoreRuntimeProbe.swift" \
+  "${project_root}/Sources/Domain/ConnectionAttributionCoverage.swift" \
+  "${project_root}/Sources/Domain/ProxyClassifier.swift" \
+  "${project_root}/Sources/Domain/TrafficMeasurement.swift" \
   "${project_root}/Sources/Domain/TrafficRate.swift" \
   "${project_root}/Sources/Presentation/TrafficRateFormatter.swift" \
   "${project_root}/Sources/Presentation/TrafficStatisticsFormatter.swift" \
@@ -83,4 +91,4 @@ if grep -Fq "libmihomo_meter_shared_core.dylib" <<<"${probe_linkage}"; then
   exit 1
 fi
 
-"${probe_path}" "${fixture_path}"
+"${probe_path}" "${traffic_fixture_path}" "${proxy_fixture_path}"
