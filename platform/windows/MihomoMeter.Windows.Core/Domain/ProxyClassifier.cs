@@ -70,7 +70,7 @@ public sealed class ProxyClassifier
 
         var normalizedType = string.Concat(rawType
             .ToLowerInvariant()
-            .Where(char.IsLetter));
+            .Where(character => char.IsLetter(character) || char.IsNumber(character)));
 
         return normalizedType switch
         {

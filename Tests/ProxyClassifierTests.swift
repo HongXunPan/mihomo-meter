@@ -22,6 +22,36 @@ final class ProxyClassifierTests: XCTestCase {
     )
   }
 
+  func testClassifiesEverySupportedConcreteProxyType() {
+    let supportedTypes = [
+      "AnyTLS",
+      "Http",
+      "Hysteria",
+      "Hysteria2",
+      "Shadowsocks",
+      "ShadowsocksR",
+      "Snell",
+      "Socks5",
+      "Ssh",
+      "Trojan",
+      "Tuic",
+      "Vless",
+      "Vmess",
+      "WireGuard",
+    ]
+
+    for type in supportedTypes {
+      let classifier = ProxyClassifier(
+        catalog: ProxyCatalog(typesByName: ["Synthetic Proxy": type])
+      )
+      XCTAssertEqual(
+        classifier.classify(chains: ["Synthetic Proxy"]),
+        ProxyClassification(category: .proxy, unknownReason: nil),
+        "\(type) 应归类为 Proxy"
+      )
+    }
+  }
+
   func testKeepsDirectAndRejectSeparateFromProxy() {
     XCTAssertEqual(
       classifier.classify(chains: ["DIRECT"]).category,

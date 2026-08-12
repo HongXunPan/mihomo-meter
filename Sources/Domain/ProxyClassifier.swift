@@ -53,7 +53,7 @@ struct ProxyClassifier: Sendable {
     let normalizedType =
       rawType
       .lowercased()
-      .filter(\.isLetter)
+      .filter { $0.isLetter || $0.isNumber }
 
     switch normalizedType {
     case "direct":
