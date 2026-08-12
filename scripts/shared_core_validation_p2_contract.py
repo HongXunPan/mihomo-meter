@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 REQUIRED_MARKERS = {
     "docs/跨平台共享核心P2代理分类技术方案.md": (
-        "状态：P2-3 双端生产影子运行态门禁已通过",
+        "状态：P2-4 受保护主路径已实现",
         "P2-F0 已先修正双端原生基线",
         "不超过 64 字节的 ASCII 输入",
         "0 | `unrecognized`",
@@ -21,6 +21,7 @@ REQUIRED_MARKERS = {
         "P2-3、P2-5 与 P2-7",
         "跨平台共享核心P2-3运行态验收指南.md",
         "跨平台共享核心P2-3验收记录-2026-08-12.md",
+        "跨平台共享核心P2-5运行态验收指南.md",
         "DIRECT、REJECT 或未知被并入 Proxy",
     ),
     "docs/跨平台共享核心P2-3运行态验收指南.md": (
@@ -43,16 +44,26 @@ REQUIRED_MARKERS = {
         "禁止状态 | 无 | 无",
         "P2-4 受保护主路径",
     ),
+    "docs/跨平台共享核心P2-5运行态验收指南.md": (
+        "状态：待双端实机验收",
+        "两次独立启动",
+        "连续连接 30 分钟",
+        "Proxy、DIRECT 与空闲切换",
+        "event=shared_core.proxy_type_route",
+        "source=shared_primary status=matched",
+        "source=native_fallback status=unrecognized",
+        "不得进入 P2-6",
+    ),
     "docs/跨平台共享核心技术方案.md": (
         "跨平台共享核心P2代理分类技术方案.md",
         "未识别类型必须回退原生分类",
     ),
     "docs/架构概览.md": (
-        "P2 代理分类",
+        "P2-4 受保护路径",
         "跨平台共享核心P2代理分类技术方案.md",
     ),
     "docs/数据与隐私.md": (
-        "代理分类影子的粗粒度来源和状态",
+        "代理分类影子或受保护路由的粗粒度来源和状态",
         "原始代理类型",
     ),
     "CONTRIBUTING.md": (
@@ -133,7 +144,9 @@ REQUIRED_MARKERS = {
         '"${proxy_fixture_path}"',
     ),
     "Sources/Domain/SharedCoreProxyTypeShadowObservation.swift": (
+        "enum SharedCoreProxyTypeShadowSource",
         'case sharedShadow = "shared_shadow"',
+        'case sharedPrimary = "shared_primary"',
         'case nativeFallback = "native_fallback"',
         "case unrecognized",
         "SharedCoreProxyTypeShadowObservationGate",
@@ -142,8 +155,15 @@ REQUIRED_MARKERS = {
         "enum SharedCoreProxyTypeRouter",
         "nativeClassification: ProxyClassification",
         "SharedProxyTypeAdapterError",
-        "source: .sharedShadow",
+        "source: .sharedPrimary",
         "source: .nativeFallback",
+    ),
+    "Sources/Application/SharedCoreProxyTypeRoute.swift": (
+        "enum SharedCoreProxyTypeRoute",
+        "SharedCoreProxyTypeRouteObservationGate",
+        "state.observationGate.shouldReport(observation)",
+        "SharedCoreProxyTypeRouter.route(",
+        "return result.classification",
     ),
     "Sources/Application/SharedCoreProxyTypeShadow.swift": (
         "SharedCoreProxyTypeShadowObservationGate",
@@ -156,21 +176,26 @@ REQUIRED_MARKERS = {
         "ProxyClassifier(catalog: catalog, resolveProxyType: resolveProxyType)",
     ),
     "Sources/Application/TrafficMonitoringRun.swift": (
-        "resolveProxyType: SharedCoreProxyTypeShadow.observe",
+        "resolveProxyType: SharedCoreProxyTypeRoute.resolve",
     ),
     "Sources/Application/AppDelegate.swift": (
         "SharedCoreProxyTypeShadow.configure(",
+        "SharedCoreProxyTypeRoute.configure(",
         "SharedCoreTrafficDiagnosticReporter.reportProxyTypeShadow",
+        "SharedCoreTrafficDiagnosticReporter.reportProxyTypeRoute",
     ),
     "Sources/Infrastructure/Diagnostics/AppDiagnosticEvent.swift": (
         "case sharedCoreProxyTypeShadow(",
+        "case sharedCoreProxyTypeRoute(",
         '"event=shared_core.proxy_type_shadow"',
+        '"event=shared_core.proxy_type_route"',
         '"source=\\(observation.source.rawValue)"',
         '"status=\\(observation.status.rawValue)"',
     ),
     "Tests/SharedCoreProxyTypeShadowTests.swift": (
-        "testRouterMatchesEveryStableSharedClassificationWithoutChangingNativeResult",
+        "testRouterReturnsSharedClassificationOnlyForExactMatch",
         "testRouterKeepsNativeResultForUnrecognizedMismatchAndAdapterFailures",
+        "testRouteDeduplicatesSourceAndStatusAndIgnoresReporterFailure",
         "testShadowDeduplicatesSourceAndStatusAndIgnoresReporterFailure",
         "testObservationGateKeysBySourceAndStatus",
     ),
@@ -178,34 +203,47 @@ REQUIRED_MARKERS = {
         "SharedCoreProxyTypeShadowObservation.swift in Sources",
         "SharedCoreProxyTypeRouter.swift in Sources",
         "SharedCoreProxyTypeShadow.swift in Sources",
+        "SharedCoreProxyTypeRoute.swift in Sources",
         "SharedCoreProxyTypeShadowTests.swift in Sources",
     ),
     "platform/windows/MihomoMeter.Windows.Core/Application/SharedCoreProxyTypeRouter.cs": (
         "internal static class SharedCoreProxyTypeRouter",
-        "SharedCoreProxyTypeRouteSource.SharedShadow",
+        "SharedCoreProxyTypeRouteSource.SharedPrimary",
         "SharedCoreProxyTypeRouteSource.NativeFallback",
         "SharedProxyTypeAdapterException",
     ),
     "platform/windows/MihomoMeter.Windows.Core/Application/SharedCoreProxyTypeShadow.cs": (
+        "public enum SharedCoreProxyTypeShadowSource",
         "SharedCoreProxyTypeShadowObservationGate",
         "ObservationGate.ShouldReport(observation)",
         "代理分类影子诊断不得改变仍由原生分类决定的生产结果",
         "return nativeClassification;",
     ),
+    "platform/windows/MihomoMeter.Windows.Core/Application/SharedCoreProxyTypeRoute.cs": (
+        "public static class SharedCoreProxyTypeRoute",
+        "SharedCoreProxyTypeRouteObservationGate",
+        "ObservationGate.ShouldReport(observation)",
+        "SharedCoreProxyTypeRouter.Route(",
+        "return result.Classification;",
+    ),
     "platform/windows/MihomoMeter.Windows.Core/Application/TrafficMonitoringStream.cs": (
-        "SharedCoreProxyTypeShadow.Observe",
+        "SharedCoreProxyTypeRoute.Resolve",
     ),
     "platform/windows/MihomoMeter.Windows.App/Program.cs": (
         "SharedCoreProxyTypeShadow.ConfigureReporter(",
+        "SharedCoreProxyTypeRoute.ConfigureReporter(",
         "SharedCoreTrafficDiagnosticReporter.ReportProxyTypeShadow",
+        "SharedCoreTrafficDiagnosticReporter.ReportProxyTypeRoute",
     ),
     "platform/windows/MihomoMeter.Windows.App/Diagnostics/StartupConsoleReporter.cs": (
         'event=shared_core.proxy_type_shadow',
+        'event=shared_core.proxy_type_route',
         "$\"source={source} status={status}\"",
     ),
     "platform/windows/MihomoMeter.Windows.Tests/SharedCoreProxyTypeShadowTests.cs": (
-        "RouterMatchesEveryStableSharedClassificationWithoutChangingNativeResult",
+        "RouterReturnsSharedClassificationOnlyForExactMatch",
         "RouterKeepsNativeResultForUnrecognizedMismatchAndAdapterFailures",
+        "RouteDeduplicatesSourceAndStatusAndIgnoresReporterFailure",
         "ShadowDeduplicatesSourceAndStatusAndIgnoresReporterFailure",
         "ObservationGateKeysBySourceAndStatus",
     ),

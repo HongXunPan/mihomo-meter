@@ -12,7 +12,7 @@ final class SharedCoreProxyTypeShadowTests: XCTestCase {
     unknownReason: .ambiguousProxyType
   )
 
-  func testRouterMatchesEveryStableSharedClassificationWithoutChangingNativeResult() {
+  func testRouterReturnsSharedClassificationOnlyForExactMatch() {
     let cases: [(String, ProxyClassification, SharedProxyTypeClassification)] = [
       ("Vmess", proxy, .proxy),
       ("Direct", direct, .direct),
@@ -27,9 +27,49 @@ final class SharedCoreProxyTypeShadowTests: XCTestCase {
       )
 
       XCTAssertEqual(result.classification, nativeClassification)
-      XCTAssertEqual(result.source, .sharedShadow)
+      XCTAssertEqual(result.source, .sharedPrimary)
       XCTAssertEqual(result.status, .matched)
     }
+  }
+
+  func testRouteDeduplicatesSourceAndStatusAndIgnoresReporterFailure() {
+    let observations = OSAllocatedUnfairLock(
+      initialState: [SharedCoreProxyTypeRouteObservation]()
+    )
+    SharedCoreProxyTypeRoute.configure { observation in
+      observations.withLock { $0.append(observation) }
+      throw SyntheticError()
+    }
+    defer {
+      SharedCoreProxyTypeRoute.configure(reporter: nil)
+    }
+
+    for _ in 0..<2 {
+      XCTAssertEqual(
+        SharedCoreProxyTypeRoute.resolve(
+          rawType: "Vmess",
+          nativeClassification: proxy,
+          classifyProxyType: { _ in .proxy }
+        ),
+        proxy
+      )
+    }
+    XCTAssertEqual(
+      SharedCoreProxyTypeRoute.resolve(
+        rawType: "Selector",
+        nativeClassification: unknown,
+        classifyProxyType: { _ in .unrecognized }
+      ),
+      unknown
+    )
+
+    XCTAssertEqual(
+      observations.withLock { $0 },
+      [
+        SharedCoreProxyTypeRouteObservation(source: .sharedPrimary, status: .matched),
+        SharedCoreProxyTypeRouteObservation(source: .nativeFallback, status: .unrecognized),
+      ]
+    )
   }
 
   func testRouterKeepsNativeResultForUnrecognizedMismatchAndAdapterFailures() {
@@ -121,10 +161,17 @@ final class SharedCoreProxyTypeShadowTests: XCTestCase {
       source: .nativeFallback,
       status: .matched
     )
+    var routeGate = SharedCoreProxyTypeRouteObservationGate()
+    let primary = SharedCoreProxyTypeRouteObservation(
+      source: .sharedPrimary,
+      status: .matched
+    )
 
     XCTAssertTrue(gate.shouldReport(matched))
     XCTAssertFalse(gate.shouldReport(matched))
     XCTAssertTrue(gate.shouldReport(fallback))
+    XCTAssertTrue(routeGate.shouldReport(primary))
+    XCTAssertFalse(routeGate.shouldReport(primary))
     gate.reset()
     XCTAssertTrue(gate.shouldReport(matched))
   }

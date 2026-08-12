@@ -5,7 +5,7 @@ namespace MihomoMeter.Windows.Core.Application;
 
 public enum SharedCoreProxyTypeRouteSource
 {
-    SharedShadow,
+    SharedPrimary,
     NativeFallback,
 }
 
@@ -58,8 +58,8 @@ internal static class SharedCoreProxyTypeRouter
 
             return candidate == nativeClassification
                 ? new SharedCoreProxyTypeRouteResult(
-                    nativeClassification,
-                    SharedCoreProxyTypeRouteSource.SharedShadow,
+                    candidate,
+                    SharedCoreProxyTypeRouteSource.SharedPrimary,
                     SharedCoreProxyTypeRouteStatus.Matched)
                 : Fallback(nativeClassification, SharedCoreProxyTypeRouteStatus.Mismatch);
         }

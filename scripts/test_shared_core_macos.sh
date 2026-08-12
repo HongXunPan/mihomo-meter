@@ -70,6 +70,7 @@ xcrun swiftc \
   "${project_root}/Sources/Domain/SharedCoreProxyTypeShadowObservation.swift" \
   "${project_root}/Sources/Application/SharedCoreProxyTypeRouter.swift" \
   "${project_root}/Sources/Application/SharedCoreProxyTypeShadow.swift" \
+  "${project_root}/Sources/Application/SharedCoreProxyTypeRoute.swift" \
   "${project_root}/Sources/Domain/SharedCoreTrafficShadowObservation.swift" \
   "${project_root}/SharedCore/Adapters/Swift/SharedCoreTrafficDisplayFormatter.swift" \
   "${project_root}/Sources/Application/SharedCoreTrafficRouter.swift" \

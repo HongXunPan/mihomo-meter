@@ -1,11 +1,11 @@
 import os
 
-enum SharedCoreProxyTypeShadow {
-  typealias Reporter = @Sendable (SharedCoreProxyTypeShadowObservation) throws -> Void
+enum SharedCoreProxyTypeRoute {
+  typealias Reporter = @Sendable (SharedCoreProxyTypeRouteObservation) throws -> Void
 
   private struct State {
     var reporter: Reporter?
-    var observationGate = SharedCoreProxyTypeShadowObservationGate()
+    var observationGate = SharedCoreProxyTypeRouteObservationGate()
   }
 
   private static let stateLock = OSAllocatedUnfairLock(initialState: State())
@@ -17,18 +17,18 @@ enum SharedCoreProxyTypeShadow {
     }
   }
 
-  static func observe(
+  static func resolve(
     rawType: String,
     nativeClassification: ProxyClassification
   ) -> ProxyClassification {
-    observe(
+    resolve(
       rawType: rawType,
       nativeClassification: nativeClassification,
       classifyProxyType: MihomoMeterSharedCoreAdapter.classifyProxyType
     )
   }
 
-  static func observe(
+  static func resolve(
     rawType: String,
     nativeClassification: ProxyClassification,
     classifyProxyType: (String) throws -> SharedProxyTypeClassification
@@ -38,10 +38,16 @@ enum SharedCoreProxyTypeShadow {
       nativeClassification: nativeClassification,
       classifyProxyType: classifyProxyType
     )
-    let observation = SharedCoreProxyTypeShadowObservation(
-      source: shadowSource(for: result.source),
-      status: result.status
+    report(
+      SharedCoreProxyTypeRouteObservation(
+        source: result.source,
+        status: result.status
+      )
     )
+    return result.classification
+  }
+
+  private static func report(_ observation: SharedCoreProxyTypeRouteObservation) {
     let reporter = stateLock.withLock { state -> Reporter? in
       guard let reporter = state.reporter,
         state.observationGate.shouldReport(observation)
@@ -53,19 +59,7 @@ enum SharedCoreProxyTypeShadow {
     do {
       try reporter?(observation)
     } catch {
-      // 代理分类影子诊断不得改变仍由原生分类决定的生产结果。
-    }
-    return nativeClassification
-  }
-
-  private static func shadowSource(
-    for source: SharedCoreProxyTypeRouteSource
-  ) -> SharedCoreProxyTypeShadowSource {
-    switch source {
-    case .sharedPrimary:
-      .sharedShadow
-    case .nativeFallback:
-      .nativeFallback
+      // 路由诊断不得改变共享分类或原生回退结果。
     }
   }
 }

@@ -24,8 +24,8 @@ enum SharedCoreProxyTypeRouter {
         return fallback(nativeClassification: nativeClassification, status: .mismatch)
       }
       return SharedCoreProxyTypeRouteResult(
-        classification: nativeClassification,
-        source: .sharedShadow,
+        classification: candidate,
+        source: .sharedPrimary,
         status: .matched
       )
     } catch let error as SharedProxyTypeAdapterError {

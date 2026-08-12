@@ -5,6 +5,12 @@ enum SharedCoreTrafficDiagnosticReporter {
     }
   }
 
+  static func reportProxyTypeRoute(_ observation: SharedCoreProxyTypeRouteObservation) {
+    Task {
+      await AppDiagnosticLogger.shared.record(.sharedCoreProxyTypeRoute(observation))
+    }
+  }
+
   static func reportShadow(_ observation: SharedCoreTrafficShadowObservation) {
     Task {
       await AppDiagnosticLogger.shared.record(.sharedCoreTrafficShadow(observation))

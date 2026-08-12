@@ -1,4 +1,9 @@
 enum SharedCoreProxyTypeRouteSource: String, Hashable, Sendable {
+  case sharedPrimary = "shared_primary"
+  case nativeFallback = "native_fallback"
+}
+
+enum SharedCoreProxyTypeShadowSource: String, Hashable, Sendable {
   case sharedShadow = "shared_shadow"
   case nativeFallback = "native_fallback"
 }
@@ -15,9 +20,26 @@ enum SharedCoreProxyTypeRouteStatus: String, Hashable, Sendable {
   case unknownFailure = "unknown_failure"
 }
 
-struct SharedCoreProxyTypeShadowObservation: Equatable, Hashable, Sendable {
+struct SharedCoreProxyTypeRouteObservation: Equatable, Hashable, Sendable {
   let source: SharedCoreProxyTypeRouteSource
   let status: SharedCoreProxyTypeRouteStatus
+}
+
+struct SharedCoreProxyTypeShadowObservation: Equatable, Hashable, Sendable {
+  let source: SharedCoreProxyTypeShadowSource
+  let status: SharedCoreProxyTypeRouteStatus
+}
+
+struct SharedCoreProxyTypeRouteObservationGate: Sendable {
+  private var reportedObservations: Set<SharedCoreProxyTypeRouteObservation> = []
+
+  mutating func shouldReport(_ observation: SharedCoreProxyTypeRouteObservation) -> Bool {
+    reportedObservations.insert(observation).inserted
+  }
+
+  mutating func reset() {
+    reportedObservations = []
+  }
 }
 
 struct SharedCoreProxyTypeShadowObservationGate: Sendable {

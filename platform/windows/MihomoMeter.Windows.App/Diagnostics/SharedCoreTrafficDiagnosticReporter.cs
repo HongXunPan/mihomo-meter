@@ -11,6 +11,13 @@ internal static class SharedCoreTrafficDiagnosticReporter
             StatusText(observation.Status));
     }
 
+    public static void ReportProxyTypeRoute(SharedCoreProxyTypeRouteObservation observation)
+    {
+        StartupConsoleReporter.ProxyTypeRoute(
+            SourceText(observation.Source),
+            StatusText(observation.Status));
+    }
+
     public static void ReportShadow(SharedCoreTrafficShadowObservation observation)
     {
         StartupConsoleReporter.TrafficShadow(
@@ -51,8 +58,18 @@ internal static class SharedCoreTrafficDiagnosticReporter
     {
         return source switch
         {
-            SharedCoreProxyTypeRouteSource.SharedShadow => "shared_shadow",
+            SharedCoreProxyTypeRouteSource.SharedPrimary => "shared_primary",
             SharedCoreProxyTypeRouteSource.NativeFallback => "native_fallback",
+            _ => "unknown",
+        };
+    }
+
+    private static string SourceText(SharedCoreProxyTypeShadowSource source)
+    {
+        return source switch
+        {
+            SharedCoreProxyTypeShadowSource.SharedShadow => "shared_shadow",
+            SharedCoreProxyTypeShadowSource.NativeFallback => "native_fallback",
             _ => "unknown",
         };
     }

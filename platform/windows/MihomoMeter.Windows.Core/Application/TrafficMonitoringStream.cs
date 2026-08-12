@@ -44,7 +44,7 @@ internal sealed class TrafficMonitoringStream
         var measurement = new TrafficMeasurementSession(
             catalog,
             _timeProvider,
-            SharedCoreProxyTypeShadow.Observe);
+            SharedCoreProxyTypeRoute.Resolve);
         var display = new TrafficRateDisplayState();
         Task<MihomoProxiesResponse>? catalogRefreshTask = null;
         Task<bool>? moveNextTask = null;
