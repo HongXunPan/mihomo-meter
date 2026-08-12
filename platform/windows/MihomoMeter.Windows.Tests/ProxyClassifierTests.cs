@@ -26,6 +26,42 @@ public sealed class ProxyClassifierTests
     }
 
     [TestMethod]
+    public void ClassifiesEverySupportedConcreteProxyType()
+    {
+        string[] supportedTypes =
+        [
+            "AnyTLS",
+            "Http",
+            "Hysteria",
+            "Hysteria2",
+            "Shadowsocks",
+            "ShadowsocksR",
+            "Snell",
+            "Socks5",
+            "Ssh",
+            "Trojan",
+            "Tuic",
+            "Vless",
+            "Vmess",
+            "WireGuard",
+        ];
+
+        foreach (var type in supportedTypes)
+        {
+            var classifier = new ProxyClassifier(new ProxyCatalog(
+                new Dictionary<string, string>(StringComparer.Ordinal)
+                {
+                    ["Synthetic Proxy"] = type,
+                }));
+
+            Assert.AreEqual(
+                new ProxyClassification(TrafficCategory.Proxy),
+                classifier.Classify(["Synthetic Proxy"]),
+                $"{type} 应归类为 Proxy");
+        }
+    }
+
+    [TestMethod]
     public void KeepsDirectAndRejectSeparateFromProxy()
     {
         Assert.AreEqual(TrafficCategory.Direct, Classifier.Classify(["DIRECT"]).Category);
