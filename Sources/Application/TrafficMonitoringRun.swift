@@ -95,7 +95,7 @@ final class TrafficMonitoringRun {
           client: client,
           collector: collector,
           livenessPolicy: livenessPolicy,
-          resolveProxyType: SharedCoreProxyTypeShadow.observe
+          resolveProxyType: SharedCoreProxyTypeRoute.resolve
         )
         session = monitoringSession
         activeSession = monitoringSession

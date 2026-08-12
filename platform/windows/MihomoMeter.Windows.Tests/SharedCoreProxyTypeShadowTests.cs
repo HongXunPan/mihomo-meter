@@ -15,7 +15,7 @@ public sealed class SharedCoreProxyTypeShadowTests
         UnknownTrafficReason.AmbiguousProxyType);
 
     [TestMethod]
-    public void RouterMatchesEveryStableSharedClassificationWithoutChangingNativeResult()
+    public void RouterReturnsSharedClassificationOnlyForExactMatch()
     {
         (string RawType, ProxyClassification Native, SharedProxyTypeClassification Shared)[] cases =
         [
@@ -32,8 +32,53 @@ public sealed class SharedCoreProxyTypeShadowTests
                 _ => testCase.Shared);
 
             Assert.AreEqual(testCase.Native, result.Classification);
-            Assert.AreEqual(SharedCoreProxyTypeRouteSource.SharedShadow, result.Source);
+            Assert.AreEqual(SharedCoreProxyTypeRouteSource.SharedPrimary, result.Source);
             Assert.AreEqual(SharedCoreProxyTypeRouteStatus.Matched, result.Status);
+        }
+    }
+
+    [TestMethod]
+    public void RouteDeduplicatesSourceAndStatusAndIgnoresReporterFailure()
+    {
+        var observations = new List<SharedCoreProxyTypeRouteObservation>();
+        SharedCoreProxyTypeRoute.ConfigureReporter(observation =>
+        {
+            observations.Add(observation);
+            throw new InvalidOperationException("synthetic");
+        });
+        try
+        {
+            for (var index = 0; index < 2; index += 1)
+            {
+                Assert.AreEqual(
+                    Proxy,
+                    SharedCoreProxyTypeRoute.Resolve(
+                        "Vmess",
+                        Proxy,
+                        _ => SharedProxyTypeClassification.Proxy));
+            }
+            Assert.AreEqual(
+                Unknown,
+                SharedCoreProxyTypeRoute.Resolve(
+                    "Selector",
+                    Unknown,
+                    _ => SharedProxyTypeClassification.Unrecognized));
+
+            CollectionAssert.AreEqual(
+                new[]
+                {
+                    new SharedCoreProxyTypeRouteObservation(
+                        SharedCoreProxyTypeRouteSource.SharedPrimary,
+                        SharedCoreProxyTypeRouteStatus.Matched),
+                    new SharedCoreProxyTypeRouteObservation(
+                        SharedCoreProxyTypeRouteSource.NativeFallback,
+                        SharedCoreProxyTypeRouteStatus.Unrecognized),
+                },
+                observations);
+        }
+        finally
+        {
+            SharedCoreProxyTypeRoute.ConfigureReporter(null);
         }
     }
 
@@ -114,10 +159,10 @@ public sealed class SharedCoreProxyTypeShadowTests
                 new[]
                 {
                     new SharedCoreProxyTypeShadowObservation(
-                        SharedCoreProxyTypeRouteSource.SharedShadow,
+                        SharedCoreProxyTypeShadowSource.SharedShadow,
                         SharedCoreProxyTypeRouteStatus.Matched),
                     new SharedCoreProxyTypeShadowObservation(
-                        SharedCoreProxyTypeRouteSource.NativeFallback,
+                        SharedCoreProxyTypeShadowSource.NativeFallback,
                         SharedCoreProxyTypeRouteStatus.Unrecognized),
                 },
                 observations);
@@ -133,15 +178,21 @@ public sealed class SharedCoreProxyTypeShadowTests
     {
         var gate = new SharedCoreProxyTypeShadowObservationGate();
         var matched = new SharedCoreProxyTypeShadowObservation(
-            SharedCoreProxyTypeRouteSource.SharedShadow,
+            SharedCoreProxyTypeShadowSource.SharedShadow,
             SharedCoreProxyTypeRouteStatus.Matched);
+        var primary = new SharedCoreProxyTypeRouteObservation(
+            SharedCoreProxyTypeRouteSource.SharedPrimary,
+            SharedCoreProxyTypeRouteStatus.Matched);
+        var routeGate = new SharedCoreProxyTypeRouteObservationGate();
         var fallback = new SharedCoreProxyTypeShadowObservation(
-            SharedCoreProxyTypeRouteSource.NativeFallback,
+            SharedCoreProxyTypeShadowSource.NativeFallback,
             SharedCoreProxyTypeRouteStatus.Matched);
 
         Assert.IsTrue(gate.ShouldReport(matched));
         Assert.IsFalse(gate.ShouldReport(matched));
         Assert.IsTrue(gate.ShouldReport(fallback));
+        Assert.IsTrue(routeGate.ShouldReport(primary));
+        Assert.IsFalse(routeGate.ShouldReport(primary));
         gate.Reset();
         Assert.IsTrue(gate.ShouldReport(matched));
     }

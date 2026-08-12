@@ -41,6 +41,14 @@ final class DiagnosticLoggerTests: XCTestCase {
       )
     )
     await logger.record(
+      .sharedCoreProxyTypeRoute(
+        SharedCoreProxyTypeRouteObservation(
+          source: .sharedPrimary,
+          status: .matched
+        )
+      )
+    )
+    await logger.record(
       .sharedCoreTrafficShadow(
         SharedCoreTrafficShadowObservation(
           format: .byteCount,
@@ -142,6 +150,12 @@ final class DiagnosticLoggerTests: XCTestCase {
       contents.contains(
         "event=shared_core.proxy_type_shadow "
           + "source=native_fallback status=unsupported_input"
+      )
+    )
+    XCTAssertTrue(
+      contents.contains(
+        "event=shared_core.proxy_type_route "
+          + "source=shared_primary status=matched"
       )
     )
     XCTAssertTrue(

@@ -48,6 +48,8 @@ internal static class Program
             ReportSharedCoreRuntimeStatus();
             SharedCoreProxyTypeShadow.ConfigureReporter(
                 SharedCoreTrafficDiagnosticReporter.ReportProxyTypeShadow);
+            SharedCoreProxyTypeRoute.ConfigureReporter(
+                SharedCoreTrafficDiagnosticReporter.ReportProxyTypeRoute);
             SharedCoreTrafficShadow.ConfigureReporter(
                 SharedCoreTrafficDiagnosticReporter.ReportShadow);
             SharedCoreTrafficRoute.ConfigureReporter(

@@ -112,6 +112,7 @@ enum AppDiagnosticEvent: Equatable, Sendable {
   case applicationLaunched(AppCodeSigningSummary)
   case sharedCoreRuntimeProbe(SharedCoreRuntimeStatus)
   case sharedCoreProxyTypeShadow(SharedCoreProxyTypeShadowObservation)
+  case sharedCoreProxyTypeRoute(SharedCoreProxyTypeRouteObservation)
   case sharedCoreTrafficShadow(SharedCoreTrafficShadowObservation)
   case sharedCoreTrafficRoute(SharedCoreTrafficRouteObservation)
   case keychainOperationStarted(KeychainDiagnosticContext)
@@ -164,6 +165,12 @@ enum AppDiagnosticEvent: Equatable, Sendable {
     case .sharedCoreProxyTypeShadow(let observation):
       return [
         "event=shared_core.proxy_type_shadow",
+        "source=\(observation.source.rawValue)",
+        "status=\(observation.status.rawValue)",
+      ].joined(separator: " ")
+    case .sharedCoreProxyTypeRoute(let observation):
+      return [
+        "event=shared_core.proxy_type_route",
         "source=\(observation.source.rawValue)",
         "status=\(observation.status.rawValue)",
       ].joined(separator: " ")

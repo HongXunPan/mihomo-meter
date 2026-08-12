@@ -2,8 +2,14 @@ using MihomoMeter.Windows.Core.Domain;
 
 namespace MihomoMeter.Windows.Core.Application;
 
+public enum SharedCoreProxyTypeShadowSource
+{
+    SharedShadow,
+    NativeFallback,
+}
+
 public readonly record struct SharedCoreProxyTypeShadowObservation(
-    SharedCoreProxyTypeRouteSource Source,
+    SharedCoreProxyTypeShadowSource Source,
     SharedCoreProxyTypeRouteStatus Status);
 
 internal sealed class SharedCoreProxyTypeShadowObservationGate
@@ -57,7 +63,7 @@ public static class SharedCoreProxyTypeShadow
             nativeClassification,
             classifyProxyType);
         var observation = new SharedCoreProxyTypeShadowObservation(
-            result.Source,
+            ShadowSource(result.Source),
             result.Status);
         Action<SharedCoreProxyTypeShadowObservation>? reporter;
         lock (StateLock)
@@ -76,5 +82,18 @@ public static class SharedCoreProxyTypeShadow
             // 代理分类影子诊断不得改变仍由原生分类决定的生产结果。
         }
         return nativeClassification;
+    }
+
+    private static SharedCoreProxyTypeShadowSource ShadowSource(
+        SharedCoreProxyTypeRouteSource source)
+    {
+        return source switch
+        {
+            SharedCoreProxyTypeRouteSource.SharedPrimary =>
+                SharedCoreProxyTypeShadowSource.SharedShadow,
+            SharedCoreProxyTypeRouteSource.NativeFallback =>
+                SharedCoreProxyTypeShadowSource.NativeFallback,
+            _ => SharedCoreProxyTypeShadowSource.NativeFallback,
+        };
     }
 }

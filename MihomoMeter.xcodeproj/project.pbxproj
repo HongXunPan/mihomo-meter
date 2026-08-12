@@ -274,6 +274,7 @@
 		D35F00000000000000000201 /* SharedCoreProxyTypeRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35F00000000000000000101 /* SharedCoreProxyTypeRouter.swift */; };
 		D36000000000000000000201 /* SharedCoreProxyTypeShadow.swift in Sources */ = {isa = PBXBuildFile; fileRef = D36000000000000000000101 /* SharedCoreProxyTypeShadow.swift */; };
 		D36100000000000000000201 /* SharedCoreProxyTypeShadowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D36100000000000000000101 /* SharedCoreProxyTypeShadowTests.swift */; };
+		D36200000000000000000201 /* SharedCoreProxyTypeRoute.swift in Sources */ = {isa = PBXBuildFile; fileRef = D36200000000000000000101 /* SharedCoreProxyTypeRoute.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -557,6 +558,7 @@
 		D35F00000000000000000101 /* SharedCoreProxyTypeRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedCoreProxyTypeRouter.swift; sourceTree = "<group>"; };
 		D36000000000000000000101 /* SharedCoreProxyTypeShadow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedCoreProxyTypeShadow.swift; sourceTree = "<group>"; };
 		D36100000000000000000101 /* SharedCoreProxyTypeShadowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedCoreProxyTypeShadowTests.swift; sourceTree = "<group>"; };
+		D36200000000000000000101 /* SharedCoreProxyTypeRoute.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedCoreProxyTypeRoute.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -660,6 +662,7 @@
 				D35200000000000000000101 /* SharedCoreRuntimeProbe.swift */,
 				D35F00000000000000000101 /* SharedCoreProxyTypeRouter.swift */,
 				D36000000000000000000101 /* SharedCoreProxyTypeShadow.swift */,
+				D36200000000000000000101 /* SharedCoreProxyTypeRoute.swift */,
 				D35B00000000000000000101 /* SharedCoreTrafficRoute.swift */,
 				D35A00000000000000000101 /* SharedCoreTrafficRouter.swift */,
 				D35700000000000000000101 /* SharedCoreTrafficShadow.swift */,
@@ -1264,6 +1267,7 @@
 				D35E00000000000000000201 /* SharedCoreProxyTypeShadowObservation.swift in Sources */,
 				D35F00000000000000000201 /* SharedCoreProxyTypeRouter.swift in Sources */,
 				D36000000000000000000201 /* SharedCoreProxyTypeShadow.swift in Sources */,
+				D36200000000000000000201 /* SharedCoreProxyTypeRoute.swift in Sources */,
 				D35B00000000000000000201 /* SharedCoreTrafficRoute.swift in Sources */,
 				D35A00000000000000000201 /* SharedCoreTrafficRouter.swift in Sources */,
 				D35700000000000000000201 /* SharedCoreTrafficShadow.swift in Sources */,
