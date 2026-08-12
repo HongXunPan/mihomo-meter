@@ -15,10 +15,9 @@ internal static class TrafficDisplayFormatter
 
     public static string ByteCount(ulong bytes)
     {
-        var nativeText = TrafficDisplayUnits.ByteCount(bytes);
-        return SharedCoreTrafficRoute.Resolve(
+        return SharedCoreTrafficRoute.ResolveLazy(
             bytes,
-            nativeText,
+            () => TrafficDisplayUnits.ByteCount(bytes),
             SharedCoreTrafficFormat.ByteCount);
     }
 
