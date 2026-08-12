@@ -4,10 +4,9 @@ enum TrafficStatisticsFormatter {
   private static let units = ["B", "KB", "MB", "GB", "TB"]
 
   static func bytes(_ value: UInt64) -> String {
-    let nativeText = nativeBytes(value)
-    return SharedCoreTrafficRoute.resolve(
+    SharedCoreTrafficRoute.resolveLazy(
       bytes: value,
-      nativeText: nativeText,
+      nativeFallback: { nativeBytes(value) },
       format: .byteCount
     )
   }

@@ -41,11 +41,11 @@ REQUIRED_MARKERS = {
         "P1.4",
     ),
     "docs/跨平台共享核心技术方案.md": (
-        "状态：P1.3 双端门禁已通过；P1.4-1 基础设施已建立",
+        "状态：P1.3 双端门禁已通过；P1.4-2 字节数已切换",
         "跨平台共享核心P1.3受保护主路径技术方案.md",
     ),
     "docs/架构概览.md": (
-        "P1.3 双端运行态门禁已通过",
+        "P1.4-2 已让字节数共享优先",
         "跨平台共享核心P1.3受保护主路径技术方案.md",
     ),
     "Sources/Application/SharedCoreTrafficRouter.swift": (
@@ -99,14 +99,6 @@ REQUIRED_MARKERS = {
 }
 
 METHOD_MARKERS = {
-    "Sources/Presentation/TrafficStatisticsFormatter.swift": (
-        (
-            "static func bytes(",
-            "static func nativeBytes(",
-            ("SharedCoreTrafficRoute.resolve(", "format: .byteCount"),
-            ("SharedCoreTrafficShadow.observe(",),
-        ),
-    ),
     "Sources/Presentation/TrafficRateFormatter.swift": (
         (
             "static func compactString(",
@@ -122,12 +114,6 @@ METHOD_MARKERS = {
         ),
     ),
     "platform/windows/MihomoMeter.Windows.App/Presentation/TrafficDisplayFormatter.cs": (
-        (
-            "public static string ByteCount(",
-            "public static string RateValue(",
-            ("SharedCoreTrafficRoute.Resolve(", "SharedCoreTrafficFormat.ByteCount"),
-            ("SharedCoreTrafficShadow.Observe(",),
-        ),
         (
             "public static string RateValue(",
             "public static string CompactRate(",
