@@ -12,7 +12,7 @@ enum TrafficStatisticsFormatter {
     )
   }
 
-  private static func nativeBytes(_ value: UInt64) -> String {
+  static func nativeBytes(_ value: UInt64) -> String {
     guard value >= 1_000 else {
       return "\(value) B"
     }

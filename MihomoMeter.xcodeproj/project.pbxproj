@@ -269,6 +269,7 @@
 		D35A00000000000000000201 /* SharedCoreTrafficRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35A00000000000000000101 /* SharedCoreTrafficRouter.swift */; };
 		D35B00000000000000000201 /* SharedCoreTrafficRoute.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35B00000000000000000101 /* SharedCoreTrafficRoute.swift */; };
 		D35C00000000000000000201 /* AppCodeSigningInspector.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35C00000000000000000101 /* AppCodeSigningInspector.swift */; };
+		D35D00000000000000000201 /* SharedCoreTrafficLazyRouteTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35D00000000000000000101 /* SharedCoreTrafficLazyRouteTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -547,6 +548,7 @@
 		D35A00000000000000000101 /* SharedCoreTrafficRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedCoreTrafficRouter.swift; sourceTree = "<group>"; };
 		D35B00000000000000000101 /* SharedCoreTrafficRoute.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedCoreTrafficRoute.swift; sourceTree = "<group>"; };
 		D35C00000000000000000101 /* AppCodeSigningInspector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppCodeSigningInspector.swift; sourceTree = "<group>"; };
+		D35D00000000000000000101 /* SharedCoreTrafficLazyRouteTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedCoreTrafficLazyRouteTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -806,6 +808,7 @@
 				A20000000000000000000105 /* FixtureLoader.swift */,
 				A20000000000000000000107 /* MihomoControllerModelsTests.swift */,
 				D35300000000000000000101 /* SharedCoreRuntimeProbeTests.swift */,
+				D35D00000000000000000101 /* SharedCoreTrafficLazyRouteTests.swift */,
 				D35900000000000000000101 /* SharedCoreTrafficShadowComparatorTests.swift */,
 				BR0000000000000000000108 /* MihomoProxyProviderModelsTests.swift */,
 				BW0000000000000000000106 /* MihomoLocalProxyTests.swift */,
@@ -1330,6 +1333,7 @@
 				A20000000000000000000205 /* FixtureLoader.swift in Sources */,
 				A20000000000000000000207 /* MihomoControllerModelsTests.swift in Sources */,
 				D35300000000000000000201 /* SharedCoreRuntimeProbeTests.swift in Sources */,
+				D35D00000000000000000201 /* SharedCoreTrafficLazyRouteTests.swift in Sources */,
 				D35900000000000000000201 /* SharedCoreTrafficShadowComparatorTests.swift in Sources */,
 				BR0000000000000000000208 /* MihomoProxyProviderModelsTests.swift in Sources */,
 				BW0000000000000000000206 /* MihomoLocalProxyTests.swift in Sources */,

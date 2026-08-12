@@ -34,7 +34,7 @@ enum TrafficRateFormatter {
     )
   }
 
-  private static func nativeCompactString(from bytesPerSecond: UInt64) -> String {
+  static func nativeCompactString(from bytesPerSecond: UInt64) -> String {
     guard bytesPerSecond >= 1_000 else {
       return "\(bytesPerSecond)B/s"
     }
@@ -43,7 +43,7 @@ enum TrafficRateFormatter {
     return "\(formattedNumber(from: scaled.value))\(compactUnits[scaled.unitIndex])"
   }
 
-  private static func nativeString(from bytesPerSecond: UInt64) -> String {
+  static func nativeString(from bytesPerSecond: UInt64) -> String {
     guard bytesPerSecond >= 1_000 else {
       return "\(bytesPerSecond) B/s"
     }

@@ -3,7 +3,7 @@ import os
 struct SharedCoreTrafficRouteObservation: Hashable, Sendable {
   let format: SharedCoreTrafficFormat
   let source: SharedCoreTrafficRouteSource
-  let status: SharedCoreTrafficShadowStatus
+  let status: SharedCoreTrafficRouteStatus
 }
 
 private struct SharedCoreTrafficRouteObservationGate: Sendable {
@@ -51,8 +51,38 @@ enum SharedCoreTrafficRoute {
     let observation = SharedCoreTrafficRouteObservation(
       format: format,
       source: result.source,
-      status: result.status
+      status: routeStatus(for: result.status)
     )
+    report(observation)
+    return result.text
+  }
+
+  static func resolveLazy(
+    bytes: UInt64,
+    nativeFallback: () -> String,
+    format: SharedCoreTrafficFormat,
+    abiVersion: () -> UInt32 = { MihomoMeterSharedCoreAdapter.abiVersion },
+    scaleTraffic: (UInt64) throws -> SharedTrafficScale =
+      MihomoMeterSharedCoreAdapter.scaleTraffic(bytes:)
+  ) -> String {
+    let result = SharedCoreTrafficRouter.routeLazy(
+      bytes: bytes,
+      nativeFallback: nativeFallback,
+      format: format,
+      abiVersion: abiVersion,
+      scaleTraffic: scaleTraffic
+    )
+    report(
+      SharedCoreTrafficRouteObservation(
+        format: format,
+        source: result.source,
+        status: result.status
+      )
+    )
+    return result.text
+  }
+
+  private static func report(_ observation: SharedCoreTrafficRouteObservation) {
     let reporter = stateLock.withLock { state -> Reporter? in
       guard let reporter = state.reporter,
         state.observationGate.shouldReport(observation)
@@ -66,6 +96,24 @@ enum SharedCoreTrafficRoute {
     } catch {
       // 路由诊断不得改变共享主路径或原生回退结果。
     }
-    return result.text
+  }
+
+  private static func routeStatus(
+    for shadowStatus: SharedCoreTrafficShadowStatus
+  ) -> SharedCoreTrafficRouteStatus {
+    switch shadowStatus {
+    case .matched:
+      .matched
+    case .abiMismatch:
+      .abiMismatch
+    case .nativeCallFailed:
+      .nativeCallFailed
+    case .unsupportedTrafficUnit, .unexpectedResult:
+      .unexpectedResult
+    case .mismatch:
+      .mismatch
+    case .unknownFailure:
+      .unknownFailure
+    }
   }
 }

@@ -3,7 +3,7 @@ namespace MihomoMeter.Windows.Core.Application;
 public readonly record struct SharedCoreTrafficRouteObservation(
     SharedCoreTrafficFormat Format,
     SharedCoreTrafficRouteSource Source,
-    SharedCoreTrafficShadowStatus Status);
+    SharedCoreTrafficRouteStatus Status);
 
 internal sealed class SharedCoreTrafficRouteObservationGate
 {
@@ -65,7 +65,47 @@ public static class SharedCoreTrafficRoute
         var observation = new SharedCoreTrafficRouteObservation(
             format,
             result.Source,
-            result.Status);
+            RouteStatus(result.Status));
+        Report(observation);
+        return result.Text;
+    }
+
+    public static string ResolveLazy(
+        ulong bytes,
+        Func<string> nativeFallback,
+        SharedCoreTrafficFormat format)
+    {
+        return ResolveLazy(
+            bytes,
+            nativeFallback,
+            format,
+            () => MihomoMeterSharedCore.AbiVersion,
+            MihomoMeterSharedCore.ScaleTraffic);
+    }
+
+    internal static string ResolveLazy(
+        ulong bytes,
+        Func<string> nativeFallback,
+        SharedCoreTrafficFormat format,
+        Func<uint> abiVersion,
+        Func<ulong, SharedTrafficScale> scaleTraffic)
+    {
+        var result = SharedCoreTrafficRouter.RouteLazy(
+            bytes,
+            nativeFallback,
+            format,
+            abiVersion,
+            scaleTraffic);
+        Report(
+            new SharedCoreTrafficRouteObservation(
+                format,
+                result.Source,
+                result.Status));
+        return result.Text;
+    }
+
+    private static void Report(SharedCoreTrafficRouteObservation observation)
+    {
         Action<SharedCoreTrafficRouteObservation>? reporter;
         lock (StateLock)
         {
@@ -81,6 +121,24 @@ public static class SharedCoreTrafficRoute
         {
             // 路由诊断不得改变共享主路径或原生回退结果。
         }
-        return result.Text;
+    }
+
+    private static SharedCoreTrafficRouteStatus RouteStatus(
+        SharedCoreTrafficShadowStatus shadowStatus)
+    {
+        return shadowStatus switch
+        {
+            SharedCoreTrafficShadowStatus.Matched => SharedCoreTrafficRouteStatus.Matched,
+            SharedCoreTrafficShadowStatus.AbiMismatch =>
+                SharedCoreTrafficRouteStatus.AbiMismatch,
+            SharedCoreTrafficShadowStatus.NativeCallFailed =>
+                SharedCoreTrafficRouteStatus.NativeCallFailed,
+            SharedCoreTrafficShadowStatus.UnexpectedResult =>
+                SharedCoreTrafficRouteStatus.UnexpectedResult,
+            SharedCoreTrafficShadowStatus.Mismatch => SharedCoreTrafficRouteStatus.Mismatch,
+            SharedCoreTrafficShadowStatus.UnknownFailure =>
+                SharedCoreTrafficRouteStatus.UnknownFailure,
+            _ => SharedCoreTrafficRouteStatus.UnknownFailure,
+        };
     }
 }

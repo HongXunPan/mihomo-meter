@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 REQUIRED_MARKERS = {
     "docs/跨平台共享核心P1.4懒原生回退技术方案.md": (
-        "状态：P1.4-0 方案与门禁已锁定，生产调用点尚未改变",
+        "状态：P1.4-1 懒回退基础设施已建立，生产调用点尚未改变",
         "共享优先、原生懒回退",
         "成功路径不得求值原生闭包",
         "status=succeeded",
@@ -21,14 +21,69 @@ REQUIRED_MARKERS = {
         "不允许顺带切换生产调用点",
         "恢复为 P1.3 逐次对照入口",
         "P1.3 对照路由",
+        "独立懒路由结果与路由状态",
+        "resolveLazy` / `ResolveLazy",
     ),
     "docs/跨平台共享核心技术方案.md": (
-        "P1.4-0 懒原生回退方案已锁定",
+        "P1.4-1 基础设施已建立",
         "跨平台共享核心P1.4懒原生回退技术方案.md",
     ),
     "CONTRIBUTING.md": (
         "P1.4 只按",
         "跨平台共享核心P1.4懒原生回退技术方案.md",
+    ),
+    "Sources/Application/SharedCoreTrafficRouter.swift": (
+        "enum SharedCoreTrafficRouteStatus",
+        "struct SharedCoreTrafficLazyRouteResult",
+        "static func routeLazy(",
+        "nativeFallback: () -> String",
+        "status: .succeeded",
+    ),
+    "Sources/Application/SharedCoreTrafficRoute.swift": (
+        "static func resolveLazy(",
+        "status: result.status",
+        "private static func report(",
+    ),
+    "Tests/SharedCoreTrafficLazyRouteTests.swift": (
+        "testLazyRouterDoesNotEvaluateFallbackOnSuccess",
+        "testLazyRouterStopsBeforeScalingForABIMismatch",
+        "testLazyRouterEvaluatesFallbackExactlyOnceForSharedFailures",
+        "testLazyRouteIgnoresReporterFailureWithoutEvaluatingFallback",
+        "testDeterministicDifferentialMatchesNativeFormatters",
+        "10_000",
+        "SplitMix64",
+        "TrafficStatisticsFormatter.nativeBytes(bytes)",
+        "TrafficRateFormatter.nativeString(from: bytes)",
+        "TrafficRateFormatter.nativeCompactString(from: bytes)",
+    ),
+    "platform/windows/MihomoMeter.Windows.Core/Application/SharedCoreTrafficRouter.cs": (
+        "public enum SharedCoreTrafficRouteStatus",
+        "public readonly record struct SharedCoreTrafficLazyRouteResult",
+        "RouteLazy(",
+        "Func<string> nativeFallback",
+        "SharedCoreTrafficRouteStatus.Succeeded",
+    ),
+    "platform/windows/MihomoMeter.Windows.Core/Application/SharedCoreTrafficRoute.cs": (
+        "public static string ResolveLazy(",
+        "private static void Report(",
+    ),
+    "platform/windows/MihomoMeter.Windows.App/Diagnostics/SharedCoreTrafficDiagnosticReporter.cs": (
+        "SharedCoreTrafficRouteStatus.Succeeded => \"succeeded\"",
+    ),
+    "platform/windows/MihomoMeter.Windows.Tests/SharedCoreTrafficLazyRouteTests.cs": (
+        "LazyRouterDoesNotEvaluateFallbackOnSuccess",
+        "LazyRouterStopsBeforeScalingForAbiMismatch",
+        "LazyRouterEvaluatesFallbackExactlyOnceForSharedFailures",
+        "LazyRouteIgnoresReporterFailureWithoutEvaluatingFallback",
+        "DeterministicDifferentialMatchesNativeFormatters",
+        "10_000",
+        "SplitMix64",
+        "TrafficDisplayUnits.ByteCount(bytes)",
+        "TrafficDisplayUnits.Rate(bytes)",
+        "TrafficDisplayUnits.CompactRate(bytes)",
+    ),
+    "MihomoMeter.xcodeproj/project.pbxproj": (
+        "SharedCoreTrafficLazyRouteTests.swift in Sources",
     ),
 }
 
@@ -50,6 +105,18 @@ CURRENT_PRODUCTION_MARKERS = {
     ),
 }
 
+FORBIDDEN_PRODUCTION_MARKERS = {
+    "Sources/Presentation/TrafficStatisticsFormatter.swift": (
+        "resolveLazy(",
+    ),
+    "Sources/Presentation/TrafficRateFormatter.swift": (
+        "resolveLazy(",
+    ),
+    "platform/windows/MihomoMeter.Windows.App/Presentation/TrafficDisplayFormatter.cs": (
+        "ResolveLazy(",
+    ),
+}
+
 
 def validate_shared_core_p1_4(failures: list[str]) -> None:
     for relative_path, markers in REQUIRED_MARKERS.items():
@@ -67,5 +134,13 @@ def validate_shared_core_p1_4(failures: list[str]) -> None:
         for marker in markers:
             if marker not in content:
                 failures.append(
-                    f"{relative_path} 在 P1.4-0 不得提前移除逐次对照：{marker}"
+                    f"{relative_path} 在 P1.4-1 不得提前移除逐次对照：{marker}"
+                )
+
+    for relative_path, markers in FORBIDDEN_PRODUCTION_MARKERS.items():
+        content = (ROOT / relative_path).read_text(encoding="utf-8")
+        for marker in markers:
+            if marker in content:
+                failures.append(
+                    f"{relative_path} 在 P1.4-1 不得提前切换懒回退：{marker}"
                 )

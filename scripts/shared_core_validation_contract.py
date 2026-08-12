@@ -57,7 +57,7 @@ REQUIRED_MARKERS = {
         '"event=shared_core.traffic_shadow"',
     ),
     "Sources/Presentation/TrafficStatisticsFormatter.swift": (
-        "private static func nativeBytes(",
+        "static func nativeBytes(",
         "format: .byteCount",
     ),
     "Sources/Presentation/TrafficRateFormatter.swift": (
@@ -236,7 +236,7 @@ REQUIRED_MARKERS = {
         "三类流量格式继续使用",
     ),
     "docs/跨平台共享核心技术方案.md": (
-        "状态：P1.3 双端门禁已通过；P1.4-0 懒原生回退方案已锁定",
+        "状态：P1.3 双端门禁已通过；P1.4-1 基础设施已建立",
         "任何异常仍逐次回退原生文本",
         "按“格式类型 + 粗粒度状态”在单次进程生命周期内去重",
         "正常时三类格式各记录一次 `matched`",
