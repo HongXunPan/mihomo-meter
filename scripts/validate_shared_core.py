@@ -90,6 +90,7 @@ REQUIRED_FILES = (
     "docs/跨平台共享核心P2-3运行态验收指南.md",
     "docs/跨平台共享核心P2-3验收记录-2026-08-12.md",
     "docs/跨平台共享核心P2-5运行态验收指南.md",
+    "docs/跨平台共享核心P2-5验收记录-2026-08-12.md",
 )
 
 REQUIRED_TRAFFIC_VALUES = {
