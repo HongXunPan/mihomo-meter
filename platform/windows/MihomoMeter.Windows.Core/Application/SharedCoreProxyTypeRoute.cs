@@ -59,6 +59,29 @@ public static class SharedCoreProxyTypeRoute
         return result.Classification;
     }
 
+    public static ProxyClassification ResolveLazy(
+        string rawType,
+        Func<ProxyClassification> nativeFallback)
+    {
+        return ResolveLazy(
+            rawType,
+            nativeFallback,
+            MihomoMeterSharedCore.ClassifyProxyType);
+    }
+
+    internal static ProxyClassification ResolveLazy(
+        string rawType,
+        Func<ProxyClassification> nativeFallback,
+        Func<string, SharedProxyTypeClassification> classifyProxyType)
+    {
+        var result = SharedCoreProxyTypeRouter.RouteLazy(
+            rawType,
+            nativeFallback,
+            classifyProxyType);
+        Report(new SharedCoreProxyTypeRouteObservation(result.Source, result.Status));
+        return result.Classification;
+    }
+
     private static void Report(SharedCoreProxyTypeRouteObservation observation)
     {
         Action<SharedCoreProxyTypeRouteObservation>? reporter;

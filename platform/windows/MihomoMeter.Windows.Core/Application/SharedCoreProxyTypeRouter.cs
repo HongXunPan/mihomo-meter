@@ -12,6 +12,7 @@ public enum SharedCoreProxyTypeRouteSource
 public enum SharedCoreProxyTypeRouteStatus
 {
     Matched,
+    Succeeded,
     Unrecognized,
     AbiMismatch,
     NativeCallFailed,
@@ -79,6 +80,45 @@ internal static class SharedCoreProxyTypeRouter
         }
     }
 
+    public static SharedCoreProxyTypeRouteResult RouteLazy(
+        string rawType,
+        Func<ProxyClassification> nativeFallback)
+    {
+        return RouteLazy(rawType, nativeFallback, MihomoMeterSharedCore.ClassifyProxyType);
+    }
+
+    internal static SharedCoreProxyTypeRouteResult RouteLazy(
+        string rawType,
+        Func<ProxyClassification> nativeFallback,
+        Func<string, SharedProxyTypeClassification> classifyProxyType)
+    {
+        try
+        {
+            var sharedClassification = classifyProxyType(rawType);
+            var candidate = PlatformClassification(sharedClassification);
+            return candidate is null
+                ? LazyFallback(nativeFallback, SharedCoreProxyTypeRouteStatus.Unrecognized)
+                : new SharedCoreProxyTypeRouteResult(
+                    candidate,
+                    SharedCoreProxyTypeRouteSource.SharedPrimary,
+                    SharedCoreProxyTypeRouteStatus.Succeeded);
+        }
+        catch (SharedProxyTypeAdapterException exception)
+        {
+            return LazyFallback(nativeFallback, Status(exception.Failure));
+        }
+        catch (Exception exception) when (IsNativeCallFailure(exception))
+        {
+            return LazyFallback(
+                nativeFallback,
+                SharedCoreProxyTypeRouteStatus.NativeCallFailed);
+        }
+        catch (Exception)
+        {
+            return LazyFallback(nativeFallback, SharedCoreProxyTypeRouteStatus.UnknownFailure);
+        }
+    }
+
     private static ProxyClassification? PlatformClassification(
         SharedProxyTypeClassification sharedClassification)
     {
@@ -100,6 +140,16 @@ internal static class SharedCoreProxyTypeRouter
     {
         return new SharedCoreProxyTypeRouteResult(
             nativeClassification,
+            SharedCoreProxyTypeRouteSource.NativeFallback,
+            status);
+    }
+
+    private static SharedCoreProxyTypeRouteResult LazyFallback(
+        Func<ProxyClassification> nativeFallback,
+        SharedCoreProxyTypeRouteStatus status)
+    {
+        return new SharedCoreProxyTypeRouteResult(
+            nativeFallback(),
             SharedCoreProxyTypeRouteSource.NativeFallback,
             status);
     }

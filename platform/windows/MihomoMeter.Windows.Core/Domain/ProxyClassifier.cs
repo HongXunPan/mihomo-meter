@@ -26,6 +26,10 @@ public enum UnknownTrafficReason
     AmbiguousProxyType,
 }
 
+public delegate ProxyClassification LazyProxyTypeResolver(
+    string rawType,
+    Func<ProxyClassification> nativeFallback);
+
 public sealed class ProxyClassifier
 {
     private static readonly HashSet<string> ConcreteProxyTypes = new(StringComparer.Ordinal)
@@ -47,7 +51,8 @@ public sealed class ProxyClassifier
     };
 
     private readonly ProxyCatalog _catalog;
-    private readonly Func<string, ProxyClassification, ProxyClassification> _resolveProxyType;
+    private readonly Func<string, ProxyClassification, ProxyClassification>? _resolveProxyType;
+    private readonly LazyProxyTypeResolver? _resolveProxyTypeLazily;
 
     public ProxyClassifier(
         ProxyCatalog catalog,
@@ -56,6 +61,14 @@ public sealed class ProxyClassifier
         _catalog = catalog;
         _resolveProxyType = resolveProxyType ?? ((_, nativeClassification) =>
             nativeClassification);
+    }
+
+    public ProxyClassifier(
+        ProxyCatalog catalog,
+        LazyProxyTypeResolver resolveProxyTypeLazily)
+    {
+        _catalog = catalog;
+        _resolveProxyTypeLazily = resolveProxyTypeLazily;
     }
 
     public ProxyClassification Classify(IReadOnlyList<string> chains)
@@ -73,8 +86,13 @@ public sealed class ProxyClassifier
                 UnknownTrafficReason.MissingCatalogEntry);
         }
 
+        if (_resolveProxyTypeLazily is not null)
+        {
+            return _resolveProxyTypeLazily(rawType, () => ClassifyNatively(rawType));
+        }
+
         var nativeClassification = ClassifyNatively(rawType);
-        return _resolveProxyType(rawType, nativeClassification);
+        return _resolveProxyType!(rawType, nativeClassification);
     }
 
     private static ProxyClassification ClassifyNatively(string rawType)

@@ -13,7 +13,7 @@ struct TrafficMeasurementResult: Equatable, Sendable {
 }
 
 struct TrafficMeasurementSession: Sendable {
-  private let resolveProxyType: ProxyTypeResolver
+  private let makeClassifier: @Sendable (ProxyCatalog) -> ProxyClassifier
   private var classifier: ProxyClassifier?
   private var deltaTracker = ConnectionDeltaTracker()
   private var attributionCoverageTracker = ConnectionAttributionCoverageTracker()
@@ -27,16 +27,27 @@ struct TrafficMeasurementSession: Sendable {
       nativeClassification
     }
   ) {
-    self.resolveProxyType = resolveProxyType
+    makeClassifier = { catalog in
+      ProxyClassifier(catalog: catalog, resolveProxyType: resolveProxyType)
+    }
+  }
+
+  init(resolveProxyTypeLazily: @escaping LazyProxyTypeResolver) {
+    makeClassifier = { catalog in
+      ProxyClassifier(
+        catalog: catalog,
+        resolveProxyTypeLazily: resolveProxyTypeLazily
+      )
+    }
   }
 
   mutating func configure(catalog: ProxyCatalog) {
-    classifier = ProxyClassifier(catalog: catalog, resolveProxyType: resolveProxyType)
+    classifier = makeClassifier(catalog)
     resetBaseline()
   }
 
   mutating func updateCatalog(_ catalog: ProxyCatalog) {
-    classifier = ProxyClassifier(catalog: catalog, resolveProxyType: resolveProxyType)
+    classifier = makeClassifier(catalog)
   }
 
   mutating func consume(

@@ -28,6 +28,36 @@ enum SharedCoreProxyTypeRoute {
     )
   }
 
+  static func resolveLazy(
+    rawType: String,
+    nativeFallback: @Sendable () -> ProxyClassification
+  ) -> ProxyClassification {
+    resolveLazy(
+      rawType: rawType,
+      nativeFallback: nativeFallback,
+      classifyProxyType: MihomoMeterSharedCoreAdapter.classifyProxyType
+    )
+  }
+
+  static func resolveLazy(
+    rawType: String,
+    nativeFallback: @Sendable () -> ProxyClassification,
+    classifyProxyType: (String) throws -> SharedProxyTypeClassification
+  ) -> ProxyClassification {
+    let result = SharedCoreProxyTypeRouter.routeLazy(
+      rawType: rawType,
+      nativeFallback: nativeFallback,
+      classifyProxyType: classifyProxyType
+    )
+    report(
+      SharedCoreProxyTypeRouteObservation(
+        source: result.source,
+        status: result.status
+      )
+    )
+    return result.classification
+  }
+
   static func resolve(
     rawType: String,
     nativeClassification: ProxyClassification,

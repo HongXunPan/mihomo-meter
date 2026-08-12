@@ -110,4 +110,29 @@ final class ProxyClassifierTests: XCTestCase {
       ProxyClassification(category: .proxy, unknownReason: nil)
     )
   }
+
+  func testLazyResolverControlsWhetherNativeClassificationIsEvaluated() {
+    let invocations = OSAllocatedUnfairLock(initialState: [String]())
+    let sharedClassifier = ProxyClassifier(
+      catalog: ProxyCatalog(typesByName: ["Synthetic": "Selector"]),
+      resolveProxyTypeLazily: { rawType, _ in
+        invocations.withLock { $0.append(rawType) }
+        return ProxyClassification(category: .proxy, unknownReason: nil)
+      }
+    )
+    XCTAssertEqual(
+      sharedClassifier.classify(chains: ["Synthetic"]),
+      ProxyClassification(category: .proxy, unknownReason: nil)
+    )
+
+    let fallbackClassifier = ProxyClassifier(
+      catalog: ProxyCatalog(typesByName: ["Synthetic": "Selector"]),
+      resolveProxyTypeLazily: { _, nativeFallback in nativeFallback() }
+    )
+    XCTAssertEqual(
+      fallbackClassifier.classify(chains: ["Synthetic"]),
+      ProxyClassification(category: .unknown, unknownReason: .ambiguousProxyType)
+    )
+    XCTAssertEqual(invocations.withLock { $0 }, ["Selector"])
+  }
 }

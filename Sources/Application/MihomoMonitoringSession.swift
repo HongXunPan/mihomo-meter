@@ -42,6 +42,20 @@ final class MihomoMonitoringSession {
     measurementSession = TrafficMeasurementSession(resolveProxyType: resolveProxyType)
   }
 
+  init(
+    client: any MihomoControllerServing,
+    collector: any ConnectionSnapshotCollecting,
+    livenessPolicy: ConnectionLivenessWatchdog.Policy,
+    resolveProxyTypeLazily: @escaping LazyProxyTypeResolver
+  ) {
+    self.client = client
+    self.collector = collector
+    livenessWatchdog = ConnectionLivenessWatchdog(policy: livenessPolicy)
+    measurementSession = TrafficMeasurementSession(
+      resolveProxyTypeLazily: resolveProxyTypeLazily
+    )
+  }
+
   var currentSnapshotAgeMilliseconds: Int? {
     livenessWatchdog.currentSnapshotAgeMilliseconds
   }

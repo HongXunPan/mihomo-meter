@@ -10,6 +10,7 @@ enum SharedCoreProxyTypeShadowSource: String, Hashable, Sendable {
 
 enum SharedCoreProxyTypeRouteStatus: String, Hashable, Sendable {
   case matched
+  case succeeded
   case unrecognized
   case abiMismatch = "abi_mismatch"
   case nativeCallFailed = "native_call_failed"
