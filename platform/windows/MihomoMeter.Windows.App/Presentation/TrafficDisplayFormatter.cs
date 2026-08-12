@@ -23,10 +23,9 @@ internal static class TrafficDisplayFormatter
 
     public static string RateValue(ulong bytesPerSecond)
     {
-        var nativeText = TrafficDisplayUnits.Rate(bytesPerSecond);
-        return SharedCoreTrafficRoute.Resolve(
+        return SharedCoreTrafficRoute.ResolveLazy(
             bytesPerSecond,
-            nativeText,
+            () => TrafficDisplayUnits.Rate(bytesPerSecond),
             SharedCoreTrafficFormat.Rate);
     }
 
