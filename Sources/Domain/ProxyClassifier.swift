@@ -15,6 +15,12 @@ struct ProxyClassification: Equatable, Sendable {
   let unknownReason: UnknownTrafficReason?
 }
 
+typealias ProxyTypeResolver =
+  @Sendable (
+    _ rawType: String,
+    _ nativeClassification: ProxyClassification
+  ) -> ProxyClassification
+
 enum UnknownTrafficReason: String, Equatable, Sendable {
   case emptyChain
   case missingCatalogEntry
@@ -39,7 +45,18 @@ struct ProxyClassifier: Sendable {
     "wireguard",
   ]
 
-  let catalog: ProxyCatalog
+  private let catalog: ProxyCatalog
+  private let resolveProxyType: ProxyTypeResolver
+
+  init(
+    catalog: ProxyCatalog,
+    resolveProxyType: @escaping ProxyTypeResolver = { _, nativeClassification in
+      nativeClassification
+    }
+  ) {
+    self.catalog = catalog
+    self.resolveProxyType = resolveProxyType
+  }
 
   func classify(chains: [String]) -> ProxyClassification {
     guard let leaf = chains.first, !leaf.isEmpty else {
@@ -50,6 +67,11 @@ struct ProxyClassifier: Sendable {
       return ProxyClassification(category: .unknown, unknownReason: .missingCatalogEntry)
     }
 
+    let nativeClassification = Self.classifyNatively(rawType: rawType)
+    return resolveProxyType(rawType, nativeClassification)
+  }
+
+  private static func classifyNatively(rawType: String) -> ProxyClassification {
     let normalizedType =
       rawType
       .lowercased()

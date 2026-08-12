@@ -33,6 +33,14 @@ final class DiagnosticLoggerTests: XCTestCase {
     )
     await logger.record(.sharedCoreRuntimeProbe(.abiMismatch))
     await logger.record(
+      .sharedCoreProxyTypeShadow(
+        SharedCoreProxyTypeShadowObservation(
+          source: .nativeFallback,
+          status: .unsupportedInput
+        )
+      )
+    )
+    await logger.record(
       .sharedCoreTrafficShadow(
         SharedCoreTrafficShadowObservation(
           format: .byteCount,
@@ -130,6 +138,12 @@ final class DiagnosticLoggerTests: XCTestCase {
 
     XCTAssertTrue(contents.contains("event=application.launched"))
     XCTAssertTrue(contents.contains("event=shared_core.runtime_probe result=abi_mismatch"))
+    XCTAssertTrue(
+      contents.contains(
+        "event=shared_core.proxy_type_shadow "
+          + "source=native_fallback status=unsupported_input"
+      )
+    )
     XCTAssertTrue(
       contents.contains(
         "event=shared_core.traffic_shadow format=byte_count result=matched"

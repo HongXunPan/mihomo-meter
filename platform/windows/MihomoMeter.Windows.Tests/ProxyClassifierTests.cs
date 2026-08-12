@@ -82,4 +82,31 @@ public sealed class ProxyClassifierTests
             UnknownTrafficReason.AmbiguousProxyType,
             Classifier.Classify(["Synthetic Group"]).UnknownReason);
     }
+
+    [TestMethod]
+    public void InvokesInjectedResolverOnlyAfterCatalogHitWithNativeClassification()
+    {
+        var invocations = new List<(string RawType, ProxyClassification Classification)>();
+        var classifier = new ProxyClassifier(
+            new ProxyCatalog(new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                ["Synthetic Proxy"] = "Vmess",
+            }),
+            (rawType, nativeClassification) =>
+            {
+                invocations.Add((rawType, nativeClassification));
+                return nativeClassification;
+            });
+
+        _ = classifier.Classify([]);
+        _ = classifier.Classify(["Missing"]);
+        Assert.AreEqual(
+            new ProxyClassification(TrafficCategory.Proxy),
+            classifier.Classify(["Synthetic Proxy"]));
+        Assert.AreEqual(1, invocations.Count);
+        Assert.AreEqual("Vmess", invocations[0].RawType);
+        Assert.AreEqual(
+            new ProxyClassification(TrafficCategory.Proxy),
+            invocations[0].Classification);
+    }
 }

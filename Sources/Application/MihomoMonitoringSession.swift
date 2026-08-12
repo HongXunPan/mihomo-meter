@@ -25,17 +25,21 @@ final class MihomoMonitoringSession {
   private let collector: any ConnectionSnapshotCollecting
   private let livenessWatchdog: ConnectionLivenessWatchdog
 
-  private var measurementSession = TrafficMeasurementSession()
+  private var measurementSession: TrafficMeasurementSession
   private var catalogRefreshTask: Task<Void, Never>?
 
   init(
     client: any MihomoControllerServing,
     collector: any ConnectionSnapshotCollecting,
-    livenessPolicy: ConnectionLivenessWatchdog.Policy
+    livenessPolicy: ConnectionLivenessWatchdog.Policy,
+    resolveProxyType: @escaping ProxyTypeResolver = { _, nativeClassification in
+      nativeClassification
+    }
   ) {
     self.client = client
     self.collector = collector
     livenessWatchdog = ConnectionLivenessWatchdog(policy: livenessPolicy)
+    measurementSession = TrafficMeasurementSession(resolveProxyType: resolveProxyType)
   }
 
   var currentSnapshotAgeMilliseconds: Int? {

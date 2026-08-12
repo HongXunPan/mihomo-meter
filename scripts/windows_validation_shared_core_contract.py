@@ -21,6 +21,8 @@ SHARED_CORE_REQUIRED_APP_FILES = (
 
 SHARED_CORE_REQUIRED_CORE_FILES = (
     "Application/MihomoMeterSharedCore.cs",
+    "Application/SharedCoreProxyTypeRouter.cs",
+    "Application/SharedCoreProxyTypeShadow.cs",
     "Application/SharedCoreRuntimeProbe.cs",
     "Application/SharedCoreTrafficRoute.cs",
     "Application/SharedCoreTrafficRouter.cs",
@@ -32,6 +34,7 @@ SHARED_CORE_REQUIRED_CORE_FILES = (
 
 SHARED_CORE_REQUIRED_TEST_FILES = (
     "MihomoMeterSharedCoreTests.cs",
+    "SharedCoreProxyTypeShadowTests.cs",
     "SharedCoreRuntimeProbeTests.cs",
     "SharedCoreTrafficLazyRouteTests.cs",
     "SharedCoreTrafficRouterTests.cs",
@@ -42,14 +45,21 @@ SHARED_CORE_REQUIRED_TEST_FILES = (
 SHARED_CORE_REQUIRED_CODE_MARKERS = {
     APP_ROOT / "Program.cs": (
         "ReportSharedCoreRuntimeStatus();",
+        "SharedCoreProxyTypeShadow.ConfigureReporter(",
+        "SharedCoreTrafficDiagnosticReporter.ReportProxyTypeShadow",
         "SharedCoreTrafficShadow.ConfigureReporter(",
         "SharedCoreTrafficDiagnosticReporter.ReportShadow",
     ),
     APP_ROOT / "Diagnostics/StartupConsoleReporter.cs": (
+        "public static void ProxyTypeShadow(string source, string status)",
+        'event=shared_core.proxy_type_shadow',
         "public static void TrafficShadow(string format, string result)",
         'event=shared_core.traffic_shadow',
     ),
     APP_ROOT / "Diagnostics/SharedCoreTrafficDiagnosticReporter.cs": (
+        "ReportProxyTypeShadow(SharedCoreProxyTypeShadowObservation observation)",
+        'SharedCoreProxyTypeRouteStatus.Unrecognized => "unrecognized"',
+        "StartupConsoleReporter.ProxyTypeShadow(",
         'SharedCoreTrafficShadowStatus.Matched => "matched"',
         "StartupConsoleReporter.TrafficShadow(",
     ),
@@ -78,6 +88,30 @@ SHARED_CORE_REQUIRED_CODE_MARKERS = {
         "SharedCoreTrafficFormat.ByteCount",
         "SharedCoreTrafficFormat.Rate",
         "SharedCoreTrafficFormat.CompactRate",
+    ),
+    CORE_ROOT / "Domain/ProxyClassifier.cs": (
+        "Func<string, ProxyClassification, ProxyClassification>? resolveProxyType",
+        "_resolveProxyType(rawType, nativeClassification)",
+    ),
+    CORE_ROOT / "Application/TrafficMeasurementSession.cs": (
+        "Func<string, ProxyClassification, ProxyClassification>? resolveProxyType",
+        "new ProxyClassifier(catalog, _resolveProxyType)",
+    ),
+    CORE_ROOT / "Application/TrafficMonitoringStream.cs": (
+        "SharedCoreProxyTypeShadow.Observe",
+    ),
+    CORE_ROOT / "Application/SharedCoreProxyTypeRouter.cs": (
+        "SharedCoreProxyTypeRouteSource.SharedShadow",
+        "SharedCoreProxyTypeRouteSource.NativeFallback",
+        "SharedCoreProxyTypeRouteStatus.Unrecognized",
+        "SharedProxyTypeAdapterException",
+        "nativeClassification",
+    ),
+    CORE_ROOT / "Application/SharedCoreProxyTypeShadow.cs": (
+        "SharedCoreProxyTypeShadowObservationGate",
+        "ObservationGate.ShouldReport(observation)",
+        "代理分类影子诊断不得改变仍由原生分类决定的生产结果",
+        "return nativeClassification;",
     ),
     CORE_ROOT / "Application/SharedCoreTrafficShadow.cs": (
         "public static void ConfigureReporter(",
@@ -126,5 +160,11 @@ SHARED_CORE_REQUIRED_CODE_MARKERS = {
         "TrafficDisplayUnits.Rate(bytes)",
         "TrafficDisplayUnits.CompactRate(bytes)",
         "SharedCoreTrafficDisplayFormatter.Format(",
+    ),
+    TEST_ROOT / "SharedCoreProxyTypeShadowTests.cs": (
+        "RouterMatchesEveryStableSharedClassificationWithoutChangingNativeResult",
+        "RouterKeepsNativeResultForUnrecognizedMismatchAndAdapterFailures",
+        "ShadowDeduplicatesSourceAndStatusAndIgnoresReporterFailure",
+        "ObservationGateKeysBySourceAndStatus",
     ),
 }

@@ -94,7 +94,8 @@ final class TrafficMonitoringRun {
         let monitoringSession = MihomoMonitoringSession(
           client: client,
           collector: collector,
-          livenessPolicy: livenessPolicy
+          livenessPolicy: livenessPolicy,
+          resolveProxyType: SharedCoreProxyTypeShadow.observe
         )
         session = monitoringSession
         activeSession = monitoringSession

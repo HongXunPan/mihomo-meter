@@ -67,6 +67,9 @@ xcrun swiftc \
   -module-cache-path "${module_cache_path}" \
   -I "${project_root}/SharedCore/include" \
   "${project_root}/SharedCore/Adapters/Swift/MihomoMeterSharedCoreAdapter.swift" \
+  "${project_root}/Sources/Domain/SharedCoreProxyTypeShadowObservation.swift" \
+  "${project_root}/Sources/Application/SharedCoreProxyTypeRouter.swift" \
+  "${project_root}/Sources/Application/SharedCoreProxyTypeShadow.swift" \
   "${project_root}/Sources/Domain/SharedCoreTrafficShadowObservation.swift" \
   "${project_root}/SharedCore/Adapters/Swift/SharedCoreTrafficDisplayFormatter.swift" \
   "${project_root}/Sources/Application/SharedCoreTrafficRouter.swift" \

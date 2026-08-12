@@ -41,7 +41,10 @@ internal sealed class TrafficMonitoringStream
         await using var enumerator = _collector
             .CollectAsync(endpoint, secret, streamSource.Token)
             .GetAsyncEnumerator(streamSource.Token);
-        var measurement = new TrafficMeasurementSession(catalog, _timeProvider);
+        var measurement = new TrafficMeasurementSession(
+            catalog,
+            _timeProvider,
+            SharedCoreProxyTypeShadow.Observe);
         var display = new TrafficRateDisplayState();
         Task<MihomoProxiesResponse>? catalogRefreshTask = null;
         Task<bool>? moveNextTask = null;
