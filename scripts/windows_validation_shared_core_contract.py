@@ -64,7 +64,6 @@ SHARED_CORE_REQUIRED_CODE_MARKERS = {
     ),
     APP_ROOT / "Presentation/TrafficDisplayFormatter.cs": (
         "SharedCoreTrafficRoute.ResolveLazy(",
-        "SharedCoreTrafficRoute.Resolve(",
         "SharedCoreTrafficFormat.ByteCount",
         "SharedCoreTrafficFormat.Rate",
         "SharedCoreTrafficFormat.CompactRate",
