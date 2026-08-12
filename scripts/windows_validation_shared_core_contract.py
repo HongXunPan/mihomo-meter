@@ -33,6 +33,7 @@ SHARED_CORE_REQUIRED_CORE_FILES = (
 SHARED_CORE_REQUIRED_TEST_FILES = (
     "MihomoMeterSharedCoreTests.cs",
     "SharedCoreRuntimeProbeTests.cs",
+    "SharedCoreTrafficLazyRouteTests.cs",
     "SharedCoreTrafficRouterTests.cs",
     "SharedCoreTrafficShadowComparatorTests.cs",
     "TrafficDisplayUnitsTests.cs",
@@ -109,6 +110,16 @@ SHARED_CORE_REQUIRED_CODE_MARKERS = {
         "RouterFallsBackToNativeTextForMismatchAndSharedFailures",
         "ShadowAlwaysReturnsNativeTextWithInjectedSharedCandidate",
         "RouteDeduplicatesObservationsAndIgnoresReporterFailure",
+        "SharedCoreTrafficRouteStatus.Matched",
+    ),
+    TEST_ROOT / "SharedCoreTrafficLazyRouteTests.cs": (
+        "LazyRouterDoesNotEvaluateFallbackOnSuccess",
+        "LazyRouterStopsBeforeScalingForAbiMismatch",
+        "LazyRouterEvaluatesFallbackExactlyOnceForSharedFailures",
+        "LazyRouteIgnoresReporterFailureWithoutEvaluatingFallback",
+        "DeterministicDifferentialMatchesNativeFormatters",
+        "10_000",
+        "SplitMix64",
     ),
     TEST_ROOT / "MihomoMeterSharedCoreTests.cs": (
         "TrafficDisplayUnits.ByteCount(bytes)",

@@ -53,4 +53,19 @@ internal static class SharedCoreTrafficDiagnosticReporter
             _ => "unknown",
         };
     }
+
+    private static string StatusText(SharedCoreTrafficRouteStatus status)
+    {
+        return status switch
+        {
+            SharedCoreTrafficRouteStatus.Matched => "matched",
+            SharedCoreTrafficRouteStatus.Succeeded => "succeeded",
+            SharedCoreTrafficRouteStatus.AbiMismatch => "abi_mismatch",
+            SharedCoreTrafficRouteStatus.NativeCallFailed => "native_call_failed",
+            SharedCoreTrafficRouteStatus.UnexpectedResult => "unexpected_result",
+            SharedCoreTrafficRouteStatus.Mismatch => "mismatch",
+            SharedCoreTrafficRouteStatus.UnknownFailure => "unknown_failure",
+            _ => "unknown",
+        };
+    }
 }

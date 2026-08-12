@@ -41,7 +41,7 @@ REQUIRED_MARKERS = {
         "P1.4",
     ),
     "docs/跨平台共享核心技术方案.md": (
-        "状态：P1.3 双端门禁已通过；P1.4-0 懒原生回退方案已锁定",
+        "状态：P1.3 双端门禁已通过；P1.4-1 基础设施已建立",
         "跨平台共享核心P1.3受保护主路径技术方案.md",
     ),
     "docs/架构概览.md": (
@@ -102,7 +102,7 @@ METHOD_MARKERS = {
     "Sources/Presentation/TrafficStatisticsFormatter.swift": (
         (
             "static func bytes(",
-            "private static func nativeBytes(",
+            "static func nativeBytes(",
             ("SharedCoreTrafficRoute.resolve(", "format: .byteCount"),
             ("SharedCoreTrafficShadow.observe(",),
         ),
@@ -116,7 +116,7 @@ METHOD_MARKERS = {
         ),
         (
             "static func string(",
-            "private static func nativeCompactString(",
+            "static func nativeCompactString(",
             ("SharedCoreTrafficRoute.resolve(", "format: .rate"),
             ("SharedCoreTrafficShadow.observe(",),
         ),
