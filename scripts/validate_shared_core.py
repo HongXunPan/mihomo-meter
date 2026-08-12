@@ -12,6 +12,7 @@ from shared_core_validation_acceptance_contract import (
 from shared_core_validation_contract import FORBIDDEN_MARKERS, REQUIRED_MARKERS
 from shared_core_validation_p1_3_contract import validate_shared_core_p1_3
 from shared_core_validation_p1_4_contract import validate_shared_core_p1_4
+from shared_core_validation_p2_contract import validate_shared_core_p2
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -69,11 +70,13 @@ REQUIRED_FILES = (
     "scripts/build_shared_core_windows.ps1",
     "scripts/shared_core_validation_contract.py",
     "scripts/shared_core_validation_p1_4_contract.py",
+    "scripts/shared_core_validation_p2_contract.py",
     "scripts/windows_validation_shared_core_contract.py",
     "CONTRIBUTING.md",
     "docs/架构概览.md",
     "docs/跨平台共享核心P1.2b运行态验收指南.md",
     "docs/跨平台共享核心技术方案.md",
+    "docs/跨平台共享核心P2代理分类技术方案.md",
 )
 
 REQUIRED_TRAFFIC_VALUES = {
@@ -176,6 +179,7 @@ def main() -> int:
     validate_shared_core_acceptance(failures)
     validate_shared_core_p1_3(failures)
     validate_shared_core_p1_4(failures)
+    validate_shared_core_p2(failures)
 
     xcode_project = ROOT / "MihomoMeter.xcodeproj/project.pbxproj"
     if xcode_project.is_file() and xcode_project.read_text(encoding="utf-8").count(
