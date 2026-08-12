@@ -17,10 +17,9 @@ enum TrafficRateFormatter {
   }
 
   static func compactString(from bytesPerSecond: UInt64) -> String {
-    let nativeText = nativeCompactString(from: bytesPerSecond)
-    return SharedCoreTrafficRoute.resolve(
+    SharedCoreTrafficRoute.resolveLazy(
       bytes: bytesPerSecond,
-      nativeText: nativeText,
+      nativeFallback: { nativeCompactString(from: bytesPerSecond) },
       format: .compactRate
     )
   }

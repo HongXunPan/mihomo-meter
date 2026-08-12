@@ -31,13 +31,15 @@ internal static class TrafficDisplayFormatter
 
     public static string CompactRate(ulong? bytesPerSecond)
     {
-        var nativeText = TrafficDisplayUnits.CompactRate(bytesPerSecond);
-        return bytesPerSecond is null
-            ? nativeText
-            : SharedCoreTrafficRoute.Resolve(
-                bytesPerSecond.Value,
-                nativeText,
-                SharedCoreTrafficFormat.CompactRate);
+        if (bytesPerSecond is null)
+        {
+            return TrafficDisplayUnits.CompactRate(bytesPerSecond);
+        }
+
+        return SharedCoreTrafficRoute.ResolveLazy(
+            bytesPerSecond.Value,
+            () => TrafficDisplayUnits.CompactRate(bytesPerSecond),
+            SharedCoreTrafficFormat.CompactRate);
     }
 
     public static string DateTime(DateTimeOffset value)

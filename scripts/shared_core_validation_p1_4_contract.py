@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 REQUIRED_MARKERS = {
     "docs/跨平台共享核心P1.4懒原生回退技术方案.md": (
-        "状态：P1.4-3 完整速率已切换，紧凑速率仍逐次对照",
+        "状态：P1.4-4 三类格式均已切换，待双端实机验收",
         "共享优先、原生懒回退",
         "成功路径不得求值原生闭包",
         "status=succeeded",
@@ -22,14 +22,15 @@ REQUIRED_MARKERS = {
         "恢复为 P1.3 逐次对照入口",
         "P1.3 对照路由",
         "独立懒路由结果与路由状态",
-        "P1.4-3 再切换 `rate`",
+        "P1.4-2 至 P1.4-4 依次切换双端",
+        "Windows 紧凑速率的无值占位分支",
     ),
     "docs/跨平台共享核心技术方案.md": (
-        "P1.4-3 完整速率已切换",
+        "P1.4-4 三类格式已切换",
         "跨平台共享核心P1.4懒原生回退技术方案.md",
     ),
     "CONTRIBUTING.md": (
-        "后续只按",
+        "待按",
         "跨平台共享核心P1.4懒原生回退技术方案.md",
     ),
     "Sources/Application/SharedCoreTrafficRouter.swift": (
@@ -94,17 +95,17 @@ CURRENT_PRODUCTION_MARKERS = {
         "format: .byteCount",
     ),
     "Sources/Presentation/TrafficRateFormatter.swift": (
-        "let nativeText = nativeCompactString(from: bytesPerSecond)",
+        "nativeFallback: { nativeCompactString(from: bytesPerSecond) }",
+        "format: .compactRate",
         "nativeFallback: { nativeString(from: bytesPerSecond) }",
         "format: .rate",
-        "nativeText: nativeText",
     ),
     "platform/windows/MihomoMeter.Windows.App/Presentation/TrafficDisplayFormatter.cs": (
         "SharedCoreTrafficRoute.ResolveLazy(",
         "() => TrafficDisplayUnits.ByteCount(bytes)",
         "() => TrafficDisplayUnits.Rate(bytesPerSecond)",
-        "var nativeText = TrafficDisplayUnits.CompactRate(bytesPerSecond);",
-        "SharedCoreTrafficRoute.Resolve(",
+        "() => TrafficDisplayUnits.CompactRate(bytesPerSecond)",
+        "if (bytesPerSecond is null)",
     ),
 }
 
@@ -113,14 +114,13 @@ FORBIDDEN_PRODUCTION_MARKERS = {
         "let nativeText = nativeBytes(value)",
         "nativeText: nativeText",
     ),
-}
-
-METHOD_MARKERS = {
     "Sources/Presentation/TrafficRateFormatter.swift": (
-        ("static func compactString(", "static func string(", "resolveLazy("),
+        "let nativeText",
+        "nativeText: nativeText",
     ),
     "platform/windows/MihomoMeter.Windows.App/Presentation/TrafficDisplayFormatter.cs": (
-        ("public static string CompactRate(", "public static string DateTime(", "ResolveLazy("),
+        "var nativeText",
+        "SharedCoreTrafficRoute.Resolve(",
     ),
 }
 
@@ -141,7 +141,7 @@ def validate_shared_core_p1_4(failures: list[str]) -> None:
         for marker in markers:
             if marker not in content:
                 failures.append(
-                    f"{relative_path} 在 P1.4-3 缺少当前生产路径：{marker}"
+                    f"{relative_path} 在 P1.4-4 缺少当前生产路径：{marker}"
                 )
 
     for relative_path, markers in FORBIDDEN_PRODUCTION_MARKERS.items():
@@ -149,18 +149,5 @@ def validate_shared_core_p1_4(failures: list[str]) -> None:
         for marker in markers:
             if marker in content:
                 failures.append(
-                    f"{relative_path} 在 P1.4-3 调用点模式冲突：{marker}"
-                )
-
-    for relative_path, contracts in METHOD_MARKERS.items():
-        content = (ROOT / relative_path).read_text(encoding="utf-8")
-        for start_marker, end_marker, forbidden_marker in contracts:
-            start_index = content.find(start_marker)
-            end_index = content.find(end_marker, start_index + len(start_marker))
-            if start_index < 0 or end_index < 0:
-                failures.append(f"{relative_path} 无法定位 P1.4-3 调用点：{start_marker}")
-                continue
-            if forbidden_marker in content[start_index:end_index]:
-                failures.append(
-                    f"{relative_path} 在 P1.4-3 提前切换紧凑速率：{start_marker}"
+                    f"{relative_path} 在 P1.4-4 调用点模式冲突：{marker}"
                 )

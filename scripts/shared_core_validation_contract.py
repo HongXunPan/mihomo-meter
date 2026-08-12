@@ -61,7 +61,7 @@ REQUIRED_MARKERS = {
         "format: .byteCount",
     ),
     "Sources/Presentation/TrafficRateFormatter.swift": (
-        "SharedCoreTrafficRoute.resolve(",
+        "SharedCoreTrafficRoute.resolveLazy(",
         "format: .rate",
         "format: .compactRate",
     ),
@@ -121,7 +121,7 @@ REQUIRED_MARKERS = {
         "StartupConsoleReporter.TrafficShadow(",
     ),
     "platform/windows/MihomoMeter.Windows.App/Presentation/TrafficDisplayFormatter.cs": (
-        "SharedCoreTrafficRoute.Resolve(",
+        "SharedCoreTrafficRoute.ResolveLazy(",
         "SharedCoreTrafficFormat.ByteCount",
         "SharedCoreTrafficFormat.Rate",
         "SharedCoreTrafficFormat.CompactRate",
@@ -228,18 +228,18 @@ REQUIRED_MARKERS = {
     ),
     "CONTRIBUTING.md": (
         "P1.3 双端运行态门禁已于 2026-08-12 通过",
-        "P1.4-3 已把字节数和完整速率切换为共享优先、原生懒回退",
-        "紧凑速率继续使用受保护主路径",
+        "P1.4-4 已把字节数、完整速率和紧凑速率切换为共享优先、原生懒回退",
+        "完成双端实机验收",
         "跨平台共享核心P1.3验收记录-2026-08-12.md",
     ),
     "docs/架构概览.md": (
-        "P1.4-3 已让字节数和完整速率共享优先、原生懒回退",
-        "紧凑速率继续使用",
+        "P1.4-4 已让三类流量格式共享优先、原生懒回退",
+        "继续作为单格式回滚入口",
     ),
     "docs/跨平台共享核心技术方案.md": (
-        "状态：P1.3 双端门禁已通过；P1.4-3 完整速率已切换",
-        "字节数和完整速率共享优先、异常时懒回退原生算法",
-        "紧凑速率成功仍记录 `matched`",
+        "状态：P1.3 双端门禁已通过；P1.4-4 三类格式已切换",
+        "三类格式均共享优先、异常时懒回退原生算法",
+        "三类格式成功均记录 `succeeded`",
         "显式链接对应 `.a` 归档",
         "不得通过 `-l` 搜索选择同名 dylib",
         "跨平台共享核心P1.3验收记录-2026-08-12.md",
