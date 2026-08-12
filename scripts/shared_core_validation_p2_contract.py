@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 REQUIRED_MARKERS = {
     "docs/跨平台共享核心P2代理分类技术方案.md": (
-        "状态：P2-2 双端生产影子已实现，生产结果仍由原生分类决定",
+        "状态：P2-3 双端生产影子运行态门禁已通过",
         "P2-F0 已先修正双端原生基线",
         "不超过 64 字节的 ASCII 输入",
         "0 | `unrecognized`",
@@ -20,17 +20,28 @@ REQUIRED_MARKERS = {
         "P2-6 不得删除原生分类",
         "P2-3、P2-5 与 P2-7",
         "跨平台共享核心P2-3运行态验收指南.md",
+        "跨平台共享核心P2-3验收记录-2026-08-12.md",
         "DIRECT、REJECT 或未知被并入 Proxy",
     ),
     "docs/跨平台共享核心P2-3运行态验收指南.md": (
-        "状态：待双端实机验收",
+        "状态：已通过（2026-08-12）",
         "两次独立启动",
         "连续连接 30 分钟",
         "Proxy、DIRECT 与空闲切换",
         "source=shared_shadow status=matched",
         "source=native_fallback status=unrecognized",
         "不得记录原始代理类型",
-        "不得进入 P2-4",
+        "跨平台共享核心P2-3验收记录-2026-08-12.md",
+    ),
+    "docs/跨平台共享核心P2-3验收记录-2026-08-12.md": (
+        "状态：通过",
+        "确认日期：2026-08-12",
+        "macOS 26.5.2（25F84，x86_64）",
+        "Windows 10 22H2 x64 标准用户",
+        "bce75a32492a344865026f0e2b432bbc1d94958d",
+        "shared_shadow + matched",
+        "禁止状态 | 无 | 无",
+        "P2-4 受保护主路径",
     ),
     "docs/跨平台共享核心技术方案.md": (
         "跨平台共享核心P2代理分类技术方案.md",
@@ -46,7 +57,8 @@ REQUIRED_MARKERS = {
     ),
     "CONTRIBUTING.md": (
         "跨平台共享核心P2代理分类技术方案.md",
-        "P2-2",
+        "P2-3 双端生产影子运行态门禁已于 2026-08-12 通过",
+        "跨平台共享核心P2-3验收记录-2026-08-12.md",
     ),
     "Sources/Domain/ProxyClassifier.swift": (
         ".filter { $0.isLetter || $0.isNumber }",
