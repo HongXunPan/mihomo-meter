@@ -39,20 +39,24 @@ public sealed class TrafficMeasurementSession
     private readonly ConnectionRateAggregator _proxyConnectionRates = new();
     private readonly ConnectionRateAggregator _directConnectionRates = new();
     private readonly TrafficRateAggregator _rateAggregator = new();
+    private readonly Func<string, ProxyClassification, ProxyClassification> _resolveProxyType;
     private ProxyClassifier _classifier;
     private long? _lastSnapshotTimestamp;
 
     public TrafficMeasurementSession(
         ProxyCatalog catalog,
-        TimeProvider? timeProvider = null)
+        TimeProvider? timeProvider = null,
+        Func<string, ProxyClassification, ProxyClassification>? resolveProxyType = null)
     {
-        _classifier = new ProxyClassifier(catalog);
+        _resolveProxyType = resolveProxyType ?? ((_, nativeClassification) =>
+            nativeClassification);
+        _classifier = new ProxyClassifier(catalog, _resolveProxyType);
         _timeProvider = timeProvider ?? TimeProvider.System;
     }
 
     public void UpdateCatalog(ProxyCatalog catalog)
     {
-        _classifier = new ProxyClassifier(catalog);
+        _classifier = new ProxyClassifier(catalog, _resolveProxyType);
     }
 
     public TrafficMeasurementResult Consume(MihomoConnectionsSnapshot snapshot)

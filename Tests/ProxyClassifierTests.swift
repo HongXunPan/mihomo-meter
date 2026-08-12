@@ -1,4 +1,5 @@
 import XCTest
+import os
 
 @testable import MihomoMeter
 
@@ -79,6 +80,34 @@ final class ProxyClassifierTests: XCTestCase {
     XCTAssertEqual(
       classifier.classify(chains: ["Synthetic Group"]).unknownReason,
       .ambiguousProxyType
+    )
+  }
+
+  func testInvokesInjectedResolverOnlyAfterCatalogHitWithNativeClassification() {
+    let invocations = OSAllocatedUnfairLock(
+      initialState: [(rawType: String, classification: ProxyClassification)]()
+    )
+    let classifier = ProxyClassifier(
+      catalog: ProxyCatalog(typesByName: ["Synthetic Proxy": "Vmess"]),
+      resolveProxyType: { rawType, nativeClassification in
+        invocations.withLock {
+          $0.append((rawType: rawType, classification: nativeClassification))
+        }
+        return nativeClassification
+      }
+    )
+
+    _ = classifier.classify(chains: [])
+    _ = classifier.classify(chains: ["Missing"])
+    XCTAssertEqual(
+      classifier.classify(chains: ["Synthetic Proxy"]),
+      ProxyClassification(category: .proxy, unknownReason: nil)
+    )
+    XCTAssertEqual(invocations.withLock { $0.count }, 1)
+    XCTAssertEqual(invocations.withLock { $0.first?.rawType }, "Vmess")
+    XCTAssertEqual(
+      invocations.withLock { $0.first?.classification },
+      ProxyClassification(category: .proxy, unknownReason: nil)
     )
   }
 }

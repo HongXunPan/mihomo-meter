@@ -43,6 +43,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     SharedCoreTrafficShadow.configure(
       reporter: SharedCoreTrafficDiagnosticReporter.reportShadow
     )
+    SharedCoreProxyTypeShadow.configure(
+      reporter: SharedCoreTrafficDiagnosticReporter.reportProxyTypeShadow
+    )
     SharedCoreTrafficRoute.configure(
       reporter: SharedCoreTrafficDiagnosticReporter.reportRoute
     )

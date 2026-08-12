@@ -80,6 +80,16 @@ internal static class StartupConsoleReporter
         }
     }
 
+    public static void ProxyTypeShadow(string source, string status)
+    {
+        if (_enabled)
+        {
+            Console.WriteLine(
+                "WINDOWS_DIAGNOSTIC event=shared_core.proxy_type_shadow "
+                + $"source={source} status={status}");
+        }
+    }
+
     public static void TrafficRoute(string format, string result, string status)
     {
         if (_enabled)

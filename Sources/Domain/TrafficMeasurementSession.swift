@@ -13,6 +13,7 @@ struct TrafficMeasurementResult: Equatable, Sendable {
 }
 
 struct TrafficMeasurementSession: Sendable {
+  private let resolveProxyType: ProxyTypeResolver
   private var classifier: ProxyClassifier?
   private var deltaTracker = ConnectionDeltaTracker()
   private var attributionCoverageTracker = ConnectionAttributionCoverageTracker()
@@ -21,13 +22,21 @@ struct TrafficMeasurementSession: Sendable {
   private var directConnectionRateAggregator = ConnectionRateAggregator()
   private var lastSnapshotInstant: ContinuousClock.Instant?
 
+  init(
+    resolveProxyType: @escaping ProxyTypeResolver = { _, nativeClassification in
+      nativeClassification
+    }
+  ) {
+    self.resolveProxyType = resolveProxyType
+  }
+
   mutating func configure(catalog: ProxyCatalog) {
-    classifier = ProxyClassifier(catalog: catalog)
+    classifier = ProxyClassifier(catalog: catalog, resolveProxyType: resolveProxyType)
     resetBaseline()
   }
 
   mutating func updateCatalog(_ catalog: ProxyCatalog) {
-    classifier = ProxyClassifier(catalog: catalog)
+    classifier = ProxyClassifier(catalog: catalog, resolveProxyType: resolveProxyType)
   }
 
   mutating func consume(

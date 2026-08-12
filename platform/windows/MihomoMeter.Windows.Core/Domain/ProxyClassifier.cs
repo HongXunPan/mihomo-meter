@@ -47,10 +47,15 @@ public sealed class ProxyClassifier
     };
 
     private readonly ProxyCatalog _catalog;
+    private readonly Func<string, ProxyClassification, ProxyClassification> _resolveProxyType;
 
-    public ProxyClassifier(ProxyCatalog catalog)
+    public ProxyClassifier(
+        ProxyCatalog catalog,
+        Func<string, ProxyClassification, ProxyClassification>? resolveProxyType = null)
     {
         _catalog = catalog;
+        _resolveProxyType = resolveProxyType ?? ((_, nativeClassification) =>
+            nativeClassification);
     }
 
     public ProxyClassification Classify(IReadOnlyList<string> chains)
@@ -68,6 +73,12 @@ public sealed class ProxyClassifier
                 UnknownTrafficReason.MissingCatalogEntry);
         }
 
+        var nativeClassification = ClassifyNatively(rawType);
+        return _resolveProxyType(rawType, nativeClassification);
+    }
+
+    private static ProxyClassification ClassifyNatively(string rawType)
+    {
         var normalizedType = string.Concat(rawType
             .ToLowerInvariant()
             .Where(character => char.IsLetter(character) || char.IsNumber(character)));
