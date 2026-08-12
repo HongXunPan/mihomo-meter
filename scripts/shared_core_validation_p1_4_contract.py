@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 REQUIRED_MARKERS = {
     "docs/跨平台共享核心P1.4懒原生回退技术方案.md": (
-        "状态：P1.4-4 三类格式均已切换，待双端实机验收",
+        "状态：P1.4 双端运行态门禁已通过",
         "共享优先、原生懒回退",
         "成功路径不得求值原生闭包",
         "status=succeeded",
@@ -24,14 +24,27 @@ REQUIRED_MARKERS = {
         "独立懒路由结果与路由状态",
         "P1.4-2 至 P1.4-4 依次切换双端",
         "Windows 紧凑速率的无值占位分支",
+        "跨平台共享核心P1.4验收记录-2026-08-12.md",
     ),
     "docs/跨平台共享核心技术方案.md": (
-        "P1.4-4 三类格式已切换",
+        "状态：P1.4 双端运行态门禁已通过",
         "跨平台共享核心P1.4懒原生回退技术方案.md",
+        "跨平台共享核心P1.4验收记录-2026-08-12.md",
     ),
     "CONTRIBUTING.md": (
-        "待按",
+        "P1.3 与 P1.4 双端运行态门禁均已于 2026-08-12 通过",
         "跨平台共享核心P1.4懒原生回退技术方案.md",
+        "跨平台共享核心P1.4验收记录-2026-08-12.md",
+    ),
+    "docs/跨平台共享核心P1.4验收记录-2026-08-12.md": (
+        "状态：通过",
+        "确认日期：2026-08-12",
+        "macOS 26.5.2（25F84，x86_64）",
+        "Windows 10 22H2 x64 标准用户",
+        "307912d700fc650f469316ebc4fe1bf73aa9394d",
+        "native_fallback` | 无 | 无",
+        "旧生产 `status=matched` | 无 | 无",
+        "P1.4 双端运行态门禁通过",
     ),
     "Sources/Application/SharedCoreTrafficRouter.swift": (
         "enum SharedCoreTrafficRouteStatus",
