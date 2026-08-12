@@ -176,7 +176,7 @@ REQUIRED_MARKERS = {
     ),
     "scripts/test_shared_core_macos.sh": (
         'source "${script_directory}/shared_core_macos_toolchain.sh"',
-        'fixture_path="${project_root}/SharedCore/TestVectors/traffic_scale.json"',
+        'traffic_fixture_path="${project_root}/SharedCore/TestVectors/traffic_scale.json"',
         '"${library_path}"',
         'probe_linkage="$(/usr/bin/otool -L "${probe_path}")"',
         "macOS 共享核心探针不得动态依赖 Rust dylib",
@@ -190,7 +190,7 @@ REQUIRED_MARKERS = {
         '"${project_root}/Sources/Application/SharedCoreRuntimeProbe.swift"',
         '"${project_root}/Sources/Presentation/TrafficRateFormatter.swift"',
         '"${project_root}/Sources/Presentation/TrafficStatisticsFormatter.swift"',
-        '"${probe_path}" "${fixture_path}"',
+        '"${probe_path}" "${traffic_fixture_path}" "${proxy_fixture_path}"',
     ),
     "scripts/build_shared_core_macos.sh": (
         'source "${script_directory}/shared_core_macos_toolchain.sh"',

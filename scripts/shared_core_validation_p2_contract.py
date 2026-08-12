@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 REQUIRED_MARKERS = {
     "docs/跨平台共享核心P2代理分类技术方案.md": (
-        "状态：P2-0 方案与静态契约",
+        "状态：P2-1 ABI、双端适配器与统一向量已实现",
         "P2-F0 已先修正双端原生基线",
         "不超过 64 字节的 ASCII 输入",
         "0 | `unrecognized`",
@@ -31,7 +31,7 @@ REQUIRED_MARKERS = {
     ),
     "CONTRIBUTING.md": (
         "跨平台共享核心P2代理分类技术方案.md",
-        "P2-0",
+        "P2-1",
     ),
     "Sources/Domain/ProxyClassifier.swift": (
         ".filter { $0.isLetter || $0.isNumber }",
@@ -53,16 +53,62 @@ REQUIRED_MARKERS = {
         '"Hysteria2"',
         '"Socks5"',
     ),
-}
-
-FORBIDDEN_P2_0_MARKERS = {
-    "SharedCore/src/lib.rs": ("mm_classify_proxy_type",),
-    "SharedCore/include/mihomo_meter_shared_core.h": ("mm_classify_proxy_type",),
+    "SharedCore/src/lib.rs": (
+        "pub unsafe extern \"C\" fn mm_classify_proxy_type(",
+        "MAXIMUM_PROXY_TYPE_INPUT_LENGTH",
+        "PROXY_TYPE_UNRECOGNIZED",
+        "proxy_type_classification_validates_abi_pointers",
+    ),
+    "SharedCore/include/mihomo_meter_shared_core.h": (
+        "MM_PROXY_TYPE_MAX_INPUT_LENGTH 64u",
+        "mm_proxy_type_classification_t",
+        "mm_classify_proxy_type",
+    ),
+    "SharedCore/TestVectors/proxy_type_classification.json": (
+        '"Hysteria2"',
+        '"Socks5"',
+        '"unsupported_input"',
+        '"input_too_long"',
+    ),
     "SharedCore/Adapters/Swift/MihomoMeterSharedCoreAdapter.swift": (
-        "classifyProxyType",
+        "enum SharedProxyTypeClassification",
+        "static func classifyProxyType(",
+        "unsupportedProxyTypeInput",
+        "proxyTypeInputTooLong",
+    ),
+    "SharedCore/Adapters/Swift/Probe/main.swift": (
+        "ProxyTypeClassificationFixture",
+        "MihomoMeterSharedCoreAdapter.classifyProxyType",
+        "ProxyClassifier(",
     ),
     "platform/windows/MihomoMeter.Windows.Core/Application/MihomoMeterSharedCore.cs": (
-        "ClassifyProxyType",
+        "public enum SharedProxyTypeClassification",
+        "public static SharedProxyTypeClassification ClassifyProxyType(",
+        'EntryPoint = "mm_classify_proxy_type"',
+    ),
+    "platform/windows/MihomoMeter.Windows.Tests/MihomoMeterSharedCoreTests.cs": (
+        "ProxyTypeClassificationMatchesNativeClassifierForCanonicalVectors",
+        "MihomoMeterSharedCore.ClassifyProxyType(",
+        "ClassifyNatively(",
+    ),
+    "platform/windows/MihomoMeter.Windows.Tests/MihomoMeter.Windows.Tests.csproj": (
+        "proxy_type_classification.json",
+        "shared-core-proxy-type-classification.json",
+    ),
+    "scripts/test_shared_core_macos.sh": (
+        "proxy_type_classification.json",
+        '"${proxy_fixture_path}"',
+    ),
+}
+
+FORBIDDEN_P2_1_PRODUCTION_MARKERS = {
+    "Sources/Domain/ProxyClassifier.swift": (
+        "MihomoMeterSharedCoreAdapter",
+        "SharedProxyTypeClassification",
+    ),
+    "platform/windows/MihomoMeter.Windows.Core/Domain/ProxyClassifier.cs": (
+        "MihomoMeterSharedCore",
+        "SharedProxyTypeClassification",
     ),
 }
 
@@ -78,10 +124,10 @@ def validate_shared_core_p2(failures: list[str]) -> None:
             if marker not in content:
                 failures.append(f"{relative_path} 缺少 P2 标记：{marker}")
 
-    for relative_path, markers in FORBIDDEN_P2_0_MARKERS.items():
+    for relative_path, markers in FORBIDDEN_P2_1_PRODUCTION_MARKERS.items():
         content = (ROOT / relative_path).read_text(encoding="utf-8")
         for marker in markers:
             if marker in content:
                 failures.append(
-                    f"{relative_path} 在 P2-0 不得提前包含生产标记：{marker}"
+                    f"{relative_path} 在 P2-1 不得提前接入共享分类：{marker}"
                 )

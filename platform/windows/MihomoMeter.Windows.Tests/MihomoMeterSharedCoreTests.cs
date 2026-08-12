@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MihomoMeter.Windows.Core.Application;
+using MihomoMeter.Windows.Core.Domain;
 
 namespace MihomoMeter.Windows.Tests;
 
@@ -80,6 +81,88 @@ public sealed class MihomoMeterSharedCoreTests
         }
     }
 
+    [TestMethod]
+    public void ProxyTypeClassificationMatchesNativeClassifierForCanonicalVectors()
+    {
+        var fixturePath = Path.Combine(
+            AppContext.BaseDirectory,
+            "Fixtures",
+            "shared-core-proxy-type-classification.json");
+        var fixture = JsonSerializer.Deserialize<ProxyTypeClassificationFixture>(
+            File.ReadAllText(fixturePath))
+            ?? throw new InvalidOperationException("无法读取统一代理类型分类向量。");
+
+        Assert.AreEqual(1, fixture.SchemaVersion);
+        Assert.IsTrue(fixture.Cases.Length > 0);
+
+        foreach (var testCase in fixture.Cases)
+        {
+            var nativeResult = ClassifyNatively(testCase.RawType);
+            switch (testCase.Expected)
+            {
+                case "proxy":
+                    Assert.AreEqual(
+                        SharedProxyTypeClassification.Proxy,
+                        MihomoMeterSharedCore.ClassifyProxyType(testCase.RawType));
+                    Assert.AreEqual(new ProxyClassification(TrafficCategory.Proxy), nativeResult);
+                    break;
+                case "direct":
+                    Assert.AreEqual(
+                        SharedProxyTypeClassification.Direct,
+                        MihomoMeterSharedCore.ClassifyProxyType(testCase.RawType));
+                    Assert.AreEqual(new ProxyClassification(TrafficCategory.Direct), nativeResult);
+                    break;
+                case "reject":
+                    Assert.AreEqual(
+                        SharedProxyTypeClassification.Reject,
+                        MihomoMeterSharedCore.ClassifyProxyType(testCase.RawType));
+                    Assert.AreEqual(new ProxyClassification(TrafficCategory.Reject), nativeResult);
+                    break;
+                case "unrecognized":
+                    Assert.AreEqual(
+                        SharedProxyTypeClassification.Unrecognized,
+                        MihomoMeterSharedCore.ClassifyProxyType(testCase.RawType));
+                    Assert.AreEqual(
+                        new ProxyClassification(
+                            TrafficCategory.Unknown,
+                            UnknownTrafficReason.AmbiguousProxyType),
+                        nativeResult);
+                    break;
+                case "unsupported_input":
+                    Assert.AreEqual(
+                        SharedProxyTypeAdapterFailure.UnsupportedProxyTypeInput,
+                        Assert.ThrowsExactly<SharedProxyTypeAdapterException>(() =>
+                            MihomoMeterSharedCore.ClassifyProxyType(testCase.RawType)).Failure);
+                    Assert.AreEqual(
+                        UnknownTrafficReason.AmbiguousProxyType,
+                        nativeResult.UnknownReason);
+                    break;
+                case "input_too_long":
+                    Assert.AreEqual(
+                        SharedProxyTypeAdapterFailure.ProxyTypeInputTooLong,
+                        Assert.ThrowsExactly<SharedProxyTypeAdapterException>(() =>
+                            MihomoMeterSharedCore.ClassifyProxyType(testCase.RawType)).Failure);
+                    Assert.AreEqual(
+                        UnknownTrafficReason.AmbiguousProxyType,
+                        nativeResult.UnknownReason);
+                    break;
+                default:
+                    Assert.Fail($"统一代理类型分类向量包含未知预期：{testCase.Expected}。");
+                    break;
+            }
+        }
+    }
+
+    private static ProxyClassification ClassifyNatively(string rawType)
+    {
+        var classifier = new ProxyClassifier(new ProxyCatalog(
+            new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                ["Synthetic Proxy"] = rawType,
+            }));
+        return classifier.Classify(["Synthetic Proxy"]);
+    }
+
     private sealed class TrafficScaleFixture
     {
         [JsonPropertyName("schemaVersion")]
@@ -87,5 +170,23 @@ public sealed class MihomoMeterSharedCoreTests
 
         [JsonPropertyName("byteValues")]
         public string[] ByteValues { get; init; } = [];
+    }
+
+    private sealed class ProxyTypeClassificationFixture
+    {
+        [JsonPropertyName("schemaVersion")]
+        public int SchemaVersion { get; init; }
+
+        [JsonPropertyName("cases")]
+        public ProxyTypeClassificationCase[] Cases { get; init; } = [];
+    }
+
+    private sealed class ProxyTypeClassificationCase
+    {
+        [JsonPropertyName("rawType")]
+        public string RawType { get; init; } = string.Empty;
+
+        [JsonPropertyName("expected")]
+        public string Expected { get; init; } = string.Empty;
     }
 }
