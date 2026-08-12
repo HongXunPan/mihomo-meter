@@ -100,7 +100,7 @@ public sealed class SharedCoreTrafficRouterTests
                     new SharedCoreTrafficRouteObservation(
                         SharedCoreTrafficFormat.ByteCount,
                         SharedCoreTrafficRouteSource.SharedPrimary,
-                        SharedCoreTrafficShadowStatus.Matched),
+                        SharedCoreTrafficRouteStatus.Matched),
                 },
                 observations);
         }

@@ -110,6 +110,7 @@ SHARED_CORE_REQUIRED_CODE_MARKERS = {
         "RouterFallsBackToNativeTextForMismatchAndSharedFailures",
         "ShadowAlwaysReturnsNativeTextWithInjectedSharedCandidate",
         "RouteDeduplicatesObservationsAndIgnoresReporterFailure",
+        "SharedCoreTrafficRouteStatus.Matched",
     ),
     TEST_ROOT / "SharedCoreTrafficLazyRouteTests.cs": (
         "LazyRouterDoesNotEvaluateFallbackOnSuccess",
