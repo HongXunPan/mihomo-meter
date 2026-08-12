@@ -9,6 +9,7 @@ namespace MihomoMeter.Windows.App.Lifecycle;
 
 internal sealed class SettingsWindowController : IDisposable
 {
+    private readonly nint _ownerWindowHandle;
     private readonly MainWindowViewModel _mainWindowViewModel;
     private readonly WindowsUpdateWorkspaceViewModel _updateViewModel;
     private Window? _window;
@@ -17,9 +18,12 @@ internal sealed class SettingsWindowController : IDisposable
     private bool _disposed;
 
     public SettingsWindowController(
+        Window ownerWindow,
         MainWindowViewModel mainWindowViewModel,
         WindowsUpdateWorkspaceViewModel updateViewModel)
     {
+        ArgumentNullException.ThrowIfNull(ownerWindow);
+        _ownerWindowHandle = WinRT.Interop.WindowNative.GetWindowHandle(ownerWindow);
         _mainWindowViewModel = mainWindowViewModel;
         _updateViewModel = updateViewModel;
     }
@@ -68,6 +72,7 @@ internal sealed class SettingsWindowController : IDisposable
         };
         window.Closed += Window_Closed;
         var windowHandle = WinRT.Interop.WindowNative.GetWindowHandle(window);
+        WindowOwnershipNativeMethods.SetOwner(windowHandle, _ownerWindowHandle);
         var windowId = Win32Interop.GetWindowIdFromWindow(windowHandle);
         AppWindow.GetFromWindowId(windowId)?.Resize(new SizeInt32(780, 620));
         _view = view;

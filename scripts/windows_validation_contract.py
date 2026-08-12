@@ -126,6 +126,7 @@ REQUIRED_APP_FILES = (
     "Lifecycle/FloatingWidgetWindow.cs",
     "Lifecycle/SettingsWindowController.cs",
     "Interop/ShellNativeMethods.cs",
+    "Interop/WindowOwnershipNativeMethods.cs",
     "Interop/FloatingWidgetNativeMethods.cs",
     "Assets/MihomoMeter.ico",
     "Presentation/MainWindowViewModel.cs",

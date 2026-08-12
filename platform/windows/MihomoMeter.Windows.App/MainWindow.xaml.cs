@@ -87,7 +87,7 @@ public sealed partial class MainWindow : Window
             QuotaViewModel,
             this,
             _quotaTrendWindow.Show);
-        _settingsWindow = new SettingsWindowController(ViewModel, UpdateViewModel);
+        _settingsWindow = new SettingsWindowController(this, ViewModel, UpdateViewModel);
         _firstConnectionGuideView = new FirstConnectionGuideView(
             _settingsWindow.ShowConnectionSettings);
         ViewModel.ConfigurationValidated += ViewModel_ConfigurationValidated;

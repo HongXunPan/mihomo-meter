@@ -12,6 +12,7 @@ MAIN_WINDOW_FILE = APP_ROOT / "MainWindow.xaml.cs"
 SETTINGS_WINDOW_CONTROLLER_FILE = (
     APP_ROOT / "Lifecycle" / "SettingsWindowController.cs"
 )
+WINDOW_OWNERSHIP_FILE = APP_ROOT / "Interop" / "WindowOwnershipNativeMethods.cs"
 
 
 def validate_window_activation_contract(errors: list[str]) -> None:
@@ -35,8 +36,10 @@ def validate_window_activation_contract(errors: list[str]) -> None:
     controller = SETTINGS_WINDOW_CONTROLLER_FILE.read_text(encoding="utf-8")
     required_markers = (
         "using MihomoMeter.Windows.App.Interop;",
+        "private readonly nint _ownerWindowHandle;",
         "private nint _windowHandle;",
         "private void ActivateWindow()",
+        "WindowOwnershipNativeMethods.SetOwner(windowHandle, _ownerWindowHandle);",
         "window.Activate();",
         "ShellNativeMethods.SetForegroundWindow(_windowHandle);",
     )
@@ -46,6 +49,31 @@ def validate_window_activation_contract(errors: list[str]) -> None:
 
     if controller.count("ActivateWindow();") != 2:
         errors.append("设置与更新入口必须统一通过 ActivateWindow 激活窗口")
+
+    main_window_constructor = (
+        "new SettingsWindowController(this, ViewModel, UpdateViewModel)"
+    )
+    if main_window_constructor not in main_window:
+        errors.append("设置窗口控制器必须接收主窗口作为原生 Owner")
+
+    owner_index = controller.find(
+        "WindowOwnershipNativeMethods.SetOwner(windowHandle, _ownerWindowHandle);"
+    )
+    window_cache_index = controller.find("_window = window;")
+    if owner_index < 0 or window_cache_index < 0 or owner_index >= window_cache_index:
+        errors.append("设置窗口必须先建立主窗口 Owner，再缓存为可复用窗口")
+
+    ownership = WINDOW_OWNERSHIP_FILE.read_text(encoding="utf-8")
+    ownership_markers = (
+        "private const int OwnerWindowIndex = -8;",
+        'EntryPoint = "SetWindowLongPtrW"',
+        "SetWindowLongPtr(",
+        "Marshal.GetLastPInvokeError()",
+        "throw new Win32Exception",
+    )
+    for marker in ownership_markers:
+        if marker not in ownership:
+            errors.append(f"设置窗口缺少原生 Owner 契约标记：{marker}")
 
     activate_index = controller.find("window.Activate();")
     foreground_index = controller.find(
