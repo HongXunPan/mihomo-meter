@@ -24,6 +24,8 @@ Mihomo Meter 是一款通过 Mihomo Controller API 统计真实代理流量的�
 
 Windows 安装包为自包含应用，不需要另行安装 .NET Runtime。安装版默认写入 `%LOCALAPPDATA%\Programs\Mihomo Meter`，不请求管理员权限；便携版应完整解压后运行。两种形态共享当前用户数据并实行跨目录单实例。
 
+Windows 分发阶段均已放行：Windows W3-0 完成版本化便携包与无提权启动；Windows W3-1 安装生命周期已通过，跨目录单实例复验已在 `v0.6.1` 收口；W3-2 的人工更新检查、平台实际版本描述与 Stable 发布门禁已通过，并在 `v0.7.0` 双端正式发布中继续使用。
+
 完整安装、校验、升级和卸载步骤见 Wiki 的[下载与安装](https://github.com/HongXunPan/mihomo-meter/wiki/%E4%B8%8B%E8%BD%BD%E4%B8%8E%E5%AE%89%E8%A3%85)。
 
 ## 为什么开发与项目边界
