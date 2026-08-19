@@ -5,6 +5,7 @@ using MihomoMeter.Windows.App.Interop;
 namespace MihomoMeter.Windows.App.Lifecycle;
 
 internal readonly record struct FloatingWidgetPosition(int X, int Y);
+internal readonly record struct FloatingWidgetSize(int Width, int Height);
 
 internal static class FloatingWidgetPlacement
 {
@@ -13,7 +14,7 @@ internal static class FloatingWidgetPlacement
 
     public static FloatingWidgetPosition ResolveInitialPosition(
         FloatingWidgetPosition? initialPosition,
-        int size,
+        FloatingWidgetSize size,
         uint dpi)
     {
         if (initialPosition is not null)
@@ -27,28 +28,34 @@ internal static class FloatingWidgetPlacement
         var workArea = GetWorkArea(monitor);
         var margin = Scale(24, dpi);
         return new FloatingWidgetPosition(
-            workArea.Right - size - margin,
-            workArea.Bottom - size - margin);
+            workArea.Right - size.Width - margin,
+            workArea.Bottom - size.Height - margin);
     }
 
     public static FloatingWidgetPosition ClampToWorkArea(
         FloatingWidgetPosition position,
-        int size)
+        FloatingWidgetSize size)
     {
         var rectangle = new FloatingWidgetNativeMethods.Rect
         {
             Left = position.X,
             Top = position.Y,
-            Right = position.X + size,
-            Bottom = position.Y + size,
+            Right = position.X + size.Width,
+            Bottom = position.Y + size.Height,
         };
         var monitor = FloatingWidgetNativeMethods.MonitorFromRect(
             ref rectangle,
             MonitorDefaultToNearest);
         var workArea = GetWorkArea(monitor);
         return new FloatingWidgetPosition(
-            Math.Clamp(position.X, workArea.Left, Math.Max(workArea.Left, workArea.Right - size)),
-            Math.Clamp(position.Y, workArea.Top, Math.Max(workArea.Top, workArea.Bottom - size)));
+            Math.Clamp(
+                position.X,
+                workArea.Left,
+                Math.Max(workArea.Left, workArea.Right - size.Width)),
+            Math.Clamp(
+                position.Y,
+                workArea.Top,
+                Math.Max(workArea.Top, workArea.Bottom - size.Height)));
     }
 
     public static int Scale(int value, uint dpi)

@@ -239,6 +239,9 @@ public sealed partial class MainWindow : Window
     {
         var windowHandle = WinRT.Interop.WindowNative.GetWindowHandle(this);
         var windowId = Win32Interop.GetWindowIdFromWindow(windowHandle);
-        AppWindow.GetFromWindowId(windowId)?.Resize(new SizeInt32(1080, 680));
+        var appWindow = AppWindow.GetFromWindowId(windowId)
+            ?? throw new InvalidOperationException("无法取得 WinUI 主窗口对应的 AppWindow。");
+        WindowsIconAssets.ApplyApplicationIcon(appWindow);
+        appWindow.Resize(new SizeInt32(1080, 680));
     }
 }

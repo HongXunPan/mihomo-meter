@@ -55,7 +55,10 @@ internal sealed class QuotaTrendWindowController : IDisposable
         window.Closed += Window_Closed;
         var windowHandle = WinRT.Interop.WindowNative.GetWindowHandle(window);
         var windowId = Win32Interop.GetWindowIdFromWindow(windowHandle);
-        AppWindow.GetFromWindowId(windowId)?.Resize(new SizeInt32(860, 620));
+        var appWindow = AppWindow.GetFromWindowId(windowId)
+            ?? throw new InvalidOperationException("无法取得 WinUI 配额趋势窗口对应的 AppWindow。");
+        WindowsIconAssets.ApplyApplicationIcon(appWindow);
+        appWindow.Resize(new SizeInt32(860, 620));
         _window = window;
     }
 

@@ -24,6 +24,8 @@ internal sealed partial class NotificationAreaController : IDisposable
     private const uint WindowMessageLeftButtonDoubleClick = 0x0203;
     private const uint NotifyIconSelect = 0x0400;
     private const uint NotifyIconKeySelect = 0x0401;
+    private const int SystemMetricSmallIconWidth = 49;
+    private const int SystemMetricSmallIconHeight = 50;
     private static readonly nuint WindowSubclassId = 0x4D4D4E41;
 
     private static readonly Guid NotificationIconGuid = new(
@@ -249,17 +251,9 @@ internal sealed partial class NotificationAreaController : IDisposable
 
     private static nint LoadApplicationIcon()
     {
-        var iconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "MihomoMeter.ico");
-        var iconHandle = ShellNativeMethods.LoadImage(
-            0,
-            iconPath,
-            ShellNativeMethods.ImageIcon,
-            0,
-            0,
-            ShellNativeMethods.LoadImageFromFile | ShellNativeMethods.LoadImageDefaultSize);
-        return iconHandle != 0
-            ? iconHandle
-            : throw new Win32Exception(Marshal.GetLastWin32Error());
+        var width = ShellNativeMethods.GetSystemMetrics(SystemMetricSmallIconWidth);
+        var height = ShellNativeMethods.GetSystemMetrics(SystemMetricSmallIconHeight);
+        return WindowsIconAssets.CreateApplicationIcon(width, height);
     }
 
     private void DeleteIcon()

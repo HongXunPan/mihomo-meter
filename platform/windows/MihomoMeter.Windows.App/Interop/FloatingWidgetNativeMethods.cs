@@ -169,13 +169,22 @@ internal static class FloatingWidgetNativeMethods
     internal static extern bool EndPaint(nint windowHandle, ref PaintStruct paint);
 
     [DllImport("gdi32.dll", SetLastError = true)]
-    internal static extern nint CreateEllipticRgn(int left, int top, int right, int bottom);
+    internal static extern nint CreateRoundRectRgn(
+        int left,
+        int top,
+        int right,
+        int bottom,
+        int ellipseWidth,
+        int ellipseHeight);
 
     [DllImport("user32.dll", SetLastError = true)]
     internal static extern int SetWindowRgn(nint windowHandle, nint regionHandle, bool redraw);
 
     [DllImport("gdi32.dll")]
     internal static extern nint CreateSolidBrush(uint color);
+
+    [DllImport("gdi32.dll")]
+    internal static extern nint CreatePen(int style, int width, uint color);
 
     [DllImport("gdi32.dll", EntryPoint = "CreateFontW", CharSet = CharSet.Unicode)]
     internal static extern nint CreateFont(
@@ -202,9 +211,6 @@ internal static class FloatingWidgetNativeMethods
     internal static extern bool DeleteObject(nint objectHandle);
 
     [DllImport("gdi32.dll")]
-    internal static extern nint GetStockObject(int objectIndex);
-
-    [DllImport("gdi32.dll")]
     internal static extern uint SetTextColor(nint deviceContext, uint color);
 
     [DllImport("gdi32.dll")]
@@ -212,12 +218,27 @@ internal static class FloatingWidgetNativeMethods
 
     [DllImport("gdi32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
-    internal static extern bool Ellipse(
+    internal static extern bool RoundRect(
         nint deviceContext,
         int left,
         int top,
         int right,
-        int bottom);
+        int bottom,
+        int ellipseWidth,
+        int ellipseHeight);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    internal static extern bool DrawIconEx(
+        nint deviceContext,
+        int x,
+        int y,
+        nint iconHandle,
+        int width,
+        int height,
+        uint animationStep,
+        nint flickerFreeBrush,
+        uint flags);
 
     [DllImport("user32.dll", EntryPoint = "DrawTextW", CharSet = CharSet.Unicode)]
     internal static extern int DrawText(

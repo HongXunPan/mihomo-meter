@@ -74,7 +74,10 @@ internal sealed class SettingsWindowController : IDisposable
         var windowHandle = WinRT.Interop.WindowNative.GetWindowHandle(window);
         WindowOwnershipNativeMethods.SetOwner(windowHandle, _ownerWindowHandle);
         var windowId = Win32Interop.GetWindowIdFromWindow(windowHandle);
-        AppWindow.GetFromWindowId(windowId)?.Resize(new SizeInt32(780, 620));
+        var appWindow = AppWindow.GetFromWindowId(windowId)
+            ?? throw new InvalidOperationException("无法取得 WinUI 设置窗口对应的 AppWindow。");
+        WindowsIconAssets.ApplyApplicationIcon(appWindow);
+        appWindow.Resize(new SizeInt32(780, 620));
         _view = view;
         _window = window;
         _windowHandle = windowHandle;
