@@ -33,6 +33,7 @@
 		A20000000000000000000209 /* proxies.json in Resources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000109 /* proxies.json */; };
 		A2000000000000000000020A /* connections-initial.json in Resources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000010A /* connections-initial.json */; };
 		A2000000000000000000020B /* connections-next.json in Resources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000010B /* connections-next.json */; };
+		E10000000000000000000201 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E10000000000000000000101 /* Assets.xcassets */; };
 		A30000000000000000000201 /* TrafficMeasurement.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000101 /* TrafficMeasurement.swift */; };
 		A30000000000000000000202 /* ProxyClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000102 /* ProxyClassifier.swift */; };
 		A30000000000000000000203 /* ConnectionDeltaTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000103 /* ConnectionDeltaTracker.swift */; };
@@ -422,6 +423,7 @@
 		AY0000000000000000000101 /* RuntimeDetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuntimeDetailsView.swift; sourceTree = "<group>"; };
 		BA0000000000000000000301 /* MihomoMeter-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "MihomoMeter-Info.plist"; sourceTree = "<group>"; };
 		BB0000000000000000000301 /* MihomoMeterSelfSignedRelease.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MihomoMeterSelfSignedRelease.entitlements; sourceTree = "<group>"; };
+		E10000000000000000000101 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		BC0000000000000000000101 /* TrafficLedgerStoring.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficLedgerStoring.swift; sourceTree = "<group>"; };
 		BC0000000000000000000102 /* TrafficStatisticsController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficStatisticsController.swift; sourceTree = "<group>"; };
 		BC0000000000000000000103 /* TrafficStatisticsRecording.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficStatisticsRecording.swift; sourceTree = "<group>"; };
@@ -599,6 +601,7 @@
 			children = (
 				AM0000000000000000000101 /* Config.xcconfig */,
 				BA0000000000000000000301 /* MihomoMeter-Info.plist */,
+				E10000000000000000000101 /* Assets.xcassets */,
 				D35000000000000000000001 /* SharedCore */,
 				A10000000000000000000004 /* Sources */,
 				A10000000000000000000008 /* Tests */,
@@ -1118,6 +1121,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E10000000000000000000201 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1569,6 +1573,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = AM0000000000000000000101 /* Config.xcconfig */;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = MihomoMeter.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -1594,6 +1599,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = AM0000000000000000000101 /* Config.xcconfig */;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = MihomoMeter.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;

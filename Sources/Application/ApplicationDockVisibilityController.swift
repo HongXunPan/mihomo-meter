@@ -17,14 +17,22 @@ final class ApplicationDockVisibilityController {
   }
 
   private let application: ApplicationActivationPolicyControlling
+  private let dockIconRefresher: () -> Void
   private var presentedWindows: Set<ManagedWindow> = []
 
   convenience init() {
-    self.init(application: NSApplication.shared)
+    self.init(
+      application: NSApplication.shared,
+      dockIconRefresher: Self.refreshDockIcon
+    )
   }
 
-  init(application: ApplicationActivationPolicyControlling) {
+  init(
+    application: ApplicationActivationPolicyControlling,
+    dockIconRefresher: @escaping () -> Void = {}
+  ) {
     self.application = application
+    self.dockIconRefresher = dockIconRefresher
     applyActivationPolicy()
   }
 
@@ -45,7 +53,36 @@ final class ApplicationDockVisibilityController {
       return
     }
 
-    let didApplyPolicy = application.setActivationPolicy(targetPolicy)
-    assert(didApplyPolicy, "无法切换 Mihomo Meter 的应用激活策略")
+    guard application.setActivationPolicy(targetPolicy) else {
+      assertionFailure("无法切换 Mihomo Meter 的应用激活策略")
+      return
+    }
+    if targetPolicy == .regular {
+      dockIconRefresher()
+    }
+  }
+
+  private static func refreshDockIcon() {
+    guard
+      let iconFile = Bundle.main.object(forInfoDictionaryKey: "CFBundleIconFile") as? String
+    else {
+      return
+    }
+
+    let iconFileURL = URL(fileURLWithPath: iconFile)
+    let resourceName = iconFileURL.deletingPathExtension().lastPathComponent
+    let resourceExtension = iconFileURL.pathExtension.isEmpty ? "icns" : iconFileURL.pathExtension
+    guard
+      let iconURL = Bundle.main.url(
+        forResource: resourceName,
+        withExtension: resourceExtension
+      ),
+      let iconImage = NSImage(contentsOf: iconURL)
+    else {
+      return
+    }
+
+    NSApplication.shared.applicationIconImage = iconImage
+    NSApplication.shared.dockTile.display()
   }
 }

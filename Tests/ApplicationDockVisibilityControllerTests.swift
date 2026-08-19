@@ -38,6 +38,23 @@ final class ApplicationDockVisibilityControllerTests: XCTestCase {
 
     XCTAssertEqual(application.appliedPolicies, [.regular, .accessory])
   }
+
+  func testDockIconRefreshesWheneverDockBecomesVisible() {
+    let application = ActivationPolicyApplicationSpy(initialPolicy: .accessory)
+    var iconRefreshCount = 0
+    let controller = ApplicationDockVisibilityController(
+      application: application,
+      dockIconRefresher: {
+        iconRefreshCount += 1
+      }
+    )
+
+    controller.windowWillPresent(.statistics)
+    controller.windowWillClose(.statistics)
+    controller.windowWillPresent(.controllerSettings)
+
+    XCTAssertEqual(iconRefreshCount, 2)
+  }
 }
 
 @MainActor

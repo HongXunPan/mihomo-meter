@@ -2,10 +2,11 @@ import AppKit
 import SwiftUI
 
 enum MihomoColorToken {
-  static let brandPrimary = adaptive(
+  static let brandPrimaryNSColor = adaptiveNSColor(
     light: color(red: 0x00, green: 0x7A, blue: 0x73),
     dark: color(red: 0x56, green: 0xCF, blue: 0xC5)
   )
+  static let brandPrimary = Color(nsColor: brandPrimaryNSColor)
 
   static let statusSuccess = adaptive(
     light: color(red: 0x15, green: 0x80, blue: 0x3D),
@@ -59,11 +60,13 @@ enum MihomoColorToken {
   )
 
   private static func adaptive(light: NSColor, dark: NSColor) -> Color {
-    Color(
-      nsColor: NSColor(name: nil) { appearance in
-        appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua ? dark : light
-      }
-    )
+    Color(nsColor: adaptiveNSColor(light: light, dark: dark))
+  }
+
+  private static func adaptiveNSColor(light: NSColor, dark: NSColor) -> NSColor {
+    NSColor(name: nil) { appearance in
+      appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua ? dark : light
+    }
   }
 
   private static func color(
