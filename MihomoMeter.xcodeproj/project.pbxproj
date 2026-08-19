@@ -21,6 +21,8 @@
 		A20000000000000000000201 /* ControllerEndpoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000101 /* ControllerEndpoint.swift */; };
 		A20000000000000000000202 /* MihomoControllerModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000102 /* MihomoControllerModels.swift */; };
 		A20000000000000000000203 /* MihomoControllerClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000103 /* MihomoControllerClient.swift */; };
+		CACE00000000000000000201 /* MihomoNetworkSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACE00000000000000000101 /* MihomoNetworkSession.swift */; };
+		CACE00000000000000000202 /* MihomoNetworkSessionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACE00000000000000000102 /* MihomoNetworkSessionTests.swift */; };
 		A20000000000000000000204 /* KeychainSecretStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000104 /* KeychainSecretStore.swift */; };
 		A20000000000000000000205 /* FixtureLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000105 /* FixtureLoader.swift */; };
 		A20000000000000000000206 /* ControllerEndpointTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000106 /* ControllerEndpointTests.swift */; };
@@ -378,6 +380,8 @@
 		A40000000000000000000106 /* ConnectionSnapshotDecoderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionSnapshotDecoderTests.swift; sourceTree = "<group>"; };
 		A40000000000000000000107 /* ReconnectBackoffTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReconnectBackoffTests.swift; sourceTree = "<group>"; };
 		A50000000000000000000101 /* TrafficMonitorConfigurationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficMonitorConfigurationTests.swift; sourceTree = "<group>"; };
+		CACE00000000000000000101 /* MihomoNetworkSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MihomoNetworkSession.swift; sourceTree = "<group>"; };
+		CACE00000000000000000102 /* MihomoNetworkSessionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MihomoNetworkSessionTests.swift; sourceTree = "<group>"; };
 		A70000000000000000000101 /* ProxyStatusItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProxyStatusItemView.swift; sourceTree = "<group>"; };
 		A80000000000000000000101 /* TrafficOverviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficOverviewView.swift; sourceTree = "<group>"; };
 		A90000000000000000000101 /* ControllerSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControllerSettingsView.swift; sourceTree = "<group>"; };
@@ -831,6 +835,7 @@
 				BR0000000000000000000108 /* MihomoProxyProviderModelsTests.swift */,
 				BW0000000000000000000106 /* MihomoLocalProxyTests.swift */,
 				AD0000000000000000000102 /* MihomoMonitoringSessionTests.swift */,
+				CACE00000000000000000102 /* MihomoNetworkSessionTests.swift */,
 				A30000000000000000000105 /* ProxyClassifierTests.swift */,
 				D31000000000000000000102 /* ConnectionRateAggregatorTests.swift */,
 				D33E00000000000000000101 /* ProxyDailyTrafficProviderTests.swift */,
@@ -920,6 +925,7 @@
 				A40000000000000000000104 /* ConnectionSnapshotDecoder.swift */,
 				A40000000000000000000105 /* ConnectionStreamCollector.swift */,
 				A20000000000000000000103 /* MihomoControllerClient.swift */,
+				CACE00000000000000000101 /* MihomoNetworkSession.swift */,
 				A20000000000000000000102 /* MihomoControllerModels.swift */,
 				BR0000000000000000000107 /* MihomoProxyProviderModels.swift */,
 			);
@@ -1174,6 +1180,7 @@
 				A10000000000000000000205 /* MenuBarController.swift in Sources */,
 				AV0000000000000000000201 /* MihomoRuntimeConfiguration.swift in Sources */,
 				A20000000000000000000203 /* MihomoControllerClient.swift in Sources */,
+				CACE00000000000000000201 /* MihomoNetworkSession.swift in Sources */,
 				BW0000000000000000000203 /* MihomoActiveQuotaQueryClient.swift in Sources */,
 				BW0000000000000000000202 /* MihomoLocalProxy.swift in Sources */,
 				BX0000000000000000000201 /* ProfileQuotaQueryState.swift in Sources */,
@@ -1362,6 +1369,7 @@
 				BR0000000000000000000208 /* MihomoProxyProviderModelsTests.swift in Sources */,
 				BW0000000000000000000206 /* MihomoLocalProxyTests.swift in Sources */,
 				AD0000000000000000000202 /* MihomoMonitoringSessionTests.swift in Sources */,
+				CACE00000000000000000202 /* MihomoNetworkSessionTests.swift in Sources */,
 				A30000000000000000000205 /* ProxyClassifierTests.swift in Sources */,
 				D31000000000000000000202 /* ConnectionRateAggregatorTests.swift in Sources */,
 				D33E00000000000000000201 /* ProxyDailyTrafficProviderTests.swift in Sources */,

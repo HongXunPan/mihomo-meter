@@ -19,7 +19,7 @@ actor ConnectionStreamCollector: ConnectionSnapshotCollecting {
   private var currentTask: URLSessionWebSocketTask?
 
   init(
-    session: URLSession = .shared,
+    session: URLSession = MihomoNetworkSession.shared,
     decoder: ConnectionSnapshotDecoder = ConnectionSnapshotDecoder()
   ) {
     self.session = session

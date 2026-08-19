@@ -28,7 +28,7 @@ actor MihomoControllerClient: MihomoControllerServing, MihomoQuotaProviderServin
   private let session: URLSession
   private let decoder: JSONDecoder
 
-  init(session: URLSession = .shared) {
+  init(session: URLSession = MihomoNetworkSession.shared) {
     self.session = session
     decoder = JSONDecoder()
   }
