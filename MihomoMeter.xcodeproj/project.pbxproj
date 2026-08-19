@@ -10,6 +10,8 @@
 		A10000000000000000000201 /* MihomoMeterApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000101 /* MihomoMeterApp.swift */; };
 		A10000000000000000000202 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000102 /* AppDelegate.swift */; };
 		C10000000000000000000201 /* AppPresentationCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C10000000000000000000101 /* AppPresentationCoordinator.swift */; };
+		C10100000000000000000201 /* ApplicationDockVisibilityController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C10100000000000000000101 /* ApplicationDockVisibilityController.swift */; };
+		C10200000000000000000201 /* ApplicationDockVisibilityControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C10200000000000000000101 /* ApplicationDockVisibilityControllerTests.swift */; };
 		C20000000000000000000201 /* StatusMenuController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000000000000000000101 /* StatusMenuController.swift */; };
 		CD0000000000000000000201 /* MihomoColorToken.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD0000000000000000000101 /* MihomoColorToken.swift */; };
 		A10000000000000000000203 /* TrafficRate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000103 /* TrafficRate.swift */; };
@@ -294,6 +296,8 @@
 		A10000000000000000000101 /* MihomoMeterApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MihomoMeterApp.swift; sourceTree = "<group>"; };
 		A10000000000000000000102 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		C10000000000000000000101 /* AppPresentationCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppPresentationCoordinator.swift; sourceTree = "<group>"; };
+		C10100000000000000000101 /* ApplicationDockVisibilityController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationDockVisibilityController.swift; sourceTree = "<group>"; };
+		C10200000000000000000101 /* ApplicationDockVisibilityControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationDockVisibilityControllerTests.swift; sourceTree = "<group>"; };
 		C20000000000000000000101 /* StatusMenuController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusMenuController.swift; sourceTree = "<group>"; };
 		CD0000000000000000000101 /* MihomoColorToken.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MihomoColorToken.swift; sourceTree = "<group>"; };
 		A10000000000000000000103 /* TrafficRate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficRate.swift; sourceTree = "<group>"; };
@@ -630,6 +634,7 @@
 			children = (
 				A10000000000000000000102 /* AppDelegate.swift */,
 				C10000000000000000000101 /* AppPresentationCoordinator.swift */,
+				C10100000000000000000101 /* ApplicationDockVisibilityController.swift */,
 				AP0000000000000000000101 /* AppUpdateModel.swift */,
 				D32300000000000000000101 /* ConnectionAnalyticsController.swift */,
 				D32100000000000000000101 /* ConnectionAnalyticsLedgerStoring.swift */,
@@ -808,6 +813,7 @@
 			children = (
 				AU0000000000000000000101 /* AppHelpLinksTests.swift */,
 				AS0000000000000000000101 /* AppUpdateTests.swift */,
+				C10200000000000000000101 /* ApplicationDockVisibilityControllerTests.swift */,
 				BT0000000000000000000115 /* ClashProfileCatalogReaderTests.swift */,
 				BV0000000000000000000113 /* ClashProfileDirectoryControllerTests.swift */,
 				BV0000000000000000000112 /* ClashProfileTrackingServiceTests.swift */,
@@ -1138,6 +1144,7 @@
 				D35000000000000000000201 /* MihomoMeterSharedCoreAdapter.swift in Sources */,
 				D35400000000000000000201 /* SharedCoreTrafficDisplayFormatter.swift in Sources */,
 				C10000000000000000000201 /* AppPresentationCoordinator.swift in Sources */,
+				C10100000000000000000201 /* ApplicationDockVisibilityController.swift in Sources */,
 				AA00000000000000000000203 /* AppDiagnosticEvent.swift in Sources */,
 				AA00000000000000000000201 /* AppDiagnosticLogger.swift in Sources */,
 				AA00000000000000000000205 /* ProfileQuotaDiagnosticEvent.swift in Sources */,
@@ -1342,6 +1349,7 @@
 			files = (
 				AU0000000000000000000201 /* AppHelpLinksTests.swift in Sources */,
 				AS0000000000000000000201 /* AppUpdateTests.swift in Sources */,
+				C10200000000000000000201 /* ApplicationDockVisibilityControllerTests.swift in Sources */,
 				BT0000000000000000000205 /* ClashProfileCatalogReaderTests.swift in Sources */,
 				BV0000000000000000000203 /* ClashProfileDirectoryControllerTests.swift in Sources */,
 				BV0000000000000000000202 /* ClashProfileTrackingServiceTests.swift in Sources */,

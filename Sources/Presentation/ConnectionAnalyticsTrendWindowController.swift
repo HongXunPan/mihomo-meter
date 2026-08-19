@@ -8,12 +8,17 @@ final class ConnectionAnalyticsTrendWindowController: NSWindowController, NSWind
   private static let frameAutosaveName = "ConnectionAnalyticsTrendWindow"
 
   private let model: ConnectionAnalyticsTrendWindowModel
+  private let dockVisibilityController: ApplicationDockVisibilityController
 
-  init(controller: ConnectionAnalyticsController) {
+  init(
+    controller: ConnectionAnalyticsController,
+    dockVisibilityController: ApplicationDockVisibilityController
+  ) {
     let model = ConnectionAnalyticsTrendWindowModel { query in
       try await controller.trend(query: query)
     }
     self.model = model
+    self.dockVisibilityController = dockVisibilityController
 
     let hostingController = NSHostingController(
       rootView: ConnectionAnalyticsTrendView(model: model)
@@ -44,6 +49,7 @@ final class ConnectionAnalyticsTrendWindowController: NSWindowController, NSWind
   func show(target: ConnectionAnalyticsTrendTarget) {
     window?.title = "\(target.dimension.title)趋势"
     model.show(target: target)
+    dockVisibilityController.windowWillPresent(.connectionAnalyticsTrend)
     NSApplication.shared.activate()
     showWindow(nil)
     window?.makeKeyAndOrderFront(nil)
@@ -51,5 +57,6 @@ final class ConnectionAnalyticsTrendWindowController: NSWindowController, NSWind
 
   func windowWillClose(_ notification: Notification) {
     model.reset()
+    dockVisibilityController.windowWillClose(.connectionAnalyticsTrend)
   }
 }

@@ -14,6 +14,7 @@ final class AppPresentationCoordinator {
   }
 
   private let dependencies: Dependencies
+  private let dockVisibilityController: ApplicationDockVisibilityController
   private let statisticsWindowController: TrafficStatisticsWindowController
   private let controllerSettingsWindowController: ControllerSettingsWindowController
 
@@ -35,6 +36,8 @@ final class AppPresentationCoordinator {
 
   init(dependencies: Dependencies) {
     self.dependencies = dependencies
+    let dockVisibilityController = ApplicationDockVisibilityController()
+    self.dockVisibilityController = dockVisibilityController
     statisticsWindowController = TrafficStatisticsWindowController(
       controller: dependencies.statisticsController,
       connectionAnalyticsController: dependencies.connectionAnalyticsController,
@@ -42,11 +45,13 @@ final class AppPresentationCoordinator {
       profileQuotaController: dependencies.profileQuotaController,
       profileController: dependencies.profileController,
       subscriptionQuotaDataController: dependencies.subscriptionQuotaDataController,
-      monitor: dependencies.monitor
+      monitor: dependencies.monitor,
+      dockVisibilityController: dockVisibilityController
     )
     controllerSettingsWindowController = ControllerSettingsWindowController(
       monitor: dependencies.monitor,
-      updateModel: dependencies.updateModel
+      updateModel: dependencies.updateModel,
+      dockVisibilityController: dockVisibilityController
     )
 
     // 状态栏必须随应用协调器一起完成装配并保持整个应用生命周期。
