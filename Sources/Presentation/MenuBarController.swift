@@ -8,7 +8,7 @@ struct MenuBarPresentationActions {
 
 @MainActor
 final class MenuBarController: NSObject {
-  private static let statusItemLength: CGFloat = 58
+  private static let statusItemLength: CGFloat = 66
   private static let statusContentHeight: CGFloat = 20
 
   private let statusItem: NSStatusItem

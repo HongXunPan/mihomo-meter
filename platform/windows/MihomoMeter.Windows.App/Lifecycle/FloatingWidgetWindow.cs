@@ -14,6 +14,7 @@ internal sealed class FloatingWidgetWindow : IDisposable
     private const uint WindowStyleExtendedNoActivate = 0x08000000;
     private const uint WindowMessagePaint = 0x000F;
     private const uint WindowMessageEraseBackground = 0x0014;
+    private const uint WindowMessageSettingChange = 0x001A;
     private const uint WindowMessageMouseActivate = 0x0021;
     private const uint WindowMessageDisplayChange = 0x007E;
     private const uint WindowMessageLeftButtonDown = 0x0201;
@@ -21,11 +22,15 @@ internal sealed class FloatingWidgetWindow : IDisposable
     private const uint WindowMessageMouseMove = 0x0200;
     private const uint WindowMessageCaptureChanged = 0x0215;
     private const uint WindowMessageDpiChanged = 0x02E0;
+    private const uint WindowMessageThemeChanged = 0x031A;
     private const uint SetPositionNoSize = 0x0001;
     private const uint SetPositionNoActivate = 0x0010;
     private const uint SetPositionShowWindow = 0x0040;
     private const int MouseActivateNoActivate = 3;
     private const int ArrowCursor = 32512;
+    private const int LogicalWidth = 108;
+    private const int LogicalHeight = 40;
+    private const int LogicalIconSize = 28;
     private static readonly nint TopmostWindow = new(-1);
 
     private readonly Action _activateMainWindow;
@@ -34,7 +39,8 @@ internal sealed class FloatingWidgetWindow : IDisposable
     private readonly FloatingWidgetNativeMethods.WindowProcedure _windowProcedure;
     private nint _windowHandle;
     private FloatingWidgetPosition _position;
-    private int _size;
+    private FloatingWidgetSize _size;
+    private FloatingWidgetIconSet? _icons;
     private bool _pointerPressed;
     private bool _dragged;
     private FloatingWidgetNativeMethods.Point _pointerOrigin;
@@ -62,7 +68,8 @@ internal sealed class FloatingWidgetWindow : IDisposable
         try
         {
             var dpi = FloatingWidgetNativeMethods.GetDpiForSystem();
-            _size = FloatingWidgetPlacement.Scale(52, dpi);
+            _size = ScaleSize(dpi);
+            ReloadIcons(dpi);
             _position = FloatingWidgetPlacement.ResolveInitialPosition(
                 initialPosition,
                 _size,
@@ -76,8 +83,8 @@ internal sealed class FloatingWidgetWindow : IDisposable
                 WindowStylePopup,
                 _position.X,
                 _position.Y,
-                _size,
-                _size,
+                _size.Width,
+                _size.Height,
                 0,
                 0,
                 _instanceHandle,
@@ -88,7 +95,11 @@ internal sealed class FloatingWidgetWindow : IDisposable
             }
 
             var windowDpi = FloatingWidgetNativeMethods.GetDpiForWindow(_windowHandle);
-            _size = FloatingWidgetPlacement.Scale(52, windowDpi);
+            _size = ScaleSize(windowDpi);
+            if (windowDpi != dpi)
+            {
+                ReloadIcons(windowDpi);
+            }
             _position = FloatingWidgetPlacement.ClampToWorkArea(_position, _size);
             FloatingWidgetPainter.ApplyRoundRegion(_windowHandle, _size);
             MoveWindow(_position, _size, SetPositionShowWindow);
@@ -133,6 +144,9 @@ internal sealed class FloatingWidgetWindow : IDisposable
             _windowHandle = 0;
         }
 
+        _icons?.Dispose();
+        _icons = null;
+
         FloatingWidgetNativeMethods.UnregisterClass(_className, _instanceHandle);
         StartupConsoleReporter.Stage("floating_widget_destroyed");
     }
@@ -170,10 +184,21 @@ internal sealed class FloatingWidgetWindow : IDisposable
             switch (message)
             {
                 case WindowMessagePaint:
-                    FloatingWidgetPainter.Paint(windowHandle, _size, _snapshot);
+                    var icons = _icons
+                        ?? throw new InvalidOperationException("悬浮窗状态图标尚未加载。");
+                    FloatingWidgetPainter.Paint(
+                        windowHandle,
+                        _size,
+                        icons.IconOnLightHandle,
+                        icons.IconOnDarkHandle,
+                        _snapshot);
                     return 0;
                 case WindowMessageEraseBackground:
                     return 1;
+                case WindowMessageSettingChange:
+                case WindowMessageThemeChanged:
+                    FloatingWidgetNativeMethods.InvalidateRect(windowHandle, 0, true);
+                    return 0;
                 case WindowMessageMouseActivate:
                     return MouseActivateNoActivate;
                 case WindowMessageLeftButtonDown:
@@ -265,7 +290,8 @@ internal sealed class FloatingWidgetWindow : IDisposable
         var suggested = Marshal.PtrToStructure<FloatingWidgetNativeMethods.Rect>(
             suggestedRectanglePointer);
         var dpi = FloatingWidgetNativeMethods.GetDpiForWindow(_windowHandle);
-        _size = FloatingWidgetPlacement.Scale(52, dpi);
+        _size = ScaleSize(dpi);
+        ReloadIcons(dpi);
         _position = FloatingWidgetPlacement.ClampToWorkArea(
             new FloatingWidgetPosition(suggested.Left, suggested.Top),
             _size);
@@ -279,15 +305,33 @@ internal sealed class FloatingWidgetWindow : IDisposable
         MoveWindow(_position, _size, SetPositionNoSize);
     }
 
-    private void MoveWindow(FloatingWidgetPosition position, int size, uint extraFlags)
+    private void ReloadIcons(uint dpi)
+    {
+        var iconSize = FloatingWidgetPlacement.Scale(LogicalIconSize, dpi);
+        var icons = FloatingWidgetIconSet.Create(iconSize);
+        _icons?.Dispose();
+        _icons = icons;
+    }
+
+    private static FloatingWidgetSize ScaleSize(uint dpi)
+    {
+        return new FloatingWidgetSize(
+            FloatingWidgetPlacement.Scale(LogicalWidth, dpi),
+            FloatingWidgetPlacement.Scale(LogicalHeight, dpi));
+    }
+
+    private void MoveWindow(
+        FloatingWidgetPosition position,
+        FloatingWidgetSize size,
+        uint extraFlags)
     {
         if (!FloatingWidgetNativeMethods.SetWindowPos(
                 _windowHandle,
                 TopmostWindow,
                 position.X,
                 position.Y,
-                size,
-                size,
+                size.Width,
+                size.Height,
                 SetPositionNoActivate | extraFlags))
         {
             throw new Win32Exception(Marshal.GetLastWin32Error());

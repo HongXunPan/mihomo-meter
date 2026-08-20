@@ -2,13 +2,14 @@ import AppKit
 import SwiftUI
 
 @MainActor
-final class TrafficStatisticsWindowController: NSWindowController {
+final class TrafficStatisticsWindowController: NSWindowController, NSWindowDelegate {
   private static let initialSize = NSSize(width: 1_080, height: 680)
   private static let minimumSize = NSSize(width: 900, height: 560)
   private static let frameAutosaveName = "TrafficStatisticsWindow"
 
   private let workspaceModel = StatisticsWorkspaceModel()
   private let connectionTrendWindowController: ConnectionAnalyticsTrendWindowController
+  private let dockVisibilityController: ApplicationDockVisibilityController
 
   init(
     controller: TrafficStatisticsController,
@@ -17,12 +18,15 @@ final class TrafficStatisticsWindowController: NSWindowController {
     profileQuotaController: ProfileQuotaTrackingController,
     profileController: ClashProfileDirectoryController,
     subscriptionQuotaDataController: SubscriptionQuotaDataController,
-    monitor: TrafficMonitor
+    monitor: TrafficMonitor,
+    dockVisibilityController: ApplicationDockVisibilityController
   ) {
     let connectionTrendWindowController = ConnectionAnalyticsTrendWindowController(
-      controller: connectionAnalyticsController
+      controller: connectionAnalyticsController,
+      dockVisibilityController: dockVisibilityController
     )
     self.connectionTrendWindowController = connectionTrendWindowController
+    self.dockVisibilityController = dockVisibilityController
     let hostingController = NSHostingController(
       rootView: StatisticsWorkspaceView(
         model: workspaceModel,
@@ -53,6 +57,7 @@ final class TrafficStatisticsWindowController: NSWindowController {
     window.setFrameAutosaveName(Self.frameAutosaveName)
 
     super.init(window: window)
+    window.delegate = self
   }
 
   @available(*, unavailable)
@@ -69,8 +74,13 @@ final class TrafficStatisticsWindowController: NSWindowController {
   }
 
   func showCurrentModule() {
+    dockVisibilityController.windowWillPresent(.statistics)
     NSApplication.shared.activate()
     showWindow(nil)
     window?.makeKeyAndOrderFront(nil)
+  }
+
+  func windowWillClose(_ notification: Notification) {
+    dockVisibilityController.windowWillClose(.statistics)
   }
 }

@@ -2,12 +2,19 @@ import AppKit
 import SwiftUI
 
 @MainActor
-final class ControllerSettingsWindowController: NSWindowController {
+final class ControllerSettingsWindowController: NSWindowController, NSWindowDelegate {
   private static let initialSize = NSSize(width: 560, height: 380)
   private static let minimumSize = NSSize(width: 480, height: 320)
   private static let frameAutosaveName = "ControllerSettingsWindow"
 
-  init(monitor: TrafficMonitor, updateModel: AppUpdateModel) {
+  private let dockVisibilityController: ApplicationDockVisibilityController
+
+  init(
+    monitor: TrafficMonitor,
+    updateModel: AppUpdateModel,
+    dockVisibilityController: ApplicationDockVisibilityController
+  ) {
+    self.dockVisibilityController = dockVisibilityController
     let hostingController = NSHostingController(
       rootView: ControllerSettingsView(
         monitor: monitor,
@@ -29,6 +36,7 @@ final class ControllerSettingsWindowController: NSWindowController {
     window.setFrameAutosaveName(Self.frameAutosaveName)
 
     super.init(window: window)
+    window.delegate = self
   }
 
   @available(*, unavailable)
@@ -37,8 +45,13 @@ final class ControllerSettingsWindowController: NSWindowController {
   }
 
   func show() {
+    dockVisibilityController.windowWillPresent(.controllerSettings)
     NSApplication.shared.activate()
     showWindow(nil)
     window?.makeKeyAndOrderFront(nil)
+  }
+
+  func windowWillClose(_ notification: Notification) {
+    dockVisibilityController.windowWillClose(.controllerSettings)
   }
 }

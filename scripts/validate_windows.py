@@ -31,6 +31,7 @@ from windows_validation_contract import (
     TEST_ROOT,
     WINDOWS_ROOT,
 )
+from windows_validation_icon_contract import validate_windows_icon_contract
 from windows_validation_notification_area_contract import (
     validate_notification_area_command_ids,
 )
@@ -278,6 +279,7 @@ def main() -> int:
         validate_manifest(errors)
         validate_xaml()
         validate_files_and_code(errors)
+        validate_windows_icon_contract(errors)
         validate_notification_area_command_ids(errors)
         validate_window_activation_contract(errors)
         validate_distribution_contract(errors)

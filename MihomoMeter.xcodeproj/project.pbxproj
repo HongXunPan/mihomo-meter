@@ -10,6 +10,8 @@
 		A10000000000000000000201 /* MihomoMeterApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000101 /* MihomoMeterApp.swift */; };
 		A10000000000000000000202 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000102 /* AppDelegate.swift */; };
 		C10000000000000000000201 /* AppPresentationCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C10000000000000000000101 /* AppPresentationCoordinator.swift */; };
+		C10100000000000000000201 /* ApplicationDockVisibilityController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C10100000000000000000101 /* ApplicationDockVisibilityController.swift */; };
+		C10200000000000000000201 /* ApplicationDockVisibilityControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C10200000000000000000101 /* ApplicationDockVisibilityControllerTests.swift */; };
 		C20000000000000000000201 /* StatusMenuController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000000000000000000101 /* StatusMenuController.swift */; };
 		CD0000000000000000000201 /* MihomoColorToken.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD0000000000000000000101 /* MihomoColorToken.swift */; };
 		A10000000000000000000203 /* TrafficRate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000103 /* TrafficRate.swift */; };
@@ -21,6 +23,8 @@
 		A20000000000000000000201 /* ControllerEndpoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000101 /* ControllerEndpoint.swift */; };
 		A20000000000000000000202 /* MihomoControllerModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000102 /* MihomoControllerModels.swift */; };
 		A20000000000000000000203 /* MihomoControllerClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000103 /* MihomoControllerClient.swift */; };
+		CACE00000000000000000201 /* MihomoNetworkSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACE00000000000000000101 /* MihomoNetworkSession.swift */; };
+		CACE00000000000000000202 /* MihomoNetworkSessionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACE00000000000000000102 /* MihomoNetworkSessionTests.swift */; };
 		A20000000000000000000204 /* KeychainSecretStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000104 /* KeychainSecretStore.swift */; };
 		A20000000000000000000205 /* FixtureLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000105 /* FixtureLoader.swift */; };
 		A20000000000000000000206 /* ControllerEndpointTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000106 /* ControllerEndpointTests.swift */; };
@@ -29,6 +33,7 @@
 		A20000000000000000000209 /* proxies.json in Resources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000109 /* proxies.json */; };
 		A2000000000000000000020A /* connections-initial.json in Resources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000010A /* connections-initial.json */; };
 		A2000000000000000000020B /* connections-next.json in Resources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000010B /* connections-next.json */; };
+		E10000000000000000000201 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E10000000000000000000101 /* Assets.xcassets */; };
 		A30000000000000000000201 /* TrafficMeasurement.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000101 /* TrafficMeasurement.swift */; };
 		A30000000000000000000202 /* ProxyClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000102 /* ProxyClassifier.swift */; };
 		A30000000000000000000203 /* ConnectionDeltaTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000103 /* ConnectionDeltaTracker.swift */; };
@@ -292,6 +297,8 @@
 		A10000000000000000000101 /* MihomoMeterApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MihomoMeterApp.swift; sourceTree = "<group>"; };
 		A10000000000000000000102 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		C10000000000000000000101 /* AppPresentationCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppPresentationCoordinator.swift; sourceTree = "<group>"; };
+		C10100000000000000000101 /* ApplicationDockVisibilityController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationDockVisibilityController.swift; sourceTree = "<group>"; };
+		C10200000000000000000101 /* ApplicationDockVisibilityControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationDockVisibilityControllerTests.swift; sourceTree = "<group>"; };
 		C20000000000000000000101 /* StatusMenuController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusMenuController.swift; sourceTree = "<group>"; };
 		CD0000000000000000000101 /* MihomoColorToken.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MihomoColorToken.swift; sourceTree = "<group>"; };
 		A10000000000000000000103 /* TrafficRate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficRate.swift; sourceTree = "<group>"; };
@@ -378,6 +385,8 @@
 		A40000000000000000000106 /* ConnectionSnapshotDecoderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionSnapshotDecoderTests.swift; sourceTree = "<group>"; };
 		A40000000000000000000107 /* ReconnectBackoffTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReconnectBackoffTests.swift; sourceTree = "<group>"; };
 		A50000000000000000000101 /* TrafficMonitorConfigurationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficMonitorConfigurationTests.swift; sourceTree = "<group>"; };
+		CACE00000000000000000101 /* MihomoNetworkSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MihomoNetworkSession.swift; sourceTree = "<group>"; };
+		CACE00000000000000000102 /* MihomoNetworkSessionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MihomoNetworkSessionTests.swift; sourceTree = "<group>"; };
 		A70000000000000000000101 /* ProxyStatusItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProxyStatusItemView.swift; sourceTree = "<group>"; };
 		A80000000000000000000101 /* TrafficOverviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficOverviewView.swift; sourceTree = "<group>"; };
 		A90000000000000000000101 /* ControllerSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControllerSettingsView.swift; sourceTree = "<group>"; };
@@ -414,6 +423,7 @@
 		AY0000000000000000000101 /* RuntimeDetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuntimeDetailsView.swift; sourceTree = "<group>"; };
 		BA0000000000000000000301 /* MihomoMeter-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "MihomoMeter-Info.plist"; sourceTree = "<group>"; };
 		BB0000000000000000000301 /* MihomoMeterSelfSignedRelease.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MihomoMeterSelfSignedRelease.entitlements; sourceTree = "<group>"; };
+		E10000000000000000000101 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		BC0000000000000000000101 /* TrafficLedgerStoring.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficLedgerStoring.swift; sourceTree = "<group>"; };
 		BC0000000000000000000102 /* TrafficStatisticsController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficStatisticsController.swift; sourceTree = "<group>"; };
 		BC0000000000000000000103 /* TrafficStatisticsRecording.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficStatisticsRecording.swift; sourceTree = "<group>"; };
@@ -591,6 +601,7 @@
 			children = (
 				AM0000000000000000000101 /* Config.xcconfig */,
 				BA0000000000000000000301 /* MihomoMeter-Info.plist */,
+				E10000000000000000000101 /* Assets.xcassets */,
 				D35000000000000000000001 /* SharedCore */,
 				A10000000000000000000004 /* Sources */,
 				A10000000000000000000008 /* Tests */,
@@ -626,6 +637,7 @@
 			children = (
 				A10000000000000000000102 /* AppDelegate.swift */,
 				C10000000000000000000101 /* AppPresentationCoordinator.swift */,
+				C10100000000000000000101 /* ApplicationDockVisibilityController.swift */,
 				AP0000000000000000000101 /* AppUpdateModel.swift */,
 				D32300000000000000000101 /* ConnectionAnalyticsController.swift */,
 				D32100000000000000000101 /* ConnectionAnalyticsLedgerStoring.swift */,
@@ -804,6 +816,7 @@
 			children = (
 				AU0000000000000000000101 /* AppHelpLinksTests.swift */,
 				AS0000000000000000000101 /* AppUpdateTests.swift */,
+				C10200000000000000000101 /* ApplicationDockVisibilityControllerTests.swift */,
 				BT0000000000000000000115 /* ClashProfileCatalogReaderTests.swift */,
 				BV0000000000000000000113 /* ClashProfileDirectoryControllerTests.swift */,
 				BV0000000000000000000112 /* ClashProfileTrackingServiceTests.swift */,
@@ -831,6 +844,7 @@
 				BR0000000000000000000108 /* MihomoProxyProviderModelsTests.swift */,
 				BW0000000000000000000106 /* MihomoLocalProxyTests.swift */,
 				AD0000000000000000000102 /* MihomoMonitoringSessionTests.swift */,
+				CACE00000000000000000102 /* MihomoNetworkSessionTests.swift */,
 				A30000000000000000000105 /* ProxyClassifierTests.swift */,
 				D31000000000000000000102 /* ConnectionRateAggregatorTests.swift */,
 				D33E00000000000000000101 /* ProxyDailyTrafficProviderTests.swift */,
@@ -920,6 +934,7 @@
 				A40000000000000000000104 /* ConnectionSnapshotDecoder.swift */,
 				A40000000000000000000105 /* ConnectionStreamCollector.swift */,
 				A20000000000000000000103 /* MihomoControllerClient.swift */,
+				CACE00000000000000000101 /* MihomoNetworkSession.swift */,
 				A20000000000000000000102 /* MihomoControllerModels.swift */,
 				BR0000000000000000000107 /* MihomoProxyProviderModels.swift */,
 			);
@@ -1106,6 +1121,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E10000000000000000000201 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1132,6 +1148,7 @@
 				D35000000000000000000201 /* MihomoMeterSharedCoreAdapter.swift in Sources */,
 				D35400000000000000000201 /* SharedCoreTrafficDisplayFormatter.swift in Sources */,
 				C10000000000000000000201 /* AppPresentationCoordinator.swift in Sources */,
+				C10100000000000000000201 /* ApplicationDockVisibilityController.swift in Sources */,
 				AA00000000000000000000203 /* AppDiagnosticEvent.swift in Sources */,
 				AA00000000000000000000201 /* AppDiagnosticLogger.swift in Sources */,
 				AA00000000000000000000205 /* ProfileQuotaDiagnosticEvent.swift in Sources */,
@@ -1174,6 +1191,7 @@
 				A10000000000000000000205 /* MenuBarController.swift in Sources */,
 				AV0000000000000000000201 /* MihomoRuntimeConfiguration.swift in Sources */,
 				A20000000000000000000203 /* MihomoControllerClient.swift in Sources */,
+				CACE00000000000000000201 /* MihomoNetworkSession.swift in Sources */,
 				BW0000000000000000000203 /* MihomoActiveQuotaQueryClient.swift in Sources */,
 				BW0000000000000000000202 /* MihomoLocalProxy.swift in Sources */,
 				BX0000000000000000000201 /* ProfileQuotaQueryState.swift in Sources */,
@@ -1335,6 +1353,7 @@
 			files = (
 				AU0000000000000000000201 /* AppHelpLinksTests.swift in Sources */,
 				AS0000000000000000000201 /* AppUpdateTests.swift in Sources */,
+				C10200000000000000000201 /* ApplicationDockVisibilityControllerTests.swift in Sources */,
 				BT0000000000000000000205 /* ClashProfileCatalogReaderTests.swift in Sources */,
 				BV0000000000000000000203 /* ClashProfileDirectoryControllerTests.swift in Sources */,
 				BV0000000000000000000202 /* ClashProfileTrackingServiceTests.swift in Sources */,
@@ -1362,6 +1381,7 @@
 				BR0000000000000000000208 /* MihomoProxyProviderModelsTests.swift in Sources */,
 				BW0000000000000000000206 /* MihomoLocalProxyTests.swift in Sources */,
 				AD0000000000000000000202 /* MihomoMonitoringSessionTests.swift in Sources */,
+				CACE00000000000000000202 /* MihomoNetworkSessionTests.swift in Sources */,
 				A30000000000000000000205 /* ProxyClassifierTests.swift in Sources */,
 				D31000000000000000000202 /* ConnectionRateAggregatorTests.swift in Sources */,
 				D33E00000000000000000201 /* ProxyDailyTrafficProviderTests.swift in Sources */,
@@ -1553,6 +1573,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = AM0000000000000000000101 /* Config.xcconfig */;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = MihomoMeter.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -1578,6 +1599,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = AM0000000000000000000101 /* Config.xcconfig */;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = MihomoMeter.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;

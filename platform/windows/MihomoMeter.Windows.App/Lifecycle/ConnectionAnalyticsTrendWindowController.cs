@@ -63,7 +63,10 @@ internal sealed class ConnectionAnalyticsTrendWindowController : IDisposable
         window.Closed += Window_Closed;
         var windowHandle = WinRT.Interop.WindowNative.GetWindowHandle(window);
         var windowId = Win32Interop.GetWindowIdFromWindow(windowHandle);
-        AppWindow.GetFromWindowId(windowId)?.Resize(new SizeInt32(820, 610));
+        var appWindow = AppWindow.GetFromWindowId(windowId)
+            ?? throw new InvalidOperationException("无法取得 WinUI 连接趋势窗口对应的 AppWindow。");
+        WindowsIconAssets.ApplyApplicationIcon(appWindow);
+        appWindow.Resize(new SizeInt32(820, 610));
         _view = view;
         _window = window;
     }
