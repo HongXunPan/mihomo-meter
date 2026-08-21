@@ -13,6 +13,11 @@
         PaneTitle="设置"
         SelectionChanged="SettingsNavigation_SelectionChanged">
         <NavigationView.MenuItems>
+            <NavigationViewItem x:Name="GeneralItem" Content="通用" Tag="general">
+                <NavigationViewItem.Icon>
+                    <SymbolIcon Symbol="Setting" />
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
             <NavigationViewItem x:Name="ConnectionItem" Content="Mihomo 连接" Tag="connection">
                 <NavigationViewItem.Icon>
                     <SymbolIcon Symbol="Link" />

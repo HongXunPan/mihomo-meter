@@ -12,6 +12,7 @@ internal sealed class SettingsWindowController : IDisposable
     private readonly nint _ownerWindowHandle;
     private readonly MainWindowViewModel _mainWindowViewModel;
     private readonly WindowsUpdateWorkspaceViewModel _updateViewModel;
+    private readonly StartupSettingsViewModel _startupViewModel;
     private Window? _window;
     private SettingsWorkspaceView? _view;
     private nint _windowHandle;
@@ -20,12 +21,14 @@ internal sealed class SettingsWindowController : IDisposable
     public SettingsWindowController(
         Window ownerWindow,
         MainWindowViewModel mainWindowViewModel,
-        WindowsUpdateWorkspaceViewModel updateViewModel)
+        WindowsUpdateWorkspaceViewModel updateViewModel,
+        StartupSettingsViewModel startupViewModel)
     {
         ArgumentNullException.ThrowIfNull(ownerWindow);
         _ownerWindowHandle = WinRT.Interop.WindowNative.GetWindowHandle(ownerWindow);
         _mainWindowViewModel = mainWindowViewModel;
         _updateViewModel = updateViewModel;
+        _startupViewModel = startupViewModel;
     }
 
     public void ShowConnectionSettings()
@@ -64,7 +67,10 @@ internal sealed class SettingsWindowController : IDisposable
             return;
         }
 
-        var view = new SettingsWorkspaceView(_mainWindowViewModel, _updateViewModel);
+        var view = new SettingsWorkspaceView(
+            _mainWindowViewModel,
+            _updateViewModel,
+            _startupViewModel);
         var window = new Window
         {
             Title = "Mihomo Meter · 设置",

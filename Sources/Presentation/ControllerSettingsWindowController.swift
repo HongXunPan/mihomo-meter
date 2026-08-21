@@ -3,7 +3,7 @@ import SwiftUI
 
 @MainActor
 final class ControllerSettingsWindowController: NSWindowController, NSWindowDelegate {
-  private static let initialSize = NSSize(width: 560, height: 380)
+  private static let initialSize = NSSize(width: 560, height: 460)
   private static let minimumSize = NSSize(width: 480, height: 320)
   private static let frameAutosaveName = "ControllerSettingsWindow"
 
@@ -12,13 +12,15 @@ final class ControllerSettingsWindowController: NSWindowController, NSWindowDele
   init(
     monitor: TrafficMonitor,
     updateModel: AppUpdateModel,
+    launchAtLoginController: LaunchAtLoginController,
     dockVisibilityController: ApplicationDockVisibilityController
   ) {
     self.dockVisibilityController = dockVisibilityController
     let hostingController = NSHostingController(
       rootView: ControllerSettingsView(
         monitor: monitor,
-        updateModel: updateModel
+        updateModel: updateModel,
+        launchAtLoginController: launchAtLoginController
       )
     )
     let window = NSWindow(

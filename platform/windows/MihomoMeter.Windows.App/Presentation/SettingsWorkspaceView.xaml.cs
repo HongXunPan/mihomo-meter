@@ -4,13 +4,16 @@ namespace MihomoMeter.Windows.App.Presentation;
 
 public sealed partial class SettingsWorkspaceView : UserControl
 {
+    private readonly GeneralSettingsView _generalSettingsView;
     private readonly ControllerSettingsView _controllerSettingsView;
     private readonly WindowsUpdateWorkspaceView _updateView;
 
     internal SettingsWorkspaceView(
         MainWindowViewModel mainWindowViewModel,
-        WindowsUpdateWorkspaceViewModel updateViewModel)
+        WindowsUpdateWorkspaceViewModel updateViewModel,
+        StartupSettingsViewModel startupViewModel)
     {
+        _generalSettingsView = new GeneralSettingsView(startupViewModel);
         _controllerSettingsView = new ControllerSettingsView(mainWindowViewModel);
         _updateView = new WindowsUpdateWorkspaceView(updateViewModel);
         InitializeComponent();
@@ -33,8 +36,11 @@ public sealed partial class SettingsWorkspaceView : UserControl
         NavigationView sender,
         NavigationViewSelectionChangedEventArgs args)
     {
-        SettingsContent.Content = args.SelectedItemContainer?.Tag?.ToString() == "update"
-            ? _updateView
-            : _controllerSettingsView;
+        SettingsContent.Content = args.SelectedItemContainer?.Tag?.ToString() switch
+        {
+            "general" => _generalSettingsView,
+            "update" => _updateView,
+            _ => _controllerSettingsView,
+        };
     }
 }

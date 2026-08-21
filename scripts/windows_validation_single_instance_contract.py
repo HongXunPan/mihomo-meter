@@ -20,6 +20,9 @@ SINGLE_INSTANCE_REQUIRED_CODE_MARKERS = {
         '"scripts/windows_validation_single_instance_contract.py"',
     ),
     APP_ROOT / "Program.cs": (
+        "StartupActivation.IsStartupLaunch(args)",
+        "startup_secondary_instance_skipped",
+        "new App(isStartupLaunch)",
         "SingleInstanceCoordinator.CreateForCurrentSession",
         "instanceCoordinator.StartListening",
         "instanceCoordinator.RedirectActivationAsync",

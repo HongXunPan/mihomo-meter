@@ -52,6 +52,8 @@ public sealed partial class MainWindow : Window
         UpdateViewModel = new WindowsUpdateWorkspaceViewModel(
             services.UpdateChecker,
             ReleaseVersion.FromAssemblyVersion(assemblyVersion));
+        var startupViewModel = new StartupSettingsViewModel(
+            services.StartupRegistration);
         NotificationAreaStatistics = new NotificationAreaStatisticsController(
             DispatcherQueue,
             services.Coordinator,
@@ -87,7 +89,11 @@ public sealed partial class MainWindow : Window
             QuotaViewModel,
             this,
             _quotaTrendWindow.Show);
-        _settingsWindow = new SettingsWindowController(this, ViewModel, UpdateViewModel);
+        _settingsWindow = new SettingsWindowController(
+            this,
+            ViewModel,
+            UpdateViewModel,
+            startupViewModel);
         _firstConnectionGuideView = new FirstConnectionGuideView(
             _settingsWindow.ShowConnectionSettings);
         ViewModel.ConfigurationValidated += ViewModel_ConfigurationValidated;

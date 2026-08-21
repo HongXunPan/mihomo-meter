@@ -20,6 +20,8 @@
 !define PRODUCT_EXECUTABLE "MihomoMeter.Windows.App.exe"
 !define PRODUCT_INSTALL_MARKER ".mihomo-meter-install"
 !define PRODUCT_UNINSTALL_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_INSTALL_ID}"
+!define PRODUCT_RUN_KEY "Software\Microsoft\Windows\CurrentVersion\Run"
+!define PRODUCT_RUN_VALUE "Mihomo Meter"
 !define PRODUCT_DEFAULT_INSTALL_DIRECTORY "$LOCALAPPDATA\Programs\Mihomo Meter"
 !define PRODUCT_DATA_DIRECTORY "$LOCALAPPDATA\HongXunPan\MihomoMeter"
 !define PRODUCT_START_MENU_DIRECTORY "$SMPROGRAMS\Mihomo Meter"
@@ -207,6 +209,11 @@ uninstall_path_invalid:
         "卸载目录身份或安全边界校验失败，卸载已取消且不会删除该目录。"
     Abort
 uninstall_path_valid:
+
+    ReadRegStr $3 HKCU "${PRODUCT_RUN_KEY}" "${PRODUCT_RUN_VALUE}"
+    StrCmp $3 '"$INSTDIR\${PRODUCT_EXECUTABLE}" --startup' 0 startup_registration_ready
+    DeleteRegValue HKCU "${PRODUCT_RUN_KEY}" "${PRODUCT_RUN_VALUE}"
+startup_registration_ready:
 
     SetOutPath "$TEMP"
     ClearErrors

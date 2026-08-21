@@ -10,12 +10,17 @@ namespace MihomoMeter.Windows.App;
 internal static class Program
 {
     [STAThread]
-    public static async Task Main()
+    public static async Task Main(string[] args)
     {
         StartupConsoleReporter.Initialize();
         try
         {
-            await RunAsync();
+            var isStartupLaunch = StartupActivation.IsStartupLaunch(args);
+            if (isStartupLaunch)
+            {
+                StartupConsoleReporter.Stage("startup_activation_detected");
+            }
+            await RunAsync(isStartupLaunch);
         }
         catch (Exception exception)
         {
@@ -24,7 +29,7 @@ internal static class Program
         }
     }
 
-    private static async Task RunAsync()
+    private static async Task RunAsync(bool isStartupLaunch)
     {
         StartupConsoleReporter.Stage("single_instance_registration_started");
         var instanceCoordinator = SingleInstanceCoordinator.CreateForCurrentSession();
@@ -32,6 +37,12 @@ internal static class Program
         {
             if (!instanceCoordinator.IsPrimary)
             {
+                if (isStartupLaunch)
+                {
+                    StartupConsoleReporter.Stage("startup_secondary_instance_skipped");
+                    return;
+                }
+
                 StartupConsoleReporter.Stage("single_instance_redirect_started");
                 await instanceCoordinator.RedirectActivationAsync(AllowForegroundActivation);
                 StartupConsoleReporter.Stage("single_instance_redirect_completed");
@@ -62,7 +73,7 @@ internal static class Program
                     var context = new DispatcherQueueSynchronizationContext(
                         DispatcherQueue.GetForCurrentThread());
                     SynchronizationContext.SetSynchronizationContext(context);
-                    _ = new App();
+                    _ = new App(isStartupLaunch);
                 });
             }
             finally

@@ -15,6 +15,7 @@ final class AppPresentationCoordinator {
 
   private let dependencies: Dependencies
   private let dockVisibilityController: ApplicationDockVisibilityController
+  private let launchAtLoginController: LaunchAtLoginController
   private let statisticsWindowController: TrafficStatisticsWindowController
   private let controllerSettingsWindowController: ControllerSettingsWindowController
 
@@ -37,7 +38,9 @@ final class AppPresentationCoordinator {
   init(dependencies: Dependencies) {
     self.dependencies = dependencies
     let dockVisibilityController = ApplicationDockVisibilityController()
+    let launchAtLoginController = LaunchAtLoginController()
     self.dockVisibilityController = dockVisibilityController
+    self.launchAtLoginController = launchAtLoginController
     statisticsWindowController = TrafficStatisticsWindowController(
       controller: dependencies.statisticsController,
       connectionAnalyticsController: dependencies.connectionAnalyticsController,
@@ -51,6 +54,7 @@ final class AppPresentationCoordinator {
     controllerSettingsWindowController = ControllerSettingsWindowController(
       monitor: dependencies.monitor,
       updateModel: dependencies.updateModel,
+      launchAtLoginController: launchAtLoginController,
       dockVisibilityController: dockVisibilityController
     )
 

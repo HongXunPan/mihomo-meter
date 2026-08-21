@@ -2,6 +2,7 @@ using MihomoMeter.Windows.App.Infrastructure.Configuration;
 using MihomoMeter.Windows.App.Infrastructure.ConnectionAnalytics;
 using MihomoMeter.Windows.App.Infrastructure.Credentials;
 using MihomoMeter.Windows.App.Infrastructure.Quota;
+using MihomoMeter.Windows.App.Infrastructure.Startup;
 using MihomoMeter.Windows.App.Infrastructure.Statistics;
 using MihomoMeter.Windows.Core.Application;
 using MihomoMeter.Windows.Core.Infrastructure.Mihomo;
@@ -26,6 +27,7 @@ internal sealed class WindowsAppServices : IAsyncDisposable
         ConnectionAnalyticsCoordinator connectionAnalytics,
         QuotaTrackingCoordinator quota,
         WindowsUpdateChecker updateChecker,
+        StartupRegistrationService startupRegistration,
         TrafficMonitoringCoordinator coordinator)
     {
         _controllerHttpClient = controllerHttpClient;
@@ -35,6 +37,7 @@ internal sealed class WindowsAppServices : IAsyncDisposable
         ConnectionAnalytics = connectionAnalytics;
         Quota = quota;
         UpdateChecker = updateChecker;
+        StartupRegistration = startupRegistration;
         Coordinator = coordinator;
     }
 
@@ -49,6 +52,8 @@ internal sealed class WindowsAppServices : IAsyncDisposable
     public QuotaTrackingCoordinator Quota { get; }
 
     public WindowsUpdateChecker UpdateChecker { get; }
+
+    public StartupRegistrationService StartupRegistration { get; }
 
     public static WindowsAppServices Create()
     {
@@ -94,6 +99,7 @@ internal sealed class WindowsAppServices : IAsyncDisposable
             connectionAnalyticsRecorder: connectionAnalytics);
         var updateChecker = new WindowsUpdateChecker(
             new GitHubWindowsReleaseClient(updateHttpClient));
+        var startupRegistration = new StartupRegistrationService();
         return new WindowsAppServices(
             controllerHttpClient,
             updateHttpClient,
@@ -102,6 +108,7 @@ internal sealed class WindowsAppServices : IAsyncDisposable
             connectionAnalytics,
             quota,
             updateChecker,
+            startupRegistration,
             coordinator);
     }
 

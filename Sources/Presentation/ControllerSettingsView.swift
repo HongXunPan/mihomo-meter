@@ -1,8 +1,11 @@
+import AppKit
+import Combine
 import SwiftUI
 
 struct ControllerSettingsView: View {
   @ObservedObject var monitor: TrafficMonitor
   @ObservedObject var updateModel: AppUpdateModel
+  @ObservedObject var launchAtLoginController: LaunchAtLoginController
 
   var body: some View {
     VStack(spacing: 0) {
@@ -44,6 +47,33 @@ struct ControllerSettingsView: View {
             .font(.caption)
             .foregroundStyle(.secondary)
         }
+
+        Section("启动") {
+          Toggle(
+            "登录后启动 Mihomo Meter",
+            isOn: Binding(
+              get: { launchAtLoginController.isRequested },
+              set: { launchAtLoginController.setEnabled($0) }
+            )
+          )
+          .disabled(!launchAtLoginController.canToggle)
+
+          Text(launchAtLoginController.statusMessage)
+            .font(.caption)
+            .foregroundStyle(.secondary)
+
+          if launchAtLoginController.requiresApproval {
+            Button("打开登录项设置") {
+              launchAtLoginController.openSystemSettings()
+            }
+          }
+
+          if let errorMessage = launchAtLoginController.errorMessage {
+            Text(errorMessage)
+              .font(.caption)
+              .foregroundStyle(MihomoColorToken.statusDanger)
+          }
+        }
       }
       .formStyle(.grouped)
 
@@ -62,6 +92,14 @@ struct ControllerSettingsView: View {
       .padding(.vertical, 10)
     }
     .frame(minWidth: 480, minHeight: 320)
+    .onAppear {
+      launchAtLoginController.refresh()
+    }
+    .onReceive(
+      NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)
+    ) { _ in
+      launchAtLoginController.refresh()
+    }
   }
 
   private var header: some View {

@@ -7,11 +7,18 @@ namespace MihomoMeter.Windows.App;
 
 public partial class App : Application
 {
+    private readonly bool _isStartupLaunch;
     private MainWindow? _window;
     private WindowLifecycleController? _windowLifecycle;
 
     public App()
+        : this(isStartupLaunch: false)
     {
+    }
+
+    internal App(bool isStartupLaunch)
+    {
+        _isStartupLaunch = isStartupLaunch;
         UnhandledException += App_UnhandledException;
         StartupConsoleReporter.Stage("app_xaml_initialize_started");
         try
@@ -54,7 +61,7 @@ public partial class App : Application
                 window.StopForApplicationTerminationAsync);
             ActivationRouter.Register(HandleRedirectedActivation);
             var hasStoredConfiguration = await window.InitializeAsync();
-            if (!hasStoredConfiguration)
+            if (!hasStoredConfiguration && !_isStartupLaunch)
             {
                 window.ShowFirstConnectionGuide();
                 _windowLifecycle.ShowMainWindow();
