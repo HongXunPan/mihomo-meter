@@ -2,11 +2,30 @@ import XCTest
 
 @testable import MihomoMeter
 
+@MainActor
 final class AppHelpLinksTests: XCTestCase {
   func testMihomoGuidanceLinksRemainHighestPriority() {
     XCTAssertEqual(
       Array(AppHelpLink.allCases.prefix(3)),
-      [.prepareMihomo, .subscriptionConfiguration, .mihomoControllerConfiguration]
+      [.userGuide, .prepareMihomo, .subscriptionConfiguration]
+    )
+  }
+
+  func testPrimaryHelpLinkTargetsProjectWiki() {
+    XCTAssertEqual(AppHelpLink.userGuide.title, "Mihomo Meter 使用指南（Wiki）")
+    XCTAssertEqual(AppHelpLink.userGuide.destination.host, "github.com")
+    XCTAssertEqual(AppHelpLink.userGuide.destination.path, "/HongXunPan/mihomo-meter/wiki")
+  }
+
+  func testStatusMenuHelpStartsWithProjectWiki() {
+    let controller = AppHelpMenuController()
+    let firstItem = controller.menuItem.submenu?.items.first
+
+    XCTAssertEqual(controller.menuItem.title, "帮助")
+    XCTAssertEqual(firstItem?.title, AppHelpLink.userGuide.title)
+    XCTAssertEqual(
+      (firstItem?.representedObject as? NSURL).map { $0 as URL },
+      AppHelpLink.userGuide.destination
     )
   }
 

@@ -19,6 +19,7 @@ final class MenuBarController: NSObject {
   private let profileQuotaController: ProfileQuotaTrackingController
   private let updateModel: AppUpdateModel
   private let actions: MenuBarPresentationActions
+  private let helpMenuController: AppHelpMenuController
   private var updateMenuItem: NSMenuItem?
   private var cancellables: Set<AnyCancellable> = []
 
@@ -42,6 +43,7 @@ final class MenuBarController: NSObject {
     self.profileQuotaController = profileQuotaController
     self.updateModel = updateModel
     self.actions = actions
+    helpMenuController = AppHelpMenuController()
     super.init()
 
     configureStatusItem()
@@ -118,13 +120,15 @@ final class MenuBarController: NSObject {
     menu.addItem(.separator())
 
     let settingsItem = NSMenuItem(
-      title: "Mihomo 连接设置…",
+      title: "设置…",
       action: #selector(showControllerSettings),
       keyEquivalent: ","
     )
     settingsItem.target = self
     settingsItem.keyEquivalentModifierMask = [.command]
     menu.addItem(settingsItem)
+
+    menu.addItem(helpMenuController.menuItem)
 
     let updateItem = NSMenuItem(
       title: "检查更新…",

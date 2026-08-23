@@ -71,6 +71,7 @@ Mihomo Meter 是只读监控工具：
 ### 桌面体验与更新
 
 - macOS 使用原生状态栏菜单、设置窗口和统计工作区；
+- macOS 应用菜单、状态栏菜单与设置页的“帮助”统一优先打开项目 Wiki，并保留专题指引、反馈和本地诊断入口；
 - Windows 使用 WinUI 3 主窗口、原生通知区域菜单和可选实时速度悬浮图标；
 - macOS 与 Windows 均支持用户主动开启登录后静默启动，默认关闭，不创建系统服务或计划任务；
 - 支持 `mihomo-meter://statistics`、`mihomo-meter://subscription-quota`、`mihomo-meter://connection-settings` 三条固定只读深链；未知地址只打开普通主入口，不解析参数或执行写操作；
@@ -85,7 +86,7 @@ Mihomo Meter 不是代理客户端。开始前需要一个正在运行、能够�
 
 1. 在代理客户端中启用 External Controller。
 2. 将监听地址限制为 `127.0.0.1` 或 `::1`，使用固定端口，并取得 Controller Secret。
-3. macOS 从状态栏菜单打开“Mihomo 连接设置…”；Windows 打开“设置 → Mihomo 连接”。
+3. macOS 从状态栏菜单打开“设置…”；Windows 打开“设置 → Mihomo 连接”。
 4. 填写例如 `127.0.0.1:9090` 的回环地址与 Secret，点击“连接”。
 5. 界面显示“已连接”和 Mihomo 版本后，即可查看流量、连接分析和订阅余额。
 

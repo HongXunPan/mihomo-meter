@@ -27,10 +27,6 @@ final class LaunchAtLoginController: ObservableObject {
     state == .enabled || state == .requiresApproval
   }
 
-  var canToggle: Bool {
-    state != .unavailable
-  }
-
   var requiresApproval: Bool {
     state == .requiresApproval
   }
@@ -44,7 +40,7 @@ final class LaunchAtLoginController: ObservableObject {
     case .requiresApproval:
       "需要在系统设置的“登录项”中允许 Mihomo Meter。"
     case .unavailable:
-      "系统暂时无法读取 Mihomo Meter 登录项。"
+      "系统尚未找到 Mihomo Meter 登录项；可尝试开启以重新注册。"
     }
   }
 
