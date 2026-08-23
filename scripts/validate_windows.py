@@ -18,6 +18,7 @@ from windows_validation_contract import (
     EXPECTED_CORE_PACKAGES,
     EXPECTED_SOLUTION_PROJECTS,
     EXPECTED_TEST_PACKAGES,
+    FORBIDDEN_CODE_MARKER_EXCLUDED_FILES,
     FORBIDDEN_CODE_MARKERS,
     FORBIDDEN_PROJECT_MARKERS,
     REQUIRED_APP_FILES,
@@ -188,6 +189,7 @@ def validate_files_and_code(errors: list[str]) -> None:
     code = "\n".join(
         path.read_text(encoding="utf-8")
         for path in sorted(WINDOWS_ROOT.rglob("*.cs"))
+        if path not in FORBIDDEN_CODE_MARKER_EXCLUDED_FILES
     )
     for marker in FORBIDDEN_CODE_MARKERS:
         if marker in code:

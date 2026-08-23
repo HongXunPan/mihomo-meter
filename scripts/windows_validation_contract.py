@@ -35,6 +35,18 @@ from windows_validation_shared_core_contract import (
     SHARED_CORE_REQUIRED_REPOSITORY_FILES,
     SHARED_CORE_REQUIRED_TEST_FILES,
 )
+from windows_validation_startup_contract import (
+    STARTUP_REQUIRED_APP_FILES,
+    STARTUP_REQUIRED_CODE_MARKERS,
+    STARTUP_REQUIRED_REPOSITORY_FILES,
+)
+from windows_validation_system_capability_contract import (
+    SYSTEM_CAPABILITY_REQUIRED_APP_FILES,
+    SYSTEM_CAPABILITY_REQUIRED_CODE_MARKERS,
+    SYSTEM_CAPABILITY_REQUIRED_CORE_FILES,
+    SYSTEM_CAPABILITY_REQUIRED_REPOSITORY_FILES,
+    SYSTEM_CAPABILITY_REQUIRED_TEST_FILES,
+)
 import windows_validation_single_instance_contract as single_instance
 
 
@@ -65,6 +77,8 @@ REQUIRED_REPOSITORY_FILES += DISTRIBUTION_REQUIRED_REPOSITORY_FILES
 REQUIRED_REPOSITORY_FILES += RELEASE_REQUIRED_REPOSITORY_FILES
 REQUIRED_REPOSITORY_FILES += single_instance.SINGLE_INSTANCE_REQUIRED_REPOSITORY_FILES
 REQUIRED_REPOSITORY_FILES += SHARED_CORE_REQUIRED_REPOSITORY_FILES
+REQUIRED_REPOSITORY_FILES += STARTUP_REQUIRED_REPOSITORY_FILES
+REQUIRED_REPOSITORY_FILES += SYSTEM_CAPABILITY_REQUIRED_REPOSITORY_FILES
 
 EXPECTED_APP_PROPERTIES = {
     "TargetFramework": "net10.0-windows10.0.19041.0",
@@ -107,7 +121,6 @@ REQUIRED_APP_FILES = (
     "MainWindow.xaml",
     "MainWindow.xaml.cs",
     "app.manifest",
-    "Diagnostics/StartupConsoleReporter.cs",
     "Infrastructure/Configuration/JsonControllerAddressStore.cs",
     "Infrastructure/Credentials/CredentialManagerSecretStore.cs",
     "Infrastructure/WindowsAppServices.cs",
@@ -131,10 +144,14 @@ REQUIRED_APP_FILES = (
     "Interop/ShellNativeMethods.cs",
     "Interop/WindowOwnershipNativeMethods.cs",
     "Interop/FloatingWidgetNativeMethods.cs",
+    "Interop/SystemLifecycleNativeMethods.cs",
     "Assets/MihomoMeter.ico",
     "Assets/MihomoMeter.StatusOnLight.ico",
     "Assets/MihomoMeter.StatusOnDark.ico",
     "Presentation/MainWindowViewModel.cs",
+    "Presentation/GeneralSettingsView.xaml",
+    "Presentation/GeneralSettingsView.xaml.cs",
+    "Presentation/SystemNotificationSettingsViewModel.cs",
     "Presentation/NotificationAreaStatisticsController.cs",
     "Presentation/ProxyDailyTrafficChartView.xaml",
     "Presentation/ProxyDailyTrafficChartView.xaml.cs",
@@ -155,8 +172,11 @@ REQUIRED_APP_FILES += CONNECTION_REQUIRED_APP_FILES
 REQUIRED_APP_FILES += RELEASE_REQUIRED_APP_FILES
 REQUIRED_APP_FILES += single_instance.SINGLE_INSTANCE_REQUIRED_APP_FILES
 REQUIRED_APP_FILES += SHARED_CORE_REQUIRED_APP_FILES
+REQUIRED_APP_FILES += STARTUP_REQUIRED_APP_FILES
+REQUIRED_APP_FILES += SYSTEM_CAPABILITY_REQUIRED_APP_FILES
 
 REQUIRED_CORE_FILES = (
+    "Domain/AppDeepLink.cs",
     "Domain/ControllerEndpoint.cs",
     "Domain/TrafficMeasurement.cs",
     "Domain/TrafficLedgerObservation.cs",
@@ -197,6 +217,7 @@ REQUIRED_CORE_FILES = (
 REQUIRED_CORE_FILES += CONNECTION_REQUIRED_CORE_FILES
 REQUIRED_CORE_FILES += RELEASE_REQUIRED_CORE_FILES
 REQUIRED_CORE_FILES += SHARED_CORE_REQUIRED_CORE_FILES
+REQUIRED_CORE_FILES += SYSTEM_CAPABILITY_REQUIRED_CORE_FILES
 
 REQUIRED_TEST_FILES = (
     "ControllerEndpointTests.cs",
@@ -224,8 +245,24 @@ REQUIRED_TEST_FILES = (
 REQUIRED_TEST_FILES += CONNECTION_REQUIRED_TEST_FILES
 REQUIRED_TEST_FILES += RELEASE_REQUIRED_TEST_FILES
 REQUIRED_TEST_FILES += SHARED_CORE_REQUIRED_TEST_FILES
+REQUIRED_TEST_FILES += SYSTEM_CAPABILITY_REQUIRED_TEST_FILES
 
 REQUIRED_CODE_MARKERS = {
+    CORE_ROOT / "Domain/AppDeepLink.cs": (
+        "AppActivationTargetContract",
+        "mihomo-meter://statistics",
+        "mihomo-meter://subscription-quota",
+        "mihomo-meter://connection-settings",
+        "OriginalString",
+    ),
+    APP_ROOT / "Lifecycle/StartupActivation.cs": (
+        "ExtendedActivationKind.Protocol",
+        "ProtocolActivatedEventArgs",
+        "AppDeepLink.TryParse",
+    ),
+    ROOT / "platform/windows/installer/MihomoMeter.nsi": (
+        '"----ms-protocol:%1"',
+    ),
     APP_ROOT / "MainWindow.xaml": (
         "NavigationView",
         'Content="Proxy 流量"',
@@ -256,6 +293,7 @@ REQUIRED_CODE_MARKERS = {
         "MihomoTrafficUploadBrush",
     ),
     APP_ROOT / "Presentation/SettingsWorkspaceView.xaml": (
+        'Content="通用"',
         'Content="Mihomo 连接"',
         'Content="关于与更新"',
         'IsSettingsVisible="False"',
@@ -502,6 +540,8 @@ REQUIRED_CODE_MARKERS = {
 REQUIRED_CODE_MARKERS.update(RELEASE_REQUIRED_CODE_MARKERS)
 REQUIRED_CODE_MARKERS.update(single_instance.SINGLE_INSTANCE_REQUIRED_CODE_MARKERS)
 REQUIRED_CODE_MARKERS.update(SHARED_CORE_REQUIRED_CODE_MARKERS)
+REQUIRED_CODE_MARKERS.update(STARTUP_REQUIRED_CODE_MARKERS)
+REQUIRED_CODE_MARKERS.update(SYSTEM_CAPABILITY_REQUIRED_CODE_MARKERS)
 
 FORBIDDEN_PROJECT_MARKERS = (
     "Microsoft.EntityFrameworkCore",
@@ -517,3 +557,7 @@ FORBIDDEN_CODE_MARKERS = (
     "W0ConsoleReporter",
     "record ControllerConfiguration",
 ) + single_instance.SINGLE_INSTANCE_FORBIDDEN_CODE_MARKERS
+
+FORBIDDEN_CODE_MARKER_EXCLUDED_FILES = (
+    APP_ROOT / "Infrastructure/Startup/StartupRegistrationService.cs",
+)

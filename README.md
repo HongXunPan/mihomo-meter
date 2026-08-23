@@ -72,6 +72,9 @@ Mihomo Meter 是只读监控工具：
 
 - macOS 使用原生状态栏菜单、设置窗口和统计工作区；
 - Windows 使用 WinUI 3 主窗口、原生通知区域菜单和可选实时速度悬浮图标；
+- macOS 与 Windows 均支持用户主动开启登录后静默启动，默认关闭，不创建系统服务或计划任务；
+- 支持 `mihomo-meter://statistics`、`mihomo-meter://subscription-quota`、`mihomo-meter://connection-settings` 三条固定只读深链；未知地址只打开普通主入口，不解析参数或执行写操作；
+- 设置页可由用户主动导出隐私收缩的 JSON 诊断文件，不读取数据库或原始日志，也不自动上传；
 - 关闭统计窗口或主窗口后继续监控，只有状态栏或通知区域的“退出”会结束应用；
 - macOS 使用 Sparkle 验签、下载并在用户确认后安装更新；
 - Windows 只检查平台实际版本并打开本项目 Release 页面，不自动下载、安装、退出或重启。
@@ -175,6 +178,7 @@ pwsh -File scripts/validate_windows.ps1
 - Windows 工程：[Windows 工程代码技术选型](docs/Windows工程代码技术选型.md)
 - Windows 分发：[Windows 分发实现契约](docs/Windows分发实现契约.md)
 - 隐私边界：[数据与隐私](docs/数据与隐私.md)
+- 诊断说明：[诊断与导出](docs/诊断与导出.md)
 - 开发约束：[贡献指南](CONTRIBUTING.md)与[Swift 代码规范](docs/Swift代码规范.md)
 - 缺陷和建议：[Issue 模板](https://github.com/HongXunPan/mihomo-meter/issues/new/choose)
 - 安全问题：[私密漏洞报告](https://github.com/HongXunPan/mihomo-meter/security)

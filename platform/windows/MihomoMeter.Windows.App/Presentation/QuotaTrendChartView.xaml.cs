@@ -328,6 +328,6 @@ public sealed partial class QuotaTrendChartView : UserControl
 
     private static Brush ResourceBrush(string key)
     {
-        return (Brush)Application.Current.Resources[key];
+        return (Brush)Microsoft.UI.Xaml.Application.Current.Resources[key];
     }
 }

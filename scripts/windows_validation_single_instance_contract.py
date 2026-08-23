@@ -20,10 +20,14 @@ SINGLE_INSTANCE_REQUIRED_CODE_MARKERS = {
         '"scripts/windows_validation_single_instance_contract.py"',
     ),
     APP_ROOT / "Program.cs": (
+        "StartupActivation.IsStartupLaunch(args)",
+        "StartupActivation.TryResolveProtocolTarget",
+        "startup_secondary_instance_skipped",
+        "new App(isStartupLaunch, activationArguments)",
         "SingleInstanceCoordinator.CreateForCurrentSession",
         "instanceCoordinator.StartListening",
         "instanceCoordinator.RedirectActivationAsync",
-        "ActivationRouter.RequestMainWindowActivation",
+        "ActivationRouter.RequestActivation(target)",
         "AllowSetForegroundWindow",
         "previousSynchronizationContext",
         "instanceCoordinator.DisposeAsync().ConfigureAwait(false)",
@@ -37,6 +41,10 @@ SINGLE_INSTANCE_REQUIRED_CODE_MARKERS = {
         "NamedPipeClientStream",
         "PipeOptions.CurrentUserOnly",
         "ActivateMainWindowCommand",
+        "ActivateStatisticsCommand",
+        "ActivateSubscriptionQuotaCommand",
+        "ActivateControllerSettingsCommand",
+        "Action<AppActivationTarget>",
     ),
 }
 

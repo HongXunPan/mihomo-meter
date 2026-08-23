@@ -91,6 +91,7 @@ enum ConnectionAttemptTrigger: String, Sendable {
   case userRequest = "user_request"
   case immediateRetry = "immediate_retry"
   case automaticRetry = "automatic_retry"
+  case systemRecovery = "system_recovery"
 }
 
 enum ConnectionCancellationSource: String, Sendable {
@@ -99,6 +100,7 @@ enum ConnectionCancellationSource: String, Sendable {
   case applicationTermination = "application_termination"
   case userConnectionRequest = "user_connection_request"
   case immediateRetry = "immediate_retry"
+  case systemEnvironmentChange = "system_environment_change"
 }
 
 struct AppCodeSigningSummary: Equatable, Sendable {

@@ -1,6 +1,7 @@
 using System.Buffers.Binary;
 using System.Diagnostics;
 using System.IO.Pipes;
+using MihomoMeter.Windows.Core.Domain;
 
 namespace MihomoMeter.Windows.App.Lifecycle;
 
@@ -11,6 +12,9 @@ internal sealed class SingleInstanceCoordinator : IAsyncDisposable
     private const string ActivationPipePrefix =
         "com.HongXunPan.MihomoMeter.Activation";
     private const byte ActivateMainWindowCommand = 1;
+    private const byte ActivateStatisticsCommand = 2;
+    private const byte ActivateSubscriptionQuotaCommand = 3;
+    private const byte ActivateControllerSettingsCommand = 4;
     private static readonly TimeSpan ActivationTimeout = TimeSpan.FromSeconds(5);
 
     private readonly Mutex _instanceMutex;
@@ -41,7 +45,7 @@ internal sealed class SingleInstanceCoordinator : IAsyncDisposable
     }
 
     public void StartListening(
-        Action activationRequested,
+        Action<AppActivationTarget> activationRequested,
         Action<Exception> listenerFailure)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
@@ -64,6 +68,7 @@ internal sealed class SingleInstanceCoordinator : IAsyncDisposable
     }
 
     public async Task RedirectActivationAsync(
+        AppActivationTarget target,
         Action<uint> beforeActivation,
         CancellationToken cancellationToken = default)
     {
@@ -95,7 +100,7 @@ internal sealed class SingleInstanceCoordinator : IAsyncDisposable
         }
 
         beforeActivation(primaryProcessId);
-        await client.WriteAsync(new byte[] { ActivateMainWindowCommand }, timeoutToken);
+        await client.WriteAsync(new byte[] { CommandFor(target) }, timeoutToken);
         await client.FlushAsync(timeoutToken);
     }
 
@@ -118,7 +123,7 @@ internal sealed class SingleInstanceCoordinator : IAsyncDisposable
     }
 
     private async Task ListenAsync(
-        Action activationRequested,
+        Action<AppActivationTarget> activationRequested,
         Action<Exception> listenerFailure,
         CancellationToken cancellationToken)
     {
@@ -168,7 +173,7 @@ internal sealed class SingleInstanceCoordinator : IAsyncDisposable
 
     private static async Task HandleActivationRequestAsync(
         NamedPipeServerStream server,
-        Action activationRequested,
+        Action<AppActivationTarget> activationRequested,
         CancellationToken cancellationToken)
     {
         var processIdBuffer = new byte[sizeof(uint)];
@@ -180,11 +185,30 @@ internal sealed class SingleInstanceCoordinator : IAsyncDisposable
 
         var commandBuffer = new byte[1];
         await server.ReadExactlyAsync(commandBuffer, cancellationToken);
-        if (commandBuffer[0] != ActivateMainWindowCommand)
-        {
-            throw new InvalidDataException("收到未知的单实例唤起命令。");
-        }
+        activationRequested(TargetFor(commandBuffer[0]));
+    }
 
-        activationRequested();
+    private static byte CommandFor(AppActivationTarget target)
+    {
+        return target switch
+        {
+            AppActivationTarget.MainWindow => ActivateMainWindowCommand,
+            AppActivationTarget.Statistics => ActivateStatisticsCommand,
+            AppActivationTarget.SubscriptionQuota => ActivateSubscriptionQuotaCommand,
+            AppActivationTarget.ControllerSettings => ActivateControllerSettingsCommand,
+            _ => throw new ArgumentOutOfRangeException(nameof(target)),
+        };
+    }
+
+    private static AppActivationTarget TargetFor(byte command)
+    {
+        return command switch
+        {
+            ActivateMainWindowCommand => AppActivationTarget.MainWindow,
+            ActivateStatisticsCommand => AppActivationTarget.Statistics,
+            ActivateSubscriptionQuotaCommand => AppActivationTarget.SubscriptionQuota,
+            ActivateControllerSettingsCommand => AppActivationTarget.ControllerSettings,
+            _ => throw new InvalidDataException("收到未知的单实例唤起命令。"),
+        };
     }
 }

@@ -50,10 +50,11 @@ def validate_window_activation_contract(errors: list[str]) -> None:
     if controller.count("ActivateWindow();") != 2:
         errors.append("设置与更新入口必须统一通过 ActivateWindow 激活窗口")
 
-    main_window_constructor = (
-        "new SettingsWindowController(this, ViewModel, UpdateViewModel)"
+    main_window_constructor = re.search(
+        r"new SettingsWindowController\s*\(\s*this\s*,",
+        main_window,
     )
-    if main_window_constructor not in main_window:
+    if main_window_constructor is None:
         errors.append("设置窗口控制器必须接收主窗口作为原生 Owner")
 
     owner_index = controller.find(

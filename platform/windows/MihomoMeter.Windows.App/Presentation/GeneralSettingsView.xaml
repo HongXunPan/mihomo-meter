@@ -1,0 +1,114 @@
+<UserControl
+    x:Class="MihomoMeter.Windows.App.Presentation.GeneralSettingsView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Loaded="GeneralSettingsView_Loaded">
+
+    <ScrollViewer>
+        <StackPanel
+            MaxWidth="720"
+            Padding="32"
+            HorizontalAlignment="Left"
+            Spacing="20">
+            <StackPanel Spacing="6">
+                <TextBlock
+                    FontSize="32"
+                    FontWeight="SemiBold"
+                    Text="通用" />
+                <TextBlock
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Text="管理当前用户的登录启动、系统通知和诊断导出。"
+                    TextWrapping="Wrap" />
+            </StackPanel>
+
+            <Border
+                Padding="20"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="8">
+                <StackPanel Spacing="12">
+                    <ToggleSwitch
+                        x:Name="StartupToggle"
+                        Header="登录后启动 Mihomo Meter"
+                        Toggled="StartupToggle_Toggled" />
+                    <TextBlock
+                        x:Name="StartupStatusText"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        TextWrapping="Wrap" />
+                    <Button
+                        x:Name="RepairRegistrationButton"
+                        HorizontalAlignment="Left"
+                        Click="RepairRegistrationButton_Click"
+                        Content="改为当前程序" />
+                </StackPanel>
+            </Border>
+
+            <Border
+                Padding="20"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="8">
+                <StackPanel Spacing="12">
+                    <ToggleSwitch
+                        x:Name="SystemNotificationToggle"
+                        Header="系统通知"
+                        Toggled="SystemNotificationToggle_Toggled" />
+                    <ToggleSwitch
+                        x:Name="DisconnectNotificationToggle"
+                        Header="连接连续中断 10 分钟时提醒"
+                        Toggled="DisconnectNotificationToggle_Toggled" />
+                    <TextBlock
+                        x:Name="SystemNotificationStatusText"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+
+            <Border
+                Padding="20"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="8">
+                <StackPanel Spacing="12">
+                    <TextBlock
+                        FontSize="18"
+                        FontWeight="SemiBold"
+                        Text="诊断" />
+                    <TextBlock
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="导出应用与系统版本、当前连接状态，以及当前会话最多 200 条脱敏事件。"
+                        TextWrapping="Wrap" />
+                    <Button
+                        x:Name="DiagnosticExportButton"
+                        HorizontalAlignment="Left"
+                        Click="DiagnosticExportButton_Click"
+                        Content="导出诊断信息…" />
+                </StackPanel>
+            </Border>
+
+            <InfoBar
+                x:Name="DiagnosticExportInfoBar"
+                IsClosable="True" />
+
+            <InfoBar
+                x:Name="SystemNotificationErrorInfoBar"
+                IsClosable="False"
+                Severity="Error"
+                Title="系统通知不可用" />
+
+            <InfoBar
+                x:Name="StartupErrorInfoBar"
+                IsClosable="False"
+                Severity="Error"
+                Title="无法更新登录启动" />
+
+            <TextBlock
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Text="登录启动固定使用当前用户权限，不会创建服务或计划任务。便携版移动到新目录后，需要从新位置重新开启。"
+                TextWrapping="Wrap" />
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

@@ -12,6 +12,8 @@ internal sealed class SettingsWindowController : IDisposable
     private readonly nint _ownerWindowHandle;
     private readonly MainWindowViewModel _mainWindowViewModel;
     private readonly WindowsUpdateWorkspaceViewModel _updateViewModel;
+    private readonly StartupSettingsViewModel _startupViewModel;
+    private readonly SystemNotificationSettingsViewModel _systemNotificationViewModel;
     private Window? _window;
     private SettingsWorkspaceView? _view;
     private nint _windowHandle;
@@ -20,12 +22,16 @@ internal sealed class SettingsWindowController : IDisposable
     public SettingsWindowController(
         Window ownerWindow,
         MainWindowViewModel mainWindowViewModel,
-        WindowsUpdateWorkspaceViewModel updateViewModel)
+        WindowsUpdateWorkspaceViewModel updateViewModel,
+        StartupSettingsViewModel startupViewModel,
+        SystemNotificationSettingsViewModel systemNotificationViewModel)
     {
         ArgumentNullException.ThrowIfNull(ownerWindow);
         _ownerWindowHandle = WinRT.Interop.WindowNative.GetWindowHandle(ownerWindow);
         _mainWindowViewModel = mainWindowViewModel;
         _updateViewModel = updateViewModel;
+        _startupViewModel = startupViewModel;
+        _systemNotificationViewModel = systemNotificationViewModel;
     }
 
     public void ShowConnectionSettings()
@@ -64,16 +70,21 @@ internal sealed class SettingsWindowController : IDisposable
             return;
         }
 
-        var view = new SettingsWorkspaceView(_mainWindowViewModel, _updateViewModel);
         var window = new Window
         {
             Title = "Mihomo Meter · 设置",
-            Content = view,
         };
         window.Closed += Window_Closed;
         var windowHandle = WinRT.Interop.WindowNative.GetWindowHandle(window);
         WindowOwnershipNativeMethods.SetOwner(windowHandle, _ownerWindowHandle);
         var windowId = Win32Interop.GetWindowIdFromWindow(windowHandle);
+        var view = new SettingsWorkspaceView(
+            _mainWindowViewModel,
+            _updateViewModel,
+            _startupViewModel,
+            _systemNotificationViewModel,
+            windowId);
+        window.Content = view;
         var appWindow = AppWindow.GetFromWindowId(windowId)
             ?? throw new InvalidOperationException("无法取得 WinUI 设置窗口对应的 AppWindow。");
         WindowsIconAssets.ApplyApplicationIcon(appWindow);

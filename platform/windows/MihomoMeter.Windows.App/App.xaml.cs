@@ -1,17 +1,44 @@
 using Microsoft.UI.Xaml;
+using Microsoft.Windows.AppLifecycle;
+using Microsoft.Windows.AppNotifications;
 using MihomoMeter.Windows.App.Diagnostics;
 using MihomoMeter.Windows.App.Infrastructure;
+using MihomoMeter.Windows.App.Infrastructure.Notifications;
 using MihomoMeter.Windows.App.Lifecycle;
+using MihomoMeter.Windows.Core.Domain;
 
 namespace MihomoMeter.Windows.App;
 
-public partial class App : Application
+public partial class App : Microsoft.UI.Xaml.Application
 {
+    private readonly bool _isStartupLaunch;
+    private readonly AppActivationArguments? _initialActivationArguments;
+    private readonly Action _registerCrashRecoveryRestart;
+    private readonly Action _unregisterCrashRecoveryRestart;
     private MainWindow? _window;
     private WindowLifecycleController? _windowLifecycle;
 
     public App()
+        : this(
+            isStartupLaunch: false,
+            initialActivationArguments: null,
+            registerCrashRecoveryRestart: static () => { },
+            unregisterCrashRecoveryRestart: static () => { })
     {
+    }
+
+    internal App(
+        bool isStartupLaunch,
+        AppActivationArguments? initialActivationArguments,
+        Action registerCrashRecoveryRestart,
+        Action unregisterCrashRecoveryRestart)
+    {
+        _isStartupLaunch = isStartupLaunch;
+        _initialActivationArguments = initialActivationArguments;
+        _registerCrashRecoveryRestart = registerCrashRecoveryRestart
+            ?? throw new ArgumentNullException(nameof(registerCrashRecoveryRestart));
+        _unregisterCrashRecoveryRestart = unregisterCrashRecoveryRestart
+            ?? throw new ArgumentNullException(nameof(unregisterCrashRecoveryRestart));
         UnhandledException += App_UnhandledException;
         StartupConsoleReporter.Stage("app_xaml_initialize_started");
         try
@@ -30,9 +57,30 @@ public partial class App : Application
     {
         StartupConsoleReporter.Stage("app_launch_entered");
         WindowsAppServices? services = null;
+        WindowsSystemNotificationService? notificationService = null;
         try
         {
-            services = WindowsAppServices.Create();
+            notificationService = new WindowsSystemNotificationService();
+            notificationService.Activated += ActivationRouter.RequestActivation;
+            notificationService.Register();
+            var notificationActivationHandled = false;
+            if (_initialActivationArguments?.Kind == ExtendedActivationKind.AppNotification
+                && _initialActivationArguments.Data
+                    is AppNotificationActivatedEventArgs notificationArgs)
+            {
+                notificationActivationHandled = notificationService.TryHandleActivation(
+                    notificationArgs);
+            }
+            var protocolActivationHandled = StartupActivation.TryResolveProtocolTarget(
+                _initialActivationArguments,
+                out var protocolTarget);
+            if (protocolActivationHandled)
+            {
+                ActivationRouter.RequestActivation(protocolTarget);
+            }
+
+            services = WindowsAppServices.Create(notificationService);
+            notificationService = null;
             var window = new MainWindow(services);
             _window = window;
             _windowLifecycle = new WindowLifecycleController(
@@ -51,14 +99,23 @@ public partial class App : Application
                 window.NotificationAreaStatistics.StartSuggestedIntervalAsync,
                 window.NotificationAreaStatistics.StopIntervalAsync,
                 window.NotificationAreaQuota.RefreshAllAsync,
-                window.StopForApplicationTerminationAsync);
-            ActivationRouter.Register(HandleRedirectedActivation);
+                async () =>
+                {
+                    _unregisterCrashRecoveryRestart();
+                    await window.StopForApplicationTerminationAsync();
+                });
             var hasStoredConfiguration = await window.InitializeAsync();
-            if (!hasStoredConfiguration)
+            var shouldShowFirstConnectionGuide =
+                !hasStoredConfiguration && !_isStartupLaunch;
+            if (shouldShowFirstConnectionGuide
+                && !notificationActivationHandled
+                && !protocolActivationHandled)
             {
                 window.ShowFirstConnectionGuide();
                 _windowLifecycle.ShowMainWindow();
             }
+            ActivationRouter.Register(HandleRedirectedActivation);
+            _registerCrashRecoveryRestart();
 
             StartupConsoleReporter.Stage("app_launch_completed");
         }
@@ -75,6 +132,7 @@ public partial class App : Application
                 {
                     await services.DisposeAsync();
                 }
+                notificationService?.Dispose();
             }
             catch (Exception cleanupException)
             {
@@ -86,13 +144,29 @@ public partial class App : Application
         }
     }
 
-    private void HandleRedirectedActivation()
+    private void HandleRedirectedActivation(AppActivationTarget target)
     {
         var dispatcher = _window?.DispatcherQueue;
         if (dispatcher is null || !dispatcher.TryEnqueue(() =>
             {
                 StartupConsoleReporter.Stage("redirected_activation_window_show_started");
-                _windowLifecycle?.ShowMainWindow();
+                switch (target)
+                {
+                    case AppActivationTarget.Statistics:
+                        _window?.ShowStatisticsWorkspace();
+                        _windowLifecycle?.ShowMainWindow();
+                        break;
+                    case AppActivationTarget.SubscriptionQuota:
+                        _window?.ShowQuotaWorkspace();
+                        _windowLifecycle?.ShowMainWindow();
+                        break;
+                    case AppActivationTarget.ControllerSettings:
+                        _window?.ShowControllerSettings();
+                        break;
+                    default:
+                        _windowLifecycle?.ShowMainWindow();
+                        break;
+                }
                 StartupConsoleReporter.Stage("redirected_activation_window_show_completed");
             }))
         {

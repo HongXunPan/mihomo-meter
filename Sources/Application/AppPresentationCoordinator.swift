@@ -11,10 +11,12 @@ final class AppPresentationCoordinator {
     let profileController: ClashProfileDirectoryController
     let subscriptionQuotaDataController: SubscriptionQuotaDataController
     let updateModel: AppUpdateModel
+    let systemNotificationController: SystemNotificationController
   }
 
   private let dependencies: Dependencies
   private let dockVisibilityController: ApplicationDockVisibilityController
+  private let launchAtLoginController: LaunchAtLoginController
   private let statisticsWindowController: TrafficStatisticsWindowController
   private let controllerSettingsWindowController: ControllerSettingsWindowController
 
@@ -37,7 +39,10 @@ final class AppPresentationCoordinator {
   init(dependencies: Dependencies) {
     self.dependencies = dependencies
     let dockVisibilityController = ApplicationDockVisibilityController()
+    let launchAtLoginController = LaunchAtLoginController()
+    let diagnosticExportController = DiagnosticExportController(logger: AppDiagnosticLogger.shared)
     self.dockVisibilityController = dockVisibilityController
+    self.launchAtLoginController = launchAtLoginController
     statisticsWindowController = TrafficStatisticsWindowController(
       controller: dependencies.statisticsController,
       connectionAnalyticsController: dependencies.connectionAnalyticsController,
@@ -51,6 +56,9 @@ final class AppPresentationCoordinator {
     controllerSettingsWindowController = ControllerSettingsWindowController(
       monitor: dependencies.monitor,
       updateModel: dependencies.updateModel,
+      launchAtLoginController: launchAtLoginController,
+      systemNotificationController: dependencies.systemNotificationController,
+      diagnosticExportController: diagnosticExportController,
       dockVisibilityController: dockVisibilityController
     )
 
@@ -66,6 +74,19 @@ final class AppPresentationCoordinator {
   func showControllerSettings() {
     menuBarController.dismissStatusMenuForWindowPresentation()
     controllerSettingsWindowController.show()
+  }
+
+  func activate(_ target: AppActivationTarget) {
+    switch target {
+    case .mainWindow:
+      showCurrentStatisticsWindow()
+    case .statistics:
+      showStatisticsWindow(module: .proxyTraffic)
+    case .subscriptionQuota:
+      showStatisticsWindow(module: .subscriptionQuota)
+    case .controllerSettings:
+      showControllerSettings()
+    }
   }
 
   private func showStatisticsWindow(module: StatisticsModule) {

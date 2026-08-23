@@ -59,4 +59,13 @@ enum MonitorConnectionState: Equatable, Sendable {
       "不兼容"
     }
   }
+
+  var canPauseForSystemRecovery: Bool {
+    switch self {
+    case .connecting, .connected, .stale, .reconnecting:
+      true
+    case .disconnected, .authenticationFailed, .unsupported:
+      false
+    }
+  }
 }

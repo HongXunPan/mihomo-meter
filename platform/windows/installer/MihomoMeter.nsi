@@ -20,6 +20,10 @@
 !define PRODUCT_EXECUTABLE "MihomoMeter.Windows.App.exe"
 !define PRODUCT_INSTALL_MARKER ".mihomo-meter-install"
 !define PRODUCT_UNINSTALL_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_INSTALL_ID}"
+!define PRODUCT_RUN_KEY "Software\Microsoft\Windows\CurrentVersion\Run"
+!define PRODUCT_RUN_VALUE "Mihomo Meter"
+!define PRODUCT_PROTOCOL_SCHEME "mihomo-meter"
+!define PRODUCT_PROTOCOL_KEY "Software\Classes\${PRODUCT_PROTOCOL_SCHEME}"
 !define PRODUCT_DEFAULT_INSTALL_DIRECTORY "$LOCALAPPDATA\Programs\Mihomo Meter"
 !define PRODUCT_DATA_DIRECTORY "$LOCALAPPDATA\HongXunPan\MihomoMeter"
 !define PRODUCT_START_MENU_DIRECTORY "$SMPROGRAMS\Mihomo Meter"
@@ -177,6 +181,13 @@ install_marker_ready:
         "https://github.com/HongXunPan/mihomo-meter"
     WriteRegDWORD HKCU "${PRODUCT_UNINSTALL_KEY}" "NoModify" 1
     WriteRegDWORD HKCU "${PRODUCT_UNINSTALL_KEY}" "NoRepair" 1
+
+    WriteRegStr HKCU "${PRODUCT_PROTOCOL_KEY}" "" "URL:${PRODUCT_NAME}"
+    WriteRegStr HKCU "${PRODUCT_PROTOCOL_KEY}" "URL Protocol" ""
+    WriteRegStr HKCU "${PRODUCT_PROTOCOL_KEY}\DefaultIcon" "" \
+        "$INSTDIR\${PRODUCT_EXECUTABLE},0"
+    WriteRegStr HKCU "${PRODUCT_PROTOCOL_KEY}\shell\open\command" "" \
+        '"$INSTDIR\${PRODUCT_EXECUTABLE}" "----ms-protocol:%1"'
 SectionEnd
 
 Section "Uninstall"
@@ -208,6 +219,11 @@ uninstall_path_invalid:
     Abort
 uninstall_path_valid:
 
+    ReadRegStr $3 HKCU "${PRODUCT_RUN_KEY}" "${PRODUCT_RUN_VALUE}"
+    StrCmp $3 '"$INSTDIR\${PRODUCT_EXECUTABLE}" --startup' 0 startup_registration_ready
+    DeleteRegValue HKCU "${PRODUCT_RUN_KEY}" "${PRODUCT_RUN_VALUE}"
+startup_registration_ready:
+
     SetOutPath "$TEMP"
     ClearErrors
     RMDir /r "$INSTDIR"
@@ -216,6 +232,10 @@ uninstall_path_valid:
             "程序文件未能完整移除，卸载已停止；用户数据和卸载入口保持不变。"
         Abort
 uninstall_files_removed:
+    ReadRegStr $4 HKCU "${PRODUCT_PROTOCOL_KEY}\shell\open\command" ""
+    StrCmp $4 '"$INSTDIR\${PRODUCT_EXECUTABLE}" "----ms-protocol:%1"' 0 protocol_registration_ready
+    DeleteRegKey HKCU "${PRODUCT_PROTOCOL_KEY}"
+protocol_registration_ready:
     Delete "${PRODUCT_START_MENU_DIRECTORY}\Mihomo Meter.lnk"
     RMDir "${PRODUCT_START_MENU_DIRECTORY}"
     DeleteRegKey HKCU "${PRODUCT_UNINSTALL_KEY}"

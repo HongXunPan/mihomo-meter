@@ -1,8 +1,14 @@
+import AppKit
+import Combine
 import SwiftUI
 
 struct ControllerSettingsView: View {
   @ObservedObject var monitor: TrafficMonitor
   @ObservedObject var updateModel: AppUpdateModel
+  @ObservedObject var launchAtLoginController: LaunchAtLoginController
+  @ObservedObject var systemNotificationController: SystemNotificationController
+  @ObservedObject var diagnosticExportController: DiagnosticExportController
+  @State private var isDiagnosticExportConfirmationPresented = false
 
   var body: some View {
     VStack(spacing: 0) {
@@ -44,6 +50,90 @@ struct ControllerSettingsView: View {
             .font(.caption)
             .foregroundStyle(.secondary)
         }
+
+        Section("启动") {
+          Toggle(
+            "登录后启动 Mihomo Meter",
+            isOn: Binding(
+              get: { launchAtLoginController.isRequested },
+              set: { launchAtLoginController.setEnabled($0) }
+            )
+          )
+          .disabled(!launchAtLoginController.canToggle)
+
+          Text(launchAtLoginController.statusMessage)
+            .font(.caption)
+            .foregroundStyle(.secondary)
+
+          if launchAtLoginController.requiresApproval {
+            Button("打开登录项设置") {
+              launchAtLoginController.openSystemSettings()
+            }
+          }
+
+          if let errorMessage = launchAtLoginController.errorMessage {
+            Text(errorMessage)
+              .font(.caption)
+              .foregroundStyle(MihomoColorToken.statusDanger)
+          }
+        }
+
+        Section("通知") {
+          Toggle(
+            "系统通知",
+            isOn: Binding(
+              get: { systemNotificationController.isEnabled },
+              set: { systemNotificationController.setEnabled($0) }
+            )
+          )
+
+          Toggle(
+            "连接连续中断 10 分钟时提醒",
+            isOn: Binding(
+              get: { systemNotificationController.disconnectAlertsEnabled },
+              set: { systemNotificationController.setDisconnectAlertsEnabled($0) }
+            )
+          )
+          .disabled(!systemNotificationController.isEnabled)
+
+          Text(systemNotificationController.statusMessage)
+            .font(.caption)
+            .foregroundStyle(.secondary)
+
+          if let errorMessage = systemNotificationController.errorMessage {
+            Text(errorMessage)
+              .font(.caption)
+              .foregroundStyle(MihomoColorToken.statusDanger)
+          }
+        }
+
+        Section("诊断") {
+          Text("导出应用与系统版本、当前连接状态，以及当前会话最多 200 条脱敏事件。")
+            .font(.callout)
+            .fixedSize(horizontal: false, vertical: true)
+
+          Button("导出诊断信息…") {
+            isDiagnosticExportConfirmationPresented = true
+          }
+          .disabled(diagnosticExportController.isExporting)
+
+          if diagnosticExportController.isExporting {
+            ProgressView("正在准备诊断信息…")
+              .controlSize(.small)
+          }
+
+          if let statusMessage = diagnosticExportController.statusMessage {
+            Text(statusMessage)
+              .font(.caption)
+              .foregroundStyle(MihomoColorToken.statusSuccess)
+          }
+
+          if let errorMessage = diagnosticExportController.errorMessage {
+            Text(errorMessage)
+              .font(.caption)
+              .foregroundStyle(MihomoColorToken.statusDanger)
+          }
+        }
       }
       .formStyle(.grouped)
 
@@ -62,6 +152,30 @@ struct ControllerSettingsView: View {
       .padding(.vertical, 10)
     }
     .frame(minWidth: 480, minHeight: 320)
+    .onAppear {
+      launchAtLoginController.refresh()
+      systemNotificationController.refreshAuthorization()
+    }
+    .onReceive(
+      NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)
+    ) { _ in
+      launchAtLoginController.refresh()
+      systemNotificationController.refreshAuthorization()
+    }
+    .confirmationDialog(
+      "导出诊断信息？",
+      isPresented: $isDiagnosticExportConfirmationPresented,
+      titleVisibility: .visible
+    ) {
+      Button("选择保存位置") {
+        diagnosticExportController.export(connectionState: monitor.connectionState)
+      }
+      Button("取消", role: .cancel) {}
+    } message: {
+      Text(
+        "包含版本、系统架构、固定连接状态与脱敏事件；不包含 Controller 地址或 Secret、订阅/Profile 标识、数据库、文件路径、真实连接元数据、原始错误或日志原文。文件不会自动上传。"
+      )
+    }
   }
 
   private var header: some View {

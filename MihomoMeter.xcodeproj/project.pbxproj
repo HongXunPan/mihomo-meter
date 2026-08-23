@@ -12,6 +12,13 @@
 		C10000000000000000000201 /* AppPresentationCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C10000000000000000000101 /* AppPresentationCoordinator.swift */; };
 		C10100000000000000000201 /* ApplicationDockVisibilityController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C10100000000000000000101 /* ApplicationDockVisibilityController.swift */; };
 		C10200000000000000000201 /* ApplicationDockVisibilityControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C10200000000000000000101 /* ApplicationDockVisibilityControllerTests.swift */; };
+		E20000000000000000000201 /* LoginItemService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000000000000000000101 /* LoginItemService.swift */; };
+		E20100000000000000000201 /* LaunchAtLoginController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20100000000000000000101 /* LaunchAtLoginController.swift */; };
+		E20200000000000000000201 /* LaunchAtLoginControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20200000000000000000101 /* LaunchAtLoginControllerTests.swift */; };
+		E30000000000000000000201 /* DiagnosticExportReport.swift in Sources */ = {isa = PBXBuildFile; fileRef = E30000000000000000000101 /* DiagnosticExportReport.swift */; };
+		E30100000000000000000201 /* AppDiagnosticExportMapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = E30100000000000000000101 /* AppDiagnosticExportMapping.swift */; };
+		E30200000000000000000201 /* DiagnosticExportController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E30200000000000000000101 /* DiagnosticExportController.swift */; };
+		E30300000000000000000201 /* DiagnosticExportReportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E30300000000000000000101 /* DiagnosticExportReportTests.swift */; };
 		C20000000000000000000201 /* StatusMenuController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000000000000000000101 /* StatusMenuController.swift */; };
 		CD0000000000000000000201 /* MihomoColorToken.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD0000000000000000000101 /* MihomoColorToken.swift */; };
 		A10000000000000000000203 /* TrafficRate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000103 /* TrafficRate.swift */; };
@@ -86,6 +93,20 @@
 		D34900000000000000000201 /* StatusMenuTrafficTasksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D34900000000000000000101 /* StatusMenuTrafficTasksView.swift */; };
 		D34A00000000000000000201 /* QuotaCumulativeTrendChartInteraction.swift in Sources */ = {isa = PBXBuildFile; fileRef = D34A00000000000000000101 /* QuotaCumulativeTrendChartInteraction.swift */; };
 		D34B00000000000000000201 /* StatusMenuQuotaTrendStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D34B00000000000000000101 /* StatusMenuQuotaTrendStateTests.swift */; };
+		DL0000000000000000000201 /* AppDeepLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = DL0000000000000000000101 /* AppDeepLink.swift */; };
+		DL0000000000000000000202 /* AppDeepLinkTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DL0000000000000000000102 /* AppDeepLinkTests.swift */; };
+		DN0000000000000000000201 /* SystemNotificationPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = DN0000000000000000000101 /* SystemNotificationPolicy.swift */; };
+		DN0000000000000000000202 /* SystemNotificationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DN0000000000000000000102 /* SystemNotificationController.swift */; };
+		DN0000000000000000000203 /* UserNotificationClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = DN0000000000000000000103 /* UserNotificationClient.swift */; };
+		DN0000000000000000000204 /* SystemNotificationPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DN0000000000000000000104 /* SystemNotificationPolicyTests.swift */; };
+		DN0000000000000000000205 /* SystemNotificationPreferenceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = DN0000000000000000000105 /* SystemNotificationPreferenceStore.swift */; };
+		DN0000000000000000000206 /* SystemNotificationInputBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = DN0000000000000000000106 /* SystemNotificationInputBuilder.swift */; };
+		DN0000000000000000000207 /* SustainedDisconnectionNotificationTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = DN0000000000000000000107 /* SustainedDisconnectionNotificationTracker.swift */; };
+		DR0000000000000000000201 /* SystemRecoveryPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = DR0000000000000000000101 /* SystemRecoveryPolicy.swift */; };
+		DR0000000000000000000202 /* SystemRecoveryController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DR0000000000000000000102 /* SystemRecoveryController.swift */; };
+		DR0000000000000000000203 /* SystemEnvironmentMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = DR0000000000000000000103 /* SystemEnvironmentMonitor.swift */; };
+		DR0000000000000000000204 /* SystemRecoveryPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DR0000000000000000000104 /* SystemRecoveryPolicyTests.swift */; };
+		DR0000000000000000000205 /* TrafficMonitorSystemRecoveryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DR0000000000000000000105 /* TrafficMonitorSystemRecoveryTests.swift */; };
 		A30000000000000000000204 /* TrafficRateAggregator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000104 /* TrafficRateAggregator.swift */; };
 		A30000000000000000000205 /* ProxyClassifierTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000105 /* ProxyClassifierTests.swift */; };
 		A30000000000000000000206 /* ConnectionDeltaTrackerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000106 /* ConnectionDeltaTrackerTests.swift */; };
@@ -299,6 +320,13 @@
 		C10000000000000000000101 /* AppPresentationCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppPresentationCoordinator.swift; sourceTree = "<group>"; };
 		C10100000000000000000101 /* ApplicationDockVisibilityController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationDockVisibilityController.swift; sourceTree = "<group>"; };
 		C10200000000000000000101 /* ApplicationDockVisibilityControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationDockVisibilityControllerTests.swift; sourceTree = "<group>"; };
+		E20000000000000000000101 /* LoginItemService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginItemService.swift; sourceTree = "<group>"; };
+		E20100000000000000000101 /* LaunchAtLoginController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLoginController.swift; sourceTree = "<group>"; };
+		E20200000000000000000101 /* LaunchAtLoginControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLoginControllerTests.swift; sourceTree = "<group>"; };
+		E30000000000000000000101 /* DiagnosticExportReport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticExportReport.swift; sourceTree = "<group>"; };
+		E30100000000000000000101 /* AppDiagnosticExportMapping.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDiagnosticExportMapping.swift; sourceTree = "<group>"; };
+		E30200000000000000000101 /* DiagnosticExportController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticExportController.swift; sourceTree = "<group>"; };
+		E30300000000000000000101 /* DiagnosticExportReportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticExportReportTests.swift; sourceTree = "<group>"; };
 		C20000000000000000000101 /* StatusMenuController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusMenuController.swift; sourceTree = "<group>"; };
 		CD0000000000000000000101 /* MihomoColorToken.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MihomoColorToken.swift; sourceTree = "<group>"; };
 		A10000000000000000000103 /* TrafficRate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficRate.swift; sourceTree = "<group>"; };
@@ -373,6 +401,20 @@
 		D34900000000000000000101 /* StatusMenuTrafficTasksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusMenuTrafficTasksView.swift; sourceTree = "<group>"; };
 		D34A00000000000000000101 /* QuotaCumulativeTrendChartInteraction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotaCumulativeTrendChartInteraction.swift; sourceTree = "<group>"; };
 		D34B00000000000000000101 /* StatusMenuQuotaTrendStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusMenuQuotaTrendStateTests.swift; sourceTree = "<group>"; };
+		DL0000000000000000000101 /* AppDeepLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDeepLink.swift; sourceTree = "<group>"; };
+		DL0000000000000000000102 /* AppDeepLinkTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDeepLinkTests.swift; sourceTree = "<group>"; };
+		DN0000000000000000000101 /* SystemNotificationPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemNotificationPolicy.swift; sourceTree = "<group>"; };
+		DN0000000000000000000102 /* SystemNotificationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemNotificationController.swift; sourceTree = "<group>"; };
+		DN0000000000000000000103 /* UserNotificationClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserNotificationClient.swift; sourceTree = "<group>"; };
+		DN0000000000000000000104 /* SystemNotificationPolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemNotificationPolicyTests.swift; sourceTree = "<group>"; };
+		DN0000000000000000000105 /* SystemNotificationPreferenceStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemNotificationPreferenceStore.swift; sourceTree = "<group>"; };
+		DN0000000000000000000106 /* SystemNotificationInputBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemNotificationInputBuilder.swift; sourceTree = "<group>"; };
+		DN0000000000000000000107 /* SustainedDisconnectionNotificationTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SustainedDisconnectionNotificationTracker.swift; sourceTree = "<group>"; };
+		DR0000000000000000000101 /* SystemRecoveryPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemRecoveryPolicy.swift; sourceTree = "<group>"; };
+		DR0000000000000000000102 /* SystemRecoveryController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemRecoveryController.swift; sourceTree = "<group>"; };
+		DR0000000000000000000103 /* SystemEnvironmentMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemEnvironmentMonitor.swift; sourceTree = "<group>"; };
+		DR0000000000000000000104 /* SystemRecoveryPolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemRecoveryPolicyTests.swift; sourceTree = "<group>"; };
+		DR0000000000000000000105 /* TrafficMonitorSystemRecoveryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficMonitorSystemRecoveryTests.swift; sourceTree = "<group>"; };
 		A30000000000000000000104 /* TrafficRateAggregator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficRateAggregator.swift; sourceTree = "<group>"; };
 		A30000000000000000000105 /* ProxyClassifierTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProxyClassifierTests.swift; sourceTree = "<group>"; };
 		A30000000000000000000106 /* ConnectionDeltaTrackerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionDeltaTrackerTests.swift; sourceTree = "<group>"; };
@@ -638,6 +680,12 @@
 				A10000000000000000000102 /* AppDelegate.swift */,
 				C10000000000000000000101 /* AppPresentationCoordinator.swift */,
 				C10100000000000000000101 /* ApplicationDockVisibilityController.swift */,
+				E20100000000000000000101 /* LaunchAtLoginController.swift */,
+				DN0000000000000000000102 /* SystemNotificationController.swift */,
+				DN0000000000000000000106 /* SystemNotificationInputBuilder.swift */,
+				DN0000000000000000000105 /* SystemNotificationPreferenceStore.swift */,
+				DN0000000000000000000107 /* SustainedDisconnectionNotificationTracker.swift */,
+				DR0000000000000000000102 /* SystemRecoveryController.swift */,
 				AP0000000000000000000101 /* AppUpdateModel.swift */,
 				D32300000000000000000101 /* ConnectionAnalyticsController.swift */,
 				D32100000000000000000101 /* ConnectionAnalyticsLedgerStoring.swift */,
@@ -693,6 +741,7 @@
 			isa = PBXGroup;
 			children = (
 				BW0000000000000000000101 /* ActiveQuotaQueryResult.swift */,
+				DL0000000000000000000101 /* AppDeepLink.swift */,
 				BT0000000000000000000111 /* ClashProfile.swift */,
 				D32000000000000000000101 /* ConnectionAnalytics.swift */,
 				D33200000000000000000101 /* ConnectionAnalyticsTrend.swift */,
@@ -716,6 +765,8 @@
 				CU0000000000000000000103 /* QuotaUsageTrendEngine.swift */,
 				CU0000000000000000000104 /* QuotaUsageAggregator.swift */,
 				BQ0000000000000000000109 /* SubscriptionQuotaSnapshot.swift */,
+				DN0000000000000000000101 /* SystemNotificationPolicy.swift */,
+				DR0000000000000000000101 /* SystemRecoveryPolicy.swift */,
 				CC0000000000000000000102 /* SubscriptionQuotaAnalysis.swift */,
 				BR0000000000000000000101 /* RuntimeQuotaCandidate.swift */,
 				D35100000000000000000101 /* SharedCoreRuntimeStatus.swift */,
@@ -748,6 +799,7 @@
 				D32A00000000000000000101 /* ConnectionHistoryAnalyticsView.swift */,
 				A90000000000000000000101 /* ControllerSettingsView.swift */,
 				C30000000000000000000101 /* ControllerSettingsWindowController.swift */,
+				E30200000000000000000101 /* DiagnosticExportController.swift */,
 				CE0000000000000000000101 /* FirstConnectionGuideView.swift */,
 				CD0000000000000000000101 /* MihomoColorToken.swift */,
 				D34100000000000000000101 /* LiveConnectionAnalyticsContextView.swift */,
@@ -814,9 +866,15 @@
 		A10000000000000000000008 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
+				DL0000000000000000000102 /* AppDeepLinkTests.swift */,
 				AU0000000000000000000101 /* AppHelpLinksTests.swift */,
 				AS0000000000000000000101 /* AppUpdateTests.swift */,
+				DN0000000000000000000104 /* SystemNotificationPolicyTests.swift */,
+				DR0000000000000000000104 /* SystemRecoveryPolicyTests.swift */,
+				DR0000000000000000000105 /* TrafficMonitorSystemRecoveryTests.swift */,
 				C10200000000000000000101 /* ApplicationDockVisibilityControllerTests.swift */,
+				E20200000000000000000101 /* LaunchAtLoginControllerTests.swift */,
+				E30300000000000000000101 /* DiagnosticExportReportTests.swift */,
 				BT0000000000000000000115 /* ClashProfileCatalogReaderTests.swift */,
 				BV0000000000000000000113 /* ClashProfileDirectoryControllerTests.swift */,
 				BV0000000000000000000112 /* ClashProfileTrackingServiceTests.swift */,
@@ -902,9 +960,20 @@
 				A20000000000000000000003 /* Security */,
 				BQ0000000000000000000002 /* Storage */,
 				BC0000000000000000000001 /* Statistics */,
+				E20000000000000000000001 /* System */,
 				AQ0000000000000000000001 /* Updates */,
 			);
 			path = Infrastructure;
+			sourceTree = "<group>";
+		};
+		E20000000000000000000001 /* System */ = {
+			isa = PBXGroup;
+			children = (
+				E20000000000000000000101 /* LoginItemService.swift */,
+				DR0000000000000000000103 /* SystemEnvironmentMonitor.swift */,
+				DN0000000000000000000103 /* UserNotificationClient.swift */,
+			);
+			path = System;
 			sourceTree = "<group>";
 		};
 		D35000000000000000000001 /* SharedCore */ = {
@@ -964,8 +1033,10 @@
 			children = (
 				D35C00000000000000000101 /* AppCodeSigningInspector.swift */,
 				AA00000000000000000000103 /* AppDiagnosticEvent.swift */,
+				E30100000000000000000101 /* AppDiagnosticExportMapping.swift */,
 				AA00000000000000000000101 /* AppDiagnosticLogger.swift */,
 				AA00000000000000000000104 /* ConnectionDiagnosticReason.swift */,
+				E30000000000000000000101 /* DiagnosticExportReport.swift */,
 				AA00000000000000000000105 /* ProfileQuotaDiagnosticEvent.swift */,
 				D35800000000000000000101 /* SharedCoreTrafficDiagnosticReporter.swift */,
 			);
@@ -1144,13 +1215,27 @@
 			buildActionMask = 2147483647;
 			files = (
 				BW0000000000000000000201 /* ActiveQuotaQueryResult.swift in Sources */,
+				DL0000000000000000000201 /* AppDeepLink.swift in Sources */,
 				A10000000000000000000202 /* AppDelegate.swift in Sources */,
 				D35000000000000000000201 /* MihomoMeterSharedCoreAdapter.swift in Sources */,
 				D35400000000000000000201 /* SharedCoreTrafficDisplayFormatter.swift in Sources */,
 				C10000000000000000000201 /* AppPresentationCoordinator.swift in Sources */,
 				C10100000000000000000201 /* ApplicationDockVisibilityController.swift in Sources */,
+				E20100000000000000000201 /* LaunchAtLoginController.swift in Sources */,
+				E20000000000000000000201 /* LoginItemService.swift in Sources */,
+				DN0000000000000000000201 /* SystemNotificationPolicy.swift in Sources */,
+				DN0000000000000000000202 /* SystemNotificationController.swift in Sources */,
+				DN0000000000000000000203 /* UserNotificationClient.swift in Sources */,
+				DN0000000000000000000205 /* SystemNotificationPreferenceStore.swift in Sources */,
+				DN0000000000000000000206 /* SystemNotificationInputBuilder.swift in Sources */,
+				DN0000000000000000000207 /* SustainedDisconnectionNotificationTracker.swift in Sources */,
+				DR0000000000000000000201 /* SystemRecoveryPolicy.swift in Sources */,
+				DR0000000000000000000202 /* SystemRecoveryController.swift in Sources */,
+				DR0000000000000000000203 /* SystemEnvironmentMonitor.swift in Sources */,
 				AA00000000000000000000203 /* AppDiagnosticEvent.swift in Sources */,
+				E30100000000000000000201 /* AppDiagnosticExportMapping.swift in Sources */,
 				AA00000000000000000000201 /* AppDiagnosticLogger.swift in Sources */,
+				E30000000000000000000201 /* DiagnosticExportReport.swift in Sources */,
 				AA00000000000000000000205 /* ProfileQuotaDiagnosticEvent.swift in Sources */,
 				AT0000000000000000000201 /* AppHelpLinksMenu.swift in Sources */,
 				AP0000000000000000000201 /* AppUpdateModel.swift in Sources */,
@@ -1218,6 +1303,7 @@
 				D34200000000000000000201 /* LiveConnectionAnalyticsTableView.swift in Sources */,
 				D32900000000000000000201 /* LiveConnectionAnalyticsView.swift in Sources */,
 				A90000000000000000000201 /* ControllerSettingsView.swift in Sources */,
+				E30200000000000000000201 /* DiagnosticExportController.swift in Sources */,
 				CE0000000000000000000201 /* FirstConnectionGuideView.swift in Sources */,
 				C30000000000000000000201 /* ControllerSettingsWindowController.swift in Sources */,
 				BU0000000000000000000201 /* ProfileDirectoryAccessing.swift in Sources */,
@@ -1351,9 +1437,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DL0000000000000000000202 /* AppDeepLinkTests.swift in Sources */,
 				AU0000000000000000000201 /* AppHelpLinksTests.swift in Sources */,
 				AS0000000000000000000201 /* AppUpdateTests.swift in Sources */,
+				DN0000000000000000000204 /* SystemNotificationPolicyTests.swift in Sources */,
+				DR0000000000000000000204 /* SystemRecoveryPolicyTests.swift in Sources */,
+				DR0000000000000000000205 /* TrafficMonitorSystemRecoveryTests.swift in Sources */,
 				C10200000000000000000201 /* ApplicationDockVisibilityControllerTests.swift in Sources */,
+				E20200000000000000000201 /* LaunchAtLoginControllerTests.swift in Sources */,
 				BT0000000000000000000205 /* ClashProfileCatalogReaderTests.swift in Sources */,
 				BV0000000000000000000203 /* ClashProfileDirectoryControllerTests.swift in Sources */,
 				BV0000000000000000000202 /* ClashProfileTrackingServiceTests.swift in Sources */,
@@ -1371,6 +1462,7 @@
 				A40000000000000000000206 /* ConnectionSnapshotDecoderTests.swift in Sources */,
 				A20000000000000000000206 /* ControllerEndpointTests.swift in Sources */,
 				AA00000000000000000000202 /* DiagnosticLoggerTests.swift in Sources */,
+				E30300000000000000000201 /* DiagnosticExportReportTests.swift in Sources */,
 				A20000000000000000000205 /* FixtureLoader.swift in Sources */,
 				A20000000000000000000207 /* MihomoControllerModelsTests.swift in Sources */,
 				D35300000000000000000201 /* SharedCoreRuntimeProbeTests.swift in Sources */,

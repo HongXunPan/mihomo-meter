@@ -1,11 +1,14 @@
+using MihomoMeter.Windows.App.Application;
 using MihomoMeter.Windows.App.Infrastructure.Configuration;
 using MihomoMeter.Windows.App.Infrastructure.ConnectionAnalytics;
 using MihomoMeter.Windows.App.Infrastructure.Credentials;
+using MihomoMeter.Windows.App.Infrastructure.Notifications;
 using MihomoMeter.Windows.App.Infrastructure.Quota;
+using MihomoMeter.Windows.App.Infrastructure.Startup;
 using MihomoMeter.Windows.App.Infrastructure.Statistics;
 using MihomoMeter.Windows.Core.Application;
-using MihomoMeter.Windows.Core.Infrastructure.Mihomo;
 using MihomoMeter.Windows.Core.Infrastructure.ConnectionAnalytics;
+using MihomoMeter.Windows.Core.Infrastructure.Mihomo;
 using MihomoMeter.Windows.Core.Infrastructure.Profile;
 using MihomoMeter.Windows.Core.Infrastructure.Quota;
 using MihomoMeter.Windows.Core.Infrastructure.Statistics;
@@ -25,7 +28,9 @@ internal sealed class WindowsAppServices : IAsyncDisposable
         TrafficStatisticsCoordinator statistics,
         ConnectionAnalyticsCoordinator connectionAnalytics,
         QuotaTrackingCoordinator quota,
+        SystemNotificationCoordinator systemNotifications,
         WindowsUpdateChecker updateChecker,
+        StartupRegistrationService startupRegistration,
         TrafficMonitoringCoordinator coordinator)
     {
         _controllerHttpClient = controllerHttpClient;
@@ -34,7 +39,9 @@ internal sealed class WindowsAppServices : IAsyncDisposable
         Statistics = statistics;
         ConnectionAnalytics = connectionAnalytics;
         Quota = quota;
+        SystemNotifications = systemNotifications;
         UpdateChecker = updateChecker;
+        StartupRegistration = startupRegistration;
         Coordinator = coordinator;
     }
 
@@ -48,9 +55,14 @@ internal sealed class WindowsAppServices : IAsyncDisposable
 
     public QuotaTrackingCoordinator Quota { get; }
 
+    public SystemNotificationCoordinator SystemNotifications { get; }
+
     public WindowsUpdateChecker UpdateChecker { get; }
 
-    public static WindowsAppServices Create()
+    public StartupRegistrationService StartupRegistration { get; }
+
+    public static WindowsAppServices Create(
+        WindowsSystemNotificationService systemNotificationService)
     {
         WindowsSqliteProvider.Initialize();
         var controllerHttpClient = new HttpClient(new SocketsHttpHandler
@@ -92,8 +104,14 @@ internal sealed class WindowsAppServices : IAsyncDisposable
             statisticsRecorder: statistics,
             quotaTrackingLifecycle: quota,
             connectionAnalyticsRecorder: connectionAnalytics);
+        var systemNotifications = new SystemNotificationCoordinator(
+            quota,
+            coordinator,
+            systemNotificationService,
+            new JsonSystemNotificationPreferencesStore());
         var updateChecker = new WindowsUpdateChecker(
             new GitHubWindowsReleaseClient(updateHttpClient));
+        var startupRegistration = new StartupRegistrationService();
         return new WindowsAppServices(
             controllerHttpClient,
             updateHttpClient,
@@ -101,12 +119,15 @@ internal sealed class WindowsAppServices : IAsyncDisposable
             statistics,
             connectionAnalytics,
             quota,
+            systemNotifications,
             updateChecker,
+            startupRegistration,
             coordinator);
     }
 
     public async ValueTask DisposeAsync()
     {
+        await SystemNotifications.DisposeAsync().ConfigureAwait(false);
         await Coordinator.DisposeAsync().ConfigureAwait(false);
         await Statistics.DisposeAsync().ConfigureAwait(false);
         await ConnectionAnalytics.DisposeAsync().ConfigureAwait(false);

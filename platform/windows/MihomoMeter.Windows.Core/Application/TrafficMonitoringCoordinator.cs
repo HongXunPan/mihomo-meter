@@ -3,7 +3,7 @@ using MihomoMeter.Windows.Core.Infrastructure.Mihomo;
 
 namespace MihomoMeter.Windows.Core.Application;
 
-public sealed class TrafficMonitoringCoordinator : IAsyncDisposable
+public sealed partial class TrafficMonitoringCoordinator : IAsyncDisposable
 {
     private readonly IMihomoControllerClient _client;
     private readonly IControllerConfigurationStore _configurationStore;
@@ -16,6 +16,10 @@ public sealed class TrafficMonitoringCoordinator : IAsyncDisposable
     private CancellationTokenSource? _runSource;
     private Task? _runTask;
     private long _generation;
+    private int _connectionExpected;
+    private int _hasValidatedConfiguration;
+    private int _systemEnvironmentAvailable = 1;
+    private int _systemRecoveryEligible;
 
     public TrafficMonitoringCoordinator(
         IMihomoControllerClient client,
@@ -47,6 +51,13 @@ public sealed class TrafficMonitoringCoordinator : IAsyncDisposable
 
     public event Action<TrafficMonitorSnapshot>? SnapshotChanged;
 
+    public bool IsConnectionExpected => Volatile.Read(ref _connectionExpected) == 1;
+
+    public bool HasValidatedConfiguration => Volatile.Read(ref _hasValidatedConfiguration) == 1;
+
+    public bool IsSystemEnvironmentAvailable =>
+        Volatile.Read(ref _systemEnvironmentAvailable) == 1;
+
     public bool IsCurrentSession(long sessionGeneration)
     {
         return sessionGeneration == Volatile.Read(ref _generation);
@@ -58,20 +69,28 @@ public sealed class TrafficMonitoringCoordinator : IAsyncDisposable
         bool saveValidatedConfiguration,
         CancellationToken cancellationToken = default)
     {
+        Volatile.Write(ref _connectionExpected, 1);
+        Volatile.Write(ref _hasValidatedConfiguration, saveValidatedConfiguration ? 0 : 1);
+        Volatile.Write(ref _systemRecoveryEligible, saveValidatedConfiguration ? 0 : 1);
         await _transitionLock.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
             _ = Interlocked.Increment(ref _generation);
             await StopActiveRunAsync().ConfigureAwait(false);
-            var runSource = new CancellationTokenSource();
-            var generation = Interlocked.Increment(ref _generation);
-            _runSource = runSource;
-            _runTask = RunAsync(
-                generation,
-                address,
-                secret,
-                saveValidatedConfiguration,
-                runSource.Token);
+            if (!IsSystemEnvironmentAvailable)
+            {
+                var generation = Interlocked.Increment(ref _generation);
+                if (saveValidatedConfiguration)
+                {
+                    Volatile.Write(ref _connectionExpected, 0);
+                }
+                Publish(generation, new TrafficMonitorSnapshot(
+                    MonitorConnectionState.Disconnected,
+                    "系统环境暂不可用，已暂停连接。"));
+                return;
+            }
+
+            StartRun(address, secret, saveValidatedConfiguration);
         }
         finally
         {
@@ -81,6 +100,8 @@ public sealed class TrafficMonitoringCoordinator : IAsyncDisposable
 
     public async Task StopAsync(CancellationToken cancellationToken = default)
     {
+        Volatile.Write(ref _connectionExpected, 0);
+        Volatile.Write(ref _systemRecoveryEligible, 0);
         await StopAsync(TrafficSessionEndReason.MonitoringStopped, cancellationToken)
             .ConfigureAwait(false);
     }
@@ -110,6 +131,8 @@ public sealed class TrafficMonitoringCoordinator : IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
+        Volatile.Write(ref _connectionExpected, 0);
+        Volatile.Write(ref _systemRecoveryEligible, 0);
         await StopAsync(TrafficSessionEndReason.ApplicationExit, CancellationToken.None)
             .ConfigureAwait(false);
         _transitionLock.Dispose();
@@ -129,6 +152,7 @@ public sealed class TrafficMonitoringCoordinator : IAsyncDisposable
         }
         catch (ControllerEndpointException exception)
         {
+            Volatile.Write(ref _systemRecoveryEligible, 0);
             Publish(generation, new TrafficMonitorSnapshot(
                 MonitorConnectionState.Disconnected,
                 exception.Message));
@@ -166,6 +190,7 @@ public sealed class TrafficMonitoringCoordinator : IAsyncDisposable
                         .SaveValidatedAsync(endpoint, secret, cancellationToken)
                         .ConfigureAwait(false);
                     shouldSaveConfiguration = false;
+                    Volatile.Write(ref _hasValidatedConfiguration, 1);
                 }
 
                 await _statisticsRecorder
@@ -297,6 +322,7 @@ public sealed class TrafficMonitoringCoordinator : IAsyncDisposable
         {
             if (controllerException.Reason == MihomoControllerError.AuthenticationFailed)
             {
+                Volatile.Write(ref _systemRecoveryEligible, 0);
                 Publish(generation, new TrafficMonitorSnapshot(
                     MonitorConnectionState.AuthenticationFailed,
                     controllerException.Message));
@@ -305,6 +331,7 @@ public sealed class TrafficMonitoringCoordinator : IAsyncDisposable
 
             if (controllerException.Reason == MihomoControllerError.UnsupportedResponse)
             {
+                Volatile.Write(ref _systemRecoveryEligible, 0);
                 Publish(generation, new TrafficMonitorSnapshot(
                     MonitorConnectionState.Unsupported,
                     controllerException.Message));
@@ -316,6 +343,7 @@ public sealed class TrafficMonitoringCoordinator : IAsyncDisposable
             && streamException.Reason
                 is ConnectionStreamError.UnsupportedResponse or ConnectionStreamError.MessageTooLarge)
         {
+            Volatile.Write(ref _systemRecoveryEligible, 0);
             Publish(generation, new TrafficMonitorSnapshot(
                 MonitorConnectionState.Unsupported,
                 streamException.Message));
@@ -324,6 +352,7 @@ public sealed class TrafficMonitoringCoordinator : IAsyncDisposable
 
         if (exception is ControllerConfigurationException)
         {
+            Volatile.Write(ref _systemRecoveryEligible, 0);
             Publish(generation, new TrafficMonitorSnapshot(
                 MonitorConnectionState.Disconnected,
                 exception.Message));
