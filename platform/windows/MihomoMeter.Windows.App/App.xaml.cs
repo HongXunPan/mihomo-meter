@@ -9,7 +9,7 @@ using MihomoMeter.Windows.Core.Domain;
 
 namespace MihomoMeter.Windows.App;
 
-public partial class App : Application
+public partial class App : Microsoft.UI.Xaml.Application
 {
     private readonly bool _isStartupLaunch;
     private readonly AppActivationArguments? _initialActivationArguments;
