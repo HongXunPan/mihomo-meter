@@ -46,7 +46,9 @@ public sealed class DiagnosticExportReportTests
     public void ReportRetainsOnlyLatestEvents()
     {
         var events = Enumerable.Range(1, DiagnosticExportReport.MaximumEventCount + 2)
-            .Select(index => DiagnosticExportEvent.ApplicationStage(Now, $"stage_{index}"))
+            .Select(index => DiagnosticExportEvent.ApplicationStage(
+                Now.AddSeconds(index),
+                "app_launch_completed"))
             .ToArray();
 
         var report = DiagnosticExportReport.Create(
@@ -56,6 +58,9 @@ public sealed class DiagnosticExportReportTests
             events);
 
         Assert.AreEqual(DiagnosticExportReport.MaximumEventCount, report.Events.Count);
-        Assert.AreEqual("stage_3", report.Events[0].Stage);
+        Assert.AreEqual(Now.AddSeconds(3), report.Events[0].Timestamp);
+        Assert.AreEqual(
+            Now.AddSeconds(DiagnosticExportReport.MaximumEventCount + 2),
+            report.Events[^1].Timestamp);
     }
 }
