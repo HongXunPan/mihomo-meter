@@ -85,11 +85,11 @@ extension UserNotificationClient: UNUserNotificationCenterDelegate {
     withCompletionHandler completionHandler: @escaping () -> Void
   ) {
     let rawTarget = response.notification.request.content.userInfo["target"] as? String
+    completionHandler()
     Task { @MainActor [weak self] in
       if let rawTarget, let target = AppActivationTarget(rawValue: rawTarget) {
         self?.activationHandler?(target)
       }
-      completionHandler()
     }
   }
 }
