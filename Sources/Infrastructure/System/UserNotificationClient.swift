@@ -24,7 +24,9 @@ final class UserNotificationClient: NSObject, SystemNotificationDelivering {
   func authorizationStatus() async -> SystemNotificationAuthorization {
     await withCheckedContinuation { continuation in
       center.getNotificationSettings { settings in
-        continuation.resume(returning: Self.map(settings.authorizationStatus))
+        continuation.resume(
+          returning: mapSystemNotificationAuthorization(settings.authorizationStatus)
+        )
       }
     }
   }
@@ -51,19 +53,20 @@ final class UserNotificationClient: NSObject, SystemNotificationDelivering {
     try await center.add(request)
   }
 
-  private static func map(
-    _ status: UNAuthorizationStatus
-  ) -> SystemNotificationAuthorization {
-    switch status {
-    case .notDetermined:
-      .notDetermined
-    case .authorized, .provisional, .ephemeral:
-      .authorized
-    case .denied:
-      .denied
-    @unknown default:
-      .unknown
-    }
+}
+
+private func mapSystemNotificationAuthorization(
+  _ status: UNAuthorizationStatus
+) -> SystemNotificationAuthorization {
+  switch status {
+  case .notDetermined:
+    .notDetermined
+  case .authorized, .provisional, .ephemeral:
+    .authorized
+  case .denied:
+    .denied
+  @unknown default:
+    .unknown
   }
 }
 

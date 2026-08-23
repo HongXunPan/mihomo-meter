@@ -38,12 +38,12 @@ enum QuotaSystemNotificationPolicy {
     for inputs: [QuotaNotificationInput],
     at now: Date
   ) -> [SystemNotificationDelivery] {
-    inputs.flatMap { input in
+    var deliveries: [SystemNotificationDelivery] = []
+    for input in inputs {
       guard input.isCurrentCycleConfirmed, isFresh(input.observedAt, at: now) else {
-        return []
+        continue
       }
 
-      var deliveries: [SystemNotificationDelivery] = []
       if input.traffic.remainingBytes <= input.traffic.totalBytes / 10 {
         deliveries.append(delivery(for: input, kind: .lowRemaining))
       }
@@ -53,8 +53,8 @@ enum QuotaSystemNotificationPolicy {
       if isUpcoming(input.estimatedDepletionAt, at: now) {
         deliveries.append(delivery(for: input, kind: .depletingSoon))
       }
-      return deliveries
     }
+    return deliveries
   }
 
   private static func isFresh(_ observedAt: Date, at now: Date) -> Bool {

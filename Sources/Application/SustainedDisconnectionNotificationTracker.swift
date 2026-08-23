@@ -32,7 +32,9 @@ final class SustainedDisconnectionNotificationTracker {
     }
 
     isTracking = true
-    disconnectedSince ??= now()
+    if disconnectedSince == nil {
+      disconnectedSince = now()
+    }
     scheduleEvaluation()
   }
 
