@@ -32,8 +32,42 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   private var profileDirectoryController: ClashProfileDirectoryController?
   private var subscriptionQuotaDataController: SubscriptionQuotaDataController?
   private var updateModel: AppUpdateModel?
+  private var systemNotificationController: SystemNotificationController?
+  private var systemRecoveryController: SystemRecoveryController?
+  private var userNotificationClient: UserNotificationClient?
   private var presentationCoordinator: AppPresentationCoordinator?
+  private var pendingActivationTarget: AppActivationTarget?
+  private var launchSessionObservers: [NSObjectProtocol] = []
+  private var launchSessionIsInactive = false
   private var isTerminationPending = false
+
+  func applicationWillFinishLaunching(_ notification: Notification) {
+    guard ApplicationRuntimeEnvironment.current.shouldStartProductionServices else {
+      return
+    }
+
+    let center = NSWorkspace.shared.notificationCenter
+    launchSessionObservers = [
+      center.addObserver(
+        forName: NSWorkspace.sessionDidResignActiveNotification,
+        object: NSWorkspace.shared,
+        queue: .main
+      ) { [weak self] _ in
+        MainActor.assumeIsolated {
+          self?.launchSessionIsInactive = true
+        }
+      },
+      center.addObserver(
+        forName: NSWorkspace.sessionDidBecomeActiveNotification,
+        object: NSWorkspace.shared,
+        queue: .main
+      ) { [weak self] _ in
+        MainActor.assumeIsolated {
+          self?.launchSessionIsInactive = false
+        }
+      },
+    ]
+  }
 
   func applicationDidFinishLaunching(_ notification: Notification) {
     guard ApplicationRuntimeEnvironment.current.shouldStartProductionServices else {
@@ -107,6 +141,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       profileQuotaLifecycle: profileQuotaController
     )
     let updateModel = AppUpdateModel()
+    let userNotificationClient = UserNotificationClient()
+    let systemNotificationController = SystemNotificationController(
+      runtimeController: quotaController,
+      profileController: profileQuotaController,
+      monitor: monitor,
+      client: userNotificationClient
+    )
+    let systemRecoveryController = SystemRecoveryController(monitor: monitor)
     trafficMonitor = monitor
     self.statisticsController = statisticsController
     self.connectionAnalyticsController = connectionAnalyticsController
@@ -115,6 +157,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     self.profileDirectoryController = profileDirectoryController
     self.subscriptionQuotaDataController = subscriptionQuotaDataController
     self.updateModel = updateModel
+    self.systemNotificationController = systemNotificationController
+    self.systemRecoveryController = systemRecoveryController
+    self.userNotificationClient = userNotificationClient
     let presentationCoordinator = AppPresentationCoordinator(
       dependencies: AppPresentationCoordinator.Dependencies(
         monitor: monitor,
@@ -124,10 +169,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         profileQuotaController: profileQuotaController,
         profileController: profileDirectoryController,
         subscriptionQuotaDataController: subscriptionQuotaDataController,
-        updateModel: updateModel
+        updateModel: updateModel,
+        systemNotificationController: systemNotificationController
       )
     )
     self.presentationCoordinator = presentationCoordinator
+    userNotificationClient.activationHandler = { [weak presentationCoordinator] target in
+      presentationCoordinator?.activate(target)
+    }
+    if let pendingActivationTarget {
+      self.pendingActivationTarget = nil
+      presentationCoordinator.activate(pendingActivationTarget)
+    }
+    systemRecoveryController.start(initialSessionIsInactive: launchSessionIsInactive)
+    stopLaunchSessionObservation()
     updateModel.start()
 
     Task {
@@ -142,6 +197,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       await quotaController.prepare()
       await profileQuotaController.prepare()
       await profileDirectoryController.prepare()
+      systemNotificationController.start()
       monitor.start()
     }
   }
@@ -152,6 +208,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   ) -> Bool {
     presentationCoordinator?.showCurrentStatisticsWindow()
     return true
+  }
+
+  func application(_: NSApplication, open urls: [URL]) {
+    let target = urls.count == 1 ? AppDeepLink.target(for: urls[0]) : nil
+    activateExternalTarget(target ?? AppDeepLink.fallbackTarget)
   }
 
   func showControllerSettings() {
@@ -168,7 +229,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       let statisticsController,
       let quotaController,
       let profileQuotaController,
-      let profileDirectoryController
+      let profileDirectoryController,
+      let systemNotificationController,
+      let systemRecoveryController
     else {
       return .terminateNow
     }
@@ -178,6 +241,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     isTerminationPending = true
 
     Task {
+      systemNotificationController.stop()
+      systemRecoveryController.stop()
       quotaController.stop()
       profileQuotaController.stop()
       profileDirectoryController.stop()
@@ -186,5 +251,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       sender.reply(toApplicationShouldTerminate: true)
     }
     return .terminateLater
+  }
+
+  private func stopLaunchSessionObservation() {
+    let center = NSWorkspace.shared.notificationCenter
+    launchSessionObservers.forEach(center.removeObserver)
+    launchSessionObservers.removeAll()
+  }
+
+  private func activateExternalTarget(_ target: AppActivationTarget) {
+    guard let presentationCoordinator else {
+      pendingActivationTarget = target
+      return
+    }
+    presentationCoordinator.activate(target)
   }
 }

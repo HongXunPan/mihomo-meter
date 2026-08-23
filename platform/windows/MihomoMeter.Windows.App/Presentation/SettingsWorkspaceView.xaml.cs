@@ -1,3 +1,4 @@
+using Microsoft.UI;
 using Microsoft.UI.Xaml.Controls;
 
 namespace MihomoMeter.Windows.App.Presentation;
@@ -11,9 +12,15 @@ public sealed partial class SettingsWorkspaceView : UserControl
     internal SettingsWorkspaceView(
         MainWindowViewModel mainWindowViewModel,
         WindowsUpdateWorkspaceViewModel updateViewModel,
-        StartupSettingsViewModel startupViewModel)
+        StartupSettingsViewModel startupViewModel,
+        SystemNotificationSettingsViewModel systemNotificationViewModel,
+        WindowId windowId)
     {
-        _generalSettingsView = new GeneralSettingsView(startupViewModel);
+        _generalSettingsView = new GeneralSettingsView(
+            mainWindowViewModel,
+            startupViewModel,
+            systemNotificationViewModel,
+            windowId);
         _controllerSettingsView = new ControllerSettingsView(mainWindowViewModel);
         _updateView = new WindowsUpdateWorkspaceView(updateViewModel);
         InitializeComponent();

@@ -124,6 +124,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 
     public bool CanDisconnect => _connectionState != MonitorConnectionState.Disconnected;
 
+    internal MonitorConnectionState ConnectionState => _connectionState;
+
     public string ConnectButtonText => _connectionState == MonitorConnectionState.Connected
         ? "重新连接"
         : "连接";

@@ -9,17 +9,21 @@ actor AppDiagnosticLogger: AppDiagnosticLogging {
   private let directoryURL: URL
   private let maxFileSizeBytes: UInt64
   private let retentionInterval: TimeInterval
+  private let maximumExportEventCount: Int
   private let sessionID = UUID().uuidString.lowercased()
   private let timestampFormatter: ISO8601DateFormatter
+  private var exportEvents: [DiagnosticExportEvent] = []
 
   init(
     directoryURL: URL = AppDiagnosticLogger.defaultDirectoryURL(),
     maxFileSizeBytes: UInt64 = 512 * 1_024,
-    retentionInterval: TimeInterval = 7 * 24 * 60 * 60
+    retentionInterval: TimeInterval = 7 * 24 * 60 * 60,
+    maximumExportEventCount: Int = DiagnosticExportReport.maximumEventCount
   ) {
     self.directoryURL = directoryURL
     self.maxFileSizeBytes = maxFileSizeBytes
     self.retentionInterval = retentionInterval
+    self.maximumExportEventCount = max(maximumExportEventCount, 0)
     logFileURL = directoryURL.appendingPathComponent("diagnostics.log")
     archivedLogFileURL = directoryURL.appendingPathComponent("diagnostics.previous.log")
 
@@ -29,7 +33,9 @@ actor AppDiagnosticLogger: AppDiagnosticLogging {
   }
 
   func record(_ event: AppDiagnosticEvent) {
-    let timestamp = timestampFormatter.string(from: Date())
+    let now = Date()
+    retainForExport(event.diagnosticExportEvent(at: now))
+    let timestamp = timestampFormatter.string(from: now)
     let line = "\(timestamp) session=\(sessionID) \(event.logMessage)\n"
     let data = Data(line.utf8)
 
@@ -43,6 +49,20 @@ actor AppDiagnosticLogger: AppDiagnosticLogging {
       try append(data)
     } catch {
       // 诊断日志不得影响应用启动、Keychain、查询或实时监控主流程。
+    }
+  }
+
+  func diagnosticExportSnapshot() -> [DiagnosticExportEvent] {
+    exportEvents
+  }
+
+  private func retainForExport(_ event: DiagnosticExportEvent) {
+    guard maximumExportEventCount > 0 else {
+      return
+    }
+    exportEvents.append(event)
+    if exportEvents.count > maximumExportEventCount {
+      exportEvents.removeFirst(exportEvents.count - maximumExportEventCount)
     }
   }
 

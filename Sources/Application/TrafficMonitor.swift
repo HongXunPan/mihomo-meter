@@ -1,11 +1,14 @@
 import Combine
 import Foundation
-
 @MainActor
 final class TrafficMonitor: ObservableObject {
   @Published var address: String
   @Published var secret: String
   @Published private var state = TrafficMonitorState()
+  @Published private var shouldMaintainConnection = false
+  @Published private var isSystemEnvironmentAvailable = true
+
+  private var isPausedForSystemRecovery = false
 
   private let configurationStore: ControllerConfigurationStore
   private let coordinator: TrafficMonitoringCoordinator
@@ -89,6 +92,15 @@ final class TrafficMonitor: ObservableObject {
       .eraseToAnyPublisher()
   }
 
+  var connectionExpectationPublisher: AnyPublisher<Bool, Never> {
+    Publishers.CombineLatest($shouldMaintainConnection, $isSystemEnvironmentAvailable)
+      .map { shouldMaintain, isAvailable in
+        shouldMaintain && isAvailable
+      }
+      .removeDuplicates()
+      .eraseToAnyPublisher()
+  }
+
   init(
     client: any MihomoControllerServing = MihomoControllerClient(),
     collector: any ConnectionSnapshotCollecting = ConnectionStreamCollector(),
@@ -160,6 +172,8 @@ final class TrafficMonitor: ObservableObject {
   }
 
   func disconnect() {
+    shouldMaintainConnection = false
+    isPausedForSystemRecovery = false
     stopConnection(source: .userDisconnect)
     Task {
       await statisticsRecorder.interruptMonitoring(at: Date())
@@ -168,13 +182,42 @@ final class TrafficMonitor: ObservableObject {
   }
 
   func stopForApplicationTermination() async {
+    shouldMaintainConnection = false
+    isPausedForSystemRecovery = false
     await coordinator.stopAndWait(source: .applicationTermination) { [weak self] event in
       self?.apply(event)
     }
     await connectionAnalyticsRecorder.flushPending()
   }
 
+  func setSystemEnvironmentAvailable(_ isAvailable: Bool) {
+    guard isSystemEnvironmentAvailable != isAvailable else {
+      return
+    }
+    isSystemEnvironmentAvailable = isAvailable
+    if isAvailable {
+      resumeAfterSystemRecovery()
+    } else {
+      pauseForSystemRecovery()
+    }
+  }
+
   private func startConnection(trigger: ConnectionAttemptTrigger) {
+    shouldMaintainConnection = true
+    guard isSystemEnvironmentAvailable else {
+      let canResume = trigger != .userRequest && hasValidatedControllerConfiguration
+      shouldMaintainConnection = canResume
+      isPausedForSystemRecovery = canResume
+      state = TrafficMonitorReducer.reduce(
+        state,
+        event: .terminal(
+          state: .disconnected,
+          message: "系统环境暂不可用，已暂停连接。"
+        )
+      )
+      return
+    }
+    isPausedForSystemRecovery = false
     coordinator.start(
       address: address,
       secret: secret,
@@ -188,6 +231,36 @@ final class TrafficMonitor: ObservableObject {
     coordinator.stop(source: source) { [weak self] event in
       self?.apply(event)
     }
+  }
+
+  private func pauseForSystemRecovery() {
+    guard shouldMaintainConnection, state.connectionState.canPauseForSystemRecovery else {
+      return
+    }
+    isPausedForSystemRecovery = true
+    stopConnection(source: .systemEnvironmentChange)
+    state = TrafficMonitorReducer.reduce(
+      state,
+      event: .terminal(
+        state: .disconnected,
+        message: "系统休眠、会话或网络不可用，已暂停连接。"
+      )
+    )
+    Task {
+      await statisticsRecorder.interruptMonitoring(at: Date())
+      await connectionAnalyticsRecorder.flushPending()
+    }
+  }
+
+  private func resumeAfterSystemRecovery() {
+    guard isPausedForSystemRecovery else {
+      return
+    }
+    isPausedForSystemRecovery = false
+    guard shouldMaintainConnection, hasValidatedControllerConfiguration else {
+      return
+    }
+    startConnection(trigger: .systemRecovery)
   }
 
   private func apply(_ event: TrafficMonitoringCoordinator.Event) {

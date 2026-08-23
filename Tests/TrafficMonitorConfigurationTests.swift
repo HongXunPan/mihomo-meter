@@ -168,7 +168,7 @@ final class KeychainSecretStoreTests: XCTestCase {
     XCTAssertEqual(propertyList["com.apple.security.network.client"] as? Bool, true)
   }
 
-  func testProfileDirectoryEntitlementIsReadOnlyInAllAppProfiles() throws {
+  func testAllAppProfilesAllowUserSelectedDiagnosticExport() throws {
     let repositoryRoot = URL(fileURLWithPath: #filePath)
       .deletingLastPathComponent()
       .deletingLastPathComponent()
@@ -183,10 +183,10 @@ final class KeychainSecretStoreTests: XCTestCase {
       )
 
       XCTAssertEqual(
-        propertyList["com.apple.security.files.user-selected.read-only"] as? Bool,
+        propertyList["com.apple.security.files.user-selected.read-write"] as? Bool,
         true
       )
-      XCTAssertNil(propertyList["com.apple.security.files.user-selected.read-write"])
+      XCTAssertNil(propertyList["com.apple.security.files.user-selected.read-only"])
     }
   }
 }

@@ -2,8 +2,10 @@ using Microsoft.UI;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using MihomoMeter.Windows.App.Application;
 using MihomoMeter.Windows.App.Diagnostics;
 using MihomoMeter.Windows.App.Infrastructure;
+using MihomoMeter.Windows.App.Infrastructure.System;
 using MihomoMeter.Windows.App.Lifecycle;
 using MihomoMeter.Windows.App.Presentation;
 using MihomoMeter.Windows.Core.Application;
@@ -24,6 +26,7 @@ public sealed partial class MainWindow : Window
     private readonly SubscriptionQuotaWorkspaceView _quotaView;
     private readonly SettingsWindowController _settingsWindow;
     private readonly FirstConnectionGuideView _firstConnectionGuideView;
+    private readonly SystemRecoveryCoordinator _systemRecovery;
     private NavigationViewItem? _selectedWorkspaceItem;
     private bool _stopped;
 
@@ -54,6 +57,8 @@ public sealed partial class MainWindow : Window
             ReleaseVersion.FromAssemblyVersion(assemblyVersion));
         var startupViewModel = new StartupSettingsViewModel(
             services.StartupRegistration);
+        var systemNotificationViewModel = new SystemNotificationSettingsViewModel(
+            services.SystemNotifications);
         NotificationAreaStatistics = new NotificationAreaStatisticsController(
             DispatcherQueue,
             services.Coordinator,
@@ -93,7 +98,8 @@ public sealed partial class MainWindow : Window
             this,
             ViewModel,
             UpdateViewModel,
-            startupViewModel);
+            startupViewModel,
+            systemNotificationViewModel);
         _firstConnectionGuideView = new FirstConnectionGuideView(
             _settingsWindow.ShowConnectionSettings);
         ViewModel.ConfigurationValidated += ViewModel_ConfigurationValidated;
@@ -103,6 +109,10 @@ public sealed partial class MainWindow : Window
         ShowWorkspace("statistics");
         Title = "Mihomo Meter";
         ResizeWindow();
+        _systemRecovery = new SystemRecoveryCoordinator(
+            services.Coordinator,
+            new WindowsSystemEnvironmentMonitor(
+                WinRT.Interop.WindowNative.GetWindowHandle(this)));
     }
 
     public MainWindowViewModel ViewModel { get; }
@@ -127,9 +137,11 @@ public sealed partial class MainWindow : Window
 
     internal async Task<bool> InitializeAsync()
     {
+        await _systemRecovery.StartAsync();
         await StatisticsViewModel.InitializeAsync();
         await ConnectionAnalyticsViewModel.InitializeAsync();
         await QuotaViewModel.InitializeAsync();
+        await _services.SystemNotifications.InitializeAsync();
         return await ViewModel.InitializeAsync();
     }
 
@@ -141,6 +153,7 @@ public sealed partial class MainWindow : Window
         }
 
         _stopped = true;
+        await _systemRecovery.DisposeAsync();
         ViewModel.Detach();
         StatisticsViewModel.Detach();
         QuotaViewModel.Detach();

@@ -34,6 +34,7 @@ final class TrafficMonitoringCoordinator {
   private let connectionAnalyticsRecorder: any ConnectionAnalyticsRecording
 
   private var connectionTask: Task<Void, Never>?
+  private var pendingStopTask: Task<Void, Never>?
   private var activeRun: TrafficMonitoringRun?
   private var runID = UUID()
   private var isActive = false
@@ -66,6 +67,8 @@ final class TrafficMonitoringCoordinator {
     let lastSnapshotAgeMilliseconds =
       activeRun?.currentSnapshotAgeMilliseconds
     let previousRun = activeRun
+    let previousStopTask = pendingStopTask
+    pendingStopTask = nil
     let newRunID = UUID()
     let run = makeRun()
     runID = newRunID
@@ -79,6 +82,7 @@ final class TrafficMonitoringCoordinator {
       guard let self else {
         return
       }
+      await previousStopTask?.value
       if let cancellationSource {
         await diagnosticLogger.record(
           .connectionCancellationRequested(
@@ -120,7 +124,9 @@ final class TrafficMonitoringCoordinator {
     activeRun = nil
     isActive = false
 
-    Task { [diagnosticLogger] in
+    let previousStopTask = pendingStopTask
+    pendingStopTask = Task { [diagnosticLogger] in
+      await previousStopTask?.value
       if shouldLogCancellation {
         await diagnosticLogger.record(
           .connectionCancellationRequested(
@@ -142,6 +148,8 @@ final class TrafficMonitoringCoordinator {
     let lastSnapshotAgeMilliseconds =
       activeRun?.currentSnapshotAgeMilliseconds
     let task = connectionTask
+    let previousStopTask = pendingStopTask
+    pendingStopTask = nil
     let run = activeRun
     runID = UUID()
     connectionTask?.cancel()
@@ -157,6 +165,7 @@ final class TrafficMonitoringCoordinator {
         )
       )
     }
+    await previousStopTask?.value
     await run?.cancel()
     await task?.value
     eventHandler(.stopped)
@@ -180,6 +189,8 @@ final class TrafficMonitoringCoordinator {
     switch trigger {
     case .immediateRetry:
       .immediateRetry
+    case .systemRecovery:
+      .systemEnvironmentChange
     case .applicationStartup, .userRequest, .automaticRetry:
       .userConnectionRequest
     }

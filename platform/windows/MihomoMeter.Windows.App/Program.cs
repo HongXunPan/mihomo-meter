@@ -1,9 +1,12 @@
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
+using Microsoft.Windows.AppLifecycle;
+using MihomoMeter.Windows.App.Application;
 using MihomoMeter.Windows.App.Diagnostics;
 using MihomoMeter.Windows.App.Interop;
 using MihomoMeter.Windows.App.Lifecycle;
 using MihomoMeter.Windows.Core.Application;
+using MihomoMeter.Windows.Core.Domain;
 
 namespace MihomoMeter.Windows.App;
 
@@ -15,12 +18,17 @@ internal static class Program
         StartupConsoleReporter.Initialize();
         try
         {
+            WinRT.ComWrappersSupport.InitializeComWrappers();
+            var activationArguments = AppInstance.GetCurrent().GetActivatedEventArgs();
             var isStartupLaunch = StartupActivation.IsStartupLaunch(args);
+            StartupActivation.TryResolveProtocolTarget(
+                activationArguments,
+                out var activationTarget);
             if (isStartupLaunch)
             {
                 StartupConsoleReporter.Stage("startup_activation_detected");
             }
-            await RunAsync(isStartupLaunch);
+            await RunAsync(args, isStartupLaunch, activationArguments, activationTarget);
         }
         catch (Exception exception)
         {
@@ -29,7 +37,11 @@ internal static class Program
         }
     }
 
-    private static async Task RunAsync(bool isStartupLaunch)
+    private static async Task RunAsync(
+        IReadOnlyCollection<string> arguments,
+        bool isStartupLaunch,
+        AppActivationArguments? activationArguments,
+        AppActivationTarget activationTarget)
     {
         StartupConsoleReporter.Stage("single_instance_registration_started");
         var instanceCoordinator = SingleInstanceCoordinator.CreateForCurrentSession();
@@ -37,16 +49,37 @@ internal static class Program
         {
             if (!instanceCoordinator.IsPrimary)
             {
-                if (isStartupLaunch)
+                if (isStartupLaunch
+                    || CrashRecoveryRestartPolicy.HasRecoveryArgument(arguments))
                 {
-                    StartupConsoleReporter.Stage("startup_secondary_instance_skipped");
+                    StartupConsoleReporter.Stage(
+                        "background_secondary_instance_skipped");
                     return;
                 }
 
                 StartupConsoleReporter.Stage("single_instance_redirect_started");
-                await instanceCoordinator.RedirectActivationAsync(AllowForegroundActivation);
+                await instanceCoordinator.RedirectActivationAsync(
+                    activationTarget,
+                    AllowForegroundActivation);
                 StartupConsoleReporter.Stage("single_instance_redirect_completed");
                 return;
+            }
+
+            var crashRecoveryRestart = new CrashRecoveryRestartCoordinator();
+            var recoveryDisposition =
+                crashRecoveryRestart.EvaluateStartup(arguments);
+            switch (recoveryDisposition)
+            {
+                case CrashRecoveryStartupDisposition.RecoveryAllowed:
+                    StartupConsoleReporter.Stage("crash_recovery_restart_allowed");
+                    break;
+                case CrashRecoveryStartupDisposition.RecoverySuppressed:
+                    StartupConsoleReporter.Stage("crash_recovery_restart_suppressed");
+                    return;
+                case CrashRecoveryStartupDisposition.RecoveryArgumentInvalid:
+                    StartupConsoleReporter.Stage(
+                        "crash_recovery_restart_argument_invalid");
+                    return;
             }
 
             instanceCoordinator.StartListening(
@@ -54,7 +87,6 @@ internal static class Program
                 exception => StartupConsoleReporter.Failure(
                     "single_instance_listener",
                     exception));
-            WinRT.ComWrappersSupport.InitializeComWrappers();
             StartupConsoleReporter.Stage("single_instance_primary_ready");
             ReportSharedCoreRuntimeStatus();
             SharedCoreProxyTypeShadow.ConfigureReporter(
@@ -73,7 +105,11 @@ internal static class Program
                     var context = new DispatcherQueueSynchronizationContext(
                         DispatcherQueue.GetForCurrentThread());
                     SynchronizationContext.SetSynchronizationContext(context);
-                    _ = new App(isStartupLaunch);
+                    _ = new App(
+                        isStartupLaunch,
+                        activationArguments,
+                        crashRecoveryRestart.RegisterForCurrentProcess,
+                        crashRecoveryRestart.UnregisterForExplicitExit);
                 });
             }
             finally
@@ -89,10 +125,10 @@ internal static class Program
         }
     }
 
-    private static void HandleActivationRequest()
+    private static void HandleActivationRequest(AppActivationTarget target)
     {
         StartupConsoleReporter.Stage("single_instance_activation_received");
-        ActivationRouter.RequestMainWindowActivation();
+        ActivationRouter.RequestActivation(target);
     }
 
     private static void ReportSharedCoreRuntimeStatus()

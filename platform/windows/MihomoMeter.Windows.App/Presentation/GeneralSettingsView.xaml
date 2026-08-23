@@ -17,7 +17,7 @@
                     Text="通用" />
                 <TextBlock
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                    Text="管理当前用户的 Windows 登录启动行为。"
+                    Text="管理当前用户的登录启动、系统通知和诊断导出。"
                     TextWrapping="Wrap" />
             </StackPanel>
 
@@ -43,6 +43,61 @@
                         Content="改为当前程序" />
                 </StackPanel>
             </Border>
+
+            <Border
+                Padding="20"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="8">
+                <StackPanel Spacing="12">
+                    <ToggleSwitch
+                        x:Name="SystemNotificationToggle"
+                        Header="系统通知"
+                        Toggled="SystemNotificationToggle_Toggled" />
+                    <ToggleSwitch
+                        x:Name="DisconnectNotificationToggle"
+                        Header="连接连续中断 10 分钟时提醒"
+                        Toggled="DisconnectNotificationToggle_Toggled" />
+                    <TextBlock
+                        x:Name="SystemNotificationStatusText"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+
+            <Border
+                Padding="20"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="8">
+                <StackPanel Spacing="12">
+                    <TextBlock
+                        FontSize="18"
+                        FontWeight="SemiBold"
+                        Text="诊断" />
+                    <TextBlock
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="导出应用与系统版本、当前连接状态，以及当前会话最多 200 条脱敏事件。"
+                        TextWrapping="Wrap" />
+                    <Button
+                        x:Name="DiagnosticExportButton"
+                        HorizontalAlignment="Left"
+                        Click="DiagnosticExportButton_Click"
+                        Content="导出诊断信息…" />
+                </StackPanel>
+            </Border>
+
+            <InfoBar
+                x:Name="DiagnosticExportInfoBar"
+                IsClosable="True" />
+
+            <InfoBar
+                x:Name="SystemNotificationErrorInfoBar"
+                IsClosable="False"
+                Severity="Error"
+                Title="系统通知不可用" />
 
             <InfoBar
                 x:Name="StartupErrorInfoBar"

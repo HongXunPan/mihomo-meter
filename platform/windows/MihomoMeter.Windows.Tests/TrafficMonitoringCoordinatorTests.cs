@@ -248,6 +248,104 @@ public sealed class TrafficMonitoringCoordinatorTests
     }
 
     [TestMethod]
+    public async Task SystemEnvironmentPauseRecoversValidatedConnectionOnce()
+    {
+        var sequence = new List<string>();
+        var collector = new TestSnapshotCollector(sequence);
+        var recorder = new RecordingStatisticsRecorder();
+        var store = new TestConfigurationStore(sequence)
+        {
+            LoadedConfiguration = new ControllerConfiguration(
+                "http://127.0.0.1:9090",
+                "synthetic-secret"),
+        };
+        await using var coordinator = new TrafficMonitoringCoordinator(
+            new TestControllerClient(sequence),
+            collector,
+            store,
+            statisticsRecorder: recorder);
+
+        await coordinator.StartAsync("127.0.0.1:9090", "synthetic-secret", false);
+        await collector.Started.Task.WaitAsync(TimeSpan.FromSeconds(2));
+        await coordinator.SetSystemEnvironmentAvailableAsync(false);
+        await coordinator.SetSystemEnvironmentAvailableAsync(false);
+
+        Assert.IsTrue(coordinator.IsConnectionExpected);
+        Assert.IsFalse(coordinator.IsSystemEnvironmentAvailable);
+        CollectionAssert.Contains(
+            recorder.InterruptionReasons,
+            TrafficSessionEndReason.Recovery);
+
+        await coordinator.SetSystemEnvironmentAvailableAsync(true);
+        await WaitForCollectionCountAsync(collector, 2);
+        Assert.AreEqual(2, collector.CollectionCount);
+    }
+
+    [TestMethod]
+    public async Task UserStopWhileEnvironmentUnavailablePreventsRecovery()
+    {
+        var sequence = new List<string>();
+        var collector = new TestSnapshotCollector(sequence);
+        var store = new TestConfigurationStore(sequence)
+        {
+            LoadedConfiguration = new ControllerConfiguration(
+                "http://127.0.0.1:9090",
+                "synthetic-secret"),
+        };
+        await using var coordinator = new TrafficMonitoringCoordinator(
+            new TestControllerClient(sequence),
+            collector,
+            store);
+
+        await coordinator.StartAsync("127.0.0.1:9090", "synthetic-secret", false);
+        await collector.Started.Task.WaitAsync(TimeSpan.FromSeconds(2));
+        await coordinator.SetSystemEnvironmentAvailableAsync(false);
+        await coordinator.StopAsync();
+        await coordinator.SetSystemEnvironmentAvailableAsync(true);
+        await Task.Delay(TimeSpan.FromMilliseconds(50));
+
+        Assert.IsFalse(coordinator.IsConnectionExpected);
+        Assert.AreEqual(1, collector.CollectionCount);
+    }
+
+    [TestMethod]
+    public async Task TerminalAuthenticationFailureDoesNotBecomeRecoveryCandidate()
+    {
+        var sequence = new List<string>();
+        var terminalSnapshot = new TaskCompletionSource<bool>(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+        var store = new TestConfigurationStore(sequence)
+        {
+            LoadedConfiguration = new ControllerConfiguration(
+                "http://127.0.0.1:9090",
+                "synthetic-secret"),
+        };
+        await using var coordinator = new TrafficMonitoringCoordinator(
+            new TestControllerClient(sequence)
+            {
+                VersionFailure = new MihomoControllerException(
+                    MihomoControllerError.AuthenticationFailed),
+            },
+            new TestSnapshotCollector(sequence),
+            store);
+        coordinator.SnapshotChanged += snapshot =>
+        {
+            if (snapshot.State == MonitorConnectionState.AuthenticationFailed)
+            {
+                terminalSnapshot.TrySetResult(true);
+            }
+        };
+
+        await coordinator.StartAsync("127.0.0.1:9090", "synthetic-secret", false);
+        await terminalSnapshot.Task.WaitAsync(TimeSpan.FromSeconds(2));
+        await coordinator.SetSystemEnvironmentAvailableAsync(false);
+        await coordinator.SetSystemEnvironmentAvailableAsync(true);
+        await Task.Delay(TimeSpan.FromMilliseconds(50));
+
+        CollectionAssert.AreEqual(new[] { "version" }, sequence);
+    }
+
+    [TestMethod]
     public async Task AnalyticsFailureDoesNotBlockRealtimeMonitoringOrStop()
     {
         var sequence = new List<string>();
@@ -378,6 +476,7 @@ public sealed class TrafficMonitoringCoordinatorTests
     private sealed class TestSnapshotCollector : IConnectionSnapshotCollector
     {
         private readonly List<string> _sequence;
+        private int _collectionCount;
 
         public TestSnapshotCollector(List<string> sequence)
         {
@@ -387,12 +486,15 @@ public sealed class TrafficMonitoringCoordinatorTests
         public TaskCompletionSource<bool> Started { get; } = new(
             TaskCreationOptions.RunContinuationsAsynchronously);
 
+        public int CollectionCount => Volatile.Read(ref _collectionCount);
+
         public async IAsyncEnumerable<MihomoConnectionsSnapshot> CollectAsync(
             ControllerEndpoint endpoint,
             string secret,
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             _sequence.Add("stream");
+            Interlocked.Increment(ref _collectionCount);
             Started.TrySetResult(true);
             yield return new MihomoConnectionsSnapshot
             {
@@ -523,9 +625,12 @@ public sealed class TrafficMonitoringCoordinatorTests
 
         public string? SavedSecret { get; private set; }
 
+        public ControllerConfiguration LoadedConfiguration { get; init; } =
+            ControllerConfiguration.Empty;
+
         public Task<ControllerConfiguration> LoadAsync(CancellationToken cancellationToken)
         {
-            return Task.FromResult(ControllerConfiguration.Empty);
+            return Task.FromResult(LoadedConfiguration);
         }
 
         public Task SaveValidatedAsync(
@@ -538,6 +643,16 @@ public sealed class TrafficMonitoringCoordinatorTests
             SavedAddress = endpoint.NormalizedAddress;
             SavedSecret = secret;
             return Task.CompletedTask;
+        }
+    }
+
+    private static async Task WaitForCollectionCountAsync(
+        TestSnapshotCollector collector,
+        int expectedCount)
+    {
+        for (var attempt = 0; attempt < 100 && collector.CollectionCount < expectedCount; attempt++)
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(10));
         }
     }
 }

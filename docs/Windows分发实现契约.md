@@ -61,7 +61,7 @@ https://github.com/HongXunPan/mihomo-meter/releases/latest/download/windows-rele
 
 ## 6. 安装、隐私与信任边界
 
-Windows 安装器固定 `RequestExecutionLevel user`、当前用户 Shell/注册表范围和 x64 HKCU 卸载视图。首次安装默认 `%LOCALAPPDATA%\Programs\Mihomo Meter` 并允许其他磁盘的当前用户可写空专用目录；升级继续使用已登记位置，迁移必须先卸载再重装。安装器不默认开启登录启动；卸载只清理精确指向当前安装目录的登录启动值，并始终保留 `%LOCALAPPDATA%\HongXunPan\MihomoMeter` 和 Credential Manager 凭据。详细边界见[登录后启动实现契约](登录后启动实现契约.md)。
+Windows 安装器固定 `RequestExecutionLevel user`、当前用户 Shell/注册表范围和 x64 HKCU 卸载视图。首次安装默认 `%LOCALAPPDATA%\Programs\Mihomo Meter` 并允许其他磁盘的当前用户可写空专用目录；升级继续使用已登记位置，迁移必须先卸载再重装。安装器不默认开启登录启动，但为安装版登记当前用户 `mihomo-meter` 固定深链协议；便携 ZIP 不主动登记。卸载只清理精确指向当前安装目录的登录启动值和协议命令，并始终保留 `%LOCALAPPDATA%\HongXunPan\MihomoMeter` 和 Credential Manager 凭据。详细登录项边界见[登录后启动实现契约](登录后启动实现契约.md)。
 
 `windows-release.json` 是公开版本索引，不包含 Controller 地址、Secret、Profile、订阅 URL、主机名、应用名、流量、设置或数据库。它通过 GitHub HTTPS 帮助用户找到人工下载页面，但没有独立签名，不能作为自动下载或安装信任根；Windows unsigned 安装器仍可能显示“未知发布者”和 SmartScreen。
 

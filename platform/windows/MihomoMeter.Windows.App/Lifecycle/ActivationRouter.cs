@@ -1,43 +1,50 @@
 namespace MihomoMeter.Windows.App.Lifecycle;
 
+using MihomoMeter.Windows.Core.Domain;
+
 internal static class ActivationRouter
 {
     private static readonly object SyncRoot = new();
 
-    private static Action? _handler;
-    private static bool _activationPending;
+    private static Action<AppActivationTarget>? _handler;
+    private static AppActivationTarget? _pendingTarget;
 
-    public static void Register(Action handler)
+    public static void Register(Action<AppActivationTarget> handler)
     {
         ArgumentNullException.ThrowIfNull(handler);
 
-        var shouldActivate = false;
+        AppActivationTarget? pendingTarget;
         lock (SyncRoot)
         {
             _handler = handler;
-            shouldActivate = _activationPending;
-            _activationPending = false;
+            pendingTarget = _pendingTarget;
+            _pendingTarget = null;
         }
 
-        if (shouldActivate)
+        if (pendingTarget is AppActivationTarget target)
         {
-            handler();
+            handler(target);
         }
     }
 
     public static void RequestMainWindowActivation()
     {
-        Action? handler;
+        RequestActivation(AppActivationTarget.MainWindow);
+    }
+
+    public static void RequestActivation(AppActivationTarget target)
+    {
+        Action<AppActivationTarget>? handler;
         lock (SyncRoot)
         {
             handler = _handler;
             if (handler is null)
             {
-                _activationPending = true;
+                _pendingTarget = target;
                 return;
             }
         }
 
-        handler();
+        handler(target);
     }
 }

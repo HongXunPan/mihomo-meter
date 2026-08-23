@@ -13,6 +13,8 @@ final class ControllerSettingsWindowController: NSWindowController, NSWindowDele
     monitor: TrafficMonitor,
     updateModel: AppUpdateModel,
     launchAtLoginController: LaunchAtLoginController,
+    systemNotificationController: SystemNotificationController,
+    diagnosticExportController: DiagnosticExportController,
     dockVisibilityController: ApplicationDockVisibilityController
   ) {
     self.dockVisibilityController = dockVisibilityController
@@ -20,7 +22,9 @@ final class ControllerSettingsWindowController: NSWindowController, NSWindowDele
       rootView: ControllerSettingsView(
         monitor: monitor,
         updateModel: updateModel,
-        launchAtLoginController: launchAtLoginController
+        launchAtLoginController: launchAtLoginController,
+        systemNotificationController: systemNotificationController,
+        diagnosticExportController: diagnosticExportController
       )
     )
     let window = NSWindow(

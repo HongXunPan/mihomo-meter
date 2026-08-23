@@ -164,6 +164,17 @@ actor MonitorTestDiagnosticLogger: AppDiagnosticLogging {
     }
   }
 
+  func connectionAttemptCount(trigger: ConnectionAttemptTrigger) -> Int {
+    events.reduce(into: 0) { count, event in
+      guard case .connectionAttemptStarted(let actualTrigger, _) = event,
+        actualTrigger == trigger
+      else {
+        return
+      }
+      count += 1
+    }
+  }
+
   func cancellationAge(
     source: ConnectionCancellationSource
   ) -> Int? {
