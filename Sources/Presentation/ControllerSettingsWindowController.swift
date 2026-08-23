@@ -3,9 +3,9 @@ import SwiftUI
 
 @MainActor
 final class ControllerSettingsWindowController: NSWindowController, NSWindowDelegate {
-  private static let initialSize = NSSize(width: 560, height: 460)
-  private static let minimumSize = NSSize(width: 480, height: 320)
-  private static let frameAutosaveName = "ControllerSettingsWindow"
+  private static let initialSize = NSSize(width: 680, height: 640)
+  private static let minimumSize = NSSize(width: 560, height: 480)
+  private static let frameAutosaveName = "SettingsWindow"
 
   private let dockVisibilityController: ApplicationDockVisibilityController
 
@@ -33,7 +33,7 @@ final class ControllerSettingsWindowController: NSWindowController, NSWindowDele
       backing: .buffered,
       defer: false
     )
-    window.title = "Mihomo 连接"
+    window.title = "Mihomo Meter 设置"
     window.contentViewController = hostingController
     window.minSize = Self.minimumSize
     window.isReleasedWhenClosed = false

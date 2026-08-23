@@ -10,7 +10,32 @@ final class LaunchAtLoginControllerTests: XCTestCase {
 
     XCTAssertEqual(controller.state, .requiresApproval)
     XCTAssertTrue(controller.isRequested)
-    XCTAssertTrue(controller.canToggle)
+  }
+
+  func testMissingLoginItemCanRegisterForFirstUse() {
+    let service = LoginItemServiceSpy(status: .notFound)
+    service.statusAfterRegister = .enabled
+    let controller = LaunchAtLoginController(service: service)
+
+    XCTAssertEqual(controller.state, .unavailable)
+
+    controller.setEnabled(true)
+
+    XCTAssertEqual(service.registerCallCount, 1)
+    XCTAssertEqual(controller.state, .enabled)
+    XCTAssertNil(controller.errorMessage)
+  }
+
+  func testMissingLoginItemRegistrationFailureRemainsRecoverable() {
+    let service = LoginItemServiceSpy(status: .notFound)
+    service.operationError = LoginItemTestError.failed
+    let controller = LaunchAtLoginController(service: service)
+
+    controller.setEnabled(true)
+
+    XCTAssertEqual(service.registerCallCount, 1)
+    XCTAssertEqual(controller.state, .unavailable)
+    XCTAssertNotNil(controller.errorMessage)
   }
 
   func testEnablingRegistersAndRefreshesState() {

@@ -10,11 +10,13 @@ struct MihomoMeterApp: App {
     }
     .commands {
       CommandGroup(replacing: .appSettings) {
-        Button("Mihomo 连接设置…") {
+        Button("设置…") {
           appDelegate.showControllerSettings()
         }
         .keyboardShortcut(",", modifiers: .command)
       }
+
+      AppHelpCommands()
     }
   }
 }

@@ -59,7 +59,6 @@ struct ControllerSettingsView: View {
               set: { launchAtLoginController.setEnabled($0) }
             )
           )
-          .disabled(!launchAtLoginController.canToggle)
 
           Text(launchAtLoginController.statusMessage)
             .font(.caption)
@@ -181,7 +180,7 @@ struct ControllerSettingsView: View {
   private var header: some View {
     HStack(alignment: .center, spacing: 12) {
       VStack(alignment: .leading, spacing: 3) {
-        Text("Mihomo 连接")
+        Text("Mihomo Meter 设置")
           .font(.title2.weight(.semibold))
         Text(monitor.message)
           .font(.caption)

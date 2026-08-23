@@ -46,7 +46,7 @@ struct FirstConnectionGuideView: View {
         }
         .buttonStyle(.bordered)
         .controlSize(.large)
-        .accessibilityHint("打开 Mihomo 连接设置窗口")
+        .accessibilityHint("打开设置窗口并配置 Mihomo 连接")
       }
     }
   }
