@@ -212,7 +212,7 @@ internal sealed class SystemNotificationCoordinator : IAsyncDisposable
         var shouldTrack = _traffic.IsConnectionExpected
             && _traffic.HasValidatedConfiguration
             && _traffic.IsSystemEnvironmentAvailable
-            && snapshot.ConnectionState != MonitorConnectionState.Connected;
+            && snapshot.State != MonitorConnectionState.Connected;
         var shouldPersist = false;
         lock (_sync)
         {

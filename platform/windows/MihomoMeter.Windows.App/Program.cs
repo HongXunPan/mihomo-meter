@@ -100,7 +100,7 @@ internal static class Program
             var previousSynchronizationContext = SynchronizationContext.Current;
             try
             {
-                Application.Start(initialization =>
+                Microsoft.UI.Xaml.Application.Start(initialization =>
                 {
                     var context = new DispatcherQueueSynchronizationContext(
                         DispatcherQueue.GetForCurrentThread());
