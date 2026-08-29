@@ -189,9 +189,17 @@ public sealed class QuotaTrackingCoordinatorProfileTests
 
     private sealed class DirectoryObserver : IProfileDirectoryObserver
     {
-        public event Action? Changed;
+        public event Action? Changed
+        {
+            add { }
+            remove { }
+        }
 
-        public event Action? ObservationFailed;
+        public event Action? ObservationFailed
+        {
+            add { }
+            remove { }
+        }
 
         public void Start(string directoryPath)
         {
@@ -203,8 +211,6 @@ public sealed class QuotaTrackingCoordinatorProfileTests
 
         public void Dispose()
         {
-            Changed = null;
-            ObservationFailed = null;
         }
     }
 
@@ -256,7 +262,10 @@ public sealed class QuotaTrackingCoordinatorProfileTests
             string secret,
             CancellationToken cancellationToken)
         {
-            return Task.FromResult(new MihomoProxyProvidersResponse());
+            return Task.FromResult(new MihomoProxyProvidersResponse
+            {
+                Providers = [],
+            });
         }
 
         public Task<MihomoQuotaConfigurationResponse> FetchQuotaConfigurationAsync(

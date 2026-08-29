@@ -9,7 +9,7 @@ public sealed class QuotaRelativeTimeFormatterTests
     private static readonly DateTimeOffset Now =
         new(2026, 8, 29, 12, 0, 0, TimeSpan.Zero);
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(-59, "刚刚")]
     [DataRow(59, "即将")]
     [DataRow(-61, "1 分钟前")]
