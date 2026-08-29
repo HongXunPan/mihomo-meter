@@ -120,9 +120,22 @@ public sealed partial class QuotaTrackingCoordinator
         {
             _message = $"正在查询 {subscription.Name}。";
             Publish(QuotaAvailability.Available);
+            var startedAt = _timeProvider.GetTimestamp();
+            var configuredProxy = _runtimeConfiguration?.Proxy;
+            _diagnosticEventSink.Record(DiagnosticExportEvent.ProfileQuotaQueryStarted(
+                _timeProvider.GetUtcNow(),
+                TriggerValue(trigger),
+                string.Equals(
+                    _catalog.CurrentUid,
+                    profile.Uid,
+                    StringComparison.Ordinal),
+                configuredProxy is null ? "unknown" : ProxyKindValue(configuredProxy.Kind),
+                _runtimeConfiguration?.UsesConfiguredUserAgent == true
+                    ? "mihomo_config"
+                    : "mihomo_default"));
             try
             {
-                var proxy = _runtimeConfiguration?.Proxy
+                var proxy = configuredProxy
                     ?? throw new ActiveQuotaQueryException(
                         ActiveQuotaQueryFailureCategory.NoProxy);
                 var userAgent = _runtimeConfiguration?.UserAgent ?? "clash.meta";
@@ -157,24 +170,70 @@ public sealed partial class QuotaTrackingCoordinator
                     .ConfigureAwait(false);
                 _message = $"{subscription.Name} 配额已更新。";
                 Publish(QuotaAvailability.Available);
+                RecordProfileQueryFinished(
+                    trigger,
+                    "succeeded",
+                    startedAt,
+                    null,
+                    null);
+            }
+            catch (OperationCanceledException)
+            {
+                RecordProfileQueryFinished(
+                    trigger,
+                    "cancelled",
+                    startedAt,
+                    null,
+                    null);
+                throw;
             }
             catch (ActiveQuotaQueryException exception)
             {
                 var failedAt = _timeProvider.GetUtcNow();
-                _ledgerSnapshot = await _ledger
-                    .SaveQueryStateAsync(
-                        _schedulePolicy.Failure(
-                            subscription,
-                            analysis.QueryState,
-                            trigger,
+                var failedState = _schedulePolicy.Failure(
+                    subscription,
+                    analysis.QueryState,
+                    trigger,
+                    failedAt,
+                    RandomJitter(),
+                    FailureCategory(exception));
+                try
+                {
+                    _ledgerSnapshot = await _ledger
+                        .SaveQueryStateAsync(
+                            failedState,
                             failedAt,
-                            RandomJitter(),
-                            FailureCategory(exception)),
-                        failedAt,
-                        queryToken)
-                    .ConfigureAwait(false);
+                            queryToken)
+                        .ConfigureAwait(false);
+                }
+                catch (Exception)
+                {
+                    RecordProfileQueryFinished(
+                        trigger,
+                        "storage_failed",
+                        startedAt,
+                        null,
+                        null);
+                    throw;
+                }
                 _message = exception.Message;
                 Publish(QuotaAvailability.Available);
+                RecordProfileQueryFinished(
+                    trigger,
+                    FailureCategory(exception),
+                    startedAt,
+                    failedState.NextAttemptAt,
+                    exception.StatusCode);
+                throw;
+            }
+            catch (Exception)
+            {
+                RecordProfileQueryFinished(
+                    trigger,
+                    "storage_failed",
+                    startedAt,
+                    null,
+                    null);
                 throw;
             }
         }, queryToken).ConfigureAwait(false);
@@ -183,7 +242,13 @@ public sealed partial class QuotaTrackingCoordinator
     private IEnumerable<SubscriptionQuotaAnalysis> ActiveProfileAnalyses()
     {
         return ProfileAnalyses().Where(item =>
-            item.Subscription.Status == SubscriptionTrackingStatus.Active);
+            item.Subscription.Status == SubscriptionTrackingStatus.Active
+            && _catalog.Profiles.Any(profile =>
+                string.Equals(
+                    profile.Uid,
+                    item.Subscription.ClashProfileUid,
+                    StringComparison.Ordinal)
+                && profile.SupportsActiveQuery));
     }
 
     private static TimeSpan RandomJitter()
@@ -204,6 +269,47 @@ public sealed partial class QuotaTrackingCoordinator
             ActiveQuotaQueryFailureCategory.InsecureUrl => "insecure_url",
             ActiveQuotaQueryFailureCategory.NoProxy => "no_proxy",
             _ => "query_failed",
+        };
+    }
+
+    private void RecordProfileQueryFinished(
+        ProfileQuotaQueryTrigger trigger,
+        string outcome,
+        long startedAt,
+        DateTimeOffset? retryAt,
+        int? httpStatus)
+    {
+        var now = _timeProvider.GetUtcNow();
+        var elapsed = _timeProvider.GetElapsedTime(startedAt).TotalMilliseconds;
+        var elapsedMilliseconds = (int)Math.Clamp(elapsed, 0, int.MaxValue);
+        var retryAfterSeconds = retryAt is null
+            ? null
+            : (int?)Math.Clamp(
+                Math.Ceiling((retryAt.Value - now).TotalSeconds),
+                0,
+                int.MaxValue);
+        _diagnosticEventSink.Record(DiagnosticExportEvent.ProfileQuotaQueryFinished(
+            now,
+            TriggerValue(trigger),
+            outcome,
+            elapsedMilliseconds,
+            retryAfterSeconds,
+            httpStatus));
+    }
+
+    private static string TriggerValue(ProfileQuotaQueryTrigger trigger)
+    {
+        return trigger == ProfileQuotaQueryTrigger.Manual ? "manual" : "automatic";
+    }
+
+    private static string ProxyKindValue(MihomoLocalProxyKind kind)
+    {
+        return kind switch
+        {
+            MihomoLocalProxyKind.Mixed => "mixed",
+            MihomoLocalProxyKind.Http => "http",
+            MihomoLocalProxyKind.Socks => "socks",
+            _ => "unknown",
         };
     }
 }

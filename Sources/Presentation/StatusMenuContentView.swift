@@ -2,10 +2,10 @@ import SwiftUI
 
 enum StatusMenuLayout {
   static let contentWidth: CGFloat = 400
-  static let connectionSubmenuSize = CGSize(width: 360, height: 214)
+  static let connectionSubmenuSize = CGSize(width: 360, height: 252)
   static let classificationSubmenuSize = CGSize(width: 360, height: 176)
   static let routingSubmenuSize = CGSize(width: 360, height: 278)
-  static let quotaTrendSubmenuSize = CGSize(width: 380, height: 460)
+  static let quotaTrendSubmenuSize = CGSize(width: 380, height: 496)
   static let trafficTasksSubmenuSize = CGSize(width: 420, height: 470)
 }
 

@@ -11,6 +11,7 @@ internal sealed class TrafficMonitoringStream
     private readonly TimeProvider _timeProvider;
     private readonly ITrafficStatisticsRecorder _statisticsRecorder;
     private readonly IConnectionAnalyticsRecorder _connectionAnalyticsRecorder;
+    private readonly IDiagnosticEventSink _diagnosticEventSink;
 
     public TrafficMonitoringStream(
         IMihomoControllerClient client,
@@ -18,7 +19,8 @@ internal sealed class TrafficMonitoringStream
         MonitoringPolicy policy,
         TimeProvider timeProvider,
         ITrafficStatisticsRecorder statisticsRecorder,
-        IConnectionAnalyticsRecorder connectionAnalyticsRecorder)
+        IConnectionAnalyticsRecorder connectionAnalyticsRecorder,
+        IDiagnosticEventSink diagnosticEventSink)
     {
         _client = client;
         _collector = collector;
@@ -26,6 +28,7 @@ internal sealed class TrafficMonitoringStream
         _timeProvider = timeProvider;
         _statisticsRecorder = statisticsRecorder;
         _connectionAnalyticsRecorder = connectionAnalyticsRecorder;
+        _diagnosticEventSink = diagnosticEventSink;
     }
 
     public async Task RunAsync(
@@ -50,6 +53,7 @@ internal sealed class TrafficMonitoringStream
         Task<bool>? moveNextTask = null;
         long? connectedAt = null;
         var stablePeriodReached = false;
+        var establishedEventRecorded = false;
 
         try
         {
@@ -91,6 +95,13 @@ internal sealed class TrafficMonitoringStream
                         cancellationToken)
                     .ConfigureAwait(false);
                 display.Apply(result);
+                if (!establishedEventRecorded)
+                {
+                    establishedEventRecorded = true;
+                    _diagnosticEventSink.Record(
+                        DiagnosticExportEvent.ConnectionEstablished(
+                            _timeProvider.GetUtcNow()));
+                }
                 var snapshotTimestamp = _timeProvider.GetTimestamp();
                 connectedAt ??= snapshotTimestamp;
                 stablePeriodReached |= _timeProvider.GetElapsedTime(
@@ -166,6 +177,10 @@ internal sealed class TrafficMonitoringStream
         catch (TimeoutException)
         {
             measurement.ResetBaseline();
+            _diagnosticEventSink.Record(DiagnosticExportEvent.ConnectionDataStale(
+                _timeProvider.GetUtcNow(),
+                (int)_policy.StaleAfter.TotalSeconds,
+                (int)_policy.ReconnectAfter.TotalSeconds));
             publish(new TrafficMonitorSnapshot(
                 MonitorConnectionState.Stale,
                 "实时数据已超时，正在等待恢复。",
@@ -182,6 +197,10 @@ internal sealed class TrafficMonitoringStream
         }
         catch (TimeoutException)
         {
+            _diagnosticEventSink.Record(
+                DiagnosticExportEvent.ConnectionCancellationRequested(
+                    _timeProvider.GetUtcNow(),
+                    "stale_watchdog"));
             streamSource.Cancel();
             await ObserveCancelledMoveAsync(moveNextTask).ConfigureAwait(false);
             throw new ConnectionStreamException(ConnectionStreamError.DataStale);

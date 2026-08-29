@@ -30,6 +30,9 @@ final class AppPresentationCoordinator {
       showStatistics: { [weak self] module in
         self?.showStatisticsWindow(module: module)
       },
+      showLiveConnections: { [weak self] route in
+        self?.showLiveConnectionsWindow(route: route)
+      },
       showControllerSettings: { [weak self] in
         self?.showControllerSettings()
       }
@@ -92,5 +95,10 @@ final class AppPresentationCoordinator {
   private func showStatisticsWindow(module: StatisticsModule) {
     menuBarController.dismissStatusMenuForWindowPresentation()
     statisticsWindowController.show(module: module)
+  }
+
+  private func showLiveConnectionsWindow(route: LiveConnectionRoute) {
+    menuBarController.dismissStatusMenuForWindowPresentation()
+    statisticsWindowController.showLiveConnections(route: route)
   }
 }

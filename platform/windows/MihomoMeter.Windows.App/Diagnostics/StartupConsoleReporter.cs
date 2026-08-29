@@ -146,6 +146,15 @@ internal static class StartupConsoleReporter
         }
     }
 
+    public static void Record(DiagnosticExportEvent diagnosticEvent)
+    {
+        RetainForExport(diagnosticEvent);
+        if (_enabled)
+        {
+            Console.WriteLine($"WINDOWS_DIAGNOSTIC event={diagnosticEvent.Category}");
+        }
+    }
+
     private static void RetainForExport(DiagnosticExportEvent diagnosticEvent)
     {
         lock (ExportEventGate)
@@ -162,4 +171,14 @@ internal static class StartupConsoleReporter
     [DllImport("kernel32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool AttachConsole(uint processId);
+}
+
+internal sealed class StartupDiagnosticEventSink : IDiagnosticEventSink
+{
+    public static StartupDiagnosticEventSink Instance { get; } = new();
+
+    public void Record(DiagnosticExportEvent diagnosticEvent)
+    {
+        StartupConsoleReporter.Record(diagnosticEvent);
+    }
 }

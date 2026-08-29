@@ -36,6 +36,13 @@ enum StatisticsModule: String, CaseIterable, Identifiable, Hashable {
 final class StatisticsWorkspaceModel: ObservableObject {
   @Published var selectedModule = StatisticsModule.proxyTraffic
   @Published var selectedProxyTrafficSection = ProxyTrafficSection.statistics
+  @Published var selectedLiveConnectionRoute = LiveConnectionRoute.proxy
+
+  func selectLiveConnections(route: LiveConnectionRoute) {
+    selectedModule = .proxyTraffic
+    selectedProxyTrafficSection = .liveConnections
+    selectedLiveConnectionRoute = route
+  }
 }
 
 struct StatisticsWorkspaceView: View {
@@ -63,7 +70,8 @@ struct StatisticsWorkspaceView: View {
         TrafficStatisticsView(
           controller: trafficController,
           monitor: monitor,
-          selectedSection: $model.selectedProxyTrafficSection
+          selectedSection: $model.selectedProxyTrafficSection,
+          selectedLiveConnectionRoute: $model.selectedLiveConnectionRoute
         )
       case .connectionAnalytics:
         ConnectionAnalyticsView(

@@ -8,6 +8,7 @@ struct QuotaCumulativeTrendChart: View {
   var externalInteraction: QuotaCumulativeTrendExternalInteraction?
 
   @State private var hoveredPointID: UUID?
+  @FocusState private var isKeyboardFocused: Bool
 
   var body: some View {
     GeometryReader { geometry in
@@ -118,9 +119,23 @@ struct QuotaCumulativeTrendChart: View {
     .accessibilityElement(children: .ignore)
     .accessibilityLabel("机场累计总消耗走势")
     .accessibilityValue(accessibilityValue(model: model, dateDomain: dateDomain))
+    .accessibilityHint("聚焦后可使用左右方向键、Home 和 End 切换真实快照")
 
     chart
       .allowsHitTesting(!isCompact || externalInteraction != nil)
+      .focusable(!isCompact)
+      .focused($isKeyboardFocused)
+      .onMoveCommand { direction in
+        moveSelection(direction, in: model)
+      }
+      .onKeyPress(.home) {
+        moveSelection(.first, in: model)
+        return .handled
+      }
+      .onKeyPress(.end) {
+        moveSelection(.last, in: model)
+        return .handled
+      }
       .chartXAxis {
         AxisMarks(values: .automatic(desiredCount: isCompact ? 3 : 4)) { value in
           AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5, dash: [3, 3]))
@@ -197,6 +212,33 @@ struct QuotaCumulativeTrendChart: View {
       return
     }
     hoveredPointID = pointID
+  }
+
+  private func moveSelection(
+    _ direction: MoveCommandDirection,
+    in model: QuotaCumulativeTrendChartModel
+  ) {
+    switch direction {
+    case .left:
+      moveSelection(.previous, in: model)
+    case .right:
+      moveSelection(.next, in: model)
+    default:
+      break
+    }
+  }
+
+  private func moveSelection(
+    _ direction: QuotaCumulativeTrendSelectionDirection,
+    in model: QuotaCumulativeTrendChartModel
+  ) {
+    guard !isCompact, externalInteraction == nil else {
+      return
+    }
+    hoveredPointID = model.pointID(
+      movingFrom: hoveredPointID,
+      direction: direction
+    )
   }
 
   private func segmentSeriesID(

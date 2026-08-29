@@ -32,19 +32,6 @@ public sealed partial class QuotaTrackingCoordinator
             await _directoryStore.ClearAsync(cancellationToken).ConfigureAwait(false);
             _profileDirectoryPath = null;
             _catalog = ClashProfileCatalog.Empty;
-            var now = _timeProvider.GetUtcNow();
-            foreach (var analysis in ProfileAnalyses()
-                .Where(item => item.Subscription.Status == SubscriptionTrackingStatus.Active))
-            {
-                _ledgerSnapshot = await _ledger
-                    .SetSubscriptionStatusAsync(
-                        analysis.Subscription.Id,
-                        SubscriptionTrackingStatus.Paused,
-                        now,
-                        cancellationToken)
-                    .ConfigureAwait(false);
-            }
-
             _message = "Profile 目录访问已停止，既有配额历史已保留。";
             Publish(QuotaAvailability.Available);
         }, cancellationToken);
@@ -191,12 +178,13 @@ public sealed partial class QuotaTrackingCoordinator
                 string.Equals(item.Uid, existing.ClashProfileUid, StringComparison.Ordinal));
             if (profile is null)
             {
-                if (existing.Status == SubscriptionTrackingStatus.Active)
+                if (existing.Status is SubscriptionTrackingStatus.Active
+                    or SubscriptionTrackingStatus.Paused)
                 {
                     _ledgerSnapshot = await _ledger
                         .SetSubscriptionStatusAsync(
                             existing.Id,
-                            SubscriptionTrackingStatus.Paused,
+                            SubscriptionTrackingStatus.Unsupported,
                             now,
                             cancellationToken)
                         .ConfigureAwait(false);
@@ -208,11 +196,19 @@ public sealed partial class QuotaTrackingCoordinator
             var fingerprint = await _fingerprinter
                 .FingerprintAsync(profile.SubscriptionUri, cancellationToken)
                 .ConfigureAwait(false);
+            var status = existing.Status switch
+            {
+                SubscriptionTrackingStatus.Archived => SubscriptionTrackingStatus.Archived,
+                _ when !profile.SupportsActiveQuery => SubscriptionTrackingStatus.Unsupported,
+                SubscriptionTrackingStatus.Unsupported => SubscriptionTrackingStatus.Active,
+                _ => existing.Status,
+            };
             if (!string.Equals(existing.Name, profile.Name, StringComparison.Ordinal)
                 || !string.Equals(
                     existing.UrlFingerprint,
                     fingerprint,
-                    StringComparison.Ordinal))
+                    StringComparison.Ordinal)
+                || existing.Status != status)
             {
                 var updated = new TrackedSubscription(
                     existing.Id,
@@ -221,7 +217,7 @@ public sealed partial class QuotaTrackingCoordinator
                     existing.ClashProfileUid,
                     fingerprint,
                     existing.RefreshIntervalMinutes,
-                    existing.Status,
+                    status,
                     existing.CreatedAt,
                     now);
                 _ledgerSnapshot = await _ledger

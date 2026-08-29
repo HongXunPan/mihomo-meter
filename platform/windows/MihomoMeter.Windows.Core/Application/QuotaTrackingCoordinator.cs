@@ -15,6 +15,7 @@ public sealed partial class QuotaTrackingCoordinator : IQuotaTrackingLifecycle, 
     private readonly IProfileUrlFingerprinter _fingerprinter;
     private readonly IActiveQuotaQueryClient _activeQueryClient;
     private readonly ProfileQuotaSchedulePolicy _schedulePolicy;
+    private readonly IDiagnosticEventSink _diagnosticEventSink;
     private readonly TimeProvider _timeProvider;
     private readonly SemaphoreSlim _operationGate = new(1, 1);
     private readonly QuotaQueryGate _queryGate = new();
@@ -50,7 +51,8 @@ public sealed partial class QuotaTrackingCoordinator : IQuotaTrackingLifecycle, 
         IProfileUrlFingerprinter fingerprinter,
         IActiveQuotaQueryClient activeQueryClient,
         TimeProvider? timeProvider = null,
-        ProfileQuotaSchedulePolicy? schedulePolicy = null)
+        ProfileQuotaSchedulePolicy? schedulePolicy = null,
+        IDiagnosticEventSink? diagnosticEventSink = null)
     {
         _ledger = ledger;
         _controllerClient = controllerClient;
@@ -61,6 +63,7 @@ public sealed partial class QuotaTrackingCoordinator : IQuotaTrackingLifecycle, 
         _activeQueryClient = activeQueryClient;
         _timeProvider = timeProvider ?? TimeProvider.System;
         _schedulePolicy = schedulePolicy ?? new ProfileQuotaSchedulePolicy();
+        _diagnosticEventSink = diagnosticEventSink ?? NullDiagnosticEventSink.Instance;
         var now = _timeProvider.GetUtcNow();
         _ledgerSnapshot = QuotaLedgerSnapshot.Empty(now);
         _currentState = QuotaTrackingState.Loading(now);

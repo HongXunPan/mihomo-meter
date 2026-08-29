@@ -2,24 +2,28 @@ import SwiftUI
 
 struct ProxyConnectionTopListView: View {
   @ObservedObject var monitor: TrafficMonitor
+  let showAll: () -> Void
 
   var body: some View {
     ConnectionTopListView(
       connections: monitor.liveProxyConnections,
       emptyDescription: "暂无正在传输的 Proxy 连接。",
-      accessibilityLabel: "当前传输中的 Proxy 连接"
+      accessibilityLabel: "当前传输中的 Proxy 连接",
+      showAll: showAll
     )
   }
 }
 
 struct DirectConnectionTopListView: View {
   @ObservedObject var monitor: TrafficMonitor
+  let showAll: () -> Void
 
   var body: some View {
     ConnectionTopListView(
       connections: monitor.liveDirectConnections,
       emptyDescription: "暂无正在传输的 DIRECT 连接。",
-      accessibilityLabel: "当前传输中的 DIRECT 连接"
+      accessibilityLabel: "当前传输中的 DIRECT 连接",
+      showAll: showAll
     )
   }
 }
@@ -28,6 +32,7 @@ private struct ConnectionTopListView: View {
   let connections: [LiveTrafficConnection]
   let emptyDescription: String
   let accessibilityLabel: String
+  let showAll: () -> Void
 
   var body: some View {
     ZStack {
@@ -39,6 +44,12 @@ private struct ConnectionTopListView: View {
             rowPlaceholder
           }
         }
+
+        Divider()
+
+        Button("查看实时连接…", action: showAll)
+          .buttonStyle(.borderless)
+          .frame(maxWidth: .infinity, alignment: .trailing)
       }
 
       if activeConnectionCount == 0 {

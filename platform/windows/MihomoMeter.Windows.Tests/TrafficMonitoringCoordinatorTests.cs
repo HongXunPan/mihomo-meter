@@ -16,22 +16,28 @@ public sealed class TrafficMonitoringCoordinatorTests
         var client = new TestControllerClient(sequence);
         var collector = new TestSnapshotCollector(sequence);
         var store = new TestConfigurationStore(sequence);
+        var diagnostics = new RecordingDiagnosticEventSink();
         await using var coordinator = new TrafficMonitoringCoordinator(
             client,
             collector,
-            store);
+            store,
+            diagnosticEventSink: diagnostics);
 
         await coordinator.StartAsync(
             "127.0.0.1:9090",
             "synthetic-secret",
             true);
         await collector.Started.Task.WaitAsync(TimeSpan.FromSeconds(2));
+        await diagnostics.Established.Task.WaitAsync(TimeSpan.FromSeconds(2));
 
         CollectionAssert.AreEqual(
             new[] { "version", "proxies", "configs", "save", "stream" },
             sequence);
         Assert.AreEqual("http://127.0.0.1:9090", store.SavedAddress);
         Assert.AreEqual("synthetic-secret", store.SavedSecret);
+        CollectionAssert.IsSubsetOf(
+            new[] { "connection.attempt.started", "connection.established" },
+            diagnostics.Events.Select(item => item.Category).ToArray());
     }
 
     [TestMethod]
@@ -79,10 +85,12 @@ public sealed class TrafficMonitoringCoordinatorTests
             RuntimeConfigurationFailure = new MihomoControllerException(
                 MihomoControllerError.UnsupportedResponse),
         };
+        var diagnostics = new RecordingDiagnosticEventSink();
         await using var coordinator = new TrafficMonitoringCoordinator(
             client,
             collector,
-            new TestConfigurationStore(sequence));
+            new TestConfigurationStore(sequence),
+            diagnosticEventSink: diagnostics);
 
         await coordinator.StartAsync("127.0.0.1:9090", string.Empty, false);
         await collector.Started.Task.WaitAsync(TimeSpan.FromSeconds(2));
@@ -90,6 +98,9 @@ public sealed class TrafficMonitoringCoordinatorTests
         CollectionAssert.AreEqual(
             new[] { "version", "proxies", "configs", "stream" },
             sequence);
+        Assert.IsTrue(diagnostics.Events.Any(item =>
+            item.Category == "runtime_configuration.unavailable"
+            && item.Reason == "unsupported_response"));
     }
 
     [TestMethod]
@@ -470,6 +481,38 @@ public sealed class TrafficMonitoringCoordinatorTests
         {
             InterruptionReasons.Add(reason);
             return Task.CompletedTask;
+        }
+    }
+
+    private sealed class RecordingDiagnosticEventSink : IDiagnosticEventSink
+    {
+        private readonly object _gate = new();
+        private readonly List<DiagnosticExportEvent> _events = [];
+
+        public TaskCompletionSource<bool> Established { get; } = new(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public IReadOnlyList<DiagnosticExportEvent> Events
+        {
+            get
+            {
+                lock (_gate)
+                {
+                    return _events.ToArray();
+                }
+            }
+        }
+
+        public void Record(DiagnosticExportEvent diagnosticEvent)
+        {
+            lock (_gate)
+            {
+                _events.Add(diagnosticEvent);
+            }
+            if (diagnosticEvent.Category == "connection.established")
+            {
+                Established.TrySetResult(true);
+            }
         }
     }
 

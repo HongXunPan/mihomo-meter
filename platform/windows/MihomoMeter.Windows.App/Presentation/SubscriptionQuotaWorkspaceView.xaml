@@ -152,6 +152,7 @@
                                                 <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="状态" />
                                                 <TextBlock Text="{x:Bind UpdatedText, Mode=OneWay}" TextWrapping="Wrap" />
                                                 <TextBlock Text="{x:Bind ForecastText, Mode=OneWay}" TextWrapping="Wrap" />
+                                                <TextBlock Text="{x:Bind ExpirationText, Mode=OneWay}" TextWrapping="Wrap" />
                                             </StackPanel>
                                         </Grid>
 
@@ -160,6 +161,37 @@
                                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                             Text="{x:Bind StatusText, Mode=OneWay}"
                                             TextWrapping="Wrap" />
+                                        <Border
+                                            Padding="10"
+                                            Background="{ThemeResource MihomoStatusWarningBackgroundBrush}"
+                                            CornerRadius="8"
+                                            Visibility="{x:Bind ConfirmVisibility, Mode=OneWay}">
+                                            <TextBlock
+                                                Foreground="{ThemeResource MihomoStatusWarningBrush}"
+                                                Text="用量下降可能代表套餐重置，请确认新周期后再参与耗尽预测。"
+                                                TextWrapping="Wrap" />
+                                        </Border>
+                                        <ItemsRepeater
+                                            ItemsSource="{x:Bind RecentEvents, Mode=OneWay}"
+                                            Visibility="{x:Bind RecentEventsVisibility, Mode=OneWay}">
+                                            <ItemsRepeater.ItemTemplate>
+                                                <DataTemplate x:DataType="presentation:QuotaEventSummaryViewModel">
+                                                    <Grid Padding="10,4" ColumnSpacing="8">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto" />
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock FontWeight="SemiBold" Text="{x:Bind Symbol}" />
+                                                        <TextBlock Grid.Column="1" Text="{x:Bind Text}" TextWrapping="Wrap" />
+                                                        <TextBlock
+                                                            Grid.Column="2"
+                                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                            Text="{x:Bind TimingText}" />
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </ItemsRepeater.ItemTemplate>
+                                        </ItemsRepeater>
                                         <presentation:QuotaTrendChartView Model="{x:Bind ChartModel, Mode=OneWay}" />
                                     </StackPanel>
                                 </Border>

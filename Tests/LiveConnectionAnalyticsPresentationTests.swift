@@ -3,6 +3,17 @@ import XCTest
 @testable import MihomoMeter
 
 final class LiveConnectionAnalyticsPresentationTests: XCTestCase {
+  @MainActor
+  func testWorkspaceSelectionOpensRequestedLiveConnectionRoute() {
+    let model = StatisticsWorkspaceModel()
+
+    model.selectLiveConnections(route: .direct)
+
+    XCTAssertEqual(model.selectedModule, .proxyTraffic)
+    XCTAssertEqual(model.selectedProxyTrafficSection, .liveConnections)
+    XCTAssertEqual(model.selectedLiveConnectionRoute, .direct)
+  }
+
   func testRouteSelectionKeepsProxyAndDirectConnectionsSeparated() {
     let proxyConnections = [
       connection(id: "proxy", application: "Browser", hostname: "proxy.example")

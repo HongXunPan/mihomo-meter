@@ -85,7 +85,24 @@ final class ProfileQuotaStatusPresentationTests: SQLiteQuotaLedgerTestCase {
     XCTAssertEqual(failed.title, "本次查询失败")
     XCTAssertEqual(
       failed.compactSummary,
-      "2小时前更新 · \(SubscriptionQuotaFormatter.upcomingDate(retryAt, relativeTo: now))自动重试"
+      "2 小时前更新 · \(SubscriptionQuotaFormatter.upcomingDate(retryAt, relativeTo: now))自动重试"
+    )
+  }
+
+  func testRelativeTimeUsesStableCrossPlatformUnits() {
+    let now = Date(timeIntervalSince1970: 1_700_800_000)
+
+    XCTAssertEqual(
+      SubscriptionQuotaFormatter.updatedAt(now.addingTimeInterval(-61), relativeTo: now),
+      "1 分钟前"
+    )
+    XCTAssertEqual(
+      SubscriptionQuotaFormatter.upcomingDate(now.addingTimeInterval(3_601), relativeTo: now),
+      "1 小时后"
+    )
+    XCTAssertEqual(
+      SubscriptionQuotaFormatter.updatedAt(now.addingTimeInterval(-259_200), relativeTo: now),
+      "3 天前"
     )
   }
 
@@ -109,6 +126,26 @@ final class ProfileQuotaStatusPresentationTests: SQLiteQuotaLedgerTestCase {
       SubscriptionQuotaFormatter.depletion(trends.depletionForecast, relativeTo: now),
       "预计可用约 4 天"
     )
+  }
+
+  func testRemainingDurationUsesUnifiedHumanReadableUnits() {
+    let cases = [
+      (days: 0, expected: "0 天"),
+      (days: 59, expected: "59 天"),
+      (days: 60, expected: "2 个月"),
+      (days: 364, expected: "12 个月"),
+      (days: 365, expected: "1 年"),
+      (days: 400, expected: "1 年 1 个月"),
+      (days: 729, expected: "2 年"),
+      (days: 3_712, expected: "10 年 2 个月"),
+    ]
+
+    for testCase in cases {
+      XCTAssertEqual(
+        SubscriptionQuotaFormatter.remainingDuration(days: testCase.days),
+        testCase.expected
+      )
+    }
   }
 
   private func trackingItem(

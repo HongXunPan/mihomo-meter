@@ -51,6 +51,13 @@ struct QuotaCumulativeTrendDisplaySegment: Identifiable, Equatable, Sendable {
   let points: [QuotaCumulativeTrendDisplayPoint]
 }
 
+enum QuotaCumulativeTrendSelectionDirection: Equatable, Sendable {
+  case previous
+  case next
+  case first
+  case last
+}
+
 struct QuotaCumulativeTrendChartModel: Equatable, Sendable {
   static let minimumPointCount = 2
   static let maximumPointCount = 30
@@ -153,6 +160,35 @@ struct QuotaCumulativeTrendChartModel: Equatable, Sendable {
     return nearestPoint(
       to: dateDomain.lowerBound.addingTimeInterval(duration * normalizedPosition)
     )
+  }
+
+  func pointID(
+    movingFrom selectedPointID: UUID?,
+    direction: QuotaCumulativeTrendSelectionDirection
+  ) -> UUID? {
+    let orderedPoints = points.sorted { left, right in
+      Self.pointOrder(left.point, right.point)
+    }
+    guard !orderedPoints.isEmpty else {
+      return nil
+    }
+
+    let currentIndex =
+      selectedPointID.flatMap { selectedID in
+        orderedPoints.firstIndex { $0.id == selectedID }
+      } ?? (orderedPoints.count - 1)
+    let nextIndex: Int
+    switch direction {
+    case .previous:
+      nextIndex = max(currentIndex - 1, 0)
+    case .next:
+      nextIndex = min(currentIndex + 1, orderedPoints.count - 1)
+    case .first:
+      nextIndex = 0
+    case .last:
+      nextIndex = orderedPoints.count - 1
+    }
+    return orderedPoints[nextIndex].id
   }
 
   private struct SplitSegment {
