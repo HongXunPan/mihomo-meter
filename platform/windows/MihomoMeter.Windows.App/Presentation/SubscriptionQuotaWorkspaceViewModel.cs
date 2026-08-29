@@ -11,20 +11,12 @@ namespace MihomoMeter.Windows.App.Presentation;
 
 public sealed partial class SubscriptionQuotaWorkspaceViewModel : INotifyPropertyChanged
 {
-    private static readonly IReadOnlyList<QuotaWindowOption> Windows =
-    [
-        new(QuotaTrendWindow.Day, "24 小时"),
-        new(QuotaTrendWindow.Week, "7 天"),
-        new(QuotaTrendWindow.Month, "30 天"),
-        new(QuotaTrendWindow.Year, "12 月"),
-    ];
-
     private readonly DispatcherQueue _dispatcherQueue;
     private readonly QuotaTrackingCoordinator _coordinator;
     private readonly ObservableCollection<SubscriptionQuotaCardViewModel> _cards = [];
     private readonly ObservableCollection<ProfileTrackingOptionViewModel> _profiles = [];
     private QuotaTrackingState _state;
-    private QuotaWindowOption _selectedWindow = Windows[1];
+    private QuotaWindowOption _selectedWindow = QuotaTrendWindowOptions.All[1];
 
     internal SubscriptionQuotaWorkspaceViewModel(
         DispatcherQueue dispatcherQueue,
@@ -39,7 +31,7 @@ public sealed partial class SubscriptionQuotaWorkspaceViewModel : INotifyPropert
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    public IReadOnlyList<QuotaWindowOption> WindowOptions => Windows;
+    public IReadOnlyList<QuotaWindowOption> WindowOptions => QuotaTrendWindowOptions.All;
 
     public QuotaWindowOption SelectedWindow
     {

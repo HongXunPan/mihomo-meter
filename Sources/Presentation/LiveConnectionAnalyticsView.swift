@@ -3,7 +3,7 @@ import SwiftUI
 struct LiveConnectionAnalyticsView: View {
   @ObservedObject var monitor: TrafficMonitor
 
-  @State private var selectedRoute = LiveConnectionRoute.proxy
+  @Binding var selectedRoute: LiveConnectionRoute
   @State private var selectedMode = LiveConnectionViewMode.connection
   @State private var searchText = ""
 

@@ -6,6 +6,22 @@ namespace MihomoMeter.Windows.App.Presentation;
 
 public sealed record QuotaWindowOption(QuotaTrendWindow Window, string Title);
 
+internal static class QuotaTrendWindowOptions
+{
+    public static IReadOnlyList<QuotaWindowOption> All { get; } =
+    [
+        new(QuotaTrendWindow.Day, "24 小时"),
+        new(QuotaTrendWindow.Week, "7 天"),
+        new(QuotaTrendWindow.Month, "30 天"),
+        new(QuotaTrendWindow.Year, "12 月"),
+    ];
+}
+
+public sealed record QuotaEventSummaryViewModel(
+    string Symbol,
+    string Text,
+    string TimingText);
+
 public sealed class SubscriptionQuotaCardViewModel : INotifyPropertyChanged
 {
     private string _name;
@@ -16,12 +32,17 @@ public sealed class SubscriptionQuotaCardViewModel : INotifyPropertyChanged
     private string _percentageText;
     private double _remainingRatio;
     private string _updatedText;
+    private string _expirationText;
     private string _forecastText;
     private string _statusText;
     private bool _canRefresh;
     private Visibility _refreshVisibility;
     private Visibility _confirmVisibility;
     private QuotaTrendChartModel _chartModel;
+    private IReadOnlyList<QuotaEventSummaryViewModel> _recentEvents;
+    private Visibility _recentEventsVisibility;
+    private IReadOnlyDictionary<QuotaTrendWindow, QuotaTrendChartModel> _trendModels;
+    private QuotaWindowOption _selectedDetailWindow;
 
     internal SubscriptionQuotaCardViewModel(
         Guid id,
@@ -33,13 +54,17 @@ public sealed class SubscriptionQuotaCardViewModel : INotifyPropertyChanged
         string percentageText,
         double remainingRatio,
         string updatedText,
+        string expirationText,
         string forecastText,
         string statusText,
         bool canRefresh,
         Visibility refreshVisibility,
         Visibility confirmVisibility,
         Guid? cycleId,
-        QuotaTrendChartModel chartModel)
+        QuotaTrendChartModel chartModel,
+        IReadOnlyList<QuotaEventSummaryViewModel> recentEvents,
+        IReadOnlyDictionary<QuotaTrendWindow, QuotaTrendChartModel> trendModels,
+        QuotaWindowOption selectedWindow)
     {
         Id = id;
         _name = name;
@@ -50,6 +75,7 @@ public sealed class SubscriptionQuotaCardViewModel : INotifyPropertyChanged
         _percentageText = percentageText;
         _remainingRatio = remainingRatio;
         _updatedText = updatedText;
+        _expirationText = expirationText;
         _forecastText = forecastText;
         _statusText = statusText;
         _canRefresh = canRefresh;
@@ -57,6 +83,12 @@ public sealed class SubscriptionQuotaCardViewModel : INotifyPropertyChanged
         _confirmVisibility = confirmVisibility;
         CycleId = cycleId;
         _chartModel = chartModel;
+        _recentEvents = recentEvents;
+        _recentEventsVisibility = recentEvents.Count > 0
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+        _trendModels = trendModels;
+        _selectedDetailWindow = selectedWindow;
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -79,6 +111,8 @@ public sealed class SubscriptionQuotaCardViewModel : INotifyPropertyChanged
 
     public string UpdatedText => _updatedText;
 
+    public string ExpirationText => _expirationText;
+
     public string ForecastText => _forecastText;
 
     public string StatusText => _statusText;
@@ -92,6 +126,33 @@ public sealed class SubscriptionQuotaCardViewModel : INotifyPropertyChanged
     public Guid? CycleId { get; private set; }
 
     public QuotaTrendChartModel ChartModel => _chartModel;
+
+    public IReadOnlyList<QuotaEventSummaryViewModel> RecentEvents => _recentEvents;
+
+    public Visibility RecentEventsVisibility => _recentEventsVisibility;
+
+    public IReadOnlyList<QuotaWindowOption> WindowOptions => QuotaTrendWindowOptions.All;
+
+    public QuotaWindowOption SelectedDetailWindow
+    {
+        get => _selectedDetailWindow;
+        set
+        {
+            if (value is null || Equals(_selectedDetailWindow, value))
+            {
+                return;
+            }
+
+            _selectedDetailWindow = value;
+            PropertyChanged?.Invoke(
+                this,
+                new PropertyChangedEventArgs(nameof(SelectedDetailWindow)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DetailChartModel)));
+        }
+    }
+
+    public QuotaTrendChartModel DetailChartModel =>
+        _trendModels[_selectedDetailWindow.Window];
 
     internal void Apply(SubscriptionQuotaCardViewModel snapshot)
     {
@@ -108,6 +169,7 @@ public sealed class SubscriptionQuotaCardViewModel : INotifyPropertyChanged
         Set(ref _percentageText, snapshot.PercentageText, nameof(PercentageText));
         Set(ref _remainingRatio, snapshot.RemainingRatio, nameof(RemainingRatio));
         Set(ref _updatedText, snapshot.UpdatedText, nameof(UpdatedText));
+        Set(ref _expirationText, snapshot.ExpirationText, nameof(ExpirationText));
         Set(ref _forecastText, snapshot.ForecastText, nameof(ForecastText));
         Set(ref _statusText, snapshot.StatusText, nameof(StatusText));
         Set(ref _canRefresh, snapshot.CanRefresh, nameof(CanRefresh));
@@ -116,6 +178,14 @@ public sealed class SubscriptionQuotaCardViewModel : INotifyPropertyChanged
         CycleId = snapshot.CycleId;
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CycleId)));
         Set(ref _chartModel, snapshot.ChartModel, nameof(ChartModel));
+        _recentEvents = snapshot.RecentEvents;
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(RecentEvents)));
+        Set(
+            ref _recentEventsVisibility,
+            snapshot.RecentEventsVisibility,
+            nameof(RecentEventsVisibility));
+        _trendModels = snapshot._trendModels;
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DetailChartModel)));
     }
 
     private void Set<T>(ref T field, T value, string propertyName)

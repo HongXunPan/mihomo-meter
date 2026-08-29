@@ -85,7 +85,24 @@ final class ProfileQuotaStatusPresentationTests: SQLiteQuotaLedgerTestCase {
     XCTAssertEqual(failed.title, "本次查询失败")
     XCTAssertEqual(
       failed.compactSummary,
-      "2小时前更新 · \(SubscriptionQuotaFormatter.upcomingDate(retryAt, relativeTo: now))自动重试"
+      "2 小时前更新 · \(SubscriptionQuotaFormatter.upcomingDate(retryAt, relativeTo: now))自动重试"
+    )
+  }
+
+  func testRelativeTimeUsesStableCrossPlatformUnits() {
+    let now = Date(timeIntervalSince1970: 1_700_800_000)
+
+    XCTAssertEqual(
+      SubscriptionQuotaFormatter.updatedAt(now.addingTimeInterval(-61), relativeTo: now),
+      "1 分钟前"
+    )
+    XCTAssertEqual(
+      SubscriptionQuotaFormatter.upcomingDate(now.addingTimeInterval(3_601), relativeTo: now),
+      "1 小时后"
+    )
+    XCTAssertEqual(
+      SubscriptionQuotaFormatter.updatedAt(now.addingTimeInterval(-259_200), relativeTo: now),
+      "3 天前"
     )
   }
 

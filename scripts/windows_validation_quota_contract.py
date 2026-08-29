@@ -46,6 +46,7 @@ QUOTA_REQUIRED_CORE_FILES = (
     "Application/FaultIsolatedQuotaTrackingLifecycle.cs",
     "Application/ProfileDirectory.cs",
     "Application/ProfileQuotaSchedulePolicy.cs",
+    "Application/QuotaRelativeTimeFormatter.cs",
     "Application/QuotaLedger.cs",
     "Application/QuotaQueryGate.cs",
     "Application/QuotaTrackingCoordinator.cs",
@@ -81,7 +82,9 @@ QUOTA_REQUIRED_TEST_FILES = (
     "ProfileQuotaIdentityTests.cs",
     "QuotaDomainTests.cs",
     "QuotaLifecycleIsolationTests.cs",
+    "QuotaRelativeTimeFormatterTests.cs",
     "QuotaQueryGateTests.cs",
+    "QuotaTrackingCoordinatorProfileTests.cs",
     "SQLiteQuotaLedgerTests.cs",
 )
 
@@ -100,6 +103,8 @@ QUOTA_REQUIRED_CODE_MARKERS = {
         "ShowTrendButton_Click",
         "ConfirmCycleButton_Click",
         "ClearButton_Click",
+        "ExpirationText",
+        "RecentEvents",
     ),
     APP_ROOT / "Presentation/SubscriptionQuotaWorkspaceView.xaml.cs": (
         "SubscriptionProfileManagementView",
@@ -145,6 +150,7 @@ QUOTA_REQUIRED_CODE_MARKERS = {
         "ApplyStableCollection",
         "QuotaTrendChartModel",
         "CanRefreshManually",
+        "QuotaRelativeTimeFormatter.Format",
     ),
     APP_ROOT / "Presentation/NotificationAreaQuotaController.cs": (
         "MaximumItems = 5",
@@ -198,6 +204,16 @@ QUOTA_REQUIRED_CODE_MARKERS = {
     CORE_ROOT / "Application/ProfileQuotaSchedulePolicy.cs": (
         "ManualRefreshCooldown = TimeSpan.FromSeconds(60)",
         "MaximumAutomaticRetriesPerDay = 3",
+    ),
+    CORE_ROOT / "Application/QuotaRelativeTimeFormatter.cs": (
+        "分钟",
+        "小时",
+        "天",
+    ),
+    CORE_ROOT / "Application/QuotaTrackingCoordinator.Queries.cs": (
+        "ProfileQuotaQueryStarted",
+        "ProfileQuotaQueryFinished",
+        "profile.SupportsActiveQuery",
     ),
     CORE_ROOT / "Application/FaultIsolatedQuotaTrackingLifecycle.cs": (
         "IgnoreFailureAsync",

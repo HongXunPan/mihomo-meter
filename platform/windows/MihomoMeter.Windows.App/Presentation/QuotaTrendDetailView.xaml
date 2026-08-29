@@ -6,22 +6,34 @@
 
     <ScrollViewer>
         <StackPanel Padding="28" Spacing="18">
-            <StackPanel Spacing="4">
-                <TextBlock
-                    FontSize="28"
-                    FontWeight="SemiBold"
-                    Text="{x:Bind Model.Name, Mode=OneWay}" />
-                <TextBlock
-                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                    Text="{x:Bind Model.IdentityText, Mode=OneWay}" />
-            </StackPanel>
+            <Grid ColumnSpacing="16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Spacing="4">
+                    <TextBlock
+                        FontSize="28"
+                        FontWeight="SemiBold"
+                        Text="{x:Bind Model.Name, Mode=OneWay}" />
+                    <TextBlock
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="{x:Bind Model.IdentityText, Mode=OneWay}" />
+                </StackPanel>
+                <ComboBox
+                    Grid.Column="1"
+                    Width="140"
+                    DisplayMemberPath="Title"
+                    ItemsSource="{x:Bind Model.WindowOptions}"
+                    SelectedItem="{x:Bind Model.SelectedDetailWindow, Mode=TwoWay}" />
+            </Grid>
             <InfoBar
                 IsClosable="False"
                 IsOpen="True"
                 Message="图表只连接同一连续周期内的真实快照；跨周期或累计回退会断线。可用鼠标或方向键查看实际时间与增量。"
                 Severity="Informational"
                 Title="累计趋势" />
-            <presentation:QuotaTrendChartView Model="{x:Bind Model.ChartModel, Mode=OneWay}" />
+            <presentation:QuotaTrendChartView Model="{x:Bind Model.DetailChartModel, Mode=OneWay}" />
         </StackPanel>
     </ScrollViewer>
 </UserControl>

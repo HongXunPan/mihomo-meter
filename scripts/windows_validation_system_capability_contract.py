@@ -27,7 +27,9 @@ SYSTEM_CAPABILITY_REQUIRED_APP_FILES = (
 )
 
 SYSTEM_CAPABILITY_REQUIRED_CORE_FILES = (
+    "Application/DiagnosticExportEvent.cs",
     "Application/DiagnosticExportReport.cs",
+    "Application/DiagnosticExportRuntimeEvents.cs",
     "Application/TrafficMonitoringCoordinator.SystemRecovery.cs",
     "Domain/SystemNotificationPolicy.cs",
     "Domain/SystemRecoveryPolicy.cs",
@@ -51,16 +53,30 @@ SYSTEM_CAPABILITY_REQUIRED_CODE_MARKERS = {
         "DiagnosticExportSnapshot",
         "DiagnosticExportEvent.ApplicationFailure",
         "DiagnosticExportReport.MaximumEventCount",
+        "StartupDiagnosticEventSink",
     ),
     APP_ROOT / "Presentation/GeneralSettingsView.xaml": (
         'Content="导出诊断信息…"',
         "DiagnosticExportInfoBar",
+        'Text="帮助与文档"',
+        "wiki.metacubex.one/config/general/",
+        "issues/new/choose",
     ),
     CORE_ROOT / "Application/DiagnosticExportReport.cs": (
         "CurrentSchemaVersion = 1",
         "MaximumEventCount = 200",
-        "AllowedToken",
         "JsonIgnoreCondition.WhenWritingNull",
+    ),
+    CORE_ROOT / "Application/DiagnosticExportEvent.cs": (
+        "AllowedToken",
+    ),
+    CORE_ROOT / "Application/DiagnosticExportRuntimeEvents.cs": (
+        "CredentialOperationFinished",
+        "ConnectionReconnectScheduled",
+        "ProfileQuotaQueryFinished",
+        "credential.operation.started",
+        "connection.attempt.started",
+        "profile_quota.query.started",
     ),
     APP_ROOT / "Infrastructure/System/WindowsSystemEnvironmentMonitor.cs": (
         "WTSRegisterSessionNotification",

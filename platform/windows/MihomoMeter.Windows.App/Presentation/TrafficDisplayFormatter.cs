@@ -1,3 +1,4 @@
+using System.Globalization;
 using MihomoMeter.Windows.Core.Application;
 using MihomoMeter.Windows.Core.Domain;
 
@@ -44,7 +45,12 @@ internal static class TrafficDisplayFormatter
 
     public static string DateTime(DateTimeOffset value)
     {
-        return value.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss");
+        return value.ToLocalTime().ToString("G", CultureInfo.CurrentCulture);
+    }
+
+    public static string Date(DateTimeOffset value)
+    {
+        return value.ToLocalTime().ToString("D", CultureInfo.CurrentCulture);
     }
 
     public static string Percentage(double? rate)

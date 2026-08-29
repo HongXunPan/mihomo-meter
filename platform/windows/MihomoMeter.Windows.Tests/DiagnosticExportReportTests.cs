@@ -63,4 +63,48 @@ public sealed class DiagnosticExportReportTests
             Now.AddSeconds(DiagnosticExportReport.MaximumEventCount + 2),
             report.Events[^1].Timestamp);
     }
+
+    [TestMethod]
+    public void RuntimeEventsExposeOnlyWhitelistedOperationalFields()
+    {
+        var events = new[]
+        {
+            DiagnosticExportEvent.CredentialOperationStarted(Now, "private-secret"),
+            DiagnosticExportEvent.ConnectionReconnectScheduled(
+                Now,
+                "C:\\Users\\private\\profile.yaml",
+                5),
+            DiagnosticExportEvent.ProfileQuotaQueryStarted(
+                Now,
+                "manual",
+                true,
+                "mixed",
+                "mihomo_config"),
+            DiagnosticExportEvent.ProfileQuotaQueryFinished(
+                Now,
+                "manual",
+                "missing_header",
+                48,
+                300,
+                200),
+        };
+        var report = DiagnosticExportReport.Create(
+            Now,
+            new DiagnosticExportEnvironment("windows", "1", "1", "Windows", "x64"),
+            "connected",
+            events);
+
+        var contents = Encoding.UTF8.GetString(report.Encode());
+
+        StringAssert.Contains(contents, "\"category\": \"credential.operation.started\"");
+        StringAssert.Contains(contents, "\"operation\": \"unknown\"");
+        StringAssert.Contains(contents, "\"reason\": \"unknown\"");
+        StringAssert.Contains(contents, "\"category\": \"profile_quota.query.finished\"");
+        StringAssert.Contains(contents, "\"outcome\": \"missing_header\"");
+        StringAssert.Contains(contents, "\"retryAfterSeconds\": 300");
+        StringAssert.Contains(contents, "\"httpStatus\": 200");
+        Assert.IsFalse(contents.Contains("private-secret", StringComparison.Ordinal));
+        Assert.IsFalse(contents.Contains("Users", StringComparison.Ordinal));
+        Assert.IsFalse(contents.Contains("profile.yaml", StringComparison.Ordinal));
+    }
 }

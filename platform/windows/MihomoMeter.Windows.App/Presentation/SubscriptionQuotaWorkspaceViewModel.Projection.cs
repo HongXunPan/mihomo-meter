@@ -34,7 +34,9 @@ public sealed partial class SubscriptionQuotaWorkspaceViewModel
         var percentage = traffic is null
             ? 0
             : (double)traffic.Value.RemainingBytes / traffic.Value.TotalBytes;
-        var trend = analysis.Trends[_selectedWindow.Window];
+        var trendModels = analysis.Trends.ToDictionary(
+            item => item.Key,
+            item => TrendModel(item.Value));
         var canRefresh = subscription.IdentityMode == SubscriptionIdentityMode.ClashProfile
             && subscription.Status == SubscriptionTrackingStatus.Active
             && _state.ActiveQueryAvailable
@@ -50,6 +52,7 @@ public sealed partial class SubscriptionQuotaWorkspaceViewModel
             traffic is null ? "--" : $"{percentage:P1}",
             percentage,
             SubscriptionQuotaFormatter.UpdatedAt(latest?.EffectiveAt, now),
+            SubscriptionQuotaFormatter.Expiration(latest?.ExpireAt, now),
             SubscriptionQuotaFormatter.Forecast(analysis.Forecast, now),
             StatusText(analysis, now),
             canRefresh,
@@ -60,12 +63,38 @@ public sealed partial class SubscriptionQuotaWorkspaceViewModel
                 ? Visibility.Visible
                 : Visibility.Collapsed,
             analysis.CurrentCycle?.Id,
-            new QuotaTrendChartModel(
-                trend,
-                $"本范围新增：下载 {SubscriptionQuotaFormatter.Bytes(trend.RangeUsage.DownloadBytes)}"
-                    + $" · 上传 {SubscriptionQuotaFormatter.Bytes(trend.RangeUsage.UploadBytes)}"
-                    + $" · 合计 {SubscriptionQuotaFormatter.Bytes(trend.RangeUsage.TotalBytes)}",
-                "当前范围内尚无可绘制的真实快照。"));
+            trendModels[_selectedWindow.Window],
+            analysis.RecentEvents
+                .Take(3)
+                .Select(item => new QuotaEventSummaryViewModel(
+                    EventSymbol(item.Kind),
+                    SubscriptionQuotaFormatter.Event(item.Kind),
+                    QuotaRelativeTimeFormatter.Format(item.OccurredAt, now)))
+                .ToArray(),
+            trendModels,
+            _selectedWindow);
+    }
+
+    private static QuotaTrendChartModel TrendModel(QuotaTrend trend)
+    {
+        return new QuotaTrendChartModel(
+            trend,
+            $"本范围新增：下载 {SubscriptionQuotaFormatter.Bytes(trend.RangeUsage.DownloadBytes)}"
+                + $" · 上传 {SubscriptionQuotaFormatter.Bytes(trend.RangeUsage.UploadBytes)}"
+                + $" · 合计 {SubscriptionQuotaFormatter.Bytes(trend.RangeUsage.TotalBytes)}",
+            "当前范围内尚无可绘制的真实快照。");
+    }
+
+    private static string EventSymbol(QuotaEventKind kind)
+    {
+        return kind switch
+        {
+            QuotaEventKind.UsageReset => "↻",
+            QuotaEventKind.TotalIncreased => "+",
+            QuotaEventKind.TotalDecreased => "−",
+            QuotaEventKind.ExpirationChanged => "◷",
+            _ => "•",
+        };
     }
 
     private void UpdateProfiles()

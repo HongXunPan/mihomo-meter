@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
 using MihomoMeter.Windows.Core.Application;
@@ -9,22 +10,42 @@ internal sealed class CredentialManagerSecretStore : IControllerSecretStore
     internal const string TargetName = "com.HongXunPan.MihomoMeter.controller";
     private static readonly UTF8Encoding SecretEncoding = new(false, true);
     private readonly CredentialManagerBlobStore _store = new(TargetName);
+    private readonly IDiagnosticEventSink _diagnosticEventSink;
+
+    public CredentialManagerSecretStore(IDiagnosticEventSink? diagnosticEventSink = null)
+    {
+        _diagnosticEventSink = diagnosticEventSink ?? NullDiagnosticEventSink.Instance;
+    }
 
     public Task<string?> LoadAsync(CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var data = _store.Load();
+        var startedAt = Start("load");
+        byte[]? data;
+        try
+        {
+            data = _store.Load();
+        }
+        catch (Exception exception)
+        {
+            Finish("load", "failed", startedAt, exception);
+            throw;
+        }
         if (data is null)
         {
+            Finish("load", "not_found", startedAt);
             return Task.FromResult<string?>(null);
         }
 
         try
         {
-            return Task.FromResult<string?>(SecretEncoding.GetString(data));
+            var secret = SecretEncoding.GetString(data);
+            Finish("load", "succeeded", startedAt);
+            return Task.FromResult<string?>(secret);
         }
         catch (DecoderFallbackException exception)
         {
+            Finish("load", "failed", startedAt, exception);
             throw new CredentialManagerException("解码", innerException: exception);
         }
         finally
@@ -41,11 +62,18 @@ internal sealed class CredentialManagerSecretStore : IControllerSecretStore
             return DeleteAsync(cancellationToken);
         }
 
+        var startedAt = Start("save");
         var data = SecretEncoding.GetBytes(secret);
         try
         {
             _store.Save(data);
+            Finish("save", "succeeded", startedAt);
             return Task.CompletedTask;
+        }
+        catch (Exception exception)
+        {
+            Finish("save", "failed", startedAt, exception);
+            throw;
         }
         finally
         {
@@ -56,8 +84,48 @@ internal sealed class CredentialManagerSecretStore : IControllerSecretStore
     public Task DeleteAsync(CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        _store.Delete();
-        return Task.CompletedTask;
+        var startedAt = Start("delete");
+        try
+        {
+            _store.Delete();
+            Finish("delete", "succeeded", startedAt);
+            return Task.CompletedTask;
+        }
+        catch (Exception exception)
+        {
+            Finish("delete", "failed", startedAt, exception);
+            throw;
+        }
+    }
+
+    private long Start(string operation)
+    {
+        _diagnosticEventSink.Record(DiagnosticExportEvent.CredentialOperationStarted(
+            DateTimeOffset.UtcNow,
+            operation));
+        return Stopwatch.GetTimestamp();
+    }
+
+    private void Finish(
+        string operation,
+        string status,
+        long startedAt,
+        Exception? exception = null)
+    {
+        var elapsed = Stopwatch.GetElapsedTime(startedAt).TotalMilliseconds;
+        var elapsedMilliseconds = (int)Math.Clamp(elapsed, 0, int.MaxValue);
+        var hresult = exception switch
+        {
+            CredentialManagerException credential => credential.ErrorCode ?? credential.HResult,
+            null => null,
+            _ => exception.HResult,
+        };
+        _diagnosticEventSink.Record(DiagnosticExportEvent.CredentialOperationFinished(
+            DateTimeOffset.UtcNow,
+            operation,
+            status,
+            elapsedMilliseconds,
+            hresult));
     }
 }
 

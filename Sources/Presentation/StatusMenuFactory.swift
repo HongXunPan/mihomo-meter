@@ -11,6 +11,7 @@ struct StatusMenuFactory {
   func makeController(
     showControllerSettings: @escaping () -> Void,
     showTrafficStatistics: @escaping () -> Void,
+    showLiveConnections: @escaping (LiveConnectionRoute) -> Void,
     proxyTrafficNavigationItem: NSMenuItem,
     subscriptionQuotaNavigationItem: NSMenuItem
   ) -> StatusMenuController {
@@ -44,7 +45,9 @@ struct StatusMenuFactory {
 
     return StatusMenuController(
       primaryContent: primaryContent,
-      submenuConfigurations: makeSubmenuConfigurations(),
+      submenuConfigurations: makeSubmenuConfigurations(
+        showLiveConnections: showLiveConnections
+      ),
       sectionConfigurations: [
         StatusMenuSectionConfiguration(
           content: trafficSummaryContent,
@@ -79,13 +82,21 @@ struct StatusMenuFactory {
     )
   }
 
-  private func makeSubmenuConfigurations() -> [StatusMenuSubmenuConfiguration] {
+  private func makeSubmenuConfigurations(
+    showLiveConnections: @escaping (LiveConnectionRoute) -> Void
+  ) -> [StatusMenuSubmenuConfiguration] {
     let proxyConnectionsController = makeFixedHostingController(
-      rootView: ProxyConnectionTopListView(monitor: monitor),
+      rootView: ProxyConnectionTopListView(
+        monitor: monitor,
+        showAll: { showLiveConnections(.proxy) }
+      ),
       contentSize: StatusMenuLayout.connectionSubmenuSize
     )
     let directConnectionsController = makeFixedHostingController(
-      rootView: DirectConnectionTopListView(monitor: monitor),
+      rootView: DirectConnectionTopListView(
+        monitor: monitor,
+        showAll: { showLiveConnections(.direct) }
+      ),
       contentSize: StatusMenuLayout.connectionSubmenuSize
     )
     let classificationController = makeFixedHostingController(

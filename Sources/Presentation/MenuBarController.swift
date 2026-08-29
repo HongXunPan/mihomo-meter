@@ -3,6 +3,7 @@ import Combine
 
 struct MenuBarPresentationActions {
   let showStatistics: (StatisticsModule) -> Void
+  let showLiveConnections: (LiveConnectionRoute) -> Void
   let showControllerSettings: () -> Void
 }
 
@@ -87,6 +88,11 @@ final class MenuBarController: NSObject {
       showTrafficStatistics: { [weak self] in
         self?.showProxyTrafficStatistics()
       },
+      showLiveConnections: { [weak self] route in
+        self?.performMenuAction {
+          self?.actions.showLiveConnections(route)
+        }
+      },
       proxyTrafficNavigationItem: makeProxyTrafficNavigationItem(),
       subscriptionQuotaNavigationItem: makeSubscriptionQuotaNavigationItem()
     )
@@ -116,6 +122,14 @@ final class MenuBarController: NSObject {
 
   private func appendNativeActions(to menu: NSMenu) {
     menu.addItem(.separator())
+
+    let connectionAnalyticsItem = NSMenuItem(
+      title: "连接分析…",
+      action: #selector(showConnectionAnalytics),
+      keyEquivalent: ""
+    )
+    connectionAnalyticsItem.target = self
+    menu.addItem(connectionAnalyticsItem)
 
     let settingsItem = NSMenuItem(
       title: "Mihomo 连接设置…",
@@ -237,6 +251,13 @@ final class MenuBarController: NSObject {
   private func showSubscriptionQuotaStatistics() {
     performMenuAction {
       actions.showStatistics(.subscriptionQuota)
+    }
+  }
+
+  @objc
+  private func showConnectionAnalytics() {
+    performMenuAction {
+      actions.showStatistics(.connectionAnalytics)
     }
   }
 

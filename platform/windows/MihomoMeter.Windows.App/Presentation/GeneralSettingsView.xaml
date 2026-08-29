@@ -17,7 +17,7 @@
                     Text="通用" />
                 <TextBlock
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                    Text="管理当前用户的登录启动、系统通知和诊断导出。"
+                    Text="管理当前用户的登录启动、系统通知、帮助入口和诊断导出。"
                     TextWrapping="Wrap" />
             </StackPanel>
 
@@ -41,6 +41,48 @@
                         HorizontalAlignment="Left"
                         Click="RepairRegistrationButton_Click"
                         Content="改为当前程序" />
+                </StackPanel>
+            </Border>
+
+            <Border
+                Padding="20"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="8">
+                <StackPanel Spacing="8">
+                    <TextBlock
+                        FontSize="18"
+                        FontWeight="SemiBold"
+                        Text="帮助与文档" />
+                    <TextBlock
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="双端使用相同的产品文档、Mihomo 配置参考、版本下载与反馈入口。"
+                        TextWrapping="Wrap" />
+                    <HyperlinkButton
+                        HorizontalAlignment="Left"
+                        Content="第一次使用：从零开始"
+                        NavigateUri="https://github.com/HongXunPan/mihomo-meter/wiki/%E5%87%86%E5%A4%87-Mihomo" />
+                    <HyperlinkButton
+                        HorizontalAlignment="Left"
+                        Content="配置订阅地址与余额追踪"
+                        NavigateUri="https://github.com/HongXunPan/mihomo-meter/wiki/%E9%85%8D%E7%BD%AE%E8%AE%A2%E9%98%85%E5%9C%B0%E5%9D%80" />
+                    <HyperlinkButton
+                        HorizontalAlignment="Left"
+                        Content="Mihomo 官方 Controller 配置"
+                        NavigateUri="https://wiki.metacubex.one/config/general/" />
+                    <HyperlinkButton
+                        HorizontalAlignment="Left"
+                        Content="Mihomo Meter 使用指南"
+                        NavigateUri="https://github.com/HongXunPan/mihomo-meter/wiki" />
+                    <HyperlinkButton
+                        HorizontalAlignment="Left"
+                        Content="版本发布与下载"
+                        NavigateUri="https://github.com/HongXunPan/mihomo-meter/releases" />
+                    <HyperlinkButton
+                        HorizontalAlignment="Left"
+                        Content="问题反馈"
+                        NavigateUri="https://github.com/HongXunPan/mihomo-meter/issues/new/choose" />
                 </StackPanel>
             </Border>
 

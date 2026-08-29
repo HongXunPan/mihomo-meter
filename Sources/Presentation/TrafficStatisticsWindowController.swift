@@ -73,6 +73,11 @@ final class TrafficStatisticsWindowController: NSWindowController, NSWindowDeleg
     showCurrentModule()
   }
 
+  func showLiveConnections(route: LiveConnectionRoute) {
+    workspaceModel.selectLiveConnections(route: route)
+    showCurrentModule()
+  }
+
   func showCurrentModule() {
     dockVisibilityController.windowWillPresent(.statistics)
     NSApplication.shared.activate()

@@ -10,6 +10,7 @@ public sealed partial class TrafficMonitoringCoordinator : IAsyncDisposable
     private readonly TrafficMonitoringStream _stream;
     private readonly ITrafficStatisticsRecorder _statisticsRecorder;
     private readonly IQuotaTrackingLifecycle _quotaTrackingLifecycle;
+    private readonly IDiagnosticEventSink _diagnosticEventSink;
     private readonly TimeProvider _timeProvider;
     private readonly SemaphoreSlim _transitionLock = new(1, 1);
     private readonly object _stateLock = new();
@@ -29,13 +30,15 @@ public sealed partial class TrafficMonitoringCoordinator : IAsyncDisposable
         TimeProvider? timeProvider = null,
         ITrafficStatisticsRecorder? statisticsRecorder = null,
         IQuotaTrackingLifecycle? quotaTrackingLifecycle = null,
-        IConnectionAnalyticsRecorder? connectionAnalyticsRecorder = null)
+        IConnectionAnalyticsRecorder? connectionAnalyticsRecorder = null,
+        IDiagnosticEventSink? diagnosticEventSink = null)
     {
         var selectedPolicy = (policy ?? MonitoringPolicy.Production).Validate();
         _client = client;
         _configurationStore = configurationStore;
         _timeProvider = timeProvider ?? TimeProvider.System;
         _statisticsRecorder = statisticsRecorder ?? NullTrafficStatisticsRecorder.Instance;
+        _diagnosticEventSink = diagnosticEventSink ?? NullDiagnosticEventSink.Instance;
         var analyticsRecorder = new FaultIsolatedConnectionAnalyticsRecorder(
             connectionAnalyticsRecorder ?? NullConnectionAnalyticsRecorder.Instance);
         _quotaTrackingLifecycle = new FaultIsolatedQuotaTrackingLifecycle(
@@ -46,7 +49,8 @@ public sealed partial class TrafficMonitoringCoordinator : IAsyncDisposable
             selectedPolicy,
             _timeProvider,
             _statisticsRecorder,
-            analyticsRecorder);
+            analyticsRecorder,
+            _diagnosticEventSink);
     }
 
     public event Action<TrafficMonitorSnapshot>? SnapshotChanged;
@@ -122,6 +126,9 @@ public sealed partial class TrafficMonitoringCoordinator : IAsyncDisposable
                 .InterruptMonitoringAsync(reason, cancellationToken)
                 .ConfigureAwait(false);
             Publish(generation, TrafficMonitorSnapshot.Disconnected);
+            _diagnosticEventSink.Record(DiagnosticExportEvent.ConnectionStopped(
+                _timeProvider.GetUtcNow(),
+                EndReason(reason)));
         }
         finally
         {
@@ -162,9 +169,17 @@ public sealed partial class TrafficMonitoringCoordinator : IAsyncDisposable
         var backoff = new ReconnectBackoff();
         var shouldSaveConfiguration = saveValidatedConfiguration;
         var isFirstAttempt = true;
+        var attemptNumber = 0;
 
         while (!cancellationToken.IsCancellationRequested)
         {
+            attemptNumber += 1;
+            _diagnosticEventSink.Record(DiagnosticExportEvent.ConnectionAttemptStarted(
+                _timeProvider.GetUtcNow(),
+                isFirstAttempt
+                    ? saveValidatedConfiguration ? "user_request" : "application_startup"
+                    : "automatic_retry",
+                attemptNumber));
             Publish(generation, new TrafficMonitorSnapshot(
                 isFirstAttempt
                     ? MonitorConnectionState.Connecting
@@ -223,6 +238,7 @@ public sealed partial class TrafficMonitoringCoordinator : IAsyncDisposable
 
                 if (PublishTerminalIfNeeded(generation, exception.RootException))
                 {
+                    RecordTerminalStop(exception.RootException);
                     await _quotaTrackingLifecycle
                         .ControllerUnavailableAsync(CancellationToken.None)
                         .ConfigureAwait(false);
@@ -240,13 +256,14 @@ public sealed partial class TrafficMonitoringCoordinator : IAsyncDisposable
                 await WaitForRetryAsync(
                     generation,
                     backoff,
-                    exception.RootException.Message,
+                    exception.RootException,
                     cancellationToken).ConfigureAwait(false);
             }
             catch (Exception exception) when (exception is not OperationCanceledException)
             {
                 if (PublishTerminalIfNeeded(generation, exception))
                 {
+                    RecordTerminalStop(exception);
                     await _quotaTrackingLifecycle
                         .ControllerUnavailableAsync(CancellationToken.None)
                         .ConfigureAwait(false);
@@ -264,7 +281,7 @@ public sealed partial class TrafficMonitoringCoordinator : IAsyncDisposable
                 await WaitForRetryAsync(
                     generation,
                     backoff,
-                    exception.Message,
+                    exception,
                     cancellationToken).ConfigureAwait(false);
             }
 
@@ -275,13 +292,17 @@ public sealed partial class TrafficMonitoringCoordinator : IAsyncDisposable
     private async Task WaitForRetryAsync(
         long generation,
         ReconnectBackoff backoff,
-        string message,
+        Exception exception,
         CancellationToken cancellationToken)
     {
         var delaySeconds = backoff.NextDelaySeconds();
+        _diagnosticEventSink.Record(DiagnosticExportEvent.ConnectionReconnectScheduled(
+            _timeProvider.GetUtcNow(),
+            DiagnosticReason(exception),
+            delaySeconds));
         Publish(generation, new TrafficMonitorSnapshot(
             MonitorConnectionState.Reconnecting,
-            $"{message} 将在 {delaySeconds} 秒后重试。"));
+            $"{exception.Message} 将在 {delaySeconds} 秒后重试。"));
         try
         {
             await Task.Delay(
@@ -310,8 +331,12 @@ public sealed partial class TrafficMonitoringCoordinator : IAsyncDisposable
         {
             throw;
         }
-        catch (Exception)
+        catch (Exception exception)
         {
+            _diagnosticEventSink.Record(
+                DiagnosticExportEvent.RuntimeConfigurationUnavailable(
+                    _timeProvider.GetUtcNow(),
+                    DiagnosticReason(exception)));
             return null;
         }
     }
@@ -360,6 +385,52 @@ public sealed partial class TrafficMonitoringCoordinator : IAsyncDisposable
         }
 
         return false;
+    }
+
+    private void RecordTerminalStop(Exception exception)
+    {
+        _diagnosticEventSink.Record(DiagnosticExportEvent.ConnectionStopped(
+            _timeProvider.GetUtcNow(),
+            DiagnosticReason(exception)));
+    }
+
+    private static string DiagnosticReason(Exception exception)
+    {
+        return exception switch
+        {
+            MihomoControllerException { Reason: MihomoControllerError.AuthenticationFailed } =>
+                "authentication_failed",
+            MihomoControllerException { Reason: MihomoControllerError.UnsupportedResponse } =>
+                "unsupported_response",
+            MihomoControllerException { Reason: MihomoControllerError.HttpStatus } =>
+                "controller_http",
+            MihomoControllerException { Reason: MihomoControllerError.Network } =>
+                "controller_network",
+            MihomoControllerException { Reason: MihomoControllerError.Timeout } =>
+                "controller_timeout",
+            ConnectionStreamException { Reason: ConnectionStreamError.Closed } =>
+                "stream_closed",
+            ConnectionStreamException { Reason: ConnectionStreamError.Network } =>
+                "stream_network",
+            ConnectionStreamException { Reason: ConnectionStreamError.Timeout } =>
+                "stream_timeout",
+            ConnectionStreamException { Reason: ConnectionStreamError.DataStale } =>
+                "data_stale",
+            ConnectionStreamException => "unsupported_response",
+            ControllerConfigurationException => "configuration_failure",
+            _ => "unknown",
+        };
+    }
+
+    private static string EndReason(TrafficSessionEndReason reason)
+    {
+        return reason switch
+        {
+            TrafficSessionEndReason.MonitoringStopped => "monitoring_stopped",
+            TrafficSessionEndReason.ApplicationExit => "application_exit",
+            TrafficSessionEndReason.TerminalFailure => "terminal_failure",
+            _ => "unknown",
+        };
     }
 
     private async Task StopActiveRunAsync()

@@ -20,10 +20,16 @@ enum SubscriptionQuotaFormatter {
   }
 
   static func relativeDate(_ date: Date, relativeTo referenceDate: Date) -> String {
-    let formatter = RelativeDateTimeFormatter()
-    formatter.locale = Locale(identifier: "zh_Hans_CN")
-    formatter.unitsStyle = .short
-    return formatter.localizedString(for: date, relativeTo: referenceDate)
+    let difference = date.timeIntervalSince(referenceDate)
+    let absoluteSeconds = abs(difference)
+    let suffix = difference < 0 ? "前" : "后"
+    if absoluteSeconds < 3_600 {
+      return "\(max(Int(absoluteSeconds / 60), 1)) 分钟\(suffix)"
+    }
+    if absoluteSeconds < 86_400 {
+      return "\(max(Int(absoluteSeconds / 3_600), 1)) 小时\(suffix)"
+    }
+    return "\(max(Int(absoluteSeconds / 86_400), 1)) 天\(suffix)"
   }
 
   static func expiration(_ date: Date?) -> String {

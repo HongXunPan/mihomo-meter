@@ -1,4 +1,5 @@
 using MihomoMeter.Windows.App.Application;
+using MihomoMeter.Windows.App.Diagnostics;
 using MihomoMeter.Windows.App.Infrastructure.Configuration;
 using MihomoMeter.Windows.App.Infrastructure.ConnectionAnalytics;
 using MihomoMeter.Windows.App.Infrastructure.Credentials;
@@ -77,9 +78,10 @@ internal sealed class WindowsAppServices : IAsyncDisposable
             UseProxy = true,
         });
         var controllerClient = new MihomoControllerClient(controllerHttpClient);
+        var diagnosticEventSink = StartupDiagnosticEventSink.Instance;
         var configurationStore = new ValidatedControllerConfigurationStore(
             new JsonControllerAddressStore(),
-            new CredentialManagerSecretStore());
+            new CredentialManagerSecretStore(diagnosticEventSink));
         var trafficLedger = new SQLiteTrafficLedger(TrafficLedgerLocation.DefaultDatabasePath());
         var connectionAnalytics = new ConnectionAnalyticsCoordinator(
             new SQLiteConnectionAnalyticsLedger(
@@ -96,14 +98,16 @@ internal sealed class WindowsAppServices : IAsyncDisposable
             new ProfileDirectoryObserver(),
             new HmacProfileUrlFingerprinter(
                 new CredentialManagerProfileFingerprintKeyStore()),
-            new MihomoActiveQuotaQueryClient());
+            new MihomoActiveQuotaQueryClient(),
+            diagnosticEventSink: diagnosticEventSink);
         var coordinator = new TrafficMonitoringCoordinator(
             controllerClient,
             new ConnectionSnapshotCollector(),
             configurationStore,
             statisticsRecorder: statistics,
             quotaTrackingLifecycle: quota,
-            connectionAnalyticsRecorder: connectionAnalytics);
+            connectionAnalyticsRecorder: connectionAnalytics,
+            diagnosticEventSink: diagnosticEventSink);
         var systemNotifications = new SystemNotificationCoordinator(
             quota,
             coordinator,

@@ -143,6 +143,30 @@ final class QuotaCumulativeTrendChartModelTests: XCTestCase {
     XCTAssertEqual(model.nearestPoint(atNormalizedPosition: 2)?.id, points[2].id)
   }
 
+  func testKeyboardSelectionMovesAcrossRealPointsAndClampsAtEdges() throws {
+    let points = [
+      try point(at: 0, uploadBytes: 10, downloadBytes: 20),
+      try point(at: 60, uploadBytes: 20, downloadBytes: 40),
+      try point(at: 120, uploadBytes: 30, downloadBytes: 60),
+    ]
+    let model = QuotaCumulativeTrendChartModel(
+      segments: [QuotaTrendSegment(cycleID: UUID(), points: points)],
+      targetPointCount: 30
+    )
+
+    XCTAssertEqual(model.pointID(movingFrom: nil, direction: .previous), points[1].id)
+    XCTAssertEqual(
+      model.pointID(movingFrom: points[1].id, direction: .previous),
+      points[0].id
+    )
+    XCTAssertEqual(
+      model.pointID(movingFrom: points[0].id, direction: .previous),
+      points[0].id
+    )
+    XCTAssertEqual(model.pointID(movingFrom: points[0].id, direction: .last), points[2].id)
+    XCTAssertEqual(model.pointID(movingFrom: points[2].id, direction: .first), points[0].id)
+  }
+
   func testAreaValuesStackRangeIncrementsToActualTotal() throws {
     let points = [
       try point(at: 0, uploadBytes: 10, downloadBytes: 20),

@@ -4,6 +4,7 @@ struct TrafficStatisticsView: View {
   @ObservedObject var controller: TrafficStatisticsController
   @ObservedObject var monitor: TrafficMonitor
   @Binding var selectedSection: ProxyTrafficSection
+  @Binding var selectedLiveConnectionRoute: LiveConnectionRoute
 
   @State private var filter = TrafficStatisticsFilter.all
   @State private var editor: TrafficIntervalEditor?
@@ -29,7 +30,10 @@ struct TrafficStatisticsView: View {
             intervalPendingDeletion: $intervalPendingDeletion
           )
         case .liveConnections:
-          LiveConnectionAnalyticsView(monitor: monitor)
+          LiveConnectionAnalyticsView(
+            monitor: monitor,
+            selectedRoute: $selectedLiveConnectionRoute
+          )
         }
       }
       .padding(20)

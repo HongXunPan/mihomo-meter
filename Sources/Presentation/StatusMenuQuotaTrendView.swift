@@ -9,6 +9,13 @@ struct StatusMenuQuotaTrendView: View {
     VStack(alignment: .leading, spacing: 10) {
       targetHeader
 
+      if profileQuotaController.snapshot.profiles.count > 1 {
+        TimelineView(.periodic(from: state.referenceDate, by: 1)) { context in
+          refreshAllButton(relativeTo: context.date)
+            .frame(maxWidth: .infinity, alignment: .trailing)
+        }
+      }
+
       Divider()
 
       if let target {
@@ -192,6 +199,23 @@ struct StatusMenuQuotaTrendView: View {
     .controlSize(.small)
     .disabled(!canRefresh)
     .help(canRefresh ? "立即通过 Mihomo 本地代理查询这个 Profile" : status.message)
+  }
+
+  private func refreshAllButton(relativeTo date: Date) -> some View {
+    let canRefresh =
+      !profileQuotaController.snapshot.isRefreshingAll
+      && profileQuotaController.snapshot.profiles.contains { $0.canRefresh(at: date) }
+    return Button {
+      Task {
+        await profileQuotaController.refreshAll()
+      }
+    } label: {
+      Label("立即查询全部", systemImage: "arrow.triangle.2.circlepath")
+    }
+    .buttonStyle(.bordered)
+    .controlSize(.small)
+    .disabled(!canRefresh)
+    .help(canRefresh ? "立即查询所有当前可刷新的 Profile" : "当前没有可立即查询的 Profile")
   }
 
   private func emptyState(title: String, message: String) -> some View {
