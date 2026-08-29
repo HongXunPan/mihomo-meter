@@ -1,3 +1,4 @@
+using MihomoMeter.Windows.Core.Application;
 using MihomoMeter.Windows.Core.Domain;
 
 namespace MihomoMeter.Windows.App.Presentation;
@@ -37,7 +38,9 @@ internal static class SubscriptionQuotaFormatter
         if (forecast.EstimatedAt is DateTimeOffset estimatedAt)
         {
             var days = Math.Max((int)Math.Ceiling((estimatedAt - now).TotalDays), 0);
-            return $"预计可用 {days} 天 · {estimatedAt.LocalDateTime:yyyy-MM-dd}";
+            return days == 0
+                ? "可能即将耗尽"
+                : $"预计可用约 {QuotaRemainingDurationFormatter.FormatDays(days)}";
         }
 
         return forecast.UnavailableReason switch

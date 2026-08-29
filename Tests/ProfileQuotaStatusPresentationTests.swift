@@ -111,6 +111,26 @@ final class ProfileQuotaStatusPresentationTests: SQLiteQuotaLedgerTestCase {
     )
   }
 
+  func testRemainingDurationUsesUnifiedHumanReadableUnits() {
+    let cases = [
+      (days: 0, expected: "0 天"),
+      (days: 59, expected: "59 天"),
+      (days: 60, expected: "2 个月"),
+      (days: 364, expected: "12 个月"),
+      (days: 365, expected: "1 年"),
+      (days: 400, expected: "1 年 1 个月"),
+      (days: 729, expected: "2 年"),
+      (days: 3_712, expected: "10 年 2 个月"),
+    ]
+
+    for testCase in cases {
+      XCTAssertEqual(
+        SubscriptionQuotaFormatter.remainingDuration(days: testCase.days),
+        testCase.expected
+      )
+    }
+  }
+
   private func trackingItem(
     at date: Date,
     latestQuotaAt: Date?,

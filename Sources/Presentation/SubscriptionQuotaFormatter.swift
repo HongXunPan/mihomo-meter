@@ -185,7 +185,9 @@ enum SubscriptionQuotaFormatter {
         Int((estimatedDepletionAt.timeIntervalSince(referenceDate) / 86_400).rounded(.up)),
         0
       )
-      return remainingDays == 0 ? "可能即将耗尽" : "预计可用约 \(remainingDays) 天"
+      return remainingDays == 0
+        ? "可能即将耗尽"
+        : "预计可用约 \(remainingDuration(days: remainingDays))"
     case .unavailable(let reason):
       switch reason {
       case .insufficientSamples:
@@ -204,6 +206,24 @@ enum SubscriptionQuotaFormatter {
         return "额度已耗尽"
       }
     }
+  }
+
+  static func remainingDuration(days: Int) -> String {
+    let normalizedDays = max(days, 0)
+    guard normalizedDays >= 60 else {
+      return "\(normalizedDays) 天"
+    }
+    guard normalizedDays >= 365 else {
+      return "\((normalizedDays + 15) / 30) 个月"
+    }
+
+    var years = normalizedDays / 365
+    var months = ((normalizedDays % 365) + 15) / 30
+    if months >= 12 {
+      years += 1
+      months = 0
+    }
+    return months == 0 ? "\(years) 年" : "\(years) 年 \(months) 个月"
   }
 
   static func quotaEvent(_ event: QuotaEvent) -> String {

@@ -195,7 +195,7 @@ struct StatusMenuQuotaMetricsView: View {
       Color.secondary.opacity(0.12),
       in: RoundedRectangle(cornerRadius: 6, style: .continuous)
     )
-    .help("切换本地趋势范围，不会触发机场查询或改变预计可用天数")
+    .help("切换本地趋势范围，不会触发机场查询或改变预计可用时长")
   }
 
   private func rangeButton(_ option: QuotaTrendWindow) -> some View {
