@@ -114,7 +114,7 @@ internal sealed class CredentialManagerSecretStore : IControllerSecretStore
     {
         var elapsed = Stopwatch.GetElapsedTime(startedAt).TotalMilliseconds;
         var elapsedMilliseconds = (int)Math.Clamp(elapsed, 0, int.MaxValue);
-        var hresult = exception switch
+        int? hresult = exception switch
         {
             CredentialManagerException credential => credential.ErrorCode ?? credential.HResult,
             null => null,

@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using Microsoft.UI.Xaml;
+using MihomoMeter.Windows.Core.Application;
 using MihomoMeter.Windows.Core.Domain;
 
 namespace MihomoMeter.Windows.App.Presentation;
