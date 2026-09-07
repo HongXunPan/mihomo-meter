@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "repository": "HongXunPan/mihomo-meter",
+  "metric": "application-downloads",
+  "assetScope": [
+    "macos-dmg",
+    "windows-setup",
+    "windows-portable"
+  ],
+  "points": [
+    {
+      "date": "2026-09-07",
+      "count": 57
+    }
+  ]
+}
