@@ -55,7 +55,7 @@ PATH="${fake_bin_directory}:${PATH}" \
   --repository HongXunPan/mihomo-meter \
   --output "${badge_path}"
 
-expected_badge='{"schemaVersion":1,"label":"DMG 下载量","message":"10","color":"blue"}'
+expected_badge='{"schemaVersion":1,"label":"应用下载量","message":"10","color":"blue"}'
 actual_badge="$(cat "${badge_path}")"
 if [[ "${actual_badge}" != "${expected_badge}" ]]; then
   echo "徽章 JSON 不符合预期。" >&2
@@ -69,6 +69,7 @@ assert_contains "repos/HongXunPan/mihomo-meter/releases?per_page=100" "${argumen
 assert_contains "select(.draft == false and .prerelease == false)" "${arguments_path}"
 assert_contains 'select(.state == "uploaded")' "${arguments_path}"
 assert_contains "macos-(arm64|x86_64|universal)" "${arguments_path}"
+assert_contains 'windows-x64-(setup\\.exe|portable\\.zip)' "${arguments_path}"
 
 PATH="${fake_bin_directory}:${PATH}" \
   FAKE_GH_OUTPUT="" \
@@ -76,7 +77,7 @@ PATH="${fake_bin_directory}:${PATH}" \
   --repository HongXunPan/mihomo-meter \
   --output "${badge_path}"
 
-expected_empty_badge='{"schemaVersion":1,"label":"DMG 下载量","message":"0","color":"blue"}'
+expected_empty_badge='{"schemaVersion":1,"label":"应用下载量","message":"0","color":"blue"}'
 actual_empty_badge="$(cat "${badge_path}")"
 if [[ "${actual_empty_badge}" != "${expected_empty_badge}" ]]; then
   fail "没有 Release 时应生成下载量为 0 的徽章。"

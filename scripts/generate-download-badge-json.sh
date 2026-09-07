@@ -10,7 +10,7 @@ usage() {
     --output 输出文件
 
 说明：
-  汇总公开正式 Release 中三个 macOS DMG 资产的下载次数。
+  汇总公开正式 Release 中 macOS DMG 与 Windows 安装资产的下载次数。
   草稿、预发布、未上传完成的资产、更新清单和校验文件不会计入。
 EOF
 }
@@ -67,7 +67,7 @@ release_asset_filter='.[]
 | select(
     .name
     | test(
-        "^Mihomo-Meter-(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)-macos-(arm64|x86_64|universal)\\.dmg$"
+        "^Mihomo-Meter-(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)-(macos-(arm64|x86_64|universal)\\.dmg|windows-x64-(setup\\.exe|portable\\.zip))$"
       )
   )
 | .download_count'
@@ -114,6 +114,6 @@ cleanup() {
 trap cleanup EXIT
 
 printf \
-  '{"schemaVersion":1,"label":"DMG 下载量","message":"%s","color":"blue"}\n' \
+  '{"schemaVersion":1,"label":"应用下载量","message":"%s","color":"blue"}\n' \
   "${download_count}" >"${temporary_output}"
 mv "${temporary_output}" "${output_path}"
