@@ -56,6 +56,7 @@ jobs:
             scripts/verify-sparkle-release.sh
           scripts/test-generate-download-badge-json.sh
           scripts/test-generate-release-notes.sh
+          PYTHONDONTWRITEBYTECODE=1 python3 scripts/test_generate_download_history.py
           PYTHONDONTWRITEBYTECODE=1 python3 scripts/test_release_platform_descriptors.py
 
       - name: 构建并运行测试

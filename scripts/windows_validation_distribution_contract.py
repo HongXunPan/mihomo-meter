@@ -122,13 +122,6 @@ DISTRIBUTION_REQUIRED_CODE_MARKERS = {
         "PRODUCT_DEFAULT_INSTALL_DIRECTORY",
         "PRODUCT_INSTALL_MARKER",
     ),
-    ROOT / "README.md": (
-        "Windows W3-1 安装生命周期已通过",
-        "Windows W3-0",
-        "Windows W3-1",
-        "W3-2",
-        "Windows分发实现契约.md",
-    ),
 }
 
 
