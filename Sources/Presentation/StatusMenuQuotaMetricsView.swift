@@ -4,11 +4,26 @@ struct StatusMenuQuotaMetricsView: View {
   static let supportedWindows = [QuotaTrendWindow.day, .week]
 
   let quota: SubscriptionQuotaSnapshot
-  let trends: RuntimeQuotaTrends
-  let window: QuotaTrendWindow
-  @ObservedObject var hoverState: StatusMenuQuotaTrendHoverState
-  let hoverContext: StatusMenuQuotaTrendHoverContext?
-  let onSelectWindow: (QuotaTrendWindow) -> Void
+  let target: StatusMenuQuotaTrendTarget
+  @ObservedObject var state: StatusMenuQuotaTrendState
+  let status: ProfileQuotaStatusPresentation?
+  let confirmCurrentCycle: @MainActor (UUID) async -> String?
+  @ObservedObject private var hoverState: StatusMenuQuotaTrendHoverState
+
+  init(
+    quota: SubscriptionQuotaSnapshot,
+    target: StatusMenuQuotaTrendTarget,
+    state: StatusMenuQuotaTrendState,
+    status: ProfileQuotaStatusPresentation?,
+    confirmCurrentCycle: @escaping @MainActor (UUID) async -> String?
+  ) {
+    self.quota = quota
+    self.target = target
+    self.state = state
+    self.status = status
+    self.confirmCurrentCycle = confirmCurrentCycle
+    hoverState = state.hoverState
+  }
 
   var body: some View {
     VStack(alignment: .leading, spacing: 8) {
@@ -23,6 +38,13 @@ struct StatusMenuQuotaMetricsView: View {
       .accessibilityValue(remainingSummary)
 
       quotaMetrics
+
+      StatusMenuQuotaStatusView(
+        target: target,
+        status: status,
+        referenceDate: state.referenceDate,
+        confirmCurrentCycle: confirmCurrentCycle
+      )
 
       Divider()
 
@@ -57,30 +79,24 @@ struct StatusMenuQuotaMetricsView: View {
   }
 
   private var quotaMetrics: some View {
-    HStack(spacing: 10) {
+    HStack(spacing: 8) {
       metric(
         title: "已用",
         value: SubscriptionQuotaFormatter.bytes(quota.traffic.usedBytes)
       )
-      Divider().frame(height: 28)
+      Spacer(minLength: 8)
       metric(
         title: "总量",
         value: SubscriptionQuotaFormatter.bytes(quota.traffic.totalBytes)
-      )
-      Divider().frame(height: 28)
-      metric(
-        title: "状态",
-        value: quota.traffic.isOverQuota ? "已超额" : "可用",
-        color: quota.traffic.isOverQuota ? MihomoColorToken.statusDanger : .primary
       )
     }
   }
 
   private var rangeSummary: some View {
     let usage = QuotaCumulativeTrendRangeUsage(segments: trend.segments)
-    return VStack(alignment: .leading, spacing: 3) {
+    return VStack(alignment: .leading, spacing: 5) {
       HStack(alignment: .center, spacing: 6) {
-        Text("累计总消耗走势")
+        Text("累计用量走势")
           .font(.caption.weight(.medium))
           .foregroundStyle(.secondary)
 
@@ -92,14 +108,14 @@ struct StatusMenuQuotaMetricsView: View {
       HStack(alignment: .firstTextBaseline, spacing: 8) {
         Text(
           usage.isAvailable
-            ? "本范围新增 \(SubscriptionQuotaFormatter.bytes(usage.traffic.total))"
+            ? "范围内新增 \(SubscriptionQuotaFormatter.bytes(usage.traffic.total))"
             : "样本积累中"
         )
         .font(.caption2.monospacedDigit().weight(.semibold))
         .foregroundStyle(usage.isAvailable ? .primary : .secondary)
       }
 
-      HStack(spacing: 18) {
+      HStack(spacing: 8) {
         rangeMetric(
           title: "下载",
           value: usage.traffic.download,
@@ -107,6 +123,7 @@ struct StatusMenuQuotaMetricsView: View {
           color: MihomoColorToken.trafficDownload,
           isAvailable: usage.isAvailable
         )
+        Spacer(minLength: 8)
         rangeMetric(
           title: "上传",
           value: usage.traffic.upload,
@@ -129,11 +146,11 @@ struct StatusMenuQuotaMetricsView: View {
   }
 
   private var trend: QuotaTrend {
-    trends.trend(for: window)
+    target.trends.trend(for: state.window)
   }
 
   private var externalInteraction: QuotaCumulativeTrendExternalInteraction? {
-    guard let hoverContext else {
+    guard let hoverContext = state.hoverContext else {
       return nil
     }
     return QuotaCumulativeTrendExternalInteraction(
@@ -153,19 +170,16 @@ struct StatusMenuQuotaMetricsView: View {
 
   private func metric(
     title: String,
-    value: String,
-    color: Color = .primary
+    value: String
   ) -> some View {
-    VStack(alignment: .leading, spacing: 2) {
+    HStack(alignment: .firstTextBaseline, spacing: 6) {
       Text(title)
         .font(.caption2)
         .foregroundStyle(.secondary)
       Text(value)
-        .font(.caption.monospacedDigit().weight(.semibold))
-        .foregroundStyle(color)
+        .font(.caption.monospacedDigit())
         .lineLimit(1)
     }
-    .frame(maxWidth: .infinity, alignment: .leading)
   }
 
   private func rangeMetric(
@@ -190,7 +204,7 @@ struct StatusMenuQuotaMetricsView: View {
       rangeButton(.week)
     }
     .padding(2)
-    .frame(width: 132, height: 24)
+    .frame(width: 120, height: 22)
     .background(
       Color.secondary.opacity(0.12),
       in: RoundedRectangle(cornerRadius: 6, style: .continuous)
@@ -199,12 +213,12 @@ struct StatusMenuQuotaMetricsView: View {
   }
 
   private func rangeButton(_ option: QuotaTrendWindow) -> some View {
-    let isSelected = window == option
+    let isSelected = state.window == option
     return Button {
-      onSelectWindow(option)
+      state.selectWindow(option)
     } label: {
       Text(rangeTitle(option))
-        .font(.caption.weight(isSelected ? .medium : .regular))
+        .font(.caption2)
         .foregroundStyle(isSelected ? Color.white : Color.primary)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .contentShape(Rectangle())

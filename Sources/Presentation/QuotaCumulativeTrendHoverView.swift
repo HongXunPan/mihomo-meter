@@ -7,17 +7,20 @@ struct QuotaCumulativeTrendHoverView: View {
   let breakReason: QuotaCumulativeTrendDisplaySegment.BreakReason?
   let isCompact: Bool
   let cardWidth: CGFloat
+  let isSelected: Bool
 
   init(
     displayPoint: QuotaCumulativeTrendDisplayPoint,
     breakReason: QuotaCumulativeTrendDisplaySegment.BreakReason?,
     isCompact: Bool = false,
-    cardWidth: CGFloat = QuotaCumulativeTrendHoverView.preferredCardWidth
+    cardWidth: CGFloat = QuotaCumulativeTrendHoverView.preferredCardWidth,
+    isSelected: Bool = false
   ) {
     self.displayPoint = displayPoint
     self.breakReason = breakReason
     self.isCompact = isCompact
     self.cardWidth = cardWidth
+    self.isSelected = isSelected
   }
 
   var body: some View {
@@ -64,26 +67,41 @@ struct QuotaCumulativeTrendHoverView: View {
     .frame(maxWidth: isCompact ? .infinity : nil, alignment: .leading)
   }
 
+  @ViewBuilder
   private var header: some View {
-    HStack(alignment: .firstTextBaseline, spacing: 8) {
-      Text(SubscriptionQuotaFormatter.trendInspectorTimestamp(displayPoint.point.date))
-        .font(.caption.weight(.semibold))
-        .foregroundStyle(.primary)
-
-      Spacer(minLength: 8)
-
-      Text(comparisonContext)
-        .font(.caption2.monospacedDigit())
-        .foregroundStyle(comparisonContextColor)
-        .lineLimit(1)
-        .minimumScaleFactor(0.8)
+    let timestamp = SubscriptionQuotaFormatter.trendInspectorTimestamp(displayPoint.point.date)
+    if isCompact {
+      VStack(alignment: .leading, spacing: 2) {
+        Text("\(isSelected ? "选中记录" : "最新记录") \(timestamp)")
+          .font(.caption.weight(.medium))
+          .foregroundStyle(.primary)
+        comparisonSummary
+      }
+    } else {
+      HStack(alignment: .firstTextBaseline, spacing: 8) {
+        Text(timestamp)
+          .font(.caption.weight(.semibold))
+          .foregroundStyle(.primary)
+        Spacer(minLength: 8)
+        comparisonSummary
+      }
     }
+  }
+
+  private var comparisonSummary: some View {
+    Text(comparisonContext)
+      .font(.caption2.monospacedDigit())
+      .foregroundStyle(comparisonContextColor)
+      .lineLimit(1)
+      .minimumScaleFactor(isCompact ? 1 : 0.8)
+      .help(comparisonContext)
   }
 
   private var metricHeader: some View {
     HStack(spacing: columnSpacing) {
       Color.clear
         .frame(width: rowTitleWidth, height: 1)
+        .accessibilityHidden(true)
       metricHeaderCell(
         title: "下载",
         systemImage: "arrow.down",
@@ -111,7 +129,7 @@ struct QuotaCumulativeTrendHoverView: View {
       .font(.caption2.weight(.medium))
       .foregroundStyle(color)
       .lineLimit(1)
-      .frame(maxWidth: .infinity, alignment: .leading)
+      .frame(maxWidth: .infinity, alignment: isCompact ? .trailing : .leading)
   }
 
   private func metricRow(
@@ -128,17 +146,17 @@ struct QuotaCumulativeTrendHoverView: View {
         .frame(width: rowTitleWidth, alignment: .leading)
       metricValue(download)
       metricValue(upload)
-      metricValue(total)
+      metricValue(total, isTotal: true)
     }
   }
 
-  private func metricValue(_ value: UInt64?) -> some View {
+  private func metricValue(_ value: UInt64?, isTotal: Bool = false) -> some View {
     Text(value.map(SubscriptionQuotaFormatter.bytes) ?? "—")
-      .font(.caption.monospacedDigit().weight(.semibold))
+      .font(.caption.monospacedDigit().weight(!isCompact || isTotal ? .semibold : .regular))
       .foregroundStyle(.primary)
       .lineLimit(1)
       .minimumScaleFactor(0.75)
-      .frame(maxWidth: .infinity, alignment: .leading)
+      .frame(maxWidth: .infinity, alignment: isCompact ? .trailing : .leading)
   }
 
   private var comparisonContext: String {
@@ -159,7 +177,7 @@ struct QuotaCumulativeTrendHoverView: View {
   }
 
   private var rowTitleWidth: CGFloat {
-    isCompact ? 44 : 48
+    isCompact ? 36 : 48
   }
 
   private var columnSpacing: CGFloat {

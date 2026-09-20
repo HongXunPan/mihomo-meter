@@ -282,6 +282,15 @@
 		CC0000000000000000000203 /* QuotaEventPersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000103 /* QuotaEventPersistence.swift */; };
 		CC0000000000000000000204 /* SubscriptionQuotaDataController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000104 /* SubscriptionQuotaDataController.swift */; };
 		CC0000000000000000000205 /* QuotaEventSummaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000105 /* QuotaEventSummaryView.swift */; };
+		D39000000000000000000201 /* QuotaCycleConfirmationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D39000000000000000000101 /* QuotaCycleConfirmationView.swift */; };
+		D39100000000000000000201 /* QuotaCycleConfirmationState.swift in Sources */ = {isa = PBXBuildFile; fileRef = D39100000000000000000101 /* QuotaCycleConfirmationState.swift */; };
+		D39200000000000000000201 /* StatusMenuQuotaTrendTarget.swift in Sources */ = {isa = PBXBuildFile; fileRef = D39200000000000000000101 /* StatusMenuQuotaTrendTarget.swift */; };
+		D39300000000000000000201 /* QuotaCycleConfirmationStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D39300000000000000000101 /* QuotaCycleConfirmationStateTests.swift */; };
+		D39400000000000000000201 /* ProfileQuotaCycleConfirmationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D39400000000000000000101 /* ProfileQuotaCycleConfirmationTests.swift */; };
+		D39500000000000000000201 /* StatusMenuQuotaTrendHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D39500000000000000000101 /* StatusMenuQuotaTrendHeaderView.swift */; };
+		D39600000000000000000201 /* QuotaTrendAxisPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = D39600000000000000000101 /* QuotaTrendAxisPresentation.swift */; };
+		D39700000000000000000201 /* QuotaTrendAxisPresentationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D39700000000000000000101 /* QuotaTrendAxisPresentationTests.swift */; };
+		D39800000000000000000201 /* StatusMenuQuotaStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D39800000000000000000101 /* StatusMenuQuotaStatusView.swift */; };
 		D35000000000000000000201 /* MihomoMeterSharedCoreAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35000000000000000000101 /* MihomoMeterSharedCoreAdapter.swift */; };
 		D35100000000000000000201 /* SharedCoreRuntimeStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35100000000000000000101 /* SharedCoreRuntimeStatus.swift */; };
 		D35200000000000000000201 /* SharedCoreRuntimeProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35200000000000000000101 /* SharedCoreRuntimeProbe.swift */; };
@@ -593,6 +602,15 @@
 		CC0000000000000000000103 /* QuotaEventPersistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotaEventPersistence.swift; sourceTree = "<group>"; };
 		CC0000000000000000000104 /* SubscriptionQuotaDataController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionQuotaDataController.swift; sourceTree = "<group>"; };
 		CC0000000000000000000105 /* QuotaEventSummaryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotaEventSummaryView.swift; sourceTree = "<group>"; };
+		D39000000000000000000101 /* QuotaCycleConfirmationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotaCycleConfirmationView.swift; sourceTree = "<group>"; };
+		D39100000000000000000101 /* QuotaCycleConfirmationState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotaCycleConfirmationState.swift; sourceTree = "<group>"; };
+		D39200000000000000000101 /* StatusMenuQuotaTrendTarget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusMenuQuotaTrendTarget.swift; sourceTree = "<group>"; };
+		D39300000000000000000101 /* QuotaCycleConfirmationStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotaCycleConfirmationStateTests.swift; sourceTree = "<group>"; };
+		D39400000000000000000101 /* ProfileQuotaCycleConfirmationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileQuotaCycleConfirmationTests.swift; sourceTree = "<group>"; };
+		D39500000000000000000101 /* StatusMenuQuotaTrendHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusMenuQuotaTrendHeaderView.swift; sourceTree = "<group>"; };
+		D39600000000000000000101 /* QuotaTrendAxisPresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotaTrendAxisPresentation.swift; sourceTree = "<group>"; };
+		D39700000000000000000101 /* QuotaTrendAxisPresentationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotaTrendAxisPresentationTests.swift; sourceTree = "<group>"; };
+		D39800000000000000000101 /* StatusMenuQuotaStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusMenuQuotaStatusView.swift; sourceTree = "<group>"; };
 		D35000000000000000000101 /* MihomoMeterSharedCoreAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Adapters/Swift/MihomoMeterSharedCoreAdapter.swift; sourceTree = "<group>"; };
 		D35100000000000000000101 /* SharedCoreRuntimeStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedCoreRuntimeStatus.swift; sourceTree = "<group>"; };
 		D35200000000000000000101 /* SharedCoreRuntimeProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedCoreRuntimeProbe.swift; sourceTree = "<group>"; };
@@ -827,6 +845,12 @@
 				CU000000000000000000010A /* QuotaUsageHoverSummaryView.swift */,
 				CU0000000000000000000108 /* RuntimeQuotaCardView.swift */,
 				CC0000000000000000000105 /* QuotaEventSummaryView.swift */,
+				D39000000000000000000101 /* QuotaCycleConfirmationView.swift */,
+				D39100000000000000000101 /* QuotaCycleConfirmationState.swift */,
+				D39200000000000000000101 /* StatusMenuQuotaTrendTarget.swift */,
+				D39500000000000000000101 /* StatusMenuQuotaTrendHeaderView.swift */,
+				D39600000000000000000101 /* QuotaTrendAxisPresentation.swift */,
+				D39800000000000000000101 /* StatusMenuQuotaStatusView.swift */,
 				AX0000000000000000000101 /* RoutingStatusView.swift */,
 				AY0000000000000000000101 /* RuntimeDetailsView.swift */,
 				C20000000000000000000101 /* StatusMenuController.swift */,
@@ -883,6 +907,9 @@
 				D33F00000000000000000101 /* ConnectionAnalyticsRecordingCoverageTests.swift */,
 				D34000000000000000000101 /* StatusMenuControllerTests.swift */,
 				D34B00000000000000000101 /* StatusMenuQuotaTrendStateTests.swift */,
+				D39300000000000000000101 /* QuotaCycleConfirmationStateTests.swift */,
+				D39400000000000000000101 /* ProfileQuotaCycleConfirmationTests.swift */,
+				D39700000000000000000101 /* QuotaTrendAxisPresentationTests.swift */,
 				D33800000000000000000101 /* ConnectionAnalyticsTrendTests.swift */,
 				D33900000000000000000101 /* ConnectionAnalyticsTrendWindowModelTests.swift */,
 				D33B00000000000000000101 /* LiveConnectionAnalyticsPresentationTests.swift */,
@@ -1396,6 +1423,12 @@
 				CU000000000000000000020A /* QuotaUsageHoverSummaryView.swift in Sources */,
 				CU0000000000000000000208 /* RuntimeQuotaCardView.swift in Sources */,
 				CC0000000000000000000205 /* QuotaEventSummaryView.swift in Sources */,
+				D39000000000000000000201 /* QuotaCycleConfirmationView.swift in Sources */,
+				D39100000000000000000201 /* QuotaCycleConfirmationState.swift in Sources */,
+				D39200000000000000000201 /* StatusMenuQuotaTrendTarget.swift in Sources */,
+				D39500000000000000000201 /* StatusMenuQuotaTrendHeaderView.swift in Sources */,
+				D39600000000000000000201 /* QuotaTrendAxisPresentation.swift in Sources */,
+				D39800000000000000000201 /* StatusMenuQuotaStatusView.swift in Sources */,
 				BS0000000000000000000207 /* StatisticsWorkspaceView.swift in Sources */,
 				D32700000000000000000201 /* SQLiteConnectionAnalyticsLedger.swift in Sources */,
 				BS0000000000000000000201 /* SubscriptionQuotaFormatter.swift in Sources */,
@@ -1453,6 +1486,9 @@
 				D33F00000000000000000201 /* ConnectionAnalyticsRecordingCoverageTests.swift in Sources */,
 				D34000000000000000000201 /* StatusMenuControllerTests.swift in Sources */,
 				D34B00000000000000000201 /* StatusMenuQuotaTrendStateTests.swift in Sources */,
+				D39300000000000000000201 /* QuotaCycleConfirmationStateTests.swift in Sources */,
+				D39400000000000000000201 /* ProfileQuotaCycleConfirmationTests.swift in Sources */,
+				D39700000000000000000201 /* QuotaTrendAxisPresentationTests.swift in Sources */,
 				D33800000000000000000201 /* ConnectionAnalyticsTrendTests.swift in Sources */,
 				D33900000000000000000201 /* ConnectionAnalyticsTrendWindowModelTests.swift in Sources */,
 				D33B00000000000000000201 /* LiveConnectionAnalyticsPresentationTests.swift in Sources */,

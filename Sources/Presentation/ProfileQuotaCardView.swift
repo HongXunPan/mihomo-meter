@@ -28,8 +28,11 @@ struct ProfileQuotaCardView: View {
           depletionForecast: item.trends.depletionForecast
         )
 
-        QuotaEventSummaryView(analysis: item.analysis) {
-          await controller.confirmCurrentCycle(subscriptionID: item.id)
+        QuotaEventSummaryView(
+          analysis: item.analysis,
+          subscriptionName: item.subscription.name
+        ) { cycleID in
+          await controller.confirmCurrentCycle(subscriptionID: item.id, cycleID: cycleID)
         }
       } else {
         VStack(spacing: 8) {

@@ -100,6 +100,30 @@ final class RuntimeQuotaTrackingControllerTests: XCTestCase {
     XCTAssertEqual(context.controller.snapshot.latestQuota?.traffic.usedBytes, 200)
   }
 
+  func testConfirmsOnlyDisplayedCycleAndRefreshesSharedAnalysis() async throws {
+    let context = try await makeEnabledController()
+    defer { removeDatabase(at: context.database) }
+    context.clock.date = context.clock.date.addingTimeInterval(300)
+    let resetCandidate = try makeCandidate(sourceKey: "provider-a", usedBytes: 20)
+    await context.observer.send(.selection(.single(resetCandidate)))
+    let cycle = try XCTUnwrap(context.controller.snapshot.analysis.pendingCycleConfirmation)
+
+    let staleError = await context.controller.confirmCurrentCycle(cycleID: UUID())
+    XCTAssertNotNil(staleError)
+    XCTAssertEqual(context.controller.snapshot.analysis.pendingCycleConfirmation?.id, cycle.id)
+
+    let error = await context.controller.confirmCurrentCycle(cycleID: cycle.id)
+
+    XCTAssertNil(error)
+    XCTAssertNil(context.controller.snapshot.analysis.pendingCycleConfirmation)
+    XCTAssertEqual(context.controller.snapshot.analysis.currentCycle?.id, cycle.id)
+    XCTAssertEqual(context.controller.snapshot.latestQuota?.traffic.usedBytes, 20)
+    let events = context.controller.snapshot.analysis.recentEvents
+    XCTAssertTrue(events.contains { $0.kind == .usageReset && $0.isUserConfirmed })
+    let repeatedError = await context.controller.confirmCurrentCycle(cycleID: cycle.id)
+    XCTAssertNil(repeatedError)
+  }
+
   private func makeEnabledController() async throws -> RuntimeQuotaTestContext {
     let database = temporaryDatabase()
     let ledger = SQLiteQuotaLedger(databaseURL: database)

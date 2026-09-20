@@ -7,14 +7,31 @@ struct ProfileQuotaProgressListView: View {
     TimelineView(.periodic(from: .now, by: 60)) { context in
       VStack(spacing: 8) {
         ForEach(controller.snapshot.profiles) { item in
-          SubscriptionQuotaProgressRow(
-            title: item.subscription.name,
-            isCurrent: item.isCurrent,
-            quota: item.latestQuota,
-            status: ProfileQuotaStatusPresentation(item: item, relativeTo: context.date),
-            forecast: item.trends.depletionForecast
-          )
+          profileRow(item, relativeTo: context.date)
         }
+      }
+    }
+  }
+
+  private func profileRow(_ item: ProfileQuotaTrackingItem, relativeTo date: Date) -> some View {
+    VStack(alignment: .leading, spacing: 6) {
+      SubscriptionQuotaProgressRow(
+        title: item.subscription.name,
+        isCurrent: item.isCurrent,
+        quota: item.latestQuota,
+        status: ProfileQuotaStatusPresentation(item: item, relativeTo: date),
+        forecast: item.trends.depletionForecast
+      )
+
+      if let cycle = item.analysis.pendingCycleConfirmation {
+        QuotaCycleConfirmationView(
+          cycle: cycle,
+          subscriptionName: item.subscription.name,
+          isCompact: true
+        ) { cycleID in
+          await controller.confirmCurrentCycle(subscriptionID: item.id, cycleID: cycleID)
+        }
+        .id(cycle.id)
       }
     }
   }
@@ -121,6 +138,9 @@ struct SubscriptionQuotaProgressRow: View {
     if let status, status.overridesForecast {
       return status.title
     }
+    if forecast == .unavailable(.unconfirmedCycle) {
+      return "需手动确认新周期"
+    }
     if let forecast {
       return SubscriptionQuotaFormatter.depletion(forecast)
     }
@@ -133,6 +153,9 @@ struct SubscriptionQuotaProgressRow: View {
   private var statusSummaryHelp: String {
     if let status, status.overridesForecast {
       return status.message
+    }
+    if forecast == .unavailable(.unconfirmedCycle) {
+      return "检测到累计用量下降，请点击下方的确认新周期；等待不会自动完成确认。"
     }
     return "按当前已确认周期内最多近 7 天的有效用量估算；不等于本机 Proxy 流量。"
   }

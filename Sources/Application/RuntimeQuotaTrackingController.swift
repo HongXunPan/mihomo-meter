@@ -99,21 +99,34 @@ final class RuntimeQuotaTrackingController: ObservableObject, RuntimeQuotaTracki
     }
   }
 
-  func confirmCurrentCycle() async {
+  func confirmCurrentCycle(cycleID: UUID) async -> String? {
     guard
+      !isDataResetInProgress,
       let subscriptionID = snapshot.subscription?.id,
-      let cycleID = snapshot.analysis.pendingCycleConfirmation?.id
+      let cycle = snapshot.analysis.currentCycle,
+      cycle.id == cycleID
     else {
-      return
+      return "订阅周期已变化，请查看最新提示后重新确认。"
+    }
+    guard !cycle.isUserConfirmed else {
+      return nil
     }
     do {
-      snapshot.analysis = try await ledgerService.confirmCycle(
+      let analysis = try await ledgerService.confirmCycle(
         id: cycleID,
         subscriptionID: subscriptionID,
         at: now()
       )
+      guard !isDataResetInProgress,
+        snapshot.subscription?.id == subscriptionID,
+        snapshot.analysis.currentCycle?.id == cycleID
+      else {
+        return nil
+      }
+      snapshot.analysis = analysis
+      return nil
     } catch {
-      setUnavailable(error)
+      return error.localizedDescription
     }
   }
 
