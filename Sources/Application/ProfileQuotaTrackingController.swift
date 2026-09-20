@@ -89,18 +89,23 @@ final class ProfileQuotaTrackingController: ObservableObject, ProfileQuotaTracki
     await worker.refreshAll()
   }
 
-  func confirmCurrentCycle(subscriptionID: UUID) async {
+  func confirmCurrentCycle(subscriptionID: UUID, cycleID: UUID) async -> String? {
     guard
       let item = snapshot.profiles.first(where: { $0.id == subscriptionID }),
-      let cycleID = item.analysis.pendingCycleConfirmation?.id
+      let cycle = item.analysis.currentCycle,
+      cycle.id == cycleID
     else {
-      return
+      return "订阅周期已变化，请查看最新提示后重新确认。"
+    }
+    guard !cycle.isUserConfirmed else {
+      return nil
     }
     do {
       try await ledgerService.confirmCycle(id: cycleID)
       await refreshSnapshot()
+      return snapshot.storageErrorMessage
     } catch {
-      snapshot.storageErrorMessage = error.localizedDescription
+      return error.localizedDescription
     }
   }
 

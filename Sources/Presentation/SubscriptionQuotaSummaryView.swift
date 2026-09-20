@@ -20,6 +20,17 @@ struct SubscriptionQuotaSummaryView: View {
           forecast: controller.snapshot.trends.depletionForecast
         )
 
+        if let cycle = controller.snapshot.analysis.pendingCycleConfirmation {
+          QuotaCycleConfirmationView(
+            cycle: cycle,
+            subscriptionName: subscription.name,
+            isCompact: true
+          ) { cycleID in
+            await controller.confirmCurrentCycle(cycleID: cycleID)
+          }
+          .id(cycle.id)
+        }
+
         if controller.snapshot.latestQuota == nil || controller.snapshot.isPaused {
           SubscriptionQuotaObservationNoticeView(controller: controller)
         }

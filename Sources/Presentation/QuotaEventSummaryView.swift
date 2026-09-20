@@ -2,13 +2,19 @@ import SwiftUI
 
 struct QuotaEventSummaryView: View {
   let analysis: SubscriptionQuotaAnalysis
-  let confirmCurrentCycle: () async -> Void
+  let subscriptionName: String
+  let confirmCurrentCycle: @MainActor (UUID) async -> String?
 
   var body: some View {
-    if !analysis.recentEvents.isEmpty {
+    if analysis.pendingCycleConfirmation != nil || !analysis.recentEvents.isEmpty {
       VStack(alignment: .leading, spacing: 8) {
-        if analysis.pendingCycleConfirmation != nil {
-          QuotaCycleConfirmationView(confirmCurrentCycle: confirmCurrentCycle)
+        if let cycle = analysis.pendingCycleConfirmation {
+          QuotaCycleConfirmationView(
+            cycle: cycle,
+            subscriptionName: subscriptionName,
+            confirmCurrentCycle: confirmCurrentCycle
+          )
+          .id(cycle.id)
         }
 
         ForEach(analysis.recentEvents.prefix(3)) { event in
@@ -42,27 +48,5 @@ struct QuotaEventSummaryView: View {
     case .expirationChanged:
       "calendar.badge.clock"
     }
-  }
-}
-
-struct QuotaCycleConfirmationView: View {
-  let confirmCurrentCycle: () async -> Void
-
-  var body: some View {
-    HStack(spacing: 8) {
-      Label("用量下降可能代表套餐重置，请确认新周期。", systemImage: "exclamationmark.triangle.fill")
-        .foregroundStyle(MihomoColorToken.statusWarning)
-        .fixedSize(horizontal: false, vertical: true)
-
-      Spacer(minLength: 8)
-
-      Button("确认新周期") {
-        Task {
-          await confirmCurrentCycle()
-        }
-      }
-      .controlSize(.small)
-    }
-    .font(.caption)
   }
 }

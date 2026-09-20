@@ -5,6 +5,47 @@ import XCTest
 
 @MainActor
 final class StatusMenuQuotaTrendStateTests: XCTestCase {
+  func testExposesPendingCycleWithoutForecastOrRecentEvents() {
+    let subscriptionID = UUID()
+    let cycle = QuotaCycle(
+      subscriptionID: subscriptionID,
+      startedAt: Date(timeIntervalSince1970: 1_700_800_000),
+      startReason: .usageReset,
+      isUserConfirmed: false
+    )
+    var analysis = SubscriptionQuotaAnalysis.empty
+    analysis.currentCycle = cycle
+    let target = StatusMenuQuotaTrendTarget(
+      id: subscriptionID,
+      title: "测试订阅",
+      isCurrent: true,
+      analysis: analysis
+    )
+
+    XCTAssertEqual(target.pendingCycleConfirmation, cycle)
+    XCTAssertNil(target.quota)
+    XCTAssertEqual(target.trends, analysis.trends)
+  }
+
+  func testConfirmedCycleDoesNotOfferConfirmation() {
+    let subscriptionID = UUID()
+    var analysis = SubscriptionQuotaAnalysis.empty
+    analysis.currentCycle = QuotaCycle(
+      subscriptionID: subscriptionID,
+      startedAt: Date(timeIntervalSince1970: 1_700_800_000),
+      startReason: .usageReset,
+      isUserConfirmed: true
+    )
+    let target = StatusMenuQuotaTrendTarget(
+      id: subscriptionID,
+      title: "测试订阅",
+      isCurrent: false,
+      analysis: analysis
+    )
+
+    XCTAssertNil(target.pendingCycleConfirmation)
+  }
+
   func testKeepsInlineProfileAndRangeSelection() {
     let now = Date(timeIntervalSince1970: 1_700_800_000)
     let firstID = UUID()

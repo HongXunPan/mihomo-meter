@@ -63,6 +63,7 @@ struct QuotaCumulativeTrendChart: View {
     totalUsageDomain: ClosedRange<Double>
   ) -> some View {
     let selectedPoint = selectedPoint(in: model)
+    let axis = QuotaTrendAxisPresentation(domain: totalUsageDomain)
     let chart = Chart {
       ForEach(model.segments) { segment in
         let seriesID = segmentSeriesID(segment.id)
@@ -119,7 +120,7 @@ struct QuotaCumulativeTrendChart: View {
     .accessibilityElement(children: .ignore)
     .accessibilityLabel("机场累计总消耗走势")
     .accessibilityValue(accessibilityValue(model: model, dateDomain: dateDomain))
-    .accessibilityHint("聚焦后可使用左右方向键、Home 和 End 切换真实快照")
+    .accessibilityHint(isCompact ? "下方显示最新或悬停记录明细" : "聚焦后可使用左右方向键、Home 和 End 切换真实快照")
 
     chart
       .allowsHitTesting(!isCompact || externalInteraction != nil)
@@ -142,8 +143,12 @@ struct QuotaCumulativeTrendChart: View {
           AxisTick(stroke: StrokeStyle(lineWidth: 0.5))
           AxisValueLabel {
             if let date = value.as(Date.self) {
-              Text(SubscriptionQuotaFormatter.trendTick(date, window: trend.window))
-                .font(isCompact ? .caption2 : .caption)
+              Text(
+                isCompact
+                  ? QuotaTrendAxisPresentation.compactDate(date, window: trend.window)
+                  : SubscriptionQuotaFormatter.trendTick(date, window: trend.window)
+              )
+              .font(isCompact ? .caption2 : .caption)
             }
           }
         }
@@ -157,8 +162,8 @@ struct QuotaCumulativeTrendChart: View {
           AxisTick(stroke: StrokeStyle(lineWidth: 0.5))
           AxisValueLabel {
             if let bytes = value.as(Double.self), bytes >= 0 {
-              Text(SubscriptionQuotaFormatter.bytes(UInt64(bytes)))
-                .font(isCompact ? .caption2 : .caption)
+              Text(isCompact ? axis.bytes(bytes) : SubscriptionQuotaFormatter.bytes(UInt64(bytes)))
+                .font(isCompact ? .caption2.monospacedDigit() : .caption)
             }
           }
         }
@@ -171,7 +176,9 @@ struct QuotaCumulativeTrendChart: View {
       QuotaCumulativeTrendHoverView(
         displayPoint: displayPoint,
         breakReason: breakReason(for: displayPoint.id, in: model),
-        isCompact: true
+        isCompact: true,
+        isSelected: externalInteraction?.selectedPointID == displayPoint.id
+          || hoveredPointID == displayPoint.id
       )
     } else {
       Text("暂无可展示快照")
@@ -275,7 +282,7 @@ struct QuotaCumulativeTrendChart: View {
 
   private var chartHeight: CGFloat {
     if isCompact {
-      return 190
+      return 206
     }
     return isExpanded ? 270 : 215
   }

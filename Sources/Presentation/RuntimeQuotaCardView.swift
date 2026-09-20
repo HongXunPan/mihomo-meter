@@ -38,8 +38,11 @@ struct RuntimeQuotaCardView: View {
         depletionForecast: controller.snapshot.trends.depletionForecast
       )
 
-      QuotaEventSummaryView(analysis: controller.snapshot.analysis) {
-        await controller.confirmCurrentCycle()
+      QuotaEventSummaryView(
+        analysis: controller.snapshot.analysis,
+        subscriptionName: subscription.name
+      ) { cycleID in
+        await controller.confirmCurrentCycle(cycleID: cycleID)
       }
     }
     .padding(16)
