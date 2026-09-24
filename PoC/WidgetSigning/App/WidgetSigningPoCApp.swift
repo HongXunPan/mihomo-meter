@@ -24,9 +24,11 @@ struct WidgetSigningPoCApp: App {
 
   @MainActor
   private func writeSnapshot() {
-    guard let container = FileManager.default.containerURL(
-      forSecurityApplicationGroupIdentifier: WidgetSigningPoCConstants.groupIdentifier
-    ) else {
+    guard
+      let container = FileManager.default.containerURL(
+        forSecurityApplicationGroupIdentifier: WidgetSigningPoCConstants.groupIdentifier
+      )
+    else {
       status = "共享容器不可用"
       return
     }

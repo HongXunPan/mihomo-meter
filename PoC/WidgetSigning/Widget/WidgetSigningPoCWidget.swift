@@ -32,14 +32,17 @@ private struct WidgetSigningPoCProvider: TimelineProvider {
   }
 
   private func makeEntry() -> WidgetSigningPoCEntry {
-    guard let container = FileManager.default.containerURL(
-      forSecurityApplicationGroupIdentifier: WidgetSigningPoCConstants.groupIdentifier
-    ) else {
+    guard
+      let container = FileManager.default.containerURL(
+        forSecurityApplicationGroupIdentifier: WidgetSigningPoCConstants.groupIdentifier
+      )
+    else {
       return WidgetSigningPoCEntry(date: Date(), message: "共享容器不可用")
     }
 
     let snapshotURL = container.appendingPathComponent(WidgetSigningPoCConstants.snapshotFilename)
-    let message = (try? String(contentsOf: snapshotURL, encoding: .utf8))
+    let message =
+      (try? String(contentsOf: snapshotURL, encoding: .utf8))
       ?? "尚未读取到主应用快照"
     return WidgetSigningPoCEntry(date: Date(), message: message)
   }
