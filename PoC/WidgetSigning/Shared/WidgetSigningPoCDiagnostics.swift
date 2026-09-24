@@ -19,13 +19,20 @@ enum WidgetSigningPoCDiagnostics {
       let value = try String(contentsOf: snapshotURL, encoding: .utf8)
       return "\(summary)\n读取成功：\(value)"
     } catch {
-      return "\(summary)\n读取失败：\(errorCode(error))"
+      return "读取失败：\(errorCode(error))\n\(summary)"
     }
   }
 
   static func errorCode(_ error: any Error) -> String {
     let nsError = error as NSError
-    return "\(nsError.domain)/\(nsError.code)"
+    let underlyingCode: String
+    if let underlying = nsError.userInfo[NSUnderlyingErrorKey] as? NSError {
+      let domain = underlying.domain == NSPOSIXErrorDomain ? "POSIX" : underlying.domain
+      underlyingCode = "\(domain)/\(underlying.code)"
+    } else {
+      underlyingCode = "无"
+    }
+    return "主码 \(nsError.code) · 底层 \(underlyingCode)\n域 \(nsError.domain)"
   }
 
   private static func fingerprint(for container: URL) -> String {
