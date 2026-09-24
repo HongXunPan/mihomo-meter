@@ -15,6 +15,8 @@
 			fileRef = B00000000000000000000009;
 			settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); };
 		};
+		C00000000000000000000006 = {isa = PBXBuildFile; fileRef = B0000000000000000000000B; };
+		C00000000000000000000007 = {isa = PBXBuildFile; fileRef = B0000000000000000000000B; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -49,6 +51,7 @@
 		B00000000000000000000008 = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Widget.entitlements; sourceTree = "<group>"; };
 		B00000000000000000000009 = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = WidgetSigningPoCWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		B0000000000000000000000A = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WidgetSigningPoC.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B0000000000000000000000B = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetSigningPoCDiagnostics.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -87,7 +90,7 @@
 		};
 		A00000000000000000000006 = {
 			isa = PBXGroup;
-			children = (B00000000000000000000004, );
+			children = (B00000000000000000000004, B0000000000000000000000B, );
 			path = Shared;
 			sourceTree = "<group>";
 		};
@@ -147,13 +150,13 @@
 		D00000000000000000000001 = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
-			files = (C00000000000000000000001, C00000000000000000000002, );
+			files = (C00000000000000000000001, C00000000000000000000002, C00000000000000000000006, );
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		D00000000000000000000005 = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
-			files = (C00000000000000000000003, C00000000000000000000004, );
+			files = (C00000000000000000000003, C00000000000000000000004, C00000000000000000000007, );
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
@@ -181,10 +184,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = App/Info.plist;
-				MARKETING_VERSION = 0.0.1;
+				MARKETING_VERSION = 0.0.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.HongXunPan.MihomoMeter.WidgetSigningPoC;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -194,10 +197,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = App/Info.plist;
-				MARKETING_VERSION = 0.0.1;
+				MARKETING_VERSION = 0.0.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.HongXunPan.MihomoMeter.WidgetSigningPoC;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -208,11 +211,11 @@
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CODE_SIGN_ENTITLEMENTS = Widget/Widget.entitlements;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Widget/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/../../../../Frameworks", "@executable_path/../Frameworks", );
-				MARKETING_VERSION = 0.0.1;
+				MARKETING_VERSION = 0.0.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.HongXunPan.MihomoMeter.WidgetSigningPoC.Widget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -224,11 +227,11 @@
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CODE_SIGN_ENTITLEMENTS = Widget/Widget.entitlements;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Widget/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/../../../../Frameworks", "@executable_path/../Frameworks", );
-				MARKETING_VERSION = 0.0.1;
+				MARKETING_VERSION = 0.0.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.HongXunPan.MihomoMeter.WidgetSigningPoC.Widget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;

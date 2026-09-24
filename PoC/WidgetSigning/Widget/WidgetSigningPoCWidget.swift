@@ -32,19 +32,7 @@ private struct WidgetSigningPoCProvider: TimelineProvider {
   }
 
   private func makeEntry() -> WidgetSigningPoCEntry {
-    guard
-      let container = FileManager.default.containerURL(
-        forSecurityApplicationGroupIdentifier: WidgetSigningPoCConstants.groupIdentifier
-      )
-    else {
-      return WidgetSigningPoCEntry(date: Date(), message: "共享容器不可用")
-    }
-
-    let snapshotURL = container.appendingPathComponent(WidgetSigningPoCConstants.snapshotFilename)
-    let message =
-      (try? String(contentsOf: snapshotURL, encoding: .utf8))
-      ?? "尚未读取到主应用快照"
-    return WidgetSigningPoCEntry(date: Date(), message: message)
+    WidgetSigningPoCEntry(date: Date(), message: WidgetSigningPoCDiagnostics.inspect())
   }
 }
 
@@ -56,10 +44,10 @@ private struct WidgetSigningPoCView: View {
       Label("Mihomo Meter PoC", systemImage: "network")
         .font(.headline)
       Text(entry.message)
-        .font(.caption)
-        .lineLimit(3)
+        .font(.caption2)
+        .lineLimit(5)
       Spacer(minLength: 0)
-      Text("仅使用假数据")
+      Text("诊断版 2 · 仅假数据")
         .font(.caption2)
         .foregroundStyle(.secondary)
     }

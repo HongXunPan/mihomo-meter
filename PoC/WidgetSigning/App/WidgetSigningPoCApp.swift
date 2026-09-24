@@ -40,10 +40,12 @@ struct WidgetSigningPoCApp: App {
         atomically: true,
         encoding: .utf8
       )
-      status = "写入成功：\(value)"
+      status = "写入完成\n\(WidgetSigningPoCDiagnostics.inspect())"
       WidgetCenter.shared.reloadTimelines(ofKind: WidgetSigningPoCConstants.widgetKind)
     } catch {
-      status = "共享快照写入失败：\(error.localizedDescription)"
+      status =
+        "写入失败：\(WidgetSigningPoCDiagnostics.errorCode(error))\n"
+        + WidgetSigningPoCDiagnostics.inspect()
     }
   }
 }
