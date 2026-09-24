@@ -1,0 +1,54 @@
+name: WidgetKit 自签名打包 PoC
+
+on:
+  push:
+    branches:
+      - codex/widgetkit-ci-signing-poc
+
+permissions:
+  contents: read
+
+concurrency:
+  group: widgetkit-signing-poc-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  signed-widget-poc:
+    name: 构建并签名独立 Widget 样例
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - name: 检出源码
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: 校验样例配置与脚本
+        run: |
+          bash -n scripts/widgetkit-signing-poc.sh
+          xcrun swift format lint --strict \
+            PoC/WidgetSigning/App/WidgetSigningPoCApp.swift \
+            PoC/WidgetSigning/Widget/WidgetSigningPoCWidget.swift \
+            PoC/WidgetSigning/Shared/WidgetSigningPoCConstants.swift
+          plutil -lint \
+            PoC/WidgetSigning/App/Info.plist \
+            PoC/WidgetSigning/Widget/Info.plist \
+            PoC/WidgetSigning/App/App.entitlements \
+            PoC/WidgetSigning/Widget/Widget.entitlements \
+            PoC/WidgetSigning/WidgetSigningPoC.xcodeproj/project.pbxproj
+
+      - name: 使用固定证书构建签名 DMG
+        env:
+          SIGNING_P12_BASE64: ${{ secrets.MIHOMO_METER_SIGNING_P12_BASE64 }}
+          SIGNING_P12_PASSWORD: ${{ secrets.MIHOMO_METER_SIGNING_P12_PASSWORD }}
+        run: bash scripts/widgetkit-signing-poc.sh
+
+      - name: 上传隔离 PoC 产物
+        uses: actions/upload-artifact@v7
+        with:
+          name: widgetkit-signing-poc-${{ github.run_number }}
+          path: |
+            dist/widgetkit-signing-poc.dmg
+            dist/widgetkit-signing-poc-verification.txt
+          if-no-files-found: error
+          retention-days: 3
