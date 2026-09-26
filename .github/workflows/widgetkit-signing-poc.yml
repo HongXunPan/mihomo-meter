@@ -31,7 +31,8 @@ jobs:
             PoC/WidgetSigning/App/WidgetSigningPoCApp.swift \
             PoC/WidgetSigning/Widget/WidgetSigningPoCWidget.swift \
             PoC/WidgetSigning/Shared/WidgetSigningPoCConstants.swift \
-            PoC/WidgetSigning/Shared/WidgetSigningPoCDiagnostics.swift
+            PoC/WidgetSigning/Shared/WidgetSigningPoCDiagnostics.swift \
+            PoC/WidgetSigning/Shared/WidgetSigningPoCSnapshotStore.swift
           plutil -lint \
             PoC/WidgetSigning/App/Info.plist \
             PoC/WidgetSigning/Widget/Info.plist \

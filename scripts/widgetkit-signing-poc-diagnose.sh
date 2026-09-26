@@ -5,7 +5,10 @@ app_path="/Applications/WidgetSigningPoC.app"
 widget_path="${app_path}/Contents/PlugIns/WidgetSigningPoCWidget.appex"
 app_identifier="com.HongXunPan.MihomoMeter.WidgetSigningPoC"
 widget_identifier="${app_identifier}.Widget"
-group_identifier="group.com.HongXunPan.MihomoMeter.WidgetSigningPoC"
+snapshot_relative_path="/Library/Application Support/com.HongXunPan.MihomoMeter.WidgetSigningPoC/"
+snapshot_filename="widget-snapshot.txt"
+app_file_entitlement="com.apple.security.temporary-exception.files.home-relative-path.read-write"
+widget_file_entitlement="com.apple.security.temporary-exception.files.home-relative-path.read-only"
 minutes="${1:-15}"
 
 if [[ $# -gt 1 || ! "${minutes}" =~ ^([1-9]|[1-5][0-9]|60)$ ]]; then
@@ -43,10 +46,12 @@ team_identifier() {
   sed -n 's/^TeamIdentifier=//p' <<<"${signing_details}"
 }
 
-has_group_entitlement() {
+has_file_entitlement() {
   local entitlements
   entitlements="$(codesign -d --entitlements - "$1" 2>&1)"
-  grep -Fq "${group_identifier}" <<<"${entitlements}"
+  grep -Fq "$2" <<<"${entitlements}" &&
+    grep -Fq "${snapshot_relative_path}" <<<"${entitlements}" &&
+    ! grep -Fq 'com.apple.security.application-groups' <<<"${entitlements}"
 }
 
 if [[ "$(bundle_identifier "${app_path}")" != "${app_identifier}" ]] ||
@@ -74,9 +79,18 @@ elif [[ -n "${app_team}" && -n "${widget_team}" ]]; then
   team_state="至少一方已设置或两者不同"
 fi
 
-group_state="不一致或无法读取"
-if has_group_entitlement "${app_path}" && has_group_entitlement "${widget_path}"; then
-  group_state="双方均声明目标 App Group"
+file_permission_state="不一致或无法读取"
+if has_file_entitlement "${app_path}" "${app_file_entitlement}" &&
+  has_file_entitlement "${widget_path}" "${widget_file_entitlement}"; then
+  file_permission_state="主应用读写、Widget 只读，均未声明 App Group"
+fi
+
+snapshot_state="不存在"
+snapshot_mode="未读取"
+snapshot_path="${HOME}${snapshot_relative_path}${snapshot_filename}"
+if [[ -f "${snapshot_path}" ]]; then
+  snapshot_state="存在"
+  snapshot_mode="$(stat -f '%Lp' "${snapshot_path}" 2>/dev/null || echo '无法读取')"
 fi
 
 registration_state="无法查询"
@@ -91,26 +105,21 @@ if registration="$(pluginkit -m -v -v -i "${widget_identifier}" 2>/dev/null)"; t
   fi
 fi
 
-app_group_rejections=0
-widget_group_rejections=0
-app_tcc_grants=0
+app_file_denials=0
+widget_file_denials=0
 widget_tcc_denials=0
 log_state="可读取"
-predicate='(process == "containermanagerd" OR process == "sandboxd") AND '
-predicate+='(eventMessage CONTAINS[c] "WidgetSigningPoC" OR '
-predicate+='eventMessage CONTAINS[c] "group.com.HongXunPan.MihomoMeter")'
+predicate='(process == "sandboxd" OR process == "kernel" OR process == "tccd") AND '
+predicate+='eventMessage CONTAINS[c] "WidgetSigningPoC"'
 if system_logs="$(/usr/bin/log show --last "${minutes}m" --style compact --info --predicate "${predicate}" 2>/dev/null)"; then
   while IFS= read -r line; do
-    if [[ "${line}" == *"[${app_identifier}] requesting [${group_identifier}]: REJECTED"* ]] &&
-      [[ "${line}" == *"signature does not allow it to access a TCC-protected group container"* ]]; then
-      ((app_group_rejections += 1))
+    if [[ "${line}" == *"deny("* && "${line}" == *"${app_identifier}"* ]] &&
+      [[ "${line}" == *"${snapshot_filename}"* ]]; then
+      ((app_file_denials += 1))
     fi
-    if [[ "${line}" == *"[${widget_identifier}] requesting [${group_identifier}]: REJECTED"* ]] &&
-      [[ "${line}" == *"signature does not allow it to access a TCC-protected group container"* ]]; then
-      ((widget_group_rejections += 1))
-    fi
-    if [[ "${line}" == *"kTCCServiceSystemPolicyAppData granted by TCC for WidgetSigningPoC" ]]; then
-      ((app_tcc_grants += 1))
+    if [[ "${line}" == *"deny("* && "${line}" == *"${widget_identifier}"* ]] &&
+      [[ "${line}" == *"${snapshot_filename}"* ]]; then
+      ((widget_file_denials += 1))
     fi
     if [[ "${line}" == *"kTCCServiceSystemPolicyAppData denied by TCC for WidgetSigningPoCWidget" ]]; then
       ((widget_tcc_denials += 1))
@@ -120,7 +129,7 @@ else
   log_state="系统日志不可读取"
 fi
 
-echo "WidgetKit 自签名 PoC 诊断（近 ${minutes} 分钟）"
+echo "WidgetKit 固定自签名专用目录 PoC 诊断（近 ${minutes} 分钟）"
 echo "系统版本：$(sw_vers -productVersion)"
 app_version="$(bundle_version "${app_path}" || true)"
 widget_version="$(bundle_version "${widget_path}" || true)"
@@ -128,17 +137,17 @@ echo "已安装版本：主应用 ${app_version:-未知}，Widget ${widget_versi
 echo "签名校验：通过"
 echo "叶证书：${certificate_state}"
 echo "Team ID：${team_state}"
-echo "App Group 权限声明：${group_state}"
+echo "文件权限声明：${file_permission_state}"
+echo "快照文件：${snapshot_state}；权限模式：${snapshot_mode}"
 echo "系统注册：${registration_state}"
 echo "系统日志：${log_state}"
-echo "群组容器签名拒绝次数：主应用 ${app_group_rejections}，Widget ${widget_group_rejections}"
-echo "App Data 授权记录次数：主应用获准 ${app_tcc_grants}，Widget 被拒 ${widget_tcc_denials}"
+echo "专用文件沙盒拒绝记录：主应用 ${app_file_denials}，Widget ${widget_file_denials}"
+echo "Widget App Data 拒绝记录：${widget_tcc_denials}"
 
 if [[ "${certificate_state}" == 一致* && "${team_state}" == "主应用与 Widget 均未设置" ]] &&
-  [[ "${group_state}" == "双方均声明目标 App Group" ]] &&
-  [[ "${registration_state}" == "与当前安装包一致" ]] &&
-  (( app_group_rejections > 0 && widget_group_rejections > 0 && widget_tcc_denials > 0 )); then
-  echo "结论：本时间窗内观察到固定自签 PoC 的 App Group 运行时授权被拒；请与 Widget 的 257 截图对照。"
+  [[ "${file_permission_state}" == "主应用读写、Widget 只读，均未声明 App Group" ]] &&
+  [[ "${registration_state}" == "与当前安装包一致" ]]; then
+  echo "结论：静态身份与权限声明匹配；运行时是否可读仍以主应用和 Widget 界面结果为准。"
 else
-  echo "结论：证据尚不完整，不能据此判定共享容器授权成功或失败。"
+  echo "结论：静态证据尚不完整，不能据此判定专用文件授权成功或失败。"
 fi

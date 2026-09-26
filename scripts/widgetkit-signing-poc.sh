@@ -28,7 +28,9 @@ report_path="${output_directory}/widgetkit-signing-poc-verification.txt"
 signing_identity="Mihomo Meter By HongXunPan"
 app_identifier="com.HongXunPan.MihomoMeter.WidgetSigningPoC"
 widget_identifier="${app_identifier}.Widget"
-group_identifier="group.com.HongXunPan.MihomoMeter.WidgetSigningPoC"
+snapshot_relative_path="/Library/Application Support/com.HongXunPan.MihomoMeter.WidgetSigningPoC/"
+app_file_entitlement="com.apple.security.temporary-exception.files.home-relative-path.read-write"
+widget_file_entitlement="com.apple.security.temporary-exception.files.home-relative-path.read-only"
 mounted=0
 keychain_created=0
 
@@ -137,11 +139,27 @@ codesign --verify --deep --strict --verbose=2 "${app_path}"
   fail "Widget Bundle ID 不匹配。"
 [[ "$(/usr/libexec/PlistBuddy -c 'Print :NSExtension:NSExtensionPointIdentifier' "${widget_path}/Contents/Info.plist")" == 'com.apple.widgetkit-extension' ]] ||
   fail "Widget 扩展点不匹配。"
-for signed_bundle in "${app_path}" "${widget_path}"; do
-  entitlements="$(codesign -d --entitlements - "${signed_bundle}" 2>&1)"
-  grep -Fq "${group_identifier}" <<<"${entitlements}" ||
-    fail "签名产物缺少预期 App Group：${signed_bundle}"
+app_entitlements="$(codesign -d --entitlements - "${app_path}" 2>&1)"
+widget_entitlements="$(codesign -d --entitlements - "${widget_path}" 2>&1)"
+grep -Fq "${app_file_entitlement}" <<<"${app_entitlements}" ||
+  fail "主应用签名缺少专用目录读写权限。"
+grep -Fq "${snapshot_relative_path}" <<<"${app_entitlements}" ||
+  fail "主应用签名的专用目录路径不匹配。"
+grep -Fq "${widget_file_entitlement}" <<<"${widget_entitlements}" ||
+  fail "Widget 签名缺少专用目录只读权限。"
+grep -Fq "${snapshot_relative_path}" <<<"${widget_entitlements}" ||
+  fail "Widget 签名的专用目录路径不匹配。"
+for entitlements in "${app_entitlements}" "${widget_entitlements}"; do
+  grep -Fq 'com.apple.security.app-sandbox' <<<"${entitlements}" ||
+    fail "签名产物缺少沙盒权限声明。"
+  if grep -Fq 'com.apple.security.application-groups' <<<"${entitlements}"; then
+    fail "文件权限 PoC 不应继续声明 App Group。"
+  fi
 done
+if grep -Fq "${widget_file_entitlement}" <<<"${app_entitlements}" ||
+  grep -Fq "${app_file_entitlement}" <<<"${widget_entitlements}"; then
+  fail "主应用与 Widget 的文件访问角色不匹配。"
+fi
 
 app_requirement="$(codesign -dr - "${app_path}" 2>&1)"
 widget_requirement="$(codesign -dr - "${widget_path}" 2>&1)"
@@ -181,16 +199,16 @@ hdiutil detach "${mount_point}"
 mounted=0
 
 cat >"${report_path}" <<EOF
-测试范围：固定自签名证书的 WidgetKit 扩展静态打包与签名
+测试范围：固定自签名证书的 WidgetKit 专用目录权限静态打包与签名
 主应用 Bundle ID：${app_identifier}
 Widget Bundle ID：${widget_identifier}
-共享组：${group_identifier}
+专用目录：~${snapshot_relative_path}
 签名证书：${signing_identity}
 叶证书 SHA-1 前 12 位：${app_leaf_sha1:0:12}
 Team ID：主应用与 Widget 均未设置
-App Group 权限声明：主应用与 Widget 均包含目标共享组
+文件权限声明：主应用专用目录读写，Widget 同目录只读；双方均未声明 App Group
 验证结果：主应用与扩展的叶证书完全一致且匹配固定证书；嵌入扩展及 DMG 签名校验通过
-未验证：共享容器运行时授权、小组件库可见性、用户安装交互
+未验证：专用目录运行时授权、小组件库可见性、用户安装交互
 EOF
 cp "${project_root}/scripts/widgetkit-signing-poc-diagnose.sh" \
   "${output_directory}/widgetkit-signing-poc-diagnose.sh"

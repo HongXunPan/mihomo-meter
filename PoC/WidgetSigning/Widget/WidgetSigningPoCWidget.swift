@@ -47,7 +47,7 @@ private struct WidgetSigningPoCView: View {
         .font(.caption2)
         .lineLimit(5)
       Spacer(minLength: 0)
-      Text("诊断版 3 · 仅假数据")
+      Text("文件权限版 4 · 仅假数据")
         .font(.caption2)
         .foregroundStyle(.secondary)
     }
@@ -66,7 +66,7 @@ struct WidgetSigningPoCWidget: Widget {
       WidgetSigningPoCView(entry: entry)
     }
     .configurationDisplayName("Mihomo Meter 签名 PoC")
-    .description("验证自签名 Widget 扩展与共享容器，不展示真实流量。")
+    .description("验证固定自签名 Widget 对专用目录的只读访问，不展示真实流量。")
     .supportedFamilies([.systemSmall])
   }
 }

@@ -4,9 +4,9 @@
 <dict>
 	<key>com.apple.security.app-sandbox</key>
 	<true/>
-	<key>com.apple.security.application-groups</key>
+	<key>com.apple.security.temporary-exception.files.home-relative-path.read-write</key>
 	<array>
-		<string>group.com.HongXunPan.MihomoMeter.WidgetSigningPoC</string>
+		<string>/Library/Application Support/com.HongXunPan.MihomoMeter.WidgetSigningPoC/</string>
 	</array>
 </dict>
 </plist>
