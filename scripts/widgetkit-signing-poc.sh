@@ -143,6 +143,20 @@ for signed_bundle in "${app_path}" "${widget_path}"; do
     fail "签名产物缺少预期 App Group：${signed_bundle}"
 done
 
+app_requirement="$(codesign -dr - "${app_path}" 2>&1)"
+widget_requirement="$(codesign -dr - "${widget_path}" 2>&1)"
+app_leaf_sha1="$(sed -nE 's/.*certificate leaf = H"([[:xdigit:]]{40})".*/\1/p' <<<"${app_requirement}")"
+widget_leaf_sha1="$(sed -nE 's/.*certificate leaf = H"([[:xdigit:]]{40})".*/\1/p' <<<"${widget_requirement}")"
+expected_leaf_sha1="$(tr '[:upper:]' '[:lower:]' <<<"${signing_certificate_sha1}")"
+[[ "${app_leaf_sha1}" == "${expected_leaf_sha1}" &&
+  "${widget_leaf_sha1}" == "${expected_leaf_sha1}" ]] ||
+  fail "主应用或 Widget 的叶证书与固定自签名证书不一致。"
+for signed_bundle in "${app_path}" "${widget_path}"; do
+  signing_details="$(codesign -dv --verbose=4 "${signed_bundle}" 2>&1)"
+  grep -Fxq 'TeamIdentifier=not set' <<<"${signing_details}" ||
+    fail "固定自签名 PoC 的 Team ID 与预期不符：${signed_bundle}"
+done
+
 mkdir -p "${staging_directory}" "${mount_point}"
 ditto "${app_path}" "${staging_directory}/WidgetSigningPoC.app"
 ln -s /Applications "${staging_directory}/Applications"
@@ -172,7 +186,14 @@ cat >"${report_path}" <<EOF
 Widget Bundle ID：${widget_identifier}
 共享组：${group_identifier}
 签名证书：${signing_identity}
-验证结果：主应用、嵌入扩展及 DMG 签名校验通过
+叶证书 SHA-1 前 12 位：${app_leaf_sha1:0:12}
+Team ID：主应用与 Widget 均未设置
+App Group 权限声明：主应用与 Widget 均包含目标共享组
+验证结果：主应用与扩展的叶证书完全一致且匹配固定证书；嵌入扩展及 DMG 签名校验通过
 未验证：共享容器运行时授权、小组件库可见性、用户安装交互
 EOF
+cp "${project_root}/scripts/widgetkit-signing-poc-diagnose.sh" \
+  "${output_directory}/widgetkit-signing-poc-diagnose.sh"
+cp "${project_root}/PoC/WidgetSigning/README.md" \
+  "${output_directory}/widgetkit-signing-poc-使用说明.md"
 echo "签名 PoC 产物：${dmg_path}"

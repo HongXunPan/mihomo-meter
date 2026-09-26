@@ -26,6 +26,7 @@ jobs:
       - name: 校验样例配置与脚本
         run: |
           bash -n scripts/widgetkit-signing-poc.sh
+          bash -n scripts/widgetkit-signing-poc-diagnose.sh
           xcrun swift format lint --strict \
             PoC/WidgetSigning/App/WidgetSigningPoCApp.swift \
             PoC/WidgetSigning/Widget/WidgetSigningPoCWidget.swift \
@@ -51,5 +52,7 @@ jobs:
           path: |
             dist/widgetkit-signing-poc.dmg
             dist/widgetkit-signing-poc-verification.txt
+            dist/widgetkit-signing-poc-diagnose.sh
+            dist/widgetkit-signing-poc-使用说明.md
           if-no-files-found: error
           retention-days: 3
