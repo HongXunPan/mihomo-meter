@@ -85,9 +85,15 @@ if has_file_entitlement "${app_path}" "${app_file_entitlement}" &&
   file_permission_state="主应用读写、Widget 只读，均未声明 App Group"
 fi
 
+snapshot_directory="${HOME}${snapshot_relative_path}"
+directory_state="不存在"
+if [[ -d "${snapshot_directory}" ]]; then
+  directory_state="存在"
+fi
+
 snapshot_state="不存在"
 snapshot_mode="未读取"
-snapshot_path="${HOME}${snapshot_relative_path}${snapshot_filename}"
+snapshot_path="${snapshot_directory}${snapshot_filename}"
 if [[ -f "${snapshot_path}" ]]; then
   snapshot_state="存在"
   snapshot_mode="$(stat -f '%Lp' "${snapshot_path}" 2>/dev/null || echo '无法读取')"
@@ -138,6 +144,7 @@ echo "签名校验：通过"
 echo "叶证书：${certificate_state}"
 echo "Team ID：${team_state}"
 echo "文件权限声明：${file_permission_state}"
+echo "用户目录中的专用文件夹：${directory_state}"
 echo "快照文件：${snapshot_state}；权限模式：${snapshot_mode}"
 echo "系统注册：${registration_state}"
 echo "系统日志：${log_state}"

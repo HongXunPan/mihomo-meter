@@ -47,7 +47,7 @@ private struct WidgetSigningPoCView: View {
         .font(.caption2)
         .lineLimit(5)
       Spacer(minLength: 0)
-      Text("文件权限版 4 · 仅假数据")
+      Text("路径诊断版 5 · 仅假数据")
         .font(.caption2)
         .foregroundStyle(.secondary)
     }

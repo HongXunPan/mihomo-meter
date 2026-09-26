@@ -1,8 +1,22 @@
+import Darwin
 import Foundation
 
 enum WidgetSigningPoCSnapshotStore {
+  static func accountHomeURL() -> URL? {
+    guard let account = getpwuid(getuid()), let homeDirectory = account.pointee.pw_dir else {
+      return nil
+    }
+
+    let homePath = String(cString: homeDirectory)
+    guard homePath.hasPrefix("/") else {
+      return nil
+    }
+
+    return URL(fileURLWithPath: homePath, isDirectory: true)
+  }
+
   static func directoryURL() -> URL? {
-    guard let userHome = FileManager.default.homeDirectory(forUser: NSUserName()) else {
+    guard let userHome = accountHomeURL() else {
       return nil
     }
 
