@@ -38,6 +38,28 @@ final class ClashProfileCatalogReaderTests: XCTestCase {
     XCTAssertEqual(catalog.ignoredRemoteProfileCount, 1)
   }
 
+  func testChangingSelectedNodeDoesNotChangeProfileCatalog() throws {
+    let directory = temporaryDirectory()
+    defer { try? FileManager.default.removeItem(at: directory) }
+    let base = """
+      current: remote-a
+      items:
+        - uid: remote-a
+          type: remote
+          name: 主订阅
+          url: https://example.com/sub
+          selected: NODE
+      """
+    let reader = YAMLClashProfileCatalogReader()
+
+    try write(base.replacingOccurrences(of: "NODE", with: "节点一"), to: directory)
+    let first = try reader.readCatalog(in: directory)
+    try write(base.replacingOccurrences(of: "NODE", with: "节点二"), to: directory)
+    let second = try reader.readCatalog(in: directory)
+
+    XCTAssertEqual(first, second)
+  }
+
   func testRejectsDuplicateRemoteUID() throws {
     let directory = temporaryDirectory()
     defer { try? FileManager.default.removeItem(at: directory) }

@@ -79,6 +79,65 @@ final class ConnectionLivenessWatchdogTests: XCTestCase {
     XCTAssertNil(completion.forcedReason)
   }
 
+  func testCancelledStaleTimerDoesNotEmitAfterFreshSnapshot() async throws {
+    let sleeper = ManualLivenessSleeper()
+    let recorder = LivenessEventRecorder()
+    let watchdog = ConnectionLivenessWatchdog(
+      policy: .init(
+        staleAfterNanoseconds: 20_000_000,
+        reconnectAfterNanoseconds: 60_000_000,
+        backoffResetAfterNanoseconds: 200_000_000
+      ),
+      sleep: { _ in await sleeper.sleep() }
+    )
+    let streamID = watchdog.beginStream { event in
+      await recorder.record(event)
+    }
+
+    try await waitUntil { await sleeper.pendingCount == 1 }
+    XCTAssertTrue(watchdog.acceptSnapshot(streamID: streamID))
+    try await waitUntil { await sleeper.pendingCount == 2 }
+    await sleeper.resumeFirst()
+    try await Task.sleep(nanoseconds: 30_000_000)
+
+    let events = await recorder.events
+    XCTAssertTrue(events.isEmpty)
+    watchdog.cancel()
+    await sleeper.resumeAll()
+  }
+
+  func testCancelledReconnectTimerDoesNotEmitAfterFreshSnapshot() async throws {
+    let sleeper = ManualLivenessSleeper()
+    let recorder = LivenessEventRecorder()
+    let watchdog = ConnectionLivenessWatchdog(
+      policy: .init(
+        staleAfterNanoseconds: 20_000_000,
+        reconnectAfterNanoseconds: 60_000_000,
+        backoffResetAfterNanoseconds: 200_000_000
+      ),
+      sleep: { _ in await sleeper.sleep() }
+    )
+    let streamID = watchdog.beginStream { event in
+      await recorder.record(event)
+    }
+
+    try await waitUntil { await sleeper.pendingCount == 1 }
+    try await Task.sleep(nanoseconds: 30_000_000)
+    await sleeper.resumeFirst()
+    try await waitUntil { await recorder.events.count == 1 }
+    try await waitUntil { await sleeper.pendingCount == 1 }
+
+    XCTAssertTrue(watchdog.acceptSnapshot(streamID: streamID))
+    try await waitUntil { await sleeper.pendingCount == 2 }
+    await sleeper.resumeFirst()
+    try await Task.sleep(nanoseconds: 30_000_000)
+
+    let events = await recorder.events
+    XCTAssertEqual(events.count, 1)
+    watchdog.cancel()
+    await sleeper.resumeAll()
+  }
+
   private func waitUntil(
     timeoutNanoseconds: UInt64 = 500_000_000,
     condition: @escaping () async -> Bool
@@ -101,5 +160,33 @@ private actor LivenessEventRecorder {
 
   func record(_ event: ConnectionLivenessWatchdog.Event) {
     events.append(event)
+  }
+}
+
+private actor ManualLivenessSleeper {
+  private var continuations: [CheckedContinuation<Void, Never>] = []
+
+  var pendingCount: Int {
+    continuations.count
+  }
+
+  func sleep() async {
+    await withCheckedContinuation { continuation in
+      continuations.append(continuation)
+    }
+  }
+
+  func resumeFirst() {
+    guard !continuations.isEmpty else {
+      return
+    }
+    continuations.removeFirst().resume()
+  }
+
+  func resumeAll() {
+    for continuation in continuations {
+      continuation.resume()
+    }
+    continuations.removeAll()
   }
 }

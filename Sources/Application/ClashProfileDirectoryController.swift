@@ -73,7 +73,12 @@ final class ClashProfileDirectoryController: ObservableObject {
     }
     do {
       let catalog = try reader.readCatalog(in: activeDirectoryURL)
-      subscriptions = try await trackingService.reconcile(catalog: catalog, at: now())
+      if self.catalog == catalog, snapshot.accessStatus == .available {
+        return
+      }
+      if self.catalog?.profiles != catalog.profiles {
+        subscriptions = try await trackingService.reconcile(catalog: catalog, at: now())
+      }
       self.catalog = catalog
       apply(accessStatus: .available)
     } catch {

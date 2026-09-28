@@ -52,10 +52,12 @@ final class ConnectionLivenessWatchdog {
   }
 
   typealias EventHandler = @MainActor @Sendable (Event) async -> Void
+  typealias Sleeper = @Sendable (UInt64) async throws -> Void
 
   let policy: Policy
 
   private let clock = ContinuousClock()
+  private let sleep: Sleeper
   private var watchdogTask: Task<Void, Never>?
   private var streamID: UUID?
   private var lastSnapshotAt: ContinuousClock.Instant?
@@ -63,8 +65,12 @@ final class ConnectionLivenessWatchdog {
   private var forcedTerminationReason: ConnectionDiagnosticReason?
   private var eventHandler: EventHandler?
 
-  init(policy: Policy = .production) {
+  init(
+    policy: Policy = .production,
+    sleep: @escaping Sleeper = { try await Task.sleep(nanoseconds: $0) }
+  ) {
     self.policy = policy
+    self.sleep = sleep
   }
 
   func beginStream(
@@ -94,8 +100,12 @@ final class ConnectionLivenessWatchdog {
     return true
   }
 
-  func isCurrentStream(_ streamID: UUID) -> Bool {
-    self.streamID == streamID
+  func hasCurrentSnapshotAged(streamID: UUID, atLeast nanoseconds: UInt64) -> Bool {
+    guard self.streamID == streamID, let lastSnapshotAt else {
+      return false
+    }
+    let threshold = Duration.nanoseconds(Int64(clamping: nanoseconds))
+    return lastSnapshotAt.duration(to: clock.now) >= threshold
   }
 
   var currentSnapshotAgeMilliseconds: Int? {
@@ -147,14 +157,16 @@ final class ConnectionLivenessWatchdog {
       }
 
       do {
-        try await Task.sleep(
-          nanoseconds: policy.staleAfterNanoseconds
-        )
+        try await sleep(policy.staleAfterNanoseconds)
       } catch {
         return
       }
 
-      guard self.streamID == streamID, let eventHandler else {
+      guard
+        !Task.isCancelled,
+        hasCurrentSnapshotAged(streamID: streamID, atLeast: policy.staleAfterNanoseconds),
+        let eventHandler
+      else {
         return
       }
       await eventHandler(
@@ -165,15 +177,16 @@ final class ConnectionLivenessWatchdog {
       )
 
       do {
-        try await Task.sleep(
-          nanoseconds: policy.reconnectAfterNanoseconds
-            - policy.staleAfterNanoseconds
-        )
+        try await sleep(policy.reconnectAfterNanoseconds - policy.staleAfterNanoseconds)
       } catch {
         return
       }
 
-      guard self.streamID == streamID, let eventHandler = self.eventHandler else {
+      guard
+        !Task.isCancelled,
+        hasCurrentSnapshotAged(streamID: streamID, atLeast: policy.reconnectAfterNanoseconds),
+        let eventHandler = self.eventHandler
+      else {
         return
       }
       await eventHandler(

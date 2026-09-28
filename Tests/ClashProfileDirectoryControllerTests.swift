@@ -86,6 +86,67 @@ final class ClashProfileDirectoryControllerTests: SQLiteQuotaLedgerTestCase {
     XCTAssertNil(latestSnapshot)
   }
 
+  func testReloadReconcilesOnlyWhenProfilesChange() async throws {
+    let context = try makeContext(bookmark: Data("stored".utf8))
+    defer { removeDatabase(at: context.database) }
+
+    await context.controller.prepare()
+    await context.controller.setTracking(true, profileUID: "profile-a")
+    let initialLoadCount = await context.keyStore.loadCount
+    let initialTargetUpdateCount = context.quotaLifecycle.updateCount
+
+    await context.controller.reload()
+    let unchangedLoadCount = await context.keyStore.loadCount
+    XCTAssertEqual(unchangedLoadCount, initialLoadCount)
+    XCTAssertEqual(context.quotaLifecycle.updateCount, initialTargetUpdateCount)
+
+    context.reader.setCatalog(
+      ClashProfileCatalog(
+        currentUID: nil,
+        profiles: [try testClashProfile()],
+        ignoredRemoteProfileCount: 0
+      )
+    )
+    await context.controller.reload()
+    let currentOnlyLoadCount = await context.keyStore.loadCount
+    XCTAssertEqual(currentOnlyLoadCount, initialLoadCount)
+    XCTAssertEqual(context.quotaLifecycle.updateCount, initialTargetUpdateCount + 1)
+    XCTAssertFalse(context.controller.snapshot.profiles[0].isCurrent)
+
+    context.reader.setCatalog(
+      ClashProfileCatalog(
+        currentUID: nil,
+        profiles: [try testClashProfile(name: "新名称")],
+        ignoredRemoteProfileCount: 0
+      )
+    )
+    await context.controller.reload()
+    let changedLoadCount = await context.keyStore.loadCount
+    XCTAssertEqual(changedLoadCount, initialLoadCount + 1)
+    XCTAssertEqual(context.controller.snapshot.selectedProfiles.first?.name, "新名称")
+  }
+
+  func testReloadRestoresAccessAfterTransientReadFailureWithoutLoadingKey() async throws {
+    let context = try makeContext(bookmark: Data("stored".utf8))
+    defer { removeDatabase(at: context.database) }
+
+    await context.controller.prepare()
+    await context.controller.setTracking(true, profileUID: "profile-a")
+    let initialLoadCount = await context.keyStore.loadCount
+
+    context.reader.setFailure(.invalidYAML)
+    await context.controller.reload()
+    guard case .failed = context.controller.snapshot.accessStatus else {
+      return XCTFail("读取失败后应展示失败状态")
+    }
+
+    context.reader.setFailure(nil)
+    await context.controller.reload()
+    let restoredLoadCount = await context.keyStore.loadCount
+    XCTAssertEqual(context.controller.snapshot.accessStatus, .available)
+    XCTAssertEqual(restoredLoadCount, initialLoadCount)
+  }
+
   func testSelectsNoncurrentProfileAndStoresMeterInterval() async throws {
     let current = try testClashProfile(uid: "current", name: "当前订阅")
     let secondary = try testClashProfile(
@@ -174,13 +235,17 @@ final class ClashProfileDirectoryControllerTests: SQLiteQuotaLedgerTestCase {
     )
     let observer = TestProfileDirectoryObserver()
     let quotaLifecycle = ProfileDirectoryTestQuotaLifecycle()
+    let keyStore = TestProfileFingerprintKeyStore()
     let controller = ClashProfileDirectoryController(
       authorizer: authorizer,
       bookmarkStore: bookmarkStore,
       securityScope: securityScope,
       reader: reader,
       observer: observer,
-      trackingService: testProfileTrackingService(ledger: ledger),
+      trackingService: ClashProfileTrackingService(
+        ledger: ledger,
+        fingerprinter: HMACProfileURLFingerprinter(keyStore: keyStore)
+      ),
       profileQuotaLifecycle: quotaLifecycle,
       now: { Date(timeIntervalSince1970: 1_702_300_000) }
     )
@@ -193,6 +258,7 @@ final class ClashProfileDirectoryControllerTests: SQLiteQuotaLedgerTestCase {
       securityScope: securityScope,
       observer: observer,
       quotaLifecycle: quotaLifecycle,
+      keyStore: keyStore,
       controller: controller
     )
   }
@@ -208,15 +274,18 @@ private struct ProfileDirectoryControllerTestContext {
   let securityScope: TestProfileDirectorySecurityScope
   let observer: TestProfileDirectoryObserver
   let quotaLifecycle: ProfileDirectoryTestQuotaLifecycle
+  let keyStore: TestProfileFingerprintKeyStore
   let controller: ClashProfileDirectoryController
 }
 
 @MainActor
 private final class ProfileDirectoryTestQuotaLifecycle: ProfileQuotaTrackingLifecycle {
   private(set) var lastTargets: [ProfileQuotaTarget] = []
+  private(set) var updateCount = 0
 
   func updateTargets(_ targets: [ProfileQuotaTarget]) {
     lastTargets = targets
+    updateCount += 1
   }
 
   func controllerValidated(
