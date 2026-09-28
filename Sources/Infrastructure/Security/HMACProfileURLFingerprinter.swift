@@ -3,6 +3,11 @@ import Foundation
 
 protocol ProfileURLFingerprinting: Sendable {
   func fingerprint(for url: URL) async throws -> String
+  func makeSession() -> any ProfileURLFingerprintingSession
+}
+
+protocol ProfileURLFingerprintingSession: Sendable {
+  func fingerprint(for url: URL) async throws -> String
 }
 
 struct HMACProfileURLFingerprinter: ProfileURLFingerprinting {
@@ -13,11 +18,34 @@ struct HMACProfileURLFingerprinter: ProfileURLFingerprinting {
   }
 
   func fingerprint(for url: URL) async throws -> String {
-    let keyData = try await keyStore.loadOrCreateKey()
+    try await makeSession().fingerprint(for: url)
+  }
+
+  func makeSession() -> any ProfileURLFingerprintingSession {
+    HMACProfileURLFingerprintSession(keyStore: keyStore)
+  }
+}
+
+private actor HMACProfileURLFingerprintSession: ProfileURLFingerprintingSession {
+  private let keyStore: any ProfileFingerprintKeyStoring
+  private var cachedKey: SymmetricKey?
+
+  init(keyStore: any ProfileFingerprintKeyStoring) {
+    self.keyStore = keyStore
+  }
+
+  func fingerprint(for url: URL) async throws -> String {
+    let key: SymmetricKey
+    if let cachedKey {
+      key = cachedKey
+    } else {
+      key = SymmetricKey(data: try await keyStore.loadOrCreateKey())
+      cachedKey = key
+    }
     let normalizedURL = try ProfileURLNormalizer.normalizedString(from: url)
     let signature = HMAC<SHA256>.authenticationCode(
       for: Data(normalizedURL.utf8),
-      using: SymmetricKey(data: keyData)
+      using: key
     )
     return signature.map { String(format: "%02x", $0) }.joined()
   }

@@ -27,8 +27,11 @@ func testProfileTrackingService(
 }
 
 actor TestProfileFingerprintKeyStore: ProfileFingerprintKeyStoring {
+  private(set) var loadCount = 0
+
   func loadOrCreateKey() async throws -> Data {
-    Data(repeating: 9, count: 32)
+    loadCount += 1
+    return Data(repeating: 9, count: 32)
   }
 }
 
