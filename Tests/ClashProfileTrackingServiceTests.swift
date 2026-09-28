@@ -66,6 +66,42 @@ final class ClashProfileTrackingServiceTests: SQLiteQuotaLedgerTestCase {
     XCTAssertNotNil(latestSnapshot)
   }
 
+  func testReconcileReadsFingerprintKeyOnceForMultipleProfiles() async throws {
+    let database = temporaryDatabase()
+    defer { removeDatabase(at: database) }
+    let ledger = SQLiteQuotaLedger(databaseURL: database)
+    let keyStore = TestProfileFingerprintKeyStore()
+    let service = ClashProfileTrackingService(
+      ledger: ledger,
+      fingerprinter: HMACProfileURLFingerprinter(keyStore: keyStore)
+    )
+    let first = try testClashProfile(uid: "first")
+    let second = try testClashProfile(
+      uid: "second",
+      url: "https://second.example.com/sub?token=test"
+    )
+    let date = Date(timeIntervalSince1970: 1_702_150_000)
+
+    _ = try await service.prepare()
+    _ = try await service.setTracking(profile: first, at: date)
+    _ = try await service.setTracking(profile: second, at: date)
+    let readsBeforeReconcile = await keyStore.loadCount
+    XCTAssertEqual(readsBeforeReconcile, 2)
+
+    let catalog = ClashProfileCatalog(
+      currentUID: first.uid,
+      profiles: [first, second],
+      ignoredRemoteProfileCount: 0
+    )
+    _ = try await service.reconcile(catalog: catalog, at: date.addingTimeInterval(10))
+    let readsAfterFirstReconcile = await keyStore.loadCount
+    XCTAssertEqual(readsAfterFirstReconcile, 3)
+
+    _ = try await service.reconcile(catalog: catalog, at: date.addingTimeInterval(20))
+    let readsAfterSecondReconcile = await keyStore.loadCount
+    XCTAssertEqual(readsAfterSecondReconcile, 4)
+  }
+
   func testDeleteAndReimportWithNewUIDDoesNotInheritHistory() async throws {
     let database = temporaryDatabase()
     defer { removeDatabase(at: database) }

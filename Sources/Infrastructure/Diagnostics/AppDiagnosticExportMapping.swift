@@ -64,6 +64,24 @@ extension AppDiagnosticEvent {
         statusCode: detail.statusCode,
         elapsedMilliseconds: max(elapsedMilliseconds, 0)
       )
+    case .profileFingerprintKeyOperationStarted(_, let operation):
+      return DiagnosticExportEvent(
+        timestamp: timestamp,
+        category: "profile_fingerprint.key.started",
+        operation: operation.rawValue
+      )
+    case .profileFingerprintKeyOperationFinished(
+      _, let operation, let outcome, let elapsedMilliseconds
+    ):
+      let detail = outcome.diagnosticExportDetail
+      return DiagnosticExportEvent(
+        timestamp: timestamp,
+        category: "profile_fingerprint.key.finished",
+        outcome: detail.outcome,
+        operation: operation.rawValue,
+        statusCode: detail.statusCode,
+        elapsedMilliseconds: max(elapsedMilliseconds, 0)
+      )
     case .connectionAttemptStarted(let trigger, let attemptNumber):
       return DiagnosticExportEvent(
         timestamp: timestamp,

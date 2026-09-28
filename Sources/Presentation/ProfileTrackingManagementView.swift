@@ -30,6 +30,13 @@ struct ProfileTrackingManagementView: View {
         Text("只读解析 Clash Verge 的 Profile 身份；不会读取缓存配额或修改配置。")
           .font(.caption)
           .foregroundStyle(.secondary)
+        Text(
+          "精确追踪会访问本机钥匙串的“profile-fingerprint”密钥，"
+            + "为订阅 URL 生成指纹以识别地址变化；不会保存原始 URL。"
+        )
+        .font(.caption)
+        .foregroundStyle(.secondary)
+        .fixedSize(horizontal: false, vertical: true)
         Link("订阅地址与目录选择指引", destination: AppHelpLink.subscriptionConfiguration.destination)
           .font(.caption)
       }

@@ -29,6 +29,7 @@ struct ClashProfileTrackingService: Sendable {
     let subscriptions = try await profileSubscriptions()
     try validateUniqueUIDs(subscriptions)
     let profilesByUID = Dictionary(uniqueKeysWithValues: catalog.profiles.map { ($0.uid, $0) })
+    let fingerprintSession = fingerprinter.makeSession()
 
     for subscription in subscriptions {
       guard case .clashProfile(let uid) = subscription.identity else {
@@ -37,6 +38,7 @@ struct ClashProfileTrackingService: Sendable {
       let updated = try await reconciled(
         subscription,
         with: profilesByUID[uid],
+        fingerprinter: fingerprintSession,
         at: date
       )
       if updated != subscription {
@@ -114,6 +116,7 @@ struct ClashProfileTrackingService: Sendable {
   private func reconciled(
     _ subscription: TrackedSubscription,
     with profile: ClashProfile?,
+    fingerprinter: any ProfileURLFingerprintingSession,
     at date: Date
   ) async throws -> TrackedSubscription {
     guard let profile else {
