@@ -13,6 +13,7 @@ struct NoOpAppDiagnosticLogger: AppDiagnosticLogging {
 
 enum KeychainDiagnosticOperation: String, Sendable {
   case load
+  case create
   case save
   case delete
 }
@@ -123,6 +124,16 @@ enum AppDiagnosticEvent: Equatable, Sendable {
     outcome: KeychainDiagnosticOutcome,
     elapsedMilliseconds: Int
   )
+  case profileFingerprintKeyOperationStarted(
+    requestID: UUID,
+    operation: KeychainDiagnosticOperation
+  )
+  case profileFingerprintKeyOperationFinished(
+    requestID: UUID,
+    operation: KeychainDiagnosticOperation,
+    outcome: KeychainDiagnosticOutcome,
+    elapsedMilliseconds: Int
+  )
   case connectionAttemptStarted(
     trigger: ConnectionAttemptTrigger,
     attemptNumber: Int
@@ -195,6 +206,25 @@ enum AppDiagnosticEvent: Equatable, Sendable {
       return [
         "event=keychain.operation.finished",
         context.logFields,
+        outcome.logFields,
+        "elapsed_ms=\(max(elapsedMilliseconds, 0))",
+      ].joined(separator: " ")
+    case .profileFingerprintKeyOperationStarted(let requestID, let operation):
+      return [
+        "event=profile_fingerprint.key.started",
+        "request_id=\(requestID.uuidString.lowercased())",
+        "operation=\(operation.rawValue)",
+      ].joined(separator: " ")
+    case .profileFingerprintKeyOperationFinished(
+      let requestID,
+      let operation,
+      let outcome,
+      let elapsedMilliseconds
+    ):
+      return [
+        "event=profile_fingerprint.key.finished",
+        "request_id=\(requestID.uuidString.lowercased())",
+        "operation=\(operation.rawValue)",
         outcome.logFields,
         "elapsed_ms=\(max(elapsedMilliseconds, 0))",
       ].joined(separator: " ")

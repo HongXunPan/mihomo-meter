@@ -5,6 +5,49 @@ import XCTest
 @testable import MihomoMeter
 
 final class DiagnosticExportReportTests: XCTestCase {
+  func testProfileFingerprintKeyEventsKeepOnlyTypedDiagnosticFields() throws {
+    let timestamp = Date(timeIntervalSince1970: 1_700_000_000)
+    let requestID = UUID(uuidString: "00000000-0000-0000-0000-000000000004")!
+    let started = AppDiagnosticEvent.profileFingerprintKeyOperationStarted(
+      requestID: requestID,
+      operation: .load
+    )
+    let finished = AppDiagnosticEvent.profileFingerprintKeyOperationFinished(
+      requestID: requestID,
+      operation: .load,
+      outcome: .failed(errSecAuthFailed),
+      elapsedMilliseconds: 42
+    )
+
+    XCTAssertTrue(started.logMessage.contains("event=profile_fingerprint.key.started"))
+    XCTAssertTrue(started.logMessage.contains("operation=load"))
+    XCTAssertTrue(finished.logMessage.contains("result=failed status=\(errSecAuthFailed)"))
+    XCTAssertTrue(finished.logMessage.contains("elapsed_ms=42"))
+    XCTAssertTrue(finished.logMessage.contains(requestID.uuidString.lowercased()))
+
+    let exported = finished.diagnosticExportEvent(at: timestamp)
+    XCTAssertEqual(exported.category, "profile_fingerprint.key.finished")
+    XCTAssertEqual(exported.operation, "load")
+    XCTAssertEqual(exported.outcome, "failed")
+    XCTAssertEqual(exported.statusCode, Int(errSecAuthFailed))
+    XCTAssertEqual(exported.elapsedMilliseconds, 42)
+    let contents = String(
+      decoding: try JSONEncoder().encode(exported),
+      as: UTF8.self
+    )
+    XCTAssertFalse(contents.contains(requestID.uuidString.lowercased()))
+    XCTAssertFalse(contents.contains("request_id"))
+
+    let created = AppDiagnosticEvent.profileFingerprintKeyOperationFinished(
+      requestID: requestID,
+      operation: .create,
+      outcome: .created,
+      elapsedMilliseconds: 7
+    )
+    XCTAssertTrue(created.logMessage.contains("operation=create result=created status=0"))
+    XCTAssertEqual(created.diagnosticExportEvent(at: timestamp).outcome, "created")
+  }
+
   func testExportUsesWhitelistWithoutIdentifiersOrRawLogContent() throws {
     let timestamp = Date(timeIntervalSince1970: 1_700_000_000)
     let requestID = UUID(uuidString: "00000000-0000-0000-0000-000000000001")!
