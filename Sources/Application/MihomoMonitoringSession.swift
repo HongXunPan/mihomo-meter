@@ -155,7 +155,12 @@ final class MihomoMonitoringSession {
   ) async {
     switch event {
     case .stale(let streamID, let lastSnapshotAgeMilliseconds):
-      guard livenessWatchdog.isCurrentStream(streamID) else {
+      guard
+        livenessWatchdog.hasCurrentSnapshotAged(
+          streamID: streamID,
+          atLeast: livenessWatchdog.policy.staleAfterNanoseconds
+        )
+      else {
         return
       }
       measurementSession.resetBaseline()
@@ -168,6 +173,10 @@ final class MihomoMonitoringSession {
       )
     case .reconnectRequired(let streamID, let lastSnapshotAgeMilliseconds):
       guard
+        livenessWatchdog.hasCurrentSnapshotAged(
+          streamID: streamID,
+          atLeast: livenessWatchdog.policy.reconnectAfterNanoseconds
+        ),
         livenessWatchdog.requestTermination(
           streamID: streamID,
           reason: .dataStale

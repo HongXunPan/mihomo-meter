@@ -38,18 +38,30 @@ actor TestProfileFingerprintKeyStore: ProfileFingerprintKeyStoring {
 final class TestClashProfileCatalogReader: ClashProfileCatalogReading, @unchecked Sendable {
   private let lock = NSLock()
   private var catalog: ClashProfileCatalog
+  private var failure: ClashProfileCatalogReaderError?
 
   init(catalog: ClashProfileCatalog) {
     self.catalog = catalog
   }
 
   func readCatalog(in directoryURL: URL) throws -> ClashProfileCatalog {
-    lock.withLock { catalog }
+    try lock.withLock {
+      if let failure {
+        throw failure
+      }
+      return catalog
+    }
   }
 
   func setCatalog(_ catalog: ClashProfileCatalog) {
     lock.withLock {
       self.catalog = catalog
+    }
+  }
+
+  func setFailure(_ failure: ClashProfileCatalogReaderError?) {
+    lock.withLock {
+      self.failure = failure
     }
   }
 }
