@@ -17,6 +17,13 @@ final class ConnectionSnapshotDecoderTests: XCTestCase {
       try decoder.decode(.string(text)).downloadTotal,
       2_900
     )
+
+    let binary = try decoder.decodeWithPayloadSize(.data(data))
+    let textual = try decoder.decodeWithPayloadSize(.string(text))
+    XCTAssertEqual(binary.snapshot.connections.count, 2)
+    XCTAssertEqual(textual.snapshot.downloadTotal, 2_900)
+    XCTAssertEqual(binary.payloadByteCount, data.count)
+    XCTAssertEqual(textual.payloadByteCount, data.count)
   }
 
   func testRejectsUnsupportedSnapshot() {

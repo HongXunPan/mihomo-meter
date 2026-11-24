@@ -1,3 +1,4 @@
+import Dispatch
 import Foundation
 
 typealias ConnectionSnapshotHandler =
@@ -16,6 +17,9 @@ protocol ConnectionSnapshotCollecting: Sendable {
 actor ConnectionStreamCollector: ConnectionSnapshotCollecting {
   private let session: URLSession
   private let decoder: ConnectionSnapshotDecoder
+  #if DEBUG
+    private let measuresDecodePerformance: Bool
+  #endif
   private var currentTask: URLSessionWebSocketTask?
 
   init(
@@ -24,6 +28,10 @@ actor ConnectionStreamCollector: ConnectionSnapshotCollecting {
   ) {
     self.session = session
     self.decoder = decoder
+    #if DEBUG
+      measuresDecodePerformance =
+        ProcessInfo.processInfo.environment[ProcessPerformanceDiagnostics.enabledKey] == "1"
+    #endif
   }
 
   func collect(
@@ -58,7 +66,7 @@ actor ConnectionStreamCollector: ConnectionSnapshotCollecting {
       try await withTaskCancellationHandler {
         while !Task.isCancelled {
           let message = try await task.receive()
-          let snapshot = try decoder.decode(message)
+          let snapshot = try await decodeSnapshot(message)
           await onSnapshot(snapshot)
         }
         throw CancellationError()
@@ -79,6 +87,25 @@ actor ConnectionStreamCollector: ConnectionSnapshotCollecting {
   func cancel() {
     currentTask?.cancel(with: .goingAway, reason: nil)
     currentTask = nil
+  }
+
+  private func decodeSnapshot(
+    _ message: URLSessionWebSocketTask.Message
+  ) async throws -> MihomoConnectionsSnapshot {
+    #if DEBUG
+      if measuresDecodePerformance {
+        let startedAt = DispatchTime.now().uptimeNanoseconds
+        let decoded = try decoder.decodeWithPayloadSize(message)
+        let elapsedNanoseconds = DispatchTime.now().uptimeNanoseconds - startedAt
+        await ConnectionDecodePerformanceRecorder.shared.record(
+          connectionCount: decoded.snapshot.connections.count,
+          payloadByteCount: decoded.payloadByteCount,
+          elapsedNanoseconds: elapsedNanoseconds
+        )
+        return decoded.snapshot
+      }
+    #endif
+    return try decoder.decode(message)
   }
 }
 

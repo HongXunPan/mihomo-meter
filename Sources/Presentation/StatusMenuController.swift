@@ -70,6 +70,7 @@ struct StatusMenuSectionConfiguration {
 @MainActor
 final class StatusMenuController: NSObject, NSMenuDelegate {
   let menu = NSMenu()
+  private(set) var isMenuOpen = false
 
   private let primaryContentEntry: StatusMenuContentEntry
   private let configuredContentEntries: [StatusMenuContentEntry]
@@ -145,8 +146,13 @@ final class StatusMenuController: NSObject, NSMenuDelegate {
   }
 
   func menuWillOpen(_ menu: NSMenu) {
+    isMenuOpen = true
     prepareForPresentation()
     refreshPresentation()
+  }
+
+  func menuDidClose(_ menu: NSMenu) {
+    isMenuOpen = false
   }
 
   func menuNeedsUpdate(_ menu: NSMenu) {
@@ -154,7 +160,7 @@ final class StatusMenuController: NSObject, NSMenuDelegate {
   }
 
   func refreshSummaries() {
-    guard isConfigurationAvailable() else {
+    guard isMenuOpen, isConfigurationAvailable() else {
       return
     }
 

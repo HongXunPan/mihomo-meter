@@ -40,6 +40,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   private var launchSessionObservers: [NSObjectProtocol] = []
   private var launchSessionIsInactive = false
   private var isTerminationPending = false
+  #if DEBUG
+    private var performanceDiagnosticsTask: Task<Void, Never>?
+  #endif
 
   func applicationWillFinishLaunching(_ notification: Notification) {
     guard ApplicationRuntimeEnvironment.current.shouldStartProductionServices else {
@@ -184,6 +187,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     systemRecoveryController.start(initialSessionIsInactive: launchSessionIsInactive)
     stopLaunchSessionObservation()
     updateModel.start()
+    #if DEBUG
+      performanceDiagnosticsTask = ProcessPerformanceDiagnostics.startIfEnabled(
+        variables: ProcessInfo.processInfo.environment,
+        logger: AppDiagnosticLogger.shared
+      )
+    #endif
 
     Task {
       await AppDiagnosticLogger.shared.record(
@@ -239,6 +248,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       return .terminateLater
     }
     isTerminationPending = true
+    #if DEBUG
+      performanceDiagnosticsTask?.cancel()
+    #endif
 
     Task {
       systemNotificationController.stop()

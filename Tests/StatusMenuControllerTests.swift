@@ -167,6 +167,37 @@ final class StatusMenuControllerTests: XCTestCase {
     XCTAssertEqual(sectionController.view.frame.height, 840)
   }
 
+  func testClosedMenuDefersSummaryRefreshUntilNextOpen() throws {
+    var summary = "1 条活跃"
+    let controller = StatusMenuController(
+      primaryContent: contentConfiguration(height: 166),
+      submenuConfigurations: [
+        StatusMenuSubmenuConfiguration(
+          title: "活动 Proxy Top 5",
+          summary: { summary },
+          contentViewController: makeViewController(),
+          contentSize: NSSize(width: 360, height: 214)
+        )
+      ],
+      sectionConfigurations: [],
+      isConfigurationAvailable: { true }
+    )
+    let submenuItem = try XCTUnwrap(
+      controller.menu.items.first { $0.title == "活动 Proxy Top 5" }
+    )
+
+    controller.menuWillOpen(controller.menu)
+    XCTAssertEqual(submenuItem.badge?.stringValue, "1 条活跃")
+
+    controller.menuDidClose(controller.menu)
+    summary = "2 条活跃"
+    controller.refreshSummaries()
+    XCTAssertEqual(submenuItem.badge?.stringValue, "1 条活跃")
+
+    controller.menuWillOpen(controller.menu)
+    XCTAssertEqual(submenuItem.badge?.stringValue, "2 条活跃")
+  }
+
   func testUnconfiguredMenuHidesAllConfiguredItems() {
     let controller = StatusMenuController(
       primaryContent: contentConfiguration(height: 420),

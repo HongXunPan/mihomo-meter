@@ -12,7 +12,13 @@ final class MenuBarController: NSObject {
   private static let statusItemLength: CGFloat = 66
 
   private let statusItem: NSStatusItem
-  private let statusContentView: ProxyStatusItemView
+  private lazy var statusContentView = ProxyStatusItemView()
+  #if DEBUG
+    private let isNativeSingleLineDiagnosticEnabled =
+      ProcessInfo.processInfo.environment["MIHOMO_METER_DIAG_NATIVE_STATUS_ITEM"] == "1"
+  #else
+    private let isNativeSingleLineDiagnosticEnabled = false
+  #endif
   private let monitor: TrafficMonitor
   private let statisticsController: TrafficStatisticsController
   private let quotaController: RuntimeQuotaTrackingController
@@ -36,7 +42,6 @@ final class MenuBarController: NSObject {
     statusItem = NSStatusBar.system.statusItem(
       withLength: MenuBarController.statusItemLength
     )
-    statusContentView = ProxyStatusItemView()
     self.monitor = monitor
     self.statisticsController = statisticsController
     self.quotaController = quotaController
@@ -58,10 +63,16 @@ final class MenuBarController: NSObject {
       return
     }
 
-    button.title = ""
     button.setAccessibilityLabel("Mihomo Meter")
-
-    statusContentView.attach(to: button)
+    if isNativeSingleLineDiagnosticEnabled {
+      statusItem.length = NSStatusItem.variableLength
+      button.image = NSImage(named: "StatusBarTemplate")
+      button.image?.isTemplate = true
+      button.imagePosition = .imageLeft
+    } else {
+      button.title = ""
+      statusContentView.attach(to: button)
+    }
 
     updateStatusItemButton(button, rate: .zero, state: monitor.connectionState)
   }
@@ -175,6 +186,9 @@ final class MenuBarController: NSObject {
 
     monitor.objectWillChange
       .sink { [weak self] in
+        guard let self, self.statusMenuController.isMenuOpen else {
+          return
+        }
         Task { @MainActor [weak self] in
           await Task.yield()
           self?.statusMenuController.refreshSummaries()
@@ -209,7 +223,14 @@ final class MenuBarController: NSObject {
     rate: TrafficRate,
     state: MonitorConnectionState
   ) {
-    statusContentView.update(rate: rate, state: state)
+    if isNativeSingleLineDiagnosticEnabled {
+      let statusText = TrafficRateFormatter.statusText(for: rate)
+      button.title =
+        state == .connected
+        ? "\(statusText.download) \(statusText.upload)" : state.statusItemTitle
+    } else {
+      statusContentView.update(rate: rate, state: state)
+    }
 
     guard state == .connected else {
       button.toolTip = "Mihomo Meter · \(state.title)"

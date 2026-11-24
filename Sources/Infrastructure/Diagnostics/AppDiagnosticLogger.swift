@@ -35,8 +35,16 @@ actor AppDiagnosticLogger: AppDiagnosticLogging {
   func record(_ event: AppDiagnosticEvent) {
     let now = Date()
     retainForExport(event.diagnosticExportEvent(at: now))
+    appendMessage(event.logMessage, at: now)
+  }
+
+  func recordPerformance(_ sample: ProcessPerformanceSample) {
+    appendMessage(sample.logMessage, at: Date())
+  }
+
+  private func appendMessage(_ message: String, at now: Date) {
     let timestamp = timestampFormatter.string(from: now)
-    let line = "\(timestamp) session=\(sessionID) \(event.logMessage)\n"
+    let line = "\(timestamp) session=\(sessionID) \(message)\n"
     let data = Data(line.utf8)
 
     do {
@@ -44,7 +52,7 @@ actor AppDiagnosticLogger: AppDiagnosticLogging {
         at: directoryURL,
         withIntermediateDirectories: true
       )
-      try removeExpiredLogs(referenceDate: Date())
+      try removeExpiredLogs(referenceDate: now)
       try rotateIfNeeded(addingByteCount: data.count)
       try append(data)
     } catch {
