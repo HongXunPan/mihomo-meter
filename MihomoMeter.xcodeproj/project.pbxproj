@@ -126,6 +126,8 @@
 		A90000000000000000000201 /* ControllerSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A90000000000000000000101 /* ControllerSettingsView.swift */; };
 		C30000000000000000000201 /* ControllerSettingsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C30000000000000000000101 /* ControllerSettingsWindowController.swift */; };
 		AA00000000000000000000201 /* AppDiagnosticLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00000000000000000000101 /* AppDiagnosticLogger.swift */; };
+		F70000000000000000000201 /* WindowContentMount.swift in Sources */ = {isa = PBXBuildFile; fileRef = F70000000000000000000101 /* WindowContentMount.swift */; };
+		F70000000000000000000202 /* WindowContentMountTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F70000000000000000000102 /* WindowContentMountTests.swift */; };
 		AA00000000000000000000202 /* DiagnosticLoggerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00000000000000000000102 /* DiagnosticLoggerTests.swift */; };
 		AA00000000000000000000203 /* AppDiagnosticEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00000000000000000000103 /* AppDiagnosticEvent.swift */; };
 		AA00000000000000000000204 /* ConnectionDiagnosticReason.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00000000000000000000104 /* ConnectionDiagnosticReason.swift */; };
@@ -447,6 +449,8 @@
 		A90000000000000000000101 /* ControllerSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControllerSettingsView.swift; sourceTree = "<group>"; };
 		C30000000000000000000101 /* ControllerSettingsWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControllerSettingsWindowController.swift; sourceTree = "<group>"; };
 		AA00000000000000000000101 /* AppDiagnosticLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDiagnosticLogger.swift; sourceTree = "<group>"; };
+		F70000000000000000000101 /* WindowContentMount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowContentMount.swift; sourceTree = "<group>"; };
+		F70000000000000000000102 /* WindowContentMountTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowContentMountTests.swift; sourceTree = "<group>"; };
 		AA00000000000000000000102 /* DiagnosticLoggerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticLoggerTests.swift; sourceTree = "<group>"; };
 		AA00000000000000000000103 /* AppDiagnosticEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDiagnosticEvent.swift; sourceTree = "<group>"; };
 		AA00000000000000000000104 /* ConnectionDiagnosticReason.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionDiagnosticReason.swift; sourceTree = "<group>"; };
@@ -886,6 +890,7 @@
 				D33300000000000000000101 /* TrafficStatisticsTaskContentView.swift */,
 				BC000000000000000000010F /* TrafficStatisticsView.swift */,
 				BE0000000000000000000107 /* TrafficStatisticsWindowController.swift */,
+				F70000000000000000000101 /* WindowContentMount.swift */,
 				A80000000000000000000101 /* TrafficOverviewView.swift */,
 				A10000000000000000000106 /* StatusMenuContentView.swift */,
 			);
@@ -925,6 +930,7 @@
 				A40000000000000000000106 /* ConnectionSnapshotDecoderTests.swift */,
 				A20000000000000000000106 /* ControllerEndpointTests.swift */,
 				AA00000000000000000000102 /* DiagnosticLoggerTests.swift */,
+				F70000000000000000000102 /* WindowContentMountTests.swift */,
 				A20000000000000000000105 /* FixtureLoader.swift */,
 				A20000000000000000000107 /* MihomoControllerModelsTests.swift */,
 				D35300000000000000000101 /* SharedCoreRuntimeProbeTests.swift */,
@@ -1468,6 +1474,7 @@
 				D33300000000000000000201 /* TrafficStatisticsTaskContentView.swift in Sources */,
 				BC000000000000000000020F /* TrafficStatisticsView.swift in Sources */,
 				BE0000000000000000000207 /* TrafficStatisticsWindowController.swift in Sources */,
+				F70000000000000000000201 /* WindowContentMount.swift in Sources */,
 				BU0000000000000000000205 /* SecurityScopedProfileDirectory.swift in Sources */,
 				BT0000000000000000000202 /* YAMLClashProfileCatalogReader.swift in Sources */,
 			);
@@ -1506,6 +1513,7 @@
 				A40000000000000000000206 /* ConnectionSnapshotDecoderTests.swift in Sources */,
 				A20000000000000000000206 /* ControllerEndpointTests.swift in Sources */,
 				AA00000000000000000000202 /* DiagnosticLoggerTests.swift in Sources */,
+				F70000000000000000000202 /* WindowContentMountTests.swift in Sources */,
 				E30300000000000000000201 /* DiagnosticExportReportTests.swift in Sources */,
 				A20000000000000000000205 /* FixtureLoader.swift in Sources */,
 				A20000000000000000000207 /* MihomoControllerModelsTests.swift in Sources */,

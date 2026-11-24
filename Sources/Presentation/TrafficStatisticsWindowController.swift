@@ -7,7 +7,8 @@ final class TrafficStatisticsWindowController: NSWindowController, NSWindowDeleg
   private static let minimumSize = NSSize(width: 900, height: 560)
   private static let frameAutosaveName = "TrafficStatisticsWindow"
 
-  private let workspaceModel = StatisticsWorkspaceModel()
+  private let workspaceModel: StatisticsWorkspaceModel
+  private let contentMount: WindowContentMount
   private let connectionTrendWindowController: ConnectionAnalyticsTrendWindowController
   private let dockVisibilityController: ApplicationDockVisibilityController
 
@@ -21,27 +22,30 @@ final class TrafficStatisticsWindowController: NSWindowController, NSWindowDeleg
     monitor: TrafficMonitor,
     dockVisibilityController: ApplicationDockVisibilityController
   ) {
+    let workspaceModel = StatisticsWorkspaceModel()
+    self.workspaceModel = workspaceModel
     let connectionTrendWindowController = ConnectionAnalyticsTrendWindowController(
       controller: connectionAnalyticsController,
       dockVisibilityController: dockVisibilityController
     )
     self.connectionTrendWindowController = connectionTrendWindowController
     self.dockVisibilityController = dockVisibilityController
-    let hostingController = NSHostingController(
-      rootView: StatisticsWorkspaceView(
-        model: workspaceModel,
-        trafficController: controller,
-        connectionAnalyticsController: connectionAnalyticsController,
-        quotaController: quotaController,
-        profileQuotaController: profileQuotaController,
-        profileController: profileController,
-        subscriptionQuotaDataController: subscriptionQuotaDataController,
-        monitor: monitor,
-        showConnectionTrend: { [weak connectionTrendWindowController] target in
-          connectionTrendWindowController?.show(target: target)
-        }
-      )
+    let rootView = StatisticsWorkspaceView(
+      model: workspaceModel,
+      trafficController: controller,
+      connectionAnalyticsController: connectionAnalyticsController,
+      quotaController: quotaController,
+      profileQuotaController: profileQuotaController,
+      profileController: profileController,
+      subscriptionQuotaDataController: subscriptionQuotaDataController,
+      monitor: monitor,
+      showConnectionTrend: { [weak connectionTrendWindowController] target in
+        connectionTrendWindowController?.show(target: target)
+      }
     )
+    contentMount = WindowContentMount {
+      NSHostingController(rootView: rootView)
+    }
     let window = NSWindow(
       contentRect: NSRect(origin: .zero, size: Self.initialSize),
       styleMask: [.titled, .closable, .miniaturizable, .resizable],
@@ -49,7 +53,6 @@ final class TrafficStatisticsWindowController: NSWindowController, NSWindowDeleg
       defer: false
     )
     window.title = "统计"
-    window.contentViewController = hostingController
     window.minSize = Self.minimumSize
     window.isReleasedWhenClosed = false
     window.tabbingMode = .disallowed
@@ -79,13 +82,20 @@ final class TrafficStatisticsWindowController: NSWindowController, NSWindowDeleg
   }
 
   func showCurrentModule() {
+    guard let window else {
+      return
+    }
+    contentMount.attach(to: window)
     dockVisibilityController.windowWillPresent(.statistics)
     NSApplication.shared.activate()
     showWindow(nil)
-    window?.makeKeyAndOrderFront(nil)
+    window.makeKeyAndOrderFront(nil)
   }
 
   func windowWillClose(_ notification: Notification) {
+    if let window {
+      contentMount.detach(from: window)
+    }
     dockVisibilityController.windowWillClose(.statistics)
   }
 }
