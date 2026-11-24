@@ -27,4 +27,46 @@ final class ConnectionSnapshotDecoderTests: XCTestCase {
       XCTAssertEqual(error as? ConnectionStreamError, .unsupportedResponse)
     }
   }
+
+  func testDecodesSyntheticConnectionStartFormats() throws {
+    let values = [
+      "2026-07-30T08:00:00Z",
+      "2026-07-30T08:00:00.123Z",
+      "2026-07-30T08:00:00.123456Z",
+      "2026-07-30T16:00:00+08:00",
+    ]
+
+    for value in values {
+      let payload = Data(
+        """
+        {"downloadTotal":0,"uploadTotal":0,"connections":[{
+          "id":"synthetic","upload":0,"download":0,"chains":[],"start":"\(value)"
+        }]}
+        """.utf8
+      )
+      let snapshot = try ConnectionSnapshotDecoder().decode(.data(payload))
+      let actual = try XCTUnwrap(snapshot.connections.first?.startedAt, value)
+      let formatter = ISO8601DateFormatter()
+      if value.contains(".") {
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+      } else {
+        formatter.formatOptions = [.withInternetDateTime]
+      }
+      let expected = try XCTUnwrap(formatter.date(from: value), value)
+      XCTAssertLessThan(abs(actual.timeIntervalSince(expected)), 0.01, value)
+    }
+  }
+
+  func testKeepsInvalidConnectionStartOptional() throws {
+    let payload = Data(
+      """
+      {"downloadTotal":0,"uploadTotal":0,"connections":[{
+        "id":"synthetic","upload":0,"download":0,"chains":[],"start":"invalid"
+      }]}
+      """.utf8
+    )
+
+    let snapshot = try ConnectionSnapshotDecoder().decode(.data(payload))
+    XCTAssertNil(snapshot.connections.first?.startedAt)
+  }
 }

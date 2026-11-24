@@ -10,7 +10,6 @@ struct MenuBarPresentationActions {
 @MainActor
 final class MenuBarController: NSObject {
   private static let statusItemLength: CGFloat = 66
-  private static let statusContentHeight: CGFloat = 20
 
   private let statusItem: NSStatusItem
   private let statusContentView: ProxyStatusItemView
@@ -62,14 +61,7 @@ final class MenuBarController: NSObject {
     button.title = ""
     button.setAccessibilityLabel("Mihomo Meter")
 
-    statusContentView.translatesAutoresizingMaskIntoConstraints = false
-    button.addSubview(statusContentView)
-    NSLayoutConstraint.activate([
-      statusContentView.leadingAnchor.constraint(equalTo: button.leadingAnchor, constant: 4),
-      statusContentView.trailingAnchor.constraint(equalTo: button.trailingAnchor, constant: -4),
-      statusContentView.centerYAnchor.constraint(equalTo: button.centerYAnchor),
-      statusContentView.heightAnchor.constraint(equalToConstant: Self.statusContentHeight),
-    ])
+    statusContentView.attach(to: button)
 
     updateStatusItemButton(button, rate: .zero, state: monitor.connectionState)
   }

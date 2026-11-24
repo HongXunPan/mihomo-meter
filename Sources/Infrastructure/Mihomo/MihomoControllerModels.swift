@@ -144,13 +144,8 @@ struct MihomoConnectionResponse: Decodable, Equatable, Sendable {
     guard let value = try? container.decode(String.self, forKey: .start) else {
       return nil
     }
-    let formatter = ISO8601DateFormatter()
-    formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-    if let date = formatter.date(from: value) {
-      return date
-    }
-    formatter.formatOptions = [.withInternetDateTime]
-    return formatter.date(from: value)
+    let style = Date.ISO8601FormatStyle(includingFractionalSeconds: value.contains("."))
+    return try? style.parse(value)
   }
 }
 
