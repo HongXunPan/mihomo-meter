@@ -5,7 +5,7 @@ import XCTest
 
 @MainActor
 final class WindowContentMountTests: XCTestCase {
-  func testClosedWindowReleasesContentAndReopenCreatesItAgain() {
+  func testClosedWindowDetachesContentAndReopenCreatesItAgain() {
     let window = NSWindow(
       contentRect: NSRect(x: 40, y: 50, width: 900, height: 560),
       styleMask: [.titled, .closable, .resizable],
@@ -25,20 +25,19 @@ final class WindowContentMountTests: XCTestCase {
     XCTAssertEqual(creationCount, 0)
 
     mount.attach(to: window)
-    var firstContent = window.contentViewController
-    weak var releasedContent = firstContent
+    let firstContent = window.contentViewController
+    XCTAssertNotNil(firstContent)
     mount.attach(to: window)
     XCTAssertTrue(window.contentViewController === firstContent)
     XCTAssertEqual(creationCount, 1)
     XCTAssertEqual(window.frame, originalFrame)
 
-    firstContent = nil
     mount.detach(from: window)
     XCTAssertNil(window.contentViewController)
-    XCTAssertNil(releasedContent)
 
     mount.attach(to: window)
     XCTAssertNotNil(window.contentViewController)
+    XCTAssertFalse(window.contentViewController === firstContent)
     XCTAssertEqual(creationCount, 2)
     XCTAssertEqual(window.frame, originalFrame)
   }

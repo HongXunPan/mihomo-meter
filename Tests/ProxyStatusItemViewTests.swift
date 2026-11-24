@@ -23,7 +23,7 @@ final class ProxyStatusItemViewTests: XCTestCase {
     XCTAssertEqual(content.frame, NSRect(x: 4, y: 6, width: 72, height: 20))
   }
 
-  func testDirectDrawingUsesOneViewAndSkipsUnchangedContent() {
+  func testDirectDrawingUsesOneViewAndRendererSkipsUnchangedContent() {
     let content = ProxyStatusItemView()
     let button = NSView(frame: NSRect(x: 0, y: 0, width: 66, height: 24))
     content.attach(to: button)
@@ -32,15 +32,10 @@ final class ProxyStatusItemViewTests: XCTestCase {
     XCTAssertTrue(content.superview === button)
     XCTAssertNil(content.hitTest(NSPoint(x: 5, y: 10)))
 
-    content.needsDisplay = false
-    content.update(rate: .zero, state: .disconnected)
-    XCTAssertFalse(content.needsDisplay)
-
-    content.update(rate: .zero, state: .connected)
-    XCTAssertTrue(content.needsDisplay)
-
-    content.needsDisplay = false
-    content.update(rate: .zero, state: .connected)
-    XCTAssertFalse(content.needsDisplay)
+    let renderer = ProxyStatusItemDirectRenderer()
+    XCTAssertTrue(renderer.update(rate: .zero, state: .disconnected))
+    XCTAssertFalse(renderer.update(rate: .zero, state: .disconnected))
+    XCTAssertTrue(renderer.update(rate: .zero, state: .connected))
+    XCTAssertFalse(renderer.update(rate: .zero, state: .connected))
   }
 }
