@@ -17,9 +17,12 @@ struct ProcessPerformanceSample: Sendable {
   let cpuPercentTenths: Int
   let residentMiB: Int?
   let connectionDecode: ConnectionDecodeIntervalMetrics
+  let liveConnectionTable: LiveConnectionTableIntervalMetrics
+  let liveTableFreezePhase: LiveConnectionTableFreezePhase
 
   var logMessage: String {
     let resident = residentMiB.map(String.init) ?? "unknown"
+    let tableMounted = liveConnectionTable.isMountedAtEnd ? 1 : 0
     return "event=performance.sample display_mode=\(displayMode.rawValue) "
       + "date_parser_mode=format_style "
       + "cpu_percent_tenths=\(cpuPercentTenths) rss_mib=\(resident)"
@@ -29,6 +32,22 @@ struct ProcessPerformanceSample: Sendable {
       + " snapshot_bytes_total=\(connectionDecode.totalPayloadBytes)"
       + " connection_entries_total=\(connectionDecode.totalConnectionEntries)"
       + " connection_decode_max_ms=\(connectionDecode.maximumDecodeMilliseconds)"
+      + " live_table_mounted=\(tableMounted)"
+      + " live_table_mounts=\(liveConnectionTable.mountCount)"
+      + " live_table_unmounts=\(liveConnectionTable.unmountCount)"
+      + " live_table_rows_range=\(liveConnectionTable.rowCountRange)"
+      + " live_table_updates=\(liveConnectionTable.updateCount)"
+      + " live_table_skipped_updates=\(liveConnectionTable.skippedUpdateCount)"
+      + " live_table_reloads=\(liveConnectionTable.fullReloadCount)"
+      + " live_table_incremental_batches=\(liveConnectionTable.incrementalBatchCount)"
+      + " live_table_row_moves=\(liveConnectionTable.rowMoveCount)"
+      + " live_table_row_insertions=\(liveConnectionTable.rowInsertionCount)"
+      + " live_table_row_removals=\(liveConnectionTable.rowRemovalCount)"
+      + " live_table_cells=\(liveConnectionTable.cellConfigurationCount)"
+      + " live_table_visible_cell_updates=\(liveConnectionTable.visibleCellUpdateCount)"
+      + " live_table_update_ms=\(liveConnectionTable.totalUpdateMilliseconds)"
+      + " live_table_update_max_ms=\(liveConnectionTable.maximumUpdateMilliseconds)"
+      + " live_table_freeze_phase=\(liveTableFreezePhase.rawValue)"
   }
 }
 
@@ -56,6 +75,7 @@ enum ProcessPerformanceDiagnostics {
         return
       }
       _ = await ConnectionDecodePerformanceRecorder.shared.drain()
+      _ = await MainActor.run { LiveConnectionTablePerformanceRecorder.shared.drain() }
       for _ in 0..<maximumSampleCount {
         do {
           try await Task.sleep(for: .seconds(intervalSeconds))
@@ -66,11 +86,18 @@ enum ProcessPerformanceDiagnostics {
           return
         }
         let connectionDecode = await ConnectionDecodePerformanceRecorder.shared.drain()
+        let (liveConnectionTable, freezePhase) = await MainActor.run {
+          let metrics = LiveConnectionTablePerformanceRecorder.shared.drain()
+          let phase = LiveConnectionTableFreezeExperiment.shared.completeInterval(metrics)
+          return (metrics, phase)
+        }
         if let sample = sample(
           from: previous,
           to: current,
           displayMode: displayMode,
-          connectionDecode: connectionDecode
+          connectionDecode: connectionDecode,
+          liveConnectionTable: liveConnectionTable,
+          liveTableFreezePhase: freezePhase
         ) {
           await logger.recordPerformance(sample)
         }
@@ -83,7 +110,9 @@ enum ProcessPerformanceDiagnostics {
     from previous: ProcessPerformanceSnapshot,
     to current: ProcessPerformanceSnapshot,
     displayMode: ProcessPerformanceDisplayMode,
-    connectionDecode: ConnectionDecodeIntervalMetrics
+    connectionDecode: ConnectionDecodeIntervalMetrics,
+    liveConnectionTable: LiveConnectionTableIntervalMetrics,
+    liveTableFreezePhase: LiveConnectionTableFreezePhase
   ) -> ProcessPerformanceSample? {
     let elapsed = current.uptimeSeconds - previous.uptimeSeconds
     let cpuDelta = current.cpuSeconds - previous.cpuSeconds
@@ -96,7 +125,9 @@ enum ProcessPerformanceDiagnostics {
       displayMode: displayMode,
       cpuPercentTenths: cpuPercentTenths,
       residentMiB: residentMiB,
-      connectionDecode: connectionDecode
+      connectionDecode: connectionDecode,
+      liveConnectionTable: liveConnectionTable,
+      liveTableFreezePhase: liveTableFreezePhase
     )
   }
 

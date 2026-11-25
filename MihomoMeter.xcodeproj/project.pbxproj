@@ -92,6 +92,14 @@
 		D34800000000000000000201 /* StatusMenuTrafficTaskRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D34800000000000000000101 /* StatusMenuTrafficTaskRowView.swift */; };
 		D34900000000000000000201 /* StatusMenuTrafficTasksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D34900000000000000000101 /* StatusMenuTrafficTasksView.swift */; };
 		D34A00000000000000000201 /* QuotaCumulativeTrendChartInteraction.swift in Sources */ = {isa = PBXBuildFile; fileRef = D34A00000000000000000101 /* QuotaCumulativeTrendChartInteraction.swift */; };
+		D34C00000000000000000201 /* LiveConnectionAppKitTableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D34C00000000000000000101 /* LiveConnectionAppKitTableView.swift */; };
+		FB0000000000000000000201 /* LiveConnectionTableRowUpdatePlan.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB0000000000000000000101 /* LiveConnectionTableRowUpdatePlan.swift */; };
+		FB0000000000000000000202 /* LiveConnectionTableRowUpdatePlanTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB0000000000000000000102 /* LiveConnectionTableRowUpdatePlanTests.swift */; };
+		FC0000000000000000000201 /* LiveConnectionTableColumn.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0000000000000000000101 /* LiveConnectionTableColumn.swift */; };
+		FC0000000000000000000202 /* LiveConnectionTableSorting.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0000000000000000000102 /* LiveConnectionTableSorting.swift */; };
+		FD0000000000000000000201 /* LiveConnectionGroupTableColumn.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD0000000000000000000101 /* LiveConnectionGroupTableColumn.swift */; };
+		FD0000000000000000000202 /* LiveConnectionGroupAppKitTableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD0000000000000000000102 /* LiveConnectionGroupAppKitTableView.swift */; };
+		FD0000000000000000000203 /* LiveConnectionGroupTableSortingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD0000000000000000000103 /* LiveConnectionGroupTableSortingTests.swift */; };
 		D34B00000000000000000201 /* StatusMenuQuotaTrendStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D34B00000000000000000101 /* StatusMenuQuotaTrendStateTests.swift */; };
 		DL0000000000000000000201 /* AppDeepLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = DL0000000000000000000101 /* AppDeepLink.swift */; };
 		DL0000000000000000000202 /* AppDeepLinkTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DL0000000000000000000102 /* AppDeepLinkTests.swift */; };
@@ -131,6 +139,8 @@
 		F70000000000000000000201 /* WindowContentMount.swift in Sources */ = {isa = PBXBuildFile; fileRef = F70000000000000000000101 /* WindowContentMount.swift */; };
 		F70000000000000000000202 /* WindowContentMountTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F70000000000000000000102 /* WindowContentMountTests.swift */; };
 		F80000000000000000000201 /* ConnectionDecodePerformanceRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = F80000000000000000000101 /* ConnectionDecodePerformanceRecorder.swift */; };
+		F90000000000000000000201 /* LiveConnectionTablePerformanceRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = F90000000000000000000101 /* LiveConnectionTablePerformanceRecorder.swift */; };
+		FA0000000000000000000201 /* LiveConnectionTableFreezeExperiment.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0000000000000000000101 /* LiveConnectionTableFreezeExperiment.swift */; };
 		AA00000000000000000000202 /* DiagnosticLoggerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00000000000000000000102 /* DiagnosticLoggerTests.swift */; };
 		AA00000000000000000000203 /* AppDiagnosticEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00000000000000000000103 /* AppDiagnosticEvent.swift */; };
 		AA00000000000000000000204 /* ConnectionDiagnosticReason.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00000000000000000000104 /* ConnectionDiagnosticReason.swift */; };
@@ -416,6 +426,14 @@
 		D34800000000000000000101 /* StatusMenuTrafficTaskRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusMenuTrafficTaskRowView.swift; sourceTree = "<group>"; };
 		D34900000000000000000101 /* StatusMenuTrafficTasksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusMenuTrafficTasksView.swift; sourceTree = "<group>"; };
 		D34A00000000000000000101 /* QuotaCumulativeTrendChartInteraction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotaCumulativeTrendChartInteraction.swift; sourceTree = "<group>"; };
+		D34C00000000000000000101 /* LiveConnectionAppKitTableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveConnectionAppKitTableView.swift; sourceTree = "<group>"; };
+		FB0000000000000000000101 /* LiveConnectionTableRowUpdatePlan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveConnectionTableRowUpdatePlan.swift; sourceTree = "<group>"; };
+		FB0000000000000000000102 /* LiveConnectionTableRowUpdatePlanTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveConnectionTableRowUpdatePlanTests.swift; sourceTree = "<group>"; };
+		FC0000000000000000000101 /* LiveConnectionTableColumn.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveConnectionTableColumn.swift; sourceTree = "<group>"; };
+		FC0000000000000000000102 /* LiveConnectionTableSorting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveConnectionTableSorting.swift; sourceTree = "<group>"; };
+		FD0000000000000000000101 /* LiveConnectionGroupTableColumn.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveConnectionGroupTableColumn.swift; sourceTree = "<group>"; };
+		FD0000000000000000000102 /* LiveConnectionGroupAppKitTableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveConnectionGroupAppKitTableView.swift; sourceTree = "<group>"; };
+		FD0000000000000000000103 /* LiveConnectionGroupTableSortingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveConnectionGroupTableSortingTests.swift; sourceTree = "<group>"; };
 		D34B00000000000000000101 /* StatusMenuQuotaTrendStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusMenuQuotaTrendStateTests.swift; sourceTree = "<group>"; };
 		DL0000000000000000000101 /* AppDeepLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDeepLink.swift; sourceTree = "<group>"; };
 		DL0000000000000000000102 /* AppDeepLinkTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDeepLinkTests.swift; sourceTree = "<group>"; };
@@ -457,6 +475,8 @@
 		F70000000000000000000101 /* WindowContentMount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowContentMount.swift; sourceTree = "<group>"; };
 		F70000000000000000000102 /* WindowContentMountTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowContentMountTests.swift; sourceTree = "<group>"; };
 		F80000000000000000000101 /* ConnectionDecodePerformanceRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionDecodePerformanceRecorder.swift; sourceTree = "<group>"; };
+		F90000000000000000000101 /* LiveConnectionTablePerformanceRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveConnectionTablePerformanceRecorder.swift; sourceTree = "<group>"; };
+		FA0000000000000000000101 /* LiveConnectionTableFreezeExperiment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveConnectionTableFreezeExperiment.swift; sourceTree = "<group>"; };
 		AA00000000000000000000102 /* DiagnosticLoggerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticLoggerTests.swift; sourceTree = "<group>"; };
 		AA00000000000000000000103 /* AppDiagnosticEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDiagnosticEvent.swift; sourceTree = "<group>"; };
 		AA00000000000000000000104 /* ConnectionDiagnosticReason.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionDiagnosticReason.swift; sourceTree = "<group>"; };
@@ -836,6 +856,12 @@
 				CD0000000000000000000101 /* MihomoColorToken.swift */,
 				D34100000000000000000101 /* LiveConnectionAnalyticsContextView.swift */,
 				D33A00000000000000000101 /* LiveConnectionAnalyticsPresentation.swift */,
+				D34C00000000000000000101 /* LiveConnectionAppKitTableView.swift */,
+				FC0000000000000000000101 /* LiveConnectionTableColumn.swift */,
+				FC0000000000000000000102 /* LiveConnectionTableSorting.swift */,
+				FD0000000000000000000101 /* LiveConnectionGroupTableColumn.swift */,
+				FD0000000000000000000102 /* LiveConnectionGroupAppKitTableView.swift */,
+				FB0000000000000000000101 /* LiveConnectionTableRowUpdatePlan.swift */,
 				D34200000000000000000101 /* LiveConnectionAnalyticsTableView.swift */,
 				D32900000000000000000101 /* LiveConnectionAnalyticsView.swift */,
 				A10000000000000000000105 /* MenuBarController.swift */,
@@ -930,6 +956,8 @@
 				D33800000000000000000101 /* ConnectionAnalyticsTrendTests.swift */,
 				D33900000000000000000101 /* ConnectionAnalyticsTrendWindowModelTests.swift */,
 				D33B00000000000000000101 /* LiveConnectionAnalyticsPresentationTests.swift */,
+				FB0000000000000000000102 /* LiveConnectionTableRowUpdatePlanTests.swift */,
+				FD0000000000000000000103 /* LiveConnectionGroupTableSortingTests.swift */,
 				D30000000000000000000103 /* ConnectionAttributionCoverageTests.swift */,
 				A30000000000000000000106 /* ConnectionDeltaTrackerTests.swift */,
 				AB0000000000000000000102 /* ConnectionLivenessWatchdogTests.swift */,
@@ -1083,6 +1111,8 @@
 				AA00000000000000000000101 /* AppDiagnosticLogger.swift */,
 				F60000000000000000000101 /* ProcessPerformanceDiagnostics.swift */,
 				F80000000000000000000101 /* ConnectionDecodePerformanceRecorder.swift */,
+				F90000000000000000000101 /* LiveConnectionTablePerformanceRecorder.swift */,
+				FA0000000000000000000101 /* LiveConnectionTableFreezeExperiment.swift */,
 				AA00000000000000000000104 /* ConnectionDiagnosticReason.swift */,
 				E30000000000000000000101 /* DiagnosticExportReport.swift */,
 				AA00000000000000000000105 /* ProfileQuotaDiagnosticEvent.swift */,
@@ -1285,6 +1315,8 @@
 				AA00000000000000000000201 /* AppDiagnosticLogger.swift in Sources */,
 				F60000000000000000000201 /* ProcessPerformanceDiagnostics.swift in Sources */,
 				F80000000000000000000201 /* ConnectionDecodePerformanceRecorder.swift in Sources */,
+				F90000000000000000000201 /* LiveConnectionTablePerformanceRecorder.swift in Sources */,
+				FA0000000000000000000201 /* LiveConnectionTableFreezeExperiment.swift in Sources */,
 				E30000000000000000000201 /* DiagnosticExportReport.swift in Sources */,
 				AA00000000000000000000205 /* ProfileQuotaDiagnosticEvent.swift in Sources */,
 				AT0000000000000000000201 /* AppHelpLinksMenu.swift in Sources */,
@@ -1350,6 +1382,12 @@
 				CD0000000000000000000201 /* MihomoColorToken.swift in Sources */,
 				D34100000000000000000201 /* LiveConnectionAnalyticsContextView.swift in Sources */,
 				D33A00000000000000000201 /* LiveConnectionAnalyticsPresentation.swift in Sources */,
+				D34C00000000000000000201 /* LiveConnectionAppKitTableView.swift in Sources */,
+				FC0000000000000000000201 /* LiveConnectionTableColumn.swift in Sources */,
+				FC0000000000000000000202 /* LiveConnectionTableSorting.swift in Sources */,
+				FD0000000000000000000201 /* LiveConnectionGroupTableColumn.swift in Sources */,
+				FD0000000000000000000202 /* LiveConnectionGroupAppKitTableView.swift in Sources */,
+				FB0000000000000000000201 /* LiveConnectionTableRowUpdatePlan.swift in Sources */,
 				D34200000000000000000201 /* LiveConnectionAnalyticsTableView.swift in Sources */,
 				D32900000000000000000201 /* LiveConnectionAnalyticsView.swift in Sources */,
 				A90000000000000000000201 /* ControllerSettingsView.swift in Sources */,
@@ -1518,6 +1556,8 @@
 				D33800000000000000000201 /* ConnectionAnalyticsTrendTests.swift in Sources */,
 				D33900000000000000000201 /* ConnectionAnalyticsTrendWindowModelTests.swift in Sources */,
 				D33B00000000000000000201 /* LiveConnectionAnalyticsPresentationTests.swift in Sources */,
+				FB0000000000000000000202 /* LiveConnectionTableRowUpdatePlanTests.swift in Sources */,
+				FD0000000000000000000203 /* LiveConnectionGroupTableSortingTests.swift in Sources */,
 				D30000000000000000000203 /* ConnectionAttributionCoverageTests.swift in Sources */,
 				A30000000000000000000206 /* ConnectionDeltaTrackerTests.swift in Sources */,
 				AB0000000000000000000202 /* ConnectionLivenessWatchdogTests.swift in Sources */,

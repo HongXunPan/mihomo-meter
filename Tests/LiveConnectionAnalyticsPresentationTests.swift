@@ -62,6 +62,26 @@ final class LiveConnectionAnalyticsPresentationTests: XCTestCase {
     )
   }
 
+  func testLiveRateChangesReorderConnectionRows() {
+    let firstSample = [
+      connection(id: "first", application: "Browser", hostname: "a.example", download: 30),
+      connection(id: "second", application: "Updater", hostname: "b.example", download: 10),
+    ]
+    let secondSample = [
+      connection(id: "first", application: "Browser", hostname: "a.example", download: 5),
+      connection(id: "second", application: "Updater", hostname: "b.example", download: 40),
+    ]
+
+    XCTAssertEqual(
+      LiveConnectionAnalyticsPresentation.connections(from: firstSample, searchText: "").map(\.id),
+      ["first", "second"]
+    )
+    XCTAssertEqual(
+      LiveConnectionAnalyticsPresentation.connections(from: secondSample, searchText: "").map(\.id),
+      ["second", "first"]
+    )
+  }
+
   func testApplicationGroupsSumRatesAndActiveCumulativeBytes() throws {
     let connections = [
       connection(
@@ -141,13 +161,66 @@ final class LiveConnectionAnalyticsPresentationTests: XCTestCase {
     XCTAssertTrue(unavailable.shouldShowDetail)
   }
 
+  func testConnectionColumnsSortRawValuesAndRestoreDefaultOrder() {
+    let earlier = Date(timeIntervalSince1970: 100)
+    let later = Date(timeIntervalSince1970: 200)
+    let source = [
+      connection(
+        id: "first", application: "Alpha", hostname: "z.example", upload: 10,
+        download: 30, cumulative: 100, startedAt: earlier
+      ),
+      connection(
+        id: "second", application: "Beta", hostname: "a.example", upload: 20,
+        download: 10, cumulative: 200, startedAt: later
+      ),
+      connection(id: "unknown", application: nil, hostname: nil),
+    ]
+    let known = Array(source.prefix(2))
+
+    XCTAssertEqual(
+      LiveConnectionTableSorting.connections(source, column: nil, ascending: false).map(\.id),
+      ["first", "second", "unknown"]
+    )
+    XCTAssertEqual(
+      LiveConnectionTableSorting.connections(source, column: .download, ascending: false).map(\.id),
+      ["first", "second", "unknown"]
+    )
+    XCTAssertEqual(
+      LiveConnectionTableSorting.connections(source, column: .upload, ascending: false).map(\.id),
+      ["second", "first", "unknown"]
+    )
+    XCTAssertEqual(
+      LiveConnectionTableSorting.connections(source, column: .cumulative, ascending: true).map(
+        \.id),
+      ["unknown", "first", "second"]
+    )
+    XCTAssertEqual(
+      LiveConnectionTableSorting.connections(known, column: .hostname, ascending: true).map(\.id),
+      ["second", "first"]
+    )
+    XCTAssertEqual(
+      LiveConnectionTableSorting.connections(known, column: .application, ascending: false).map(
+        \.id),
+      ["second", "first"]
+    )
+    XCTAssertEqual(
+      LiveConnectionTableSorting.connections(source, column: .duration, ascending: false).map(\.id),
+      ["first", "second", "unknown"]
+    )
+    XCTAssertEqual(
+      LiveConnectionTableSorting.connections(source, column: .duration, ascending: true).map(\.id),
+      ["second", "first", "unknown"]
+    )
+  }
+
   private func connection(
     id: String,
     application: String?,
     hostname: String?,
     upload: UInt64 = 0,
     download: UInt64 = 0,
-    cumulative: UInt64 = 0
+    cumulative: UInt64 = 0,
+    startedAt: Date? = nil
   ) -> LiveTrafficConnection {
     LiveTrafficConnection(
       id: id,
@@ -157,7 +230,7 @@ final class LiveConnectionAnalyticsPresentationTests: XCTestCase {
         downloadBytesPerSecond: download
       ),
       cumulativeBytes: TrafficBytes(upload: cumulative, download: 0),
-      startedAt: nil
+      startedAt: startedAt
     )
   }
 }
