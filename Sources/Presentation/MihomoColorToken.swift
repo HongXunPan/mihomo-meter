@@ -42,14 +42,16 @@ enum MihomoColorToken {
     light: color(red: 0xA1, green: 0x62, blue: 0x07),
     dark: color(red: 0xEA, green: 0xB3, blue: 0x08)
   )
-  static let trafficDownload = adaptive(
+  static let trafficDownloadNSColor = adaptiveNSColor(
     light: color(red: 0x0B, green: 0x5C, blue: 0xAD),
     dark: color(red: 0x72, green: 0xA7, blue: 0xFF)
   )
-  static let trafficUpload = adaptive(
+  static let trafficDownload = Color(nsColor: trafficDownloadNSColor)
+  static let trafficUploadNSColor = adaptiveNSColor(
     light: color(red: 0xC2, green: 0x41, blue: 0x0C),
     dark: color(red: 0xFB, green: 0x92, blue: 0x3C)
   )
+  static let trafficUpload = Color(nsColor: trafficUploadNSColor)
   static let trafficDownloadArea = adaptive(
     light: color(red: 0x0B, green: 0x5C, blue: 0xAD, alpha: 0.28),
     dark: color(red: 0x72, green: 0xA7, blue: 0xFF, alpha: 0.24)

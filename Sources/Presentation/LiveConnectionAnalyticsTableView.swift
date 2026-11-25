@@ -8,6 +8,7 @@ struct LiveConnectionAnalyticsTableView: View {
 
   let connections: [LiveTrafficConnection]
   let groupRows: [LiveConnectionGroupRow]
+  @State private var sortResetGeneration = 0
 
   var body: some View {
     VStack(alignment: .leading, spacing: 10) {
@@ -27,18 +28,28 @@ struct LiveConnectionAnalyticsTableView: View {
       }
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
+    .onChange(of: selectedMode) { _, _ in
+      sortResetGeneration += 1
+    }
+    .onChange(of: selectedRoute) { _, _ in
+      sortResetGeneration += 1
+    }
   }
 
   private var tableToolbar: some View {
     ViewThatFits(in: .horizontal) {
       HStack(spacing: 12) {
         modePicker
+        sortResetButton
         Spacer()
         wideSearchField
       }
 
       VStack(alignment: .leading, spacing: 8) {
-        modePicker
+        HStack(spacing: 12) {
+          modePicker
+          sortResetButton
+        }
         compactSearchField
       }
     }
@@ -52,6 +63,13 @@ struct LiveConnectionAnalyticsTableView: View {
     }
     .pickerStyle(.segmented)
     .frame(width: 260)
+  }
+
+  private var sortResetButton: some View {
+    Button("恢复默认排序") {
+      sortResetGeneration += 1
+    }
+    .help("恢复按总速度降序")
   }
 
   private var wideSearchField: some View {
@@ -82,97 +100,19 @@ struct LiveConnectionAnalyticsTableView: View {
   }
 
   private var connectionTable: some View {
-    Table(connections) {
-      TableColumn("主机名") { connection in
-        let hostname = connection.metadata.hostname ?? ConnectionAttributionLabel.unknownHostname
-        Text(hostname)
-          .lineLimit(1)
-          .truncationMode(.middle)
-          .help(hostname)
-      }
-      .width(min: 180, ideal: 280)
-
-      TableColumn("应用") { connection in
-        let applicationName =
-          connection.metadata.applicationName ?? ConnectionAttributionLabel.unknownApplication
-        Text(applicationName)
-          .lineLimit(1)
-          .truncationMode(.middle)
-          .help(applicationName)
-      }
-      .width(min: 140, ideal: 220)
-
-      TableColumn("下载") { connection in
-        rateText(connection.rate.downloadBytesPerSecond, color: MihomoColorToken.trafficDownload)
-      }
-      .width(min: 90, ideal: 100, max: 110)
-      .alignment(.numeric)
-
-      TableColumn("上传") { connection in
-        rateText(connection.rate.uploadBytesPerSecond, color: MihomoColorToken.trafficUpload)
-      }
-      .width(min: 90, ideal: 100, max: 110)
-      .alignment(.numeric)
-
-      TableColumn("累计") { connection in
-        Text(TrafficStatisticsFormatter.bytes(connection.cumulativeBytes.total))
-          .monospacedDigit()
-      }
-      .width(min: 85, ideal: 100, max: 120)
-      .alignment(.numeric)
-
-      TableColumn("时长") { connection in
-        Text(duration(connection))
-          .monospacedDigit()
-      }
-      .width(min: 90, ideal: 105, max: 130)
-      .alignment(.trailing)
-    }
+    LiveConnectionAppKitTableView(
+      connections: connections,
+      sortResetGeneration: sortResetGeneration
+    )
   }
 
   private var groupTable: some View {
-    Table(groupRows) {
-      TableColumn(selectedMode == .application ? "应用" : "域名") { row in
-        Text(row.name)
-          .lineLimit(1)
-          .truncationMode(.middle)
-          .help(row.name)
-      }
-      .width(min: 220, ideal: 360)
-
-      TableColumn(selectedMode == .application ? "域名数" : "应用数") { row in
-        Text(row.relatedCount.formatted())
-          .monospacedDigit()
-      }
-      .width(min: 72, ideal: 80, max: 90)
-      .alignment(.numeric)
-
-      TableColumn("连接数") { row in
-        Text(row.connectionCount.formatted())
-          .monospacedDigit()
-      }
-      .width(min: 72, ideal: 80, max: 90)
-      .alignment(.numeric)
-
-      TableColumn("下载") { row in
-        rateText(row.rate.downloadBytesPerSecond, color: MihomoColorToken.trafficDownload)
-      }
-      .width(min: 90, ideal: 100, max: 110)
-      .alignment(.numeric)
-
-      TableColumn("上传") { row in
-        rateText(row.rate.uploadBytesPerSecond, color: MihomoColorToken.trafficUpload)
-      }
-      .width(min: 90, ideal: 100, max: 110)
-      .alignment(.numeric)
-
-      TableColumn("活动累计") { row in
-        Text(TrafficStatisticsFormatter.bytes(row.cumulativeBytes.total))
-          .monospacedDigit()
-      }
-      .width(min: 95, ideal: 110, max: 130)
-      .alignment(.numeric)
-    }
+    LiveConnectionGroupAppKitTableView(
+      mode: selectedMode,
+      rows: groupRows,
+      sortResetGeneration: sortResetGeneration
+    )
+    .id(selectedMode.rawValue)
   }
 
   private var displayedItemCount: Int {
@@ -195,16 +135,4 @@ struct LiveConnectionAnalyticsTableView: View {
       : "请尝试其他应用名称或主机名。"
   }
 
-  private func rateText(_ bytesPerSecond: UInt64, color: Color) -> some View {
-    Text(TrafficRateFormatter.string(from: bytesPerSecond))
-      .monospacedDigit()
-      .foregroundStyle(color)
-  }
-
-  private func duration(_ connection: LiveTrafficConnection) -> String {
-    guard let startedAt = connection.startedAt else {
-      return "—"
-    }
-    return TrafficStatisticsFormatter.duration(from: startedAt, to: Date())
-  }
 }
